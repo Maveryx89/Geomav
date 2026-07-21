@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GEOMAV — Soluciones Geoespaciales y Recorridos 360°</title>
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─────────────────────────────────────────────
+       VARIABLES DE DISEÑO (SISTEMA DE DISEÑO)
+    ───────────────────────────────────────────── */
+    :root {
+      /* Paleta de Colores Corporativa */
+      --color-fondo:      #F4F3EF; /* Hueso / Off-white */
+      --color-blanco:     #FFFFFF;
+      --color-primario:   #0A2240; /* Azul Marino Profundo */
+      --color-secundario: #2C6B7E; /* Azul Océano / Teal */
+      --color-acento:     #D49A6A; /* Cobre / Ocre */
+
+      /* Variantes de Opacidad y Resplandor */
+      --color-borde:      rgba(10,34,64,0.08);
+      --color-sombra:     rgba(10,34,64,0.06);
+      --color-acento-tenue: rgba(212,154,106,0.1);
+
+      /* FIX: estas dos variables se usaban en varias reglas (textos secundarios,
+         etiquetas de métricas, footer) pero nunca estaban definidas.
+         Sin ellas, esos textos heredaban el color por defecto en vez del
+         tono atenuado esperado. */
+      --color-muted: rgba(10,34,64,0.65);
+      --color-dim:   rgba(10,34,64,0.5);
+
+      /* Tipografía y Espaciado */
+      --fuente-principal: 'Inter', system-ui, -apple-system, sans-serif;
+      --radio-borde:      8px;
+      --transicion:       0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      --ancho-maximo:     1200px;
+    }
+
+    /* ─────────────────────────────────────────────
+       ESTILOS BASE
+    ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--fuente-principal);
+      background-color: var(--color-fondo);
+      color: var(--color-primario);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* FIX: cuando el menú móvil está abierto, bloqueamos el scroll del body */
+    body.menu-abierto { overflow: hidden; }
+
+    /* Barra de desplazamiento */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--color-fondo); }
+    ::-webkit-scrollbar-thumb { background: var(--color-secundario); border-radius: 4px; }
+
+    /* Utilidades */
+    .contenedor {
+      max-width: var(--ancho-maximo);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .etiqueta-seccion {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--color-acento);
+      margin-bottom: 16px;
+    }
+    .etiqueta-seccion::before {
+      content: '';
+      width: 24px;
+      height: 2px;
+      background-color: var(--color-acento);
+    }
+
+    .titulo-seccion {
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+    }
+
+    .texto-destacado { color: var(--color-secundario); }
+    .texto-acento { color: var(--color-acento); }
+
+    /* Foco visible para accesibilidad de teclado (FIX) */
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: 2px solid var(--color-acento);
+      outline-offset: 3px;
+    }
+
+    /* ─────────────────────────────────────────────
+       COMPONENTES: BOTONES
+    ───────────────────────────────────────────── */
+    .boton {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 16px 32px;
+      border-radius: var(--radio-borde);
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: var(--transicion);
+      cursor: pointer;
+      border: none;
+      outline: none;
+    }
+
+    .boton:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    .boton-primario {
+      background-color: var(--color-primario);
+      color: var(--color-blanco);
+      box-shadow: 0 4px 12px rgba(10,34,64,0.15);
+    }
+    .boton-primario:hover {
+      background-color: var(--color-secundario);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(44,107,126,0.25);
+    }
+
+    .boton-acento {
+      background-color: var(--color-acento);
+      color: var(--color-blanco);
+      box-shadow: 0 4px 12px rgba(212,154,106,0.2);
+    }
+    .boton-acento:hover {
+      background-color: #c2895a;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(212,154,106,0.3);
+    }
+
+    .boton-contorno {
+      background-color: transparent;
+      color: var(--color-primario);
+      border: 2px solid var(--color-primario);
+    }
+    .boton-contorno:hover {
+      background-color: var(--color-primario);
+      color: var(--color-blanco);
+      transform: translateY(-3px);
+    }
+
+    /* ─────────────────────────────────────────────
+       NAVEGACIÓN
+    ───────────────────────────────────────────── */
+    .cabecera {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 24px 0;
+      transition: var(--transicion);
+    }
+
+    .cabecera-activa {
+      background-color: rgba(244,243,239,0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 16px 0;
+      border-bottom: 1px solid var(--color-borde);
+    }
+
+    .nav-flexible {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logotipo {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+    }
+    /* Logo real de GEOMAV (imagen). Se limita por altura para que encaje
+       en el espacio que antes ocupaban el ícono + texto del header/footer,
+       sin alterar el resto del layout. */
+    .logotipo-imagen {
+      height: 40px;
+      width: auto;
+      display: block;
+    }
+    .pie-marca .logotipo-imagen { height: 44px; }
+
+    .menu-lista {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+      list-style: none;
+    }
+    .menu-enlace {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--color-primario);
+      text-decoration: none;
+      transition: var(--transicion);
+      opacity: 0.8;
+    }
+    .menu-enlace:hover { opacity: 1; color: var(--color-secundario); }
+
+    /* FIX: .nav-acciones se usaba en el HTML pero no tenía regla propia;
+       el botón y el toggle móvil quedaban sin alineación ni espaciado consistentes. */
+    .nav-acciones {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .menu-movil-toggle {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 5px;
+    }
+    .menu-movil-toggle span {
+      width: 26px;
+      height: 2px;
+      background-color: var(--color-primario);
+      border-radius: 2px;
+      transition: var(--transicion);
+    }
+
+    .overlay-menu {
+      position: fixed;
+      inset: 0;
+      background-color: var(--color-fondo);
+      z-index: 1100;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+    }
+    .overlay-menu.abierto { display: flex; }
+
+    /* FIX: antes este botón vivía en un `style` inline pegado al borde superior
+       (top:30px), justo en la misma zona donde cae el botón de hamburguesa del
+       header. Como la cabecera tenía z-index mayor que el overlay, el ícono de
+       hamburguesa quedaba encima de la X y absorbía el clic. Ahora, además de
+       subir el z-index del overlay por encima de la cabecera, bajamos esta X
+       para que quede claramente separada del botón de hamburguesa y le damos
+       una zona de clic más generosa. */
+    .boton-cerrar-menu {
+      position: absolute;
+      top: 84px;
+      right: 24px;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      line-height: 1;
+      color: var(--color-primario);
+      cursor: pointer;
+      border-radius: 50%;
+      transition: var(--transicion);
+    }
+    .boton-cerrar-menu:hover { background-color: var(--color-borde); }
+    .overlay-enlace {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--color-primario);
+      text-decoration: none;
+    }
+
+    /* ─────────────────────────────────────────────
+       SECCIÓN HERO (INICIO)
+    ───────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      padding: 140px 0 100px;
+      overflow: hidden;
+    }
+
+    .hero-fondo-patron {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(var(--color-borde) 1.5px, transparent 1.5px);
+      background-size: 48px 48px;
+      opacity: 0.5;
+    }
+
+    .hero-cuadricula {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 80px;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-indicador {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background-color: var(--color-blanco);
+      border: 1px solid var(--color-borde);
+      padding: 10px 18px;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    .hero-indicador-punto {
+      width: 8px;
+      height: 8px;
+      background-color: var(--color-acento);
+      border-radius: 50%;
+      animation: pulso 2s infinite;
+    }
+    @keyframes pulso {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.5); opacity: 0.5; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* FIX: .hero-title se usaba en el <h1> pero no tenía ninguna regla propia,
+       por lo que caía a la tipografía por defecto del navegador (tamaño y
+       peso inconsistentes con el resto del sistema tipográfico del sitio). */
+    .hero-title {
+      font-size: clamp(2.4rem, 6vw, 3.6rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+    }
+
+    .hero-descripcion {
+      font-size: 1.2rem;
+      color: var(--color-muted);
+      max-width: 540px;
+      margin-bottom: 40px;
+    }
+
+    /* FIX: .hero-botones envolvía los dos CTA del hero pero no tenía regla
+       propia, por lo que no había espacio entre botones ni ajuste en móvil. */
+    .hero-botones {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    /* Visual Hero */
+    .hero-visual {
+      position: relative;
+      display: flex;
+      justify-content: center;
+    }
+    .esfera-contenedor {
+      width: 460px;
+      height: 460px;
+      background-color: var(--color-blanco);
+      border-radius: 50%;
+      box-shadow: 0 30px 80px var(--color-sombra);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .esfera-nucleo {
+      width: 120px;
+      height: 120px;
+      background-color: var(--color-primario);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+    .esfera-nucleo svg { width: 48px; height: 48px; fill: var(--color-blanco); }
+
+    .orbita-icono {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background-color: var(--color-blanco);
+      border: 1px solid var(--color-borde);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      animation: flotar 6s ease-in-out infinite;
+    }
+    .orbita-1 { top: 10%; left: 15%; animation-delay: 0s; }
+    .orbita-2 { top: 5%; right: 15%; animation-delay: 1s; }
+    .orbita-3 { bottom: 15%; left: 5%; animation-delay: 2s; }
+    .orbita-4 { bottom: 10%; right: 10%; animation-delay: 1.5s; }
+
+    @keyframes flotar {
+      0%, 100% { transform: translateY(0) rotate(0); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+    }
+
+    /* ─────────────────────────────────────────────
+       SECCIÓN SERVICIOS
+    ───────────────────────────────────────────── */
+    .servicios { padding: 120px 0; }
+    .servicios-cuadricula {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+    }
+
+    .tarjetas-servicios {
+      display: grid;
+      gap: 24px;
+    }
+    .tarjeta-servicio {
+      background-color: var(--color-blanco);
+      border: 1px solid var(--color-borde);
+      padding: 36px;
+      border-radius: 4px;
+      transition: var(--transicion);
+      display: flex;
+      gap: 24px;
+    }
+    .tarjeta-servicio:hover {
+      border-color: var(--color-secundario);
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px var(--color-sombra);
+    }
+    .servicio-icono {
+      width: 64px;
+      height: 64px;
+      background-color: var(--color-fondo);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+    .servicio-titulo { font-size: 1.25rem; font-weight: 800; margin-bottom: 10px; }
+    .servicio-descripcion { font-size: 0.95rem; color: var(--color-muted); }
+
+    .proceso-pasos { margin-top: 48px; display: grid; gap: 32px; }
+    .proceso-paso { display: flex; gap: 24px; }
+    .paso-numero {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--color-acento);
+      opacity: 0.4;
+      line-height: 1;
+    }
+    .paso-cuerpo strong { display: block; font-size: 1.15rem; font-weight: 800; margin-bottom: 6px; }
+    .paso-cuerpo p { font-size: 0.95rem; color: var(--color-muted); }
+
+    /* ─────────────────────────────────────────────
+       SECCIÓN BENEFICIOS
+    ───────────────────────────────────────────── */
+    .beneficios { padding: 120px 0; background-color: var(--color-blanco); }
+    .beneficios-cuadricula {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 40px;
+      margin-top: 70px;
+    }
+    .beneficio-item {
+      padding: 40px 0;
+      border-top: 2px solid var(--color-borde);
+      transition: var(--transicion);
+    }
+    .beneficio-item:hover { border-top-color: var(--color-secundario); }
+    .beneficio-metrica {
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--color-primario);
+      display: block;
+      margin-bottom: 16px;
+    }
+    .beneficio-titulo { font-size: 1.1rem; font-weight: 800; margin-bottom: 12px; }
+    .beneficio-texto { font-size: 0.9rem; color: var(--color-muted); }
+
+    /* ─────────────────────────────────────────────
+       SECCIÓN PORTAFOLIO (INTERACTIVO)
+    ───────────────────────────────────────────── */
+    .portafolio { padding: 120px 0; }
+    .portafolio-cabecera {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 50px;
+      flex-wrap: wrap;
+      gap: 30px;
+    }
+
+    .pestanas-control {
+      display: flex;
+      gap: 40px;
+      border-bottom: 1px solid var(--color-borde);
+    }
+    .pestana-boton {
+      padding: 16px 0;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--color-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: var(--transicion);
+    }
+    .pestana-boton.activa {
+      color: var(--color-primario);
+      border-bottom-color: var(--color-acento);
+    }
+
+    .visor-contenedor {
+      background-color: var(--color-blanco);
+      border: 1px solid var(--color-borde);
+      border-radius: 4px;
+      box-shadow: 0 40px 100px var(--color-sombra);
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 16/9;
+    }
+    .visor-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background-color: #eee;
+      display: none; /* Se activa por JS */
+    }
+    .visor-iframe.activo { display: block; animation: aparecer 0.8s ease forwards; }
+
+    .visor-portada {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(rgba(10,34,64,0.1), rgba(10,34,64,0.3)), url('https://images.unsplash.com/photo-1503387762-592dee58c160?auto=format&fit=crop&q=80&w=1600') center/cover;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      transition: var(--transicion);
+    }
+    .visor-portada.oculto { opacity: 0; pointer-events: none; }
+
+    .play-icono {
+      width: 100px;
+      height: 100px;
+      background-color: var(--color-primario);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+      transition: var(--transicion);
+    }
+    .play-icono:hover { transform: scale(1.1); background-color: var(--color-secundario); }
+    .play-icono svg { width: 36px; height: 36px; fill: var(--color-blanco); margin-left: 8px; }
+
+    @keyframes aparecer {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Aviso de contenido de demostración (FIX: antes los tours de ejemplo
+       se mostraban sin ninguna indicación de que eran placeholders) */
+    .visor-aviso {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 6;
+      background-color: rgba(10,34,64,0.85);
+      color: var(--color-blanco);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 6px 12px;
+      border-radius: 50px;
+    }
+
+    /* Cuadrícula de recorridos 360° seleccionables (solo visible en la
+       pestaña "Recorridos 360°"). Cada tarjeta representa un tour distinto;
+       al hacer clic, se carga en el visor de arriba. */
+    .tours-grid {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .tours-grid.visible { display: grid; }
+
+    .tour-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background-color: var(--color-blanco);
+      border: 2px solid var(--color-borde);
+      border-radius: 4px;
+      padding: 16px;
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      transition: var(--transicion);
+    }
+    .tour-card:hover {
+      border-color: var(--color-secundario);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px var(--color-sombra);
+    }
+    .tour-card.activa {
+      border-color: var(--color-acento);
+      background-color: var(--color-acento-tenue);
+    }
+    .tour-card-icono {
+      width: 48px;
+      height: 48px;
+      background-color: var(--color-fondo);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    .tour-card-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+    .tour-card-titulo {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--color-primario);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tour-card-ubicacion {
+      font-size: 0.8rem;
+      color: var(--color-muted);
+    }
+    .tour-card-badge {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 9px;
+      border-radius: 50px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .badge-real { background-color: rgba(76,175,80,0.15); color: #3d8b43; }
+    .badge-ejemplo { background-color: var(--color-borde); color: var(--color-dim); }
+
+    /* ─────────────────────────────────────────────
+       SECCIÓN CONTACTO
+    ───────────────────────────────────────────── */
+    .contacto { padding: 120px 0; background-color: var(--color-primario); color: var(--color-blanco); }
+    .contacto-cuadricula {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 100px;
+      align-items: center;
+    }
+    .contacto-info .titulo-seccion { color: var(--color-blanco); }
+    .contacto-subtitulo { color: rgba(255,255,255,0.7); font-size: 1.1rem; margin-bottom: 40px; }
+
+    .datos-contacto { display: grid; gap: 30px; margin-top: 50px; }
+    .dato-item strong { display: block; font-size: 0.85rem; color: var(--color-acento); text-transform: uppercase; margin-bottom: 8px; }
+    .dato-item a { color: var(--color-blanco); font-size: 1.3rem; text-decoration: none; font-weight: 700; transition: var(--transicion); }
+    .dato-item a:hover { color: var(--color-acento); }
+
+    /* Formulario */
+    .formulario-grupo { margin-bottom: 28px; }
+    .formulario-etiqueta {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+      color: rgba(255,255,255,0.5);
+    }
+    .formulario-entrada, .formulario-seleccion, .formulario-area {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid rgba(255,255,255,0.2);
+      padding: 12px 0;
+      color: var(--color-blanco);
+      font-family: inherit;
+      font-size: 1rem;
+      outline: none;
+      transition: var(--transicion);
+    }
+    .formulario-entrada:focus, .formulario-seleccion:focus, .formulario-area:focus {
+      border-bottom-color: var(--color-acento);
+    }
+    .formulario-seleccion option { background-color: var(--color-primario); color: white; }
+    .formulario-area { min-height: 110px; resize: none; }
+
+    /* Estilo del selector de archivos para que combine con el resto del formulario */
+    input[type="file"].formulario-entrada {
+      padding: 10px 0;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.7);
+    }
+    input[type="file"].formulario-entrada::file-selector-button {
+      background-color: var(--color-acento);
+      color: var(--color-blanco);
+      border: none;
+      border-radius: var(--radio-borde);
+      padding: 8px 16px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-right: 14px;
+      cursor: pointer;
+      transition: var(--transicion);
+    }
+    input[type="file"].formulario-entrada::file-selector-button:hover {
+      background-color: #c2895a;
+    }
+
+    /* FIX: mensaje de estado del formulario (éxito / error) en vez de alert() */
+    .formulario-estado {
+      display: none;
+      margin-top: 20px;
+      padding: 14px 18px;
+      border-radius: var(--radio-borde);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .formulario-estado.visible { display: block; }
+    .formulario-estado.exito { background-color: rgba(76, 175, 80, 0.15); color: #8fd99a; }
+    .formulario-estado.error { background-color: rgba(220, 53, 69, 0.15); color: #f3a0a8; }
+
+    /* ─────────────────────────────────────────────
+       FOOTER
+    ───────────────────────────────────────────── */
+    .pie-pagina { padding: 80px 0 40px; background-color: var(--color-blanco); }
+    .pie-cuadricula {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 60px;
+      margin-bottom: 60px;
+    }
+    .pie-titulo-col { font-size: 0.9rem; font-weight: 800; text-transform: uppercase; margin-bottom: 24px; color: var(--color-primario); }
+    .pie-enlaces { list-style: none; display: grid; gap: 12px; }
+    .pie-enlace { text-decoration: none; color: var(--color-muted); font-size: 0.95rem; transition: var(--transicion); }
+    .pie-enlace:hover { color: var(--color-secundario); }
+
+    .pie-inferior {
+      padding-top: 40px;
+      border-top: 1px solid var(--color-borde);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      color: var(--color-dim);
+    }
+
+    /* ─────────────────────────────────────────────
+       EFECTOS DE REVELACIÓN (SCROLL REVEAL)
+    ───────────────────────────────────────────── */
+    .revelar {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .revelar-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Respetar preferencia de menos movimiento, pero sin eliminar el fundido
+       de entrada del contenido (solo se desactivan las animaciones decorativas
+       en loop: el punto pulsante y los íconos flotantes del hero). */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .hero-indicador-punto,
+      .orbita-icono {
+        animation: none;
+      }
+    }
+
+    /* ─────────────────────────────────────────────
+       RESPONSIVIDAD
+    ───────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .hero-cuadricula, .servicios-cuadricula, .contacto-cuadricula { grid-template-columns: 1fr; gap: 60px; }
+      .beneficios-cuadricula { grid-template-columns: repeat(2, 1fr); }
+      .pie-cuadricula { grid-template-columns: 1fr 1fr; }
+      .esfera-contenedor { width: 380px; height: 380px; }
+    }
+
+    @media (max-width: 768px) {
+      .menu-lista, .cabecera .boton { display: none; }
+      .menu-movil-toggle { display: flex; }
+      .beneficios-cuadricula { grid-template-columns: 1fr; }
+      .pie-cuadricula { grid-template-columns: 1fr; gap: 40px; }
+      .pestanas-control { gap: 20px; overflow-x: auto; padding-bottom: 10px; }
+      .pestana-boton { font-size: 0.8rem; white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="#" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="#portafolio" class="menu-enlace">Portafolio</a></li>
+          <li><a href="#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="#servicios" class="overlay-enlace">Servicios</a>
+    <a href="#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="#portafolio" class="overlay-enlace">Portafolio</a>
+    <a href="#contacto" class="overlay-enlace">Contacto</a>
+    <a href="#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+  <!-- SECCIÓN HERO -->
+  <section class="hero" id="inicio">
+    <div class="hero-fondo-patron"></div>
+    <div class="contenedor">
+      <div class="hero-cuadricula">
+        <div class="hero-textos">
+          <div class="hero-indicador">
+            <span class="hero-indicador-punto"></span>
+            Precisión Técnica & Innovación 360°
+          </div>
+          <h1 class="hero-title">
+            Topografía de <span class="texto-destacado">precisión</span> para proyectos de alto impacto.
+          </h1>
+          <p class="hero-descripcion">
+            GEOMAV entrega soluciones integrales de topografía técnica, fotogrametría con drones y recorridos virtuales interactivos.
+          </p>
+          <div class="hero-botones">
+            <a href="#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+            <a href="#portafolio" class="boton boton-contorno">Ver Portafolio</a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="esfera-contenedor">
+            <div class="esfera-nucleo">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+            </div>
+            <div class="orbita-icono orbita-1">📏</div>
+            <div class="orbita-icono orbita-2">🛸</div>
+            <div class="orbita-icono orbita-3">🌐</div>
+            <div class="orbita-icono orbita-4">🏗️</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN SERVICIOS -->
+  <section class="servicios" id="servicios">
+    <div class="contenedor">
+      <div class="servicios-cuadricula">
+        <div class="servicios-info revelar">
+          <span class="etiqueta-seccion">Nuestros Servicios</span>
+          <h2 class="titulo-seccion">Soluciones <span class="texto-destacado">geodésicas</span> y visuales de vanguardia.</h2>
+          <p class="servicio-descripcion">En GEOMAV combinamos el rigor técnico de la topografía con la potencia de la visualización inmersiva para los sectores inmobiliario, agrícola e industrial.</p>
+
+          <div class="proceso-pasos">
+            <div class="proceso-paso">
+              <span class="paso-numero">01</span>
+              <div class="paso-cuerpo">
+                <strong>Topografía de Precisión</strong>
+                <p>Levantamientos georreferenciados, replanteos y control de obras con instrumental de alta gama.</p>
+              </div>
+            </div>
+            <div class="proceso-paso">
+              <span class="paso-numero">02</span>
+              <div class="paso-cuerpo">
+                <strong>Fotogrametría Aérea</strong>
+                <p>Mapeo con drones, ortomosaicos, nubes de puntos y modelos digitales de elevación (DEM).</p>
+              </div>
+            </div>
+            <div class="proceso-paso">
+              <span class="paso-numero">03</span>
+              <div class="paso-cuerpo">
+                <strong>Recorridos Virtuales 360°</strong>
+                <p>Tours interactivos 4K para preventa inmobiliaria e inspección remota de instalaciones.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tarjetas-servicios revelar">
+          <div class="tarjeta-servicio">
+            <div class="servicio-icono">🏗️</div>
+            <div class="servicio-cuerpo">
+              <h3 class="servicio-titulo">Topografía & Obra</h3>
+              <p class="servicio-descripcion">Control milimétrico de avances y georreferenciación de proyectos civiles.</p>
+            </div>
+          </div>
+          <div class="tarjeta-servicio">
+            <div class="servicio-icono">🚜</div>
+            <div class="servicio-cuerpo">
+              <h3 class="servicio-titulo">Sector Agrícola</h3>
+              <p class="servicio-descripcion">Curvas de nivel, Subdivisión, verificación de predios.</p>
+            </div>
+          </div>
+          <div class="tarjeta-servicio">
+            <div class="servicio-icono">🏢</div>
+            <div class="servicio-cuerpo">
+              <h3 class="servicio-titulo">Recorridos Virtuales 360°</h3>
+              <p class="servicio-descripcion">Explora proyectos en construcción, vende o arrienda propiedades y muestra cualquier espacio al detalle, sin necesidad de moverte de donde estás.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN BENEFICIOS -->
+  <section class="beneficios" id="beneficios">
+    <div class="contenedor">
+      <div class="revelar" style="text-align:center;">
+        <span class="etiqueta-seccion">Valor Agregado</span>
+        <h2 class="titulo-seccion">Eficiencia operativa <span class="texto-acento">garantizada</span>.</h2>
+      </div>
+      <!-- FIX: cada métrica ahora usa data-sufijo en vez de depender de parsear
+           el texto inicial (%, -, /7, ×). Así el contador no se rompe si el
+           HTML de partida cambia. -->
+      <div class="beneficios-cuadricula">
+        <div class="beneficio-item revelar">
+          <span class="beneficio-metrica" data-objetivo="99" data-sufijo="%">0%</span>
+          <h3 class="beneficio-titulo">Precisión Técnica</h3>
+          <p class="beneficio-texto">Garantizamos datos exactos para la toma de decisiones críticas en terreno.</p>
+        </div>
+        <div class="beneficio-item revelar">
+          <span class="beneficio-metrica" data-objetivo="70" data-prefijo="-" data-sufijo="%">-0%</span>
+          <h3 class="beneficio-titulo">Ahorro de Tiempo</h3>
+          <p class="beneficio-texto">Optimización de capturas mediante tecnología dron en grandes extensiones.</p>
+        </div>
+        <div class="beneficio-item revelar">
+          <span class="beneficio-metrica" data-objetivo="24" data-sufijo="/7">0/7</span>
+          <h3 class="beneficio-titulo">Acceso Remoto</h3>
+          <p class="beneficio-texto">Visualización inmersiva disponible en cualquier dispositivo y horario.</p>
+        </div>
+        <div class="beneficio-item revelar">
+          <span class="beneficio-metrica" data-objetivo="5" data-sufijo="×">0×</span>
+          <h3 class="beneficio-titulo">Más Consultas</h3>
+          <p class="beneficio-texto">Los recorridos 360° incrementan drásticamente el interés de los clientes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN PORTAFOLIO -->
+  <section class="portafolio" id="portafolio">
+    <div class="contenedor">
+      <div class="portafolio-cabecera revelar">
+        <div>
+          <span class="etiqueta-seccion">Portafolio</span>
+          <h2 class="titulo-seccion">Casos de <span class="texto-destacado">Éxito</span>.</h2>
+        </div>
+        <div class="pestanas-control">
+          <button class="pestana-boton activa" data-tipo="topografia">Topografía</button>
+          <button class="pestana-boton" data-tipo="drones">Drones / Mapeo</button>
+          <button class="pestana-boton" data-tipo="tours">Recorridos 360°</button>
+        </div>
+      </div>
+
+      <div class="visor-contenedor revelar">
+        <!-- FIX: aviso visible de que el contenido es de demostración mientras
+             no se reemplacen las URLs reales en urlsTours (ver script al final) -->
+        <span class="visor-aviso" id="visorAviso">Ejemplo — reemplazar por proyecto real</span>
+        <div class="visor-portada" id="portadaVisor">
+          <div class="play-icono" id="botonIniciarVisor" title="Activar Visor Interactivo">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <p style="margin-top:24px; font-weight:800; color:white; text-transform:uppercase; letter-spacing:0.1em;">Iniciar Visualización Interactiva</p>
+        </div>
+
+        <!-- Iframe optimizado para XR y Sensores -->
+        <iframe
+          id="iframeVisor"
+          class="visor-iframe"
+          src=""
+          allow="xr-spatial-tracking; gyroscope; accelerometer; fullscreen;"
+          loading="lazy"
+          title="Visor Interactivo GEOMAV">
+        </iframe>
+      </div>
+
+      <!-- Cuadrícula de proyectos disponibles en la pestaña activa (Topografía,
+           Drones/Mapeo o Recorridos 360°). Se genera por JS a partir de
+           `proyectosPortafolio` — para agregar un proyecto nuevo solo hay que
+           añadir un elemento al arreglo de esa pestaña, sin tocar este HTML. -->
+      <div class="tours-grid" id="toursGrid"></div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN CONTACTO -->
+  <section class="contacto" id="contacto">
+    <div class="contenedor">
+      <div class="contacto-cuadricula">
+        <div class="contacto-info revelar">
+          <span class="etiqueta-seccion" style="color:var(--color-acento);">Contacto</span>
+          <h2 class="titulo-seccion">Impulsa tu proyecto <span class="texto-acento">hoy mismo</span>.</h2>
+          <p class="contacto-subtitulo">Solicita tu presupuesto sin compromiso.</p>
+
+          <div class="datos-contacto">
+            <div class="dato-item">
+              <strong>Email de Contacto</strong>
+              <a href="mailto:mverdugoa89@gmail.com">mverdugoa89@gmail.com</a>
+            </div>
+            <div class="dato-item">
+              <strong>Teléfono / WhatsApp</strong>
+              <a href="tel:+56984867813">+569 84867813</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="revelar">
+          <!--
+            Formulario conectado a Formspree (https://formspree.io/f/xkodbwna).
+            Los envíos llegan por correo a la cuenta con la que se creó ese
+            formulario en Formspree. El plan gratuito permite 50 envíos/mes.
+          -->
+          <form id="formularioContacto" action="https://formspree.io/f/xkodbwna" method="POST" enctype="multipart/form-data">
+            <div class="formulario-grupo">
+              <label class="formulario-etiqueta" for="nombre">Nombre Completo *</label>
+              <input type="text" id="nombre" name="nombre" class="formulario-entrada" placeholder="Ej. Juan Pérez" required>
+            </div>
+            <div class="formulario-grupo">
+              <label class="formulario-etiqueta" for="email">Correo *</label>
+              <input type="email" id="email" name="email" class="formulario-entrada" placeholder="ejemplo@empresa.cl" required>
+            </div>
+            <div class="formulario-grupo">
+              <label class="formulario-etiqueta" for="region">Región del Proyecto *</label>
+              <select id="region" name="region" class="formulario-seleccion" required>
+                <option value="" disabled selected>Selecciona la región</option>
+                <option value="arica-parinacota">Arica y Parinacota</option>
+                <option value="tarapaca">Tarapacá</option>
+                <option value="antofagasta">Antofagasta</option>
+                <option value="atacama">Atacama</option>
+                <option value="coquimbo">Coquimbo</option>
+                <option value="valparaiso">Valparaíso</option>
+                <option value="metropolitana">Metropolitana de Santiago</option>
+                <option value="ohiggins">O'Higgins</option>
+                <option value="maule">Maule</option>
+                <option value="nuble">Ñuble</option>
+                <option value="biobio">Biobío</option>
+                <option value="araucania">La Araucanía</option>
+                <option value="los-rios">Los Ríos</option>
+                <option value="los-lagos">Los Lagos</option>
+                <option value="aysen">Aysén</option>
+                <option value="magallanes">Magallanes</option>
+              </select>
+            </div>
+            <div class="formulario-grupo">
+              <label class="formulario-etiqueta" for="mensaje">Mensaje / Requerimientos</label>
+              <textarea id="mensaje" name="mensaje" class="formulario-area" placeholder="Cuéntanos sobre tu proyecto: ¿Necesitas topografía, mapeo dron o tour 360?"></textarea>
+            </div>
+            <div class="formulario-grupo">
+              <label class="formulario-etiqueta" for="documentos">Adjuntar documentos (PDF, Word, etc.)</label>
+              <input type="file" id="documentos" name="documentos" class="formulario-entrada" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple>
+            </div>
+            <button type="submit" class="boton boton-acento" style="width:100%;">Enviar Solicitud</button>
+            <div id="formularioEstado" class="formulario-estado" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="#" class="logotipo">
+            <img src="geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─────────────────────────────────────────────
+       SCRIPTS DE INTERACTIVIDAD
+  ───────────────────────────────────────────── -->
+  <script>
+    // 1. Manejo de Navegación y Menú Móvil
+    const cabecera = document.getElementById('cabeceraPrincipal');
+    const botonMenu = document.getElementById('botonMenuMovil');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const cerrarMenu = document.getElementById('cerrarMenuMovil');
+
+    window.addEventListener('scroll', () => {
+      cabecera.classList.toggle('cabecera-activa', window.scrollY > 50);
+    });
+
+    function abrirMenuMovil() {
+      menuOverlay.classList.add('abierto');
+      document.body.classList.add('menu-abierto'); // FIX: bloquea el scroll de fondo
+      botonMenu.setAttribute('aria-expanded', 'true');
+      botonMenu.style.visibility = 'hidden'; // FIX: evita que quede encima de la X al cerrar
+      cerrarMenu.focus();
+    }
+
+    function cerrarMenuMovil() {
+      menuOverlay.classList.remove('abierto');
+      document.body.classList.remove('menu-abierto');
+      botonMenu.setAttribute('aria-expanded', 'false');
+      botonMenu.style.visibility = 'visible';
+      botonMenu.focus();
+    }
+
+    botonMenu.addEventListener('click', abrirMenuMovil);
+    cerrarMenu.addEventListener('click', cerrarMenuMovil);
+
+    // FIX: cerrar el menú móvil con la tecla Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && menuOverlay.classList.contains('abierto')) {
+        cerrarMenuMovil();
+      }
+    });
+
+    document.querySelectorAll('.overlay-enlace').forEach(enlace => {
+      enlace.addEventListener('click', cerrarMenuMovil);
+    });
+
+    // 2. Efecto de Revelación (Intersection Observer)
+    const opcionesRevelar = { threshold: 0.15, rootMargin: '0px 0px -50px 0px' };
+    const observadorRevelar = new IntersectionObserver((entradas) => {
+      entradas.forEach(entrada => {
+        if (entrada.isIntersecting) {
+          entrada.target.classList.add('revelar-visible');
+          // Si el elemento tiene contadores, iniciarlos
+          const contadores = entrada.target.querySelectorAll('.beneficio-metrica');
+          contadores.forEach(cont => animarContador(cont));
+        }
+      });
+    }, opcionesRevelar);
+
+    document.querySelectorAll('.revelar').forEach(el => observadorRevelar.observe(el));
+
+    // 3. Animación de Contadores Numéricos
+    // FIX: antes se detectaba el formato (%, -, /, ×) parseando el texto inicial
+    // del elemento, lo que se rompía silenciosamente si el HTML cambiaba.
+    // Ahora el prefijo/sufijo vienen de data-prefijo / data-sufijo.
+    function animarContador(el) {
+      if (el.dataset.animado === 'true') return;
+      const objetivo = parseInt(el.dataset.objetivo, 10);
+      const prefijo = el.dataset.prefijo || '';
+      const sufijo = el.dataset.sufijo || '';
+      const duracion = 2000;
+      const incremento = objetivo / (duracion / 16);
+      let actual = 0;
+
+      const actualizar = () => {
+        actual += incremento;
+        if (actual < objetivo) {
+          el.textContent = prefijo + Math.floor(actual) + sufijo;
+          requestAnimationFrame(actualizar);
+        } else {
+          el.textContent = prefijo + objetivo + sufijo;
+          el.dataset.animado = 'true';
+        }
+      };
+      actualizar();
+    }
+
+    // 4. Lógica del Portafolio Interactivo e Iframe
+    const botonesPestana = document.querySelectorAll('.pestana-boton');
+    const iframeVisor = document.getElementById('iframeVisor');
+    const portadaVisor = document.getElementById('portadaVisor');
+    const botonIniciar = document.getElementById('botonIniciarVisor');
+    const visorAviso = document.getElementById('visorAviso');
+    const proyectosGrid = document.getElementById('toursGrid');
+
+    // ─────────────────────────────────────────────
+    // PROYECTOS DEL PORTAFOLIO, agrupados por pestaña (topografia / drones / tours).
+    // Cada pestaña puede tener uno o varios proyectos: se muestran como tarjetas
+    // seleccionables debajo del visor.
+    //
+    // PARA AGREGAR UN NUEVO PROYECTO: agrega un objeto más al arreglo de la
+    // pestaña correspondiente, con:
+    //   id        (único dentro de esa pestaña)
+    //   titulo    (nombre del proyecto)
+    //   ubicacion (ciudad/región o referencia)
+    //   url       (enlace embebible del mapa/recorrido)
+    //   real      (true si ya es un proyecto real, false si es ejemplo/placeholder)
+    //   icono     (opcional, un emoji; si se omite usa el ícono por defecto de la pestaña)
+    //
+    // ⚠️ Los proyectos marcados con real:false son solo ejemplos para que el
+    // visor funcione en la demo — reemplázalos antes de publicar el sitio
+    // (por eso se muestra el aviso "Ejemplo" sobre el visor).
+    // ─────────────────────────────────────────────
+    const proyectosPortafolio = {
+      topografia: [
+        {
+          id: 'ejemplo-topografia-1',
+          titulo: 'Levantamiento Predial (ejemplo)',
+          ubicacion: 'Demo',
+          url: 'https://www.google.com/maps/embed?pb=!4v1717145000000!6m8!1m2!1sAF1QipO_x-Xv9p_x-Xv9p_x-Xv9p_x-Xv9p_x-Xv9p_x!2m2!1d-34.170!2d-70.740!3f0!4f0!5f0.78',
+          real: false
+        },
+        {
+          id: 'ejemplo-topografia-2',
+          titulo: 'Control de Obra (ejemplo)',
+          ubicacion: 'Demo',
+          url: 'https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d1000!2d-71.55!3d-34.98!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1ses!2scl!4v1717146000000!5m2!1ses!2scl',
+          real: false
+        },
+        {
+          id: 'plano-real-1',
+          titulo: 'Plano Topográfico',
+          ubicacion: 'Documento PDF',
+          // Enlace de Google Drive convertido a formato "preview" para poder
+          // embeberlo (incluye zoom nativo del visor de Google).
+          url: 'https://drive.google.com/file/d/1nS63Jp2wjZUknOJXReWGOUaiTkc49moz/preview',
+          real: true,
+          icono: '📄'
+        }
+      ],
+      drones: [
+        {
+          id: 'ejemplo-drones-1',
+          titulo: 'Mapeo Agrícola (ejemplo)',
+          ubicacion: 'Demo',
+          url: 'https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d1000!2d-71.22!3d-35.42!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1ses!2scl!4v1717145000000!5m2!1ses!2scl',
+          real: false
+        },
+        {
+          id: 'ejemplo-drones-2',
+          titulo: 'Ortomosaico Industrial (ejemplo)',
+          ubicacion: 'Demo',
+          url: 'https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d1000!2d-72.60!3d-36.82!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1ses!2scl!4v1717147000000!5m2!1ses!2scl',
+          real: false
+        }
+      ],
+      tours: [
+        {
+          id: 'porticos-ohiggins',
+          titulo: 'Pórticos',
+          ubicacion: "Región de O'Higgins",
+          url: 'https://porticos-region-ohhiggins-rev2.netlify.app/',
+          real: true,
+          icono: '🏠'
+        },
+        {
+          id: 'ejemplo-comercial',
+          titulo: 'Edificio Comercial (ejemplo)',
+          ubicacion: 'Demo Matterport',
+          url: 'https://my.matterport.com/show/?m=SX97bx7Y663',
+          real: false,
+          icono: '🏢'
+        }
+      ]
+    };
+
+    // Íconos por defecto según la pestaña, usados si el proyecto no define uno propio
+    const iconosPorTipo = { topografia: '📐', drones: '🛸', tours: '🏠' };
+
+    // Guarda cuál es el proyecto activo (seleccionado) dentro de cada pestaña
+    const activoPorTipo = {
+      topografia: proyectosPortafolio.topografia[0].id,
+      drones: proyectosPortafolio.drones[0].id,
+      tours: proyectosPortafolio.tours[0].id
+    };
+
+    function obtenerTipoActivo() {
+      return document.querySelector('.pestana-boton.activa').dataset.tipo;
+    }
+
+    function obtenerProyectoActivo(tipo) {
+      const lista = proyectosPortafolio[tipo];
+      return lista.find(p => p.id === activoPorTipo[tipo]) || lista[0];
+    }
+
+    function renderizarGrid(tipo) {
+      const lista = proyectosPortafolio[tipo];
+      proyectosGrid.innerHTML = '';
+      lista.forEach(proyecto => {
+        const activo = proyecto.id === activoPorTipo[tipo];
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tour-card' + (activo ? ' activa' : '');
+        btn.setAttribute('aria-pressed', activo ? 'true' : 'false');
+        btn.innerHTML = `
+          <span class="tour-card-icono">${proyecto.icono || iconosPorTipo[tipo]}</span>
+          <span class="tour-card-info">
+            <strong class="tour-card-titulo">${proyecto.titulo}</strong>
+            <span class="tour-card-ubicacion">${proyecto.ubicacion}</span>
+          </span>
+          <span class="tour-card-badge ${proyecto.real ? 'badge-real' : 'badge-ejemplo'}">${proyecto.real ? 'Proyecto real' : 'Ejemplo'}</span>
+        `;
+        btn.addEventListener('click', () => seleccionarProyecto(tipo, proyecto.id));
+        proyectosGrid.appendChild(btn);
+      });
+      proyectosGrid.classList.add('visible');
+    }
+
+    function actualizarAviso(esReal) {
+      visorAviso.style.display = esReal ? 'none' : 'block';
+    }
+
+    function cargarEnVisor(url) {
+      if (iframeVisor.classList.contains('activo')) {
+        iframeVisor.style.opacity = '0';
+        setTimeout(() => {
+          iframeVisor.src = url;
+          iframeVisor.style.opacity = '1';
+        }, 300);
+      } else {
+        iframeVisor.src = url;
+      }
+      portadaVisor.classList.add('oculto');
+      iframeVisor.classList.add('activo');
+    }
+
+    function seleccionarProyecto(tipo, id) {
+      activoPorTipo[tipo] = id;
+      const proyecto = obtenerProyectoActivo(tipo);
+      actualizarAviso(proyecto.real);
+      cargarEnVisor(proyecto.url);
+      renderizarGrid(tipo);
+    }
+
+    botonesPestana.forEach(boton => {
+      boton.addEventListener('click', () => {
+        botonesPestana.forEach(b => b.classList.remove('activa'));
+        boton.classList.add('activa');
+
+        const tipo = boton.dataset.tipo;
+        const proyecto = obtenerProyectoActivo(tipo);
+
+        renderizarGrid(tipo);
+        actualizarAviso(proyecto.real);
+
+        if (iframeVisor.classList.contains('activo')) {
+          iframeVisor.style.opacity = '0';
+          setTimeout(() => {
+            iframeVisor.src = proyecto.url;
+            iframeVisor.style.opacity = '1';
+          }, 300);
+        }
+      });
+    });
+
+    botonIniciar.addEventListener('click', () => {
+      const tipoActivo = obtenerTipoActivo();
+      const proyecto = obtenerProyectoActivo(tipoActivo);
+      cargarEnVisor(proyecto.url);
+      actualizarAviso(proyecto.real);
+    });
+
+    // Cuadrícula inicial (la pestaña Topografía está activa por defecto al cargar)
+    renderizarGrid('topografia');
+
+    // 5. Envío de Formulario
+    // FIX: antes era una simulación (setTimeout + alert). Ahora se envía de
+    // verdad al endpoint definido en el atributo `action` del <form>, usando
+    // fetch para no recargar la página, y mostrando el resultado en pantalla
+    // en vez de un alert().
+    const formularioContacto = document.getElementById('formularioContacto');
+    const formularioEstado = document.getElementById('formularioEstado');
+
+    formularioContacto.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      const textoOriginal = btn.textContent;
+      const regionSeleccionada = document.getElementById('region');
+      const regionTexto = regionSeleccionada.options[regionSeleccionada.selectedIndex].text;
+
+      btn.textContent = 'Enviando...';
+      btn.disabled = true;
+      formularioEstado.className = 'formulario-estado';
+
+      try {
+        const datos = new FormData(formularioContacto);
+        const respuesta = await fetch(formularioContacto.action, {
+          method: 'POST',
+          body: datos,
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (respuesta.ok) {
+          formularioEstado.textContent = `¡Gracias! Hemos recibido tu solicitud para la región de ${regionTexto}. Un consultor técnico de GEOMAV te contactará en menos de 24 horas.`;
+          formularioEstado.classList.add('visible', 'exito');
+          formularioContacto.reset();
+        } else {
+          throw new Error('Respuesta no exitosa del servidor');
+        }
+      } catch (error) {
+        formularioEstado.textContent = 'No pudimos enviar tu solicitud automáticamente. Por favor escríbenos directo a mverdugoa89@gmail.com o al WhatsApp +569 84867813.';
+        formularioEstado.classList.add('visible', 'error');
+      } finally {
+        btn.textContent = textoOriginal;
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
