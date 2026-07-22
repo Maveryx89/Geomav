@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GEOMAV — Soluciones Geoespaciales y Recorridos 360°</title>
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="#" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="aprende.html" class="menu-enlace">Aprende</a></li>
+          <li class="menu-item-dropdown">
+            <a href="#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🛸</span> Drones / Mapeo
+              </a>
+              <a href="recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="#servicios" class="overlay-enlace">Servicios</a>
+    <a href="#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="aprende.html" class="overlay-enlace">Aprende</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="drones-mapeo.html" class="submenu-movil-enlace">🛸 Drones / Mapeo</a>
+        <a href="recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="#contacto" class="overlay-enlace">Contacto</a>
+    <a href="#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+  <!-- SECCIÓN HERO -->
+  <section class="hero" id="inicio">
+    <div class="hero-fondo-patron"></div>
+    <div class="contenedor">
+      <div class="hero-cuadricula">
+        <div class="hero-textos">
+          <div class="hero-indicador">
+            <span class="hero-indicador-punto"></span>
+            Precisión Técnica & Innovación 360°
+          </div>
+          <h1 class="hero-title">
+            Topografía de <span class="texto-destacado">precisión</span> para proyectos de alto impacto.
+          </h1>
+          <p class="hero-descripcion">
+            GEOMAV entrega soluciones integrales de topografía técnica, fotogrametría con drones y recorridos virtuales interactivos.
+          </p>
+          <div class="hero-botones">
+            <a href="#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+            <a href="#portafolio" class="boton boton-contorno">Ver Portafolio</a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="esfera-contenedor">
+            <div class="esfera-nucleo">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+            </div>
+            <div class="orbita-icono orbita-1">📏</div>
+            <div class="orbita-icono orbita-2">🛸</div>
+            <div class="orbita-icono orbita-3">🌐</div>
+            <div class="orbita-icono orbita-4">🏗️</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN SERVICIOS -->
+  <section class="servicios" id="servicios">
+    <div class="contenedor">
+      <div class="servicios-cuadricula">
+        <div class="servicios-info revelar">
+          <span class="etiqueta-seccion">Nuestros Servicios</span>
+          <h2 class="titulo-seccion">Soluciones <span class="texto-destacado">geodésicas</span> y visuales de vanguardia.</h2>
+          <p class="servicio-descripcion">En GEOMAV combinamos el rigor técnico de la topografía con la potencia de la visualización inmersiva para los sectores inmobiliario, agrícola e industrial.</p>
+
+          <div class="proceso-pasos">
+            <div class="proceso-paso">
+              <span class="paso-numero">01</span>
+              <div class="paso-cuerpo">
+                <strong>Topografía de Precisión</strong>
+                <p>Levantamientos georreferenciados, replanteos y control de obras con instrumental de alta gama.</p>
+              </div>
+            </div>
+            <div class="proceso-paso">
+              <span class="paso-numero">02</span>
+              <div class="paso-cuerpo">
+                <strong>Fotogrametría Aérea</strong>
+                <p>Mapeo con drones, ortomosaicos, nubes de puntos y modelos digitales de elevación (DEM).</p>
+              </div>
+            </div>
+            <div class="proceso-paso">
+              <span class="paso-numero">03</span>
+              <div class="paso-cuerpo">
+                <strong>Recorridos Virtuales 360°</strong>
+                <p>Tours interactivos 4K para preventa inmobiliaria e inspección remota de instalaciones.</p>
+              </div>
+            </div>
+            <div class="proceso-paso">
+              <span class="paso-numero">04</span>
+              <div class="paso-cuerpo">
+                <strong>Time-Lapse de Obra</strong>
+                <p>Registro fotográfico periódico que condensa el avance completo de una obra en un video corto, útil para respaldo, difusión y control de plazos.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tarjetas-servicios revelar">
+          <div class="tarjeta-servicio">
+            <div class="servicio-icono">🏗️</div>
+            <div class="servicio-cuerpo">
+              <h3 class="servicio-titulo">Topografía & Obra</h3>
+              <p class="servicio-descripcion">Control milimétrico de avances y georreferenciación de proyectos civiles.</p>
+            </div>
+          </div>
+          <div class="tarjeta-servicio">
+            <div class="servicio-icono">🚜</div>
+            <div class="servicio-cuerpo">
+              <h3 class="servicio-titulo">Sector Agrícola</h3>
+              <p class="servicio-descripcion">Curvas de nivel, Subdivisión, verificación de predios.</p>
+            </div>
+          </div>
+          <div class="tarjeta-servicio">
+            <div class="servicio-icono">🏢</div>
+            <div class="servicio-cuerpo">
+              <h3 class="servicio-titulo">Recorridos Virtuales 360°</h3>
+              <p class="servicio-descripcion">Explora proyectos en construcción, vende o arrienda propiedades y muestra cualquier espacio al detalle, sin necesidad de moverte de donde estás.</p>
+            </div>
+          </div>
+          <div class="tarjeta-servicio">
+            <div class="servicio-icono">🎥</div>
+            <div class="servicio-cuerpo">
+              <h3 class="servicio-titulo">Time-Lapse de Obra</h3>
+              <p class="servicio-descripcion">Registro fotográfico periódico que condensa el avance completo de una obra en un video corto, útil para respaldo, difusión y control de plazos.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN BENEFICIOS -->
+  <section class="beneficios" id="beneficios">
+    <div class="contenedor">
+      <div class="revelar" style="text-align:center;">
+        <span class="etiqueta-seccion">Valor Agregado</span>
+        <h2 class="titulo-seccion">Eficiencia operativa <span class="texto-acento">garantizada</span>.</h2>
+      </div>
+      <!-- FIX: cada métrica ahora usa data-sufijo en vez de depender de parsear
+           el texto inicial (%, -, /7, ×). Así el contador no se rompe si el
+           HTML de partida cambia. -->
+      <div class="beneficios-cuadricula">
+        <div class="beneficio-item revelar">
+          <span class="beneficio-metrica" data-objetivo="99" data-sufijo="%">0%</span>
+          <h3 class="beneficio-titulo">Precisión Técnica</h3>
+          <p class="beneficio-texto">Garantizamos datos exactos para la toma de decisiones críticas en terreno.</p>
+        </div>
+        <div class="beneficio-item revelar">
+          <span class="beneficio-metrica" data-objetivo="70" data-prefijo="-" data-sufijo="%">-0%</span>
+          <h3 class="beneficio-titulo">Ahorro de Tiempo</h3>
+          <p class="beneficio-texto">Optimización de capturas mediante tecnología dron en grandes extensiones.</p>
+        </div>
+        <div class="beneficio-item revelar">
+          <span class="beneficio-metrica" data-objetivo="24" data-sufijo="/7">0/7</span>
+          <h3 class="beneficio-titulo">Acceso Remoto</h3>
+          <p class="beneficio-texto">Visualización inmersiva disponible en cualquier dispositivo y horario.</p>
+        </div>
+        <div class="beneficio-item revelar">
+          <span class="beneficio-metrica" data-objetivo="5" data-sufijo="×">0×</span>
+          <h3 class="beneficio-titulo">Más Consultas</h3>
+          <p class="beneficio-texto">Los recorridos 360° incrementan drásticamente el interés de los clientes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN PORTAFOLIO -->
+  <section class="portafolio" id="portafolio">
+    <div class="contenedor">
+      <div class="portafolio-cabecera revelar">
+        <div>
+          <span class="etiqueta-seccion">Portafolio</span>
+          <h2 class="titulo-seccion">Casos de <span class="texto-destacado">Éxito</span>.</h2>
+        </div>
+        <div class="pestanas-control">
+          <button class="pestana-boton activa" data-tipo="topografia">Topografía</button>
+          <button class="pestana-boton" data-tipo="drones">Drones / Mapeo</button>
+          <button class="pestana-boton" data-tipo="tours">Recorridos 360°</button>
+          <button class="pestana-boton" data-tipo="timelapse">Time-Lapse de Obra</button>
+        </div>
+      </div>
+
+      <div class="visor-contenedor revelar">
+        <div class="visor-portada" id="portadaVisor">
+          <div class="play-icono" id="botonIniciarVisor" title="Activar Visor Interactivo">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <p style="margin-top:24px; font-weight:800; color:white; text-transform:uppercase; letter-spacing:0.1em;">Iniciar Visualización Interactiva</p>
+        </div>
+
+        <!-- Iframe optimizado para XR y Sensores -->
+        <iframe
+          id="iframeVisor"
+          class="visor-iframe"
+          src=""
+          allow="xr-spatial-tracking; gyroscope; accelerometer; fullscreen; autoplay; encrypted-media; picture-in-picture;"
+          loading="lazy"
+          title="Visor Interactivo GEOMAV">
+        </iframe>
+      </div>
+
+      <!-- Cuadrícula de proyectos disponibles en la pestaña activa (Topografía,
+           Drones/Mapeo o Recorridos 360°). Se genera por JS a partir de
+           `proyectosPortafolio` — para agregar un proyecto nuevo solo hay que
+           añadir un elemento al arreglo de esa pestaña, sin tocar este HTML. -->
+      <div class="tours-grid" id="toursGrid"></div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN CONTACTO -->
+  <section class="contacto" id="contacto">
+    <div class="contenedor">
+      <div class="contacto-cuadricula">
+        <div class="contacto-info revelar">
+          <span class="etiqueta-seccion" style="color:var(--color-acento);">Contacto</span>
+          <h2 class="titulo-seccion">Impulsa tu proyecto <span class="texto-acento">hoy mismo</span>.</h2>
+          <p class="contacto-subtitulo">Solicita tu presupuesto sin compromiso.</p>
+
+          <div class="iconos-contacto">
+            <!-- WhatsApp: abre un chat directo con el mensaje ya escrito -->
+            <a
+              class="icono-contacto"
+              href="https://wa.me/56984867813?text=Hola%20Geomav%2C%20necesito%20ayuda%20con%20un%20proyecto"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Escribir por WhatsApp">
+              <svg viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.2 4.79 1.2h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m5.98 14.02c-.25.71-1.45 1.36-2 1.44-.51.08-1.15.11-1.86-.12-.43-.14-.98-.32-1.69-.63-2.97-1.28-4.91-4.27-5.06-4.47-.15-.2-1.21-1.61-1.21-3.07s.76-2.18 1.03-2.48c.27-.29.59-.36.79-.36l.56.01c.18.01.42-.07.66.5.25.6.84 2.07.91 2.22.07.15.12.33.02.53-.09.2-.14.32-.28.5-.14.17-.29.38-.42.51-.14.14-.28.29-.12.57.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.6-.07.16-.19.68-.79.87-1.06.18-.27.36-.22.6-.13.25.09 1.57.74 1.84.87.27.13.45.2.51.31.07.11.07.65-.18 1.36Z"/></svg>
+            </a>
+            <!-- LinkedIn: abre el perfil profesional -->
+            <a
+              class="icono-contacto"
+              href="https://www.linkedin.com/in/mario-verdugo-astorga-335956203"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Ver perfil de LinkedIn">
+              <svg viewBox="0 0 24 24"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.44-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.11 20.45H3.56V9h3.55v11.45Z"/></svg>
+            </a>
+            <!-- Correo: abre el cliente de correo del visitante con el mensaje listo para enviar -->
+            <a
+              class="icono-contacto"
+              href="mailto:mverdugoa89@gmail.com"
+              aria-label="Enviar correo">
+              <svg viewBox="0 0 24 24"><path d="M2 5.5A1.5 1.5 0 0 1 3.5 4h17A1.5 1.5 0 0 1 22 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 18.5v-13Zm2.2.5 7.8 6.24L19.8 6H4.2Zm15.8 1.61-7.36 5.89a1 1 0 0 1-1.28 0L4 7.61V18h16V7.61Z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="revelar">
+          <!--
+            Formulario conectado a Formspree (https://formspree.io/f/xkodbwna).
+            Los envíos llegan por correo a la cuenta con la que se creó ese
+            formulario en Formspree. El plan gratuito permite 50 envíos/mes.
+          -->
+          <form id="formularioContacto" action="https://formspree.io/f/xkodbwna" method="POST" enctype="multipart/form-data">
+            <div class="formulario-grupo">
+              <label class="formulario-etiqueta" for="nombre">Nombre Completo *</label>
+              <input type="text" id="nombre" name="nombre" class="formulario-entrada" placeholder="Ej. Juan Pérez" required>
+            </div>
+            <div class="formulario-grupo">
+              <label class="formulario-etiqueta" for="email">Correo *</label>
+              <input type="email" id="email" name="email" class="formulario-entrada" placeholder="ejemplo@empresa.cl" required>
+            </div>
+            <div class="formulario-grupo">
+              <label class="formulario-etiqueta" for="region">Región del Proyecto *</label>
+              <select id="region" name="region" class="formulario-seleccion" required>
+                <option value="" disabled selected>Selecciona la región</option>
+                <option value="arica-parinacota">Arica y Parinacota</option>
+                <option value="tarapaca">Tarapacá</option>
+                <option value="antofagasta">Antofagasta</option>
+                <option value="atacama">Atacama</option>
+                <option value="coquimbo">Coquimbo</option>
+                <option value="valparaiso">Valparaíso</option>
+                <option value="metropolitana">Metropolitana de Santiago</option>
+                <option value="ohiggins">O'Higgins</option>
+                <option value="maule">Maule</option>
+                <option value="nuble">Ñuble</option>
+                <option value="biobio">Biobío</option>
+                <option value="araucania">La Araucanía</option>
+                <option value="los-rios">Los Ríos</option>
+                <option value="los-lagos">Los Lagos</option>
+                <option value="aysen">Aysén</option>
+                <option value="magallanes">Magallanes</option>
+              </select>
+            </div>
+            <div class="formulario-grupo">
+              <label class="formulario-etiqueta" for="mensaje">Mensaje / Requerimientos</label>
+              <textarea id="mensaje" name="mensaje" class="formulario-area" placeholder="Cuéntanos sobre tu proyecto: ¿Necesitas topografía, mapeo dron o tour 360?"></textarea>
+            </div>
+            <div class="formulario-grupo">
+              <label class="formulario-etiqueta" for="documentos">Adjuntar documentos (PDF, Word, etc.)</label>
+              <input type="file" id="documentos" name="documentos" class="formulario-entrada" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple>
+            </div>
+            <button type="submit" class="boton boton-acento" style="width:100%;">Enviar Solicitud</button>
+            <div id="formularioEstado" class="formulario-estado" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="#" class="logotipo">
+            <img src="geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="aprende.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─────────────────────────────────────────────
+       SCRIPTS DE INTERACTIVIDAD
+  ───────────────────────────────────────────── -->
+  <script src="assets/js/portafolio-data.js"></script>
+  <script src="assets/js/site.js"></script>
+  <script src="assets/js/portafolio-home.js"></script>
+  <script src="assets/js/contacto.js"></script>
+</body>
+</html>
