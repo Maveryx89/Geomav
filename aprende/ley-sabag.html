@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GEOMAV — Topografía</title>
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="index.html" class="menu-enlace">Aprende</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🛸</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="index.html" class="overlay-enlace">Aprende</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🛸 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+  <!-- CABECERA DEL ARTÍCULO -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="index.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Aprende
+      </a>
+      <span class="etiqueta-seccion">Normativa / Subdivisión</span>
+      <h1 class="titulo-seccion">¿Qué es la <span class="texto-destacado">Ley Sabag</span>?</h1>
+      <p class="pagina-hero-descripcion">Una guía simple sobre la Ley N° 19.807, la norma que permite subdividir un predio rural para traspasar un lote a un hijo u otro familiar directo, sin cumplir con la superficie mínima que exige la regla general.</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL ARTÍCULO -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>El problema que buscó resolver</h2>
+        <p>En Chile, la subdivisión de un predio rústico (rural) está regulada por el <a href="decreto-ley-3516.html" style="color:var(--color-secundario); font-weight:700;">Decreto Ley N° 3.516 de 1980</a>. Como regla general, ese decreto exige que cada lote resultante de una subdivisión tenga como mínimo 0,5 hectáreas (5.000 m²), justamente para evitar el loteo descontrolado de terrenos agrícolas.</p>
+        <p>Esa regla, sin embargo, dejaba en una situación difícil a muchas familias de campo: hijos que vivían como allegados en el terreno de sus padres, sin poder inscribir una porción a su propio nombre —y por lo tanto, sin poder acceder a subsidios de vivienda rural, que normalmente exigen tener un título de dominio propio.</p>
+
+        <h2>Qué permite la Ley Sabag</h2>
+        <p>La Ley N° 19.807, conocida como "Ley Sabag" por el diputado que impulsó la moción, promulgada en 2002, agregó una excepción a esa regla general. Permite transferir, <strong>por una sola vez</strong>, una porción de un predio rural a un ascendiente o descendiente directo (por ejemplo, de padre a hijo, o de hijo a padre), en superficies menores a las 0,5 hectáreas exigidas normalmente —en la práctica, se usa para lotes de entre 500 y 1.000 m².</p>
+        <p>El objetivo declarado de la ley fue habitacional: darle a esa persona un terreno propio donde construir su vivienda, no crear un negocio inmobiliario de loteos.</p>
+
+        <h2>Requisitos principales</h2>
+        <ul>
+          <li>La transferencia debe ser <strong>por una sola vez</strong> por predio de origen.</li>
+          <li>Debe hacerse a favor de un pariente en línea directa —ascendiente o descendiente— hasta el primer grado de consanguinidad o afinidad (por ejemplo, un hijo, un padre, o un yerno/nuera).</li>
+          <li>El fin declarado debe ser que esa persona construya <strong>una vivienda para sí misma</strong>.</li>
+          <li>El predio de origen no debe provenir de una subdivisión anterior hecha bajo esta misma norma.</li>
+          <li>El avalúo fiscal del predio, a la fecha de la transferencia, no debe superar el equivalente a 1.000 UF.</li>
+          <li>El lote transferido queda con <strong>prohibición legal de venta durante 5 años</strong>, inscrita de oficio por el Conservador de Bienes Raíces.</li>
+        </ul>
+
+        <h2>¿Cómo se relaciona con la topografía?</h2>
+        <p>Para acogerse a la Ley Sabag hace falta un plano de subdivisión georreferenciado, firmado por un profesional competente, que identifique con precisión el lote que se va a transferir dentro del predio de origen —incluyendo deslindes, superficie exacta y coordenadas. Ese plano es la base con la que después se tramita la escritura ante notario y la inscripción en el Conservador de Bienes Raíces.</p>
+        <p>En GEOMAV apoyamos esa primera etapa: el levantamiento topográfico y la elaboración del plano de subdivisión que tu abogado o notario va a necesitar para tramitar el traspaso.</p>
+
+        <div class="articulo-aviso-legal">
+          <strong>Nota:</strong> este artículo es solo una guía informativa general y no reemplaza la asesoría de un abogado. Cada caso tiene particularidades (superficie del predio de origen, ubicación, historial de subdivisiones previas) que conviene revisar con un profesional antes de iniciar el trámite.
+        </div>
+
+        <div class="articulo-cta">
+          <p>¿Necesitas el plano de subdivisión para tramitar tu Ley Sabag?</p>
+          <a href="../index.html#contacto" class="boton boton-acento">Solicitar Cotización</a>
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="index.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
