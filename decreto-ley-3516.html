@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GEOMAV — Topografía</title>
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="aprende.html" class="menu-enlace">Aprende</a></li>
+          <li class="menu-item-dropdown">
+            <a href="index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🛸</span> Drones / Mapeo
+              </a>
+              <a href="recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="aprende.html" class="overlay-enlace">Aprende</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="drones-mapeo.html" class="submenu-movil-enlace">🛸 Drones / Mapeo</a>
+        <a href="recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+  <!-- CABECERA DEL ARTÍCULO -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="aprende.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Aprende
+      </a>
+      <span class="etiqueta-seccion">Normativa / Subdivisión</span>
+      <h1 class="titulo-seccion">Decreto Ley <span class="texto-destacado">3.516</span> explicado</h1>
+      <p class="pagina-hero-descripcion">La norma que desde 1980 regula cómo se puede subdividir un predio rústico en Chile: la regla general, sus excepciones, y el sistema de certificación del SAG — incluida su versión más reciente, con el nuevo rol de los "Terceros Autorizados".</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL ARTÍCULO -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>Qué regula esta norma</h2>
+        <p>El Decreto Ley 3.516, publicado en 1980 por el Ministerio de Agricultura, es la norma base que permite subdividir predios rústicos en Chile —es decir, terrenos de aptitud agrícola, ganadera o forestal ubicados fuera de los límites urbanos o de los planes reguladores intercomunales de Santiago, Valparaíso y del plan regulador metropolitano de Concepción—. Su objetivo, desde su origen, fue frenar la urbanización descontrolada del campo: por eso exige que cada lote resultante de una subdivisión tenga como mínimo 0,5 hectáreas (5.000 m²), salvo que se aplique alguna de las excepciones que la misma ley contempla.</p>
+
+        <h2>Las excepciones a la superficie mínima</h2>
+        <p>El artículo 1° del decreto reconoce varias situaciones en las que se puede subdividir por debajo de las 0,5 hectáreas. Entre las más relevantes para propietarios particulares:</p>
+        <ul>
+          <li><strong>Retazos anexados a un predio vecino</strong>: cuando se vende una porción de terreno para sumarla al predio rústico contiguo, sin que quede como lote independiente.</li>
+          <li><strong>Transferencias a organizaciones sin fines de lucro, al Fisco, municipalidades, gobiernos regionales</strong> u organizaciones comunitarias y sindicales.</li>
+          <li><strong>La "Ley Sabag"</strong> (letra j, agregada por la Ley 19.807): transferencia única a un ascendiente o descendiente directo, en lotes de entre 500 y 1.000 m², para que esa persona construya su propia vivienda. <a href="ley-sabag.html" style="color:var(--color-secundario); font-weight:700;">Ver el artículo completo sobre la Ley Sabag →</a></li>
+        </ul>
+        <p>Un detalle importante: aun cuando se aplique una excepción, el SAG igual revisa que se cumplan los demás requisitos de la ley (acceso a un espacio público, que la superficie total no sobrepase la del predio original, formato correcto del plano, etc.) — la excepción libera solo del mínimo de 0,5 hectáreas, no del resto de la normativa.</p>
+
+        <h2>Cómo se certifica una subdivisión</h2>
+        <p>Para que una subdivisión sea legalmente válida, el Servicio Agrícola y Ganadero (SAG) debe emitir un <strong>Certificado de Subdivisión de Predio Rústico</strong>, que acredita que el proyecto cumple con la normativa vigente. Sin este certificado, ni los notarios pueden autorizar la escritura de subdivisión ni el Conservador de Bienes Raíces puede inscribirla.</p>
+        <p>Para obtenerlo, el propietario (o quien lo represente) debe presentar una solicitud que incluye, entre otros documentos:</p>
+        <ul>
+          <li>Copia vigente de la inscripción de dominio del predio.</li>
+          <li>Certificado municipal que acredite que el predio está fuera del límite urbano.</li>
+          <li>Certificado de hipotecas, gravámenes y prohibiciones, y certificado de avalúo fiscal.</li>
+          <li>El plano del proyecto de subdivisión, elaborado por un profesional competente.</li>
+          <li>El comprobante de pago de la tarifa correspondiente.</li>
+        </ul>
+
+        <h2>El plano de subdivisión: quién puede hacerlo</h2>
+        <p>El plano es la pieza central del trámite. Debe estar georreferenciado, incluir un cuadro de superficies, croquis de ubicación, orientación norte, escala nominal y gráfica (la escala exigida varía según el tamaño de los lotes resultantes: por ejemplo, 1:1.000 para lotes de hasta 1 hectárea, hasta 1:50.000 para lotes de más de 500 hectáreas), y debe firmarlo un <strong>profesional competente</strong>.</p>
+        <p>¿Quién califica como profesional competente? Ingenieros geomensores, ingenieros agrónomos, ingenieros forestales, ingenieros civiles, arquitectos, constructores civiles, entre otros títulos afines. Un dato relevante y relativamente reciente: mediante un dictamen de la Contraloría General de la República de 2024, el título de <strong>Topógrafo</strong> (técnico de nivel superior) fue reconocido explícitamente como profesional competente para elaborar y firmar estos planos.</p>
+
+        <h2>Lo más nuevo: los "Terceros Autorizados" (revisor externo)</h2>
+        <p>Desde la actualización del procedimiento en 2024, el SAG incorporó una figura nueva para agilizar la tramitación: los <strong>Terceros Autorizados</strong>. Son personas naturales o jurídicas externas al SAG, previamente aprobadas por el Servicio, que pueden revisar y verificar una solicitud de subdivisión antes de que llegue al SAG.</p>
+        <p>En la práctica, esto significa que en las regiones donde ya está habilitado este sistema, el propietario puede optar por:</p>
+        <ul>
+          <li>Presentar su solicitud directamente al SAG (la vía tradicional), o</li>
+          <li>Presentarla a través de un Tercero Autorizado, quien revisa que el proyecto cumpla los requisitos técnicos y legales, emite un informe de verificación, y gestiona la tramitación ante el SAG en nombre del solicitante.</li>
+        </ul>
+        <p>El Tercero Autorizado no reemplaza al SAG —que conserva la facultad final de certificar o rechazar— pero sí puede acortar los tiempos de revisión, porque llega con el proyecto ya verificado técnicamente. Para operar, un Tercero Autorizado debe cumplir requisitos exigentes: contar con un responsable técnico y un asesor jurídico, infraestructura adecuada, y constituir una garantía de fiel cumplimiento de 200 UF a favor del SAG. La habilitación de esta modalidad se va extendiendo región por región, por lo que conviene confirmar si ya está disponible en la zona del predio.</p>
+        <p>Otra novedad reciente (2026) es que el poder de representación para tramitar la solicitud ya puede constar en firma electrónica simple o avanzada, además de la escritura pública o documento notarial tradicional.</p>
+
+        <h2>Qué pasa si no se cumple la norma</h2>
+        <p>El incumplimiento tiene consecuencias serias: multas a beneficio fiscal equivalentes al 200% del avalúo del predio dividido, paralización o demolición de obras a costa del infractor, y nulidad absoluta de los actos y contratos celebrados en contravención a la ley. La reincidencia duplica la multa.</p>
+
+        <div class="articulo-aviso-legal">
+          <strong>Nota:</strong> este artículo resume la normativa vigente de forma general y no reemplaza la asesoría de un abogado ni la revisión caso a caso del SAG. Los requisitos específicos (documentos, plazos, escalas de plano) pueden variar según la región y las características del predio.
+        </div>
+
+        <div class="articulo-cta">
+          <p>¿Necesitas el plano de subdivisión georreferenciado para tramitar tu certificación ante el SAG?</p>
+          <a href="index.html#contacto" class="boton boton-acento">Solicitar Cotización</a>
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="index.html" class="logotipo">
+            <img src="geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="aprende.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/site.js"></script>
+</body>
+</html>
