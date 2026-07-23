@@ -48,18 +48,44 @@ const proyectosPortafolio = {
       icono: '🛸'
     },
     {
-      id: 'ejemplo-drones-1',
-      titulo: 'Mapeo Agrícola (ejemplo)',
-      ubicacion: 'Demo',
-      url: 'https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d1000!2d-71.22!3d-35.42!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1ses!2scl!4v1717145000000!5m2!1ses!2scl',
-      real: false
+      id: 'cesfam-rauco-drones',
+      titulo: 'Cesfam Rauco',
+      ubicacion: 'Rauco',
+      url: 'https://drive.google.com/file/d/1wQrI2CczIqyBROf7AwM1-y9OaNwOK5VJ/preview',
+      real: true,
+      icono: '🛸'
     },
     {
-      id: 'ejemplo-drones-2',
-      titulo: 'Ortomosaico Industrial (ejemplo)',
-      ubicacion: 'Demo',
-      url: 'https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d1000!2d-72.60!3d-36.82!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1ses!2scl!4v1717147000000!5m2!1ses!2scl',
-      real: false
+      id: 'cesfam-chillan-viejo-drones',
+      titulo: 'Cesfam Chillán Viejo',
+      ubicacion: 'Chillán Viejo',
+      url: 'https://drive.google.com/file/d/1bWoZGXhCGtn76Ye0PgCgNhTLCaxR_gqW/preview',
+      real: true,
+      icono: '🛸'
+    },
+    {
+      id: 'cesfam-maule-norte',
+      titulo: 'Cesfam Maule Norte',
+      ubicacion: 'Maule Norte',
+      url: 'https://drive.google.com/file/d/1ERYcGSG3-O-HL5g_yvaskoDbqdr5N0FN/preview',
+      real: true,
+      icono: '🛸'
+    },
+    {
+      id: 'cesfam-curanipe-drones',
+      titulo: 'Cesfam Curanipe',
+      ubicacion: 'Curanipe',
+      url: 'https://drive.google.com/file/d/1NPuS2xaB60QBmSGf934GVEYMSYQVbj_-/preview',
+      real: true,
+      icono: '🛸'
+    },
+    {
+      id: 'cesfam-vichuquen-drones',
+      titulo: 'Cesfam Vichuquén',
+      ubicacion: 'Vichuquén',
+      url: 'https://drive.google.com/file/d/1LM3KkpcDyt8clpyY1xhQUIQCAZwVRV9M/preview',
+      real: true,
+      icono: '🛸'
     }
   ],
   tours: [
