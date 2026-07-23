@@ -93,7 +93,7 @@ const proyectosPortafolio = {
       id: 'porticos-ohiggins',
       titulo: 'Pórticos',
       ubicacion: "Región de O'Higgins",
-      url: 'https://porticos-region-ohhiggins-rev2.netlify.app/',
+      url: 'https://porticos-region-ohhiggins.netlify.app/',
       real: true,
       icono: '🏠'
     },
