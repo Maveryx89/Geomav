@@ -160,7 +160,7 @@
       left: 0;
       right: 0;
       z-index: 1000;
-      padding: 32px 0;
+      padding: 21px 0;
       transition: var(--transicion);
     }
 
@@ -168,7 +168,7 @@
       background-color: rgba(244,243,239,0.95);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      padding: 20px 0;
+      padding: 13px 0;
       border-bottom: 1px solid var(--color-borde);
     }
 
@@ -188,11 +188,11 @@
        Altura mayor que antes porque el logo actual es más cuadrado
        (ícono + texto apilados verticalmente) en vez de horizontal. */
     .logotipo-imagen {
-      height: 132px;
+      height: 88px;
       width: auto;
       display: block;
     }
-    .pie-marca .logotipo-imagen { height: 146px; }
+    .pie-marca .logotipo-imagen { height: 97px; }
 
     .menu-lista {
       display: flex;
@@ -201,7 +201,7 @@
       list-style: none;
     }
     .menu-enlace {
-      font-size: 1.3rem;
+      font-size: 0.87rem;
       font-weight: 600;
       color: var(--color-primario);
       text-decoration: none;
@@ -897,7 +897,7 @@
   gap: 12px;
   padding: 12px 14px;
   border-radius: 6px;
-  font-size: 1.25rem;
+  font-size: 0.83rem;
   font-weight: 600;
   color: var(--color-primario);
   text-decoration: none;
@@ -962,7 +962,7 @@
    PÁGINAS DE CATEGORÍA (Topografía / Drones / Recorridos / Time-Lapse)
 ───────────────────────────────────────────── */
 .pagina-hero {
-  padding: 210px 0 60px;
+  padding: 140px 0 60px;
 }
 .pagina-hero .titulo-seccion { margin-bottom: 12px; }
 .pagina-hero-descripcion {
