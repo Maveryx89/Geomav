@@ -248,6 +248,17 @@
     }
     .overlay-menu.abierto { display: flex; }
 
+    /* Logo dentro del menú móvil de pantalla completa, en la misma posición
+       (esquina superior izquierda) y mismo tamaño que en el header. */
+    .overlay-logo {
+      position: absolute;
+      top: 79px;
+      left: 24px;
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+    }
+
     /* FIX: antes este botón vivía en un `style` inline pegado al borde superior
        (top:30px), justo en la misma zona donde cae el botón de hamburguesa del
        header. Como la cabecera tenía z-index mayor que el overlay, el ícono de
