@@ -160,7 +160,7 @@
       left: 0;
       right: 0;
       z-index: 1000;
-      padding: 24px 0;
+      padding: 32px 0;
       transition: var(--transicion);
     }
 
@@ -168,7 +168,7 @@
       background-color: rgba(244,243,239,0.95);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      padding: 16px 0;
+      padding: 20px 0;
       border-bottom: 1px solid var(--color-borde);
     }
 
@@ -184,23 +184,24 @@
       text-decoration: none;
     }
     /* Logo real de GEOMAV (imagen). Se limita por altura para que encaje
-       en el espacio que antes ocupaban el ícono + texto del header/footer,
-       sin alterar el resto del layout. */
+       en el espacio del header/footer, sin alterar el resto del layout.
+       Altura mayor que antes porque el logo actual es más cuadrado
+       (ícono + texto apilados verticalmente) en vez de horizontal. */
     .logotipo-imagen {
-      height: 40px;
+      height: 132px;
       width: auto;
       display: block;
     }
-    .pie-marca .logotipo-imagen { height: 44px; }
+    .pie-marca .logotipo-imagen { height: 146px; }
 
     .menu-lista {
       display: flex;
       align-items: center;
-      gap: 40px;
+      gap: 36px;
       list-style: none;
     }
     .menu-enlace {
-      font-size: 0.9rem;
+      font-size: 1.3rem;
       font-weight: 600;
       color: var(--color-primario);
       text-decoration: none;
@@ -896,7 +897,7 @@
   gap: 12px;
   padding: 12px 14px;
   border-radius: 6px;
-  font-size: 0.88rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--color-primario);
   text-decoration: none;
@@ -961,7 +962,7 @@
    PÁGINAS DE CATEGORÍA (Topografía / Drones / Recorridos / Time-Lapse)
 ───────────────────────────────────────────── */
 .pagina-hero {
-  padding: 150px 0 60px;
+  padding: 210px 0 60px;
 }
 .pagina-hero .titulo-seccion { margin-bottom: 12px; }
 .pagina-hero-descripcion {
