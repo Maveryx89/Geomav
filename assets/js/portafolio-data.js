@@ -45,7 +45,7 @@ const proyectosPortafolio = {
       ubicacion: 'Paillaco',
       url: 'https://drive.google.com/file/d/1d89oq7ygNcAdV29CrGD4zA0l2c0_kMEz/preview',
       real: true,
-      icono: '🛸'
+      icono: '🚁'
     },
     {
       id: 'cesfam-rauco-drones',
@@ -53,7 +53,7 @@ const proyectosPortafolio = {
       ubicacion: 'Rauco',
       url: 'https://drive.google.com/file/d/1wQrI2CczIqyBROf7AwM1-y9OaNwOK5VJ/preview',
       real: true,
-      icono: '🛸'
+      icono: '🚁'
     },
     {
       id: 'cesfam-chillan-viejo-drones',
@@ -61,7 +61,7 @@ const proyectosPortafolio = {
       ubicacion: 'Chillán Viejo',
       url: 'https://drive.google.com/file/d/1bWoZGXhCGtn76Ye0PgCgNhTLCaxR_gqW/preview',
       real: true,
-      icono: '🛸'
+      icono: '🚁'
     },
     {
       id: 'cesfam-maule-norte',
@@ -69,7 +69,7 @@ const proyectosPortafolio = {
       ubicacion: 'Maule Norte',
       url: 'https://drive.google.com/file/d/1ERYcGSG3-O-HL5g_yvaskoDbqdr5N0FN/preview',
       real: true,
-      icono: '🛸'
+      icono: '🚁'
     },
     {
       id: 'cesfam-curanipe-drones',
@@ -77,7 +77,7 @@ const proyectosPortafolio = {
       ubicacion: 'Curanipe',
       url: 'https://drive.google.com/file/d/1NPuS2xaB60QBmSGf934GVEYMSYQVbj_-/preview',
       real: true,
-      icono: '🛸'
+      icono: '🚁'
     },
     {
       id: 'cesfam-vichuquen-drones',
@@ -85,7 +85,7 @@ const proyectosPortafolio = {
       ubicacion: 'Vichuquén',
       url: 'https://drive.google.com/file/d/1LM3KkpcDyt8clpyY1xhQUIQCAZwVRV9M/preview',
       real: true,
-      icono: '🛸'
+      icono: '🚁'
     }
   ],
   tours: [
@@ -140,4 +140,4 @@ const proyectosPortafolio = {
 };
 
 // Íconos por defecto según la pestaña, usados si el proyecto no define uno propio
-const iconosPorTipo = { topografia: '📐', drones: '🛸', tours: '🏠', timelapse: '🎥' };
+const iconosPorTipo = { topografia: '📐', drones: '🚁', tours: '🏠', timelapse: '🎥' };
