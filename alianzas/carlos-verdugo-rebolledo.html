@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GEOMAV — Topografía</title>
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="../aprende/" class="menu-enlace">Aprende</a></li>
+          <li><a href="index.html" class="menu-enlace">Alianzas</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="../aprende/" class="overlay-enlace">Aprende</a>
+    <a href="index.html" class="overlay-enlace">Alianzas</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+
+  <!-- CABECERA DEL PERFIL -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="index.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Alianzas
+      </a>
+      <span class="etiqueta-seccion">Alianzas / Abogado</span>
+      <div class="perfil-colaborador-cabecera">
+        <span class="perfil-colaborador-avatar">⚖️</span>
+        <h1 class="titulo-seccion" style="margin-bottom:0;">Carlos <span class="texto-destacado">Verdugo Rebolledo</span></h1>
+      </div>
+      <p class="pagina-hero-descripcion">Abogado especializado en derecho inmobiliario y subdivisiones de terreno, con experiencia en litigación civil, laboral y de familia.</p>
+
+      <div class="perfil-contacto-directo">
+        <a class="perfil-contacto-boton" href="https://wa.me/56977793580" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.2 4.79 1.2h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m5.98 14.02c-.25.71-1.45 1.36-2 1.44-.51.08-1.15.11-1.86-.12-.43-.14-.98-.32-1.69-.63-2.97-1.28-4.91-4.27-5.06-4.47-.15-.2-1.21-1.61-1.21-3.07s.76-2.18 1.03-2.48c.27-.29.59-.36.79-.36l.56.01c.18.01.42-.07.66.5.25.6.84 2.07.91 2.22.07.15.12.33.02.53-.09.2-.14.32-.28.5-.14.17-.29.38-.42.51-.14.14-.28.29-.12.57.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.6-.07.16-.19.68-.79.87-1.06.18-.27.36-.22.6-.13.25.09 1.57.74 1.84.87.27.13.45.2.51.31.07.11.07.65-.18 1.36Z"/></svg>
+          +56 9 7779 3580
+        </a>
+        <a class="perfil-contacto-boton" href="mailto:ceverdugor@gmail.com">
+          <svg viewBox="0 0 24 24"><path d="M2 5.5A1.5 1.5 0 0 1 3.5 4h17A1.5 1.5 0 0 1 22 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 18.5v-13Zm2.2.5 7.8 6.24L19.8 6H4.2Zm15.8 1.61-7.36 5.89a1 1 0 0 1-1.28 0L4 7.61V18h16V7.61Z"/></svg>
+          ceverdugor@gmail.com
+        </a>
+        <a class="perfil-contacto-boton" href="https://asesoriasterranova.cl/" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.93 6h-2.95a15.65 15.65 0 0 0-1.38-3.56A8.03 8.03 0 0 1 18.93 8ZM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96ZM4.26 14a8.13 8.13 0 0 1 0-4h3.38a16.3 16.3 0 0 0 0 4H4.26Zm.81 2h2.95a15.65 15.65 0 0 0 1.38 3.56A8.03 8.03 0 0 1 5.07 16Zm2.95-8H5.07a8.03 8.03 0 0 1 4.33-3.56A15.65 15.65 0 0 0 8.02 8ZM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96ZM14.44 14H9.56a14.3 14.3 0 0 1 0-4h4.88a14.3 14.3 0 0 1 0 4Zm.21 5.56A15.65 15.65 0 0 0 16.03 16h2.95a8.03 8.03 0 0 1-4.33 3.56ZM16.36 14a16.3 16.3 0 0 0 0-4h3.38a8.13 8.13 0 0 1 0 4h-3.38Z"/></svg>
+          Asesorías Terranova
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL PERFIL -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>Sobre Carlos</h2>
+        <p>Carlos es abogado por la Universidad de Talca, egresado con distinción máxima en 2016, y candidato a Magíster en Derecho, mención Derecho Regulatorio, por la Pontificia Universidad Católica de Valparaíso. Cuenta con más de 5 años de experiencia litigando en materias civiles, laborales y de familia, tanto en tribunales inferiores como superiores de justicia.</p>
+        <p>Actualmente forma parte de <strong>Asesorías Terranova, Estudio Jurídico</strong>, con sede en Talca, donde además de la litigación se dedica a asesorías legislativas en la Región del Maule y a la representación judicial y extrajudicial de personas y organizaciones en conflictos locales.</p>
+
+        <h2>Áreas de especialidad</h2>
+        <ul>
+          <li><strong>Derecho inmobiliario y urbanismo:</strong> compraventas, arrendamientos, servidumbres, usufructos, hipotecas, copropiedad, y subdivisiones de inmuebles urbanos y rurales.</li>
+          <li><strong>Litigios y arbitrajes:</strong> materias civiles, de familia y laborales.</li>
+          <li><strong>Derecho laboral:</strong> contratos de trabajo, auditorías laborales preventivas, y litigación en tutela de derechos fundamentales.</li>
+          <li><strong>Derecho de familia:</strong> divorcios, compensación económica, pensión de alimentos y cuidado personal.</li>
+          <li><strong>Redacción de contratos y escrituras:</strong> compraventas, arrendamientos, cesión de derechos y constitución de sociedades.</li>
+        </ul>
+
+        <h2>Formación académica</h2>
+        <ul>
+          <li>Licenciado en Ciencias Jurídicas y Sociales, Universidad de Talca (2010–2016), con distinción máxima.</li>
+          <li>Candidato a Magíster en Derecho, mención Derecho Regulatorio, Pontificia Universidad Católica de Valparaíso.</li>
+          <li>Diplomado en Derecho de Familia, Instituto de Estudios Judiciales.</li>
+          <li>Curso de actualización en Derecho del Trabajo (2020), Instituto de Estudios Judiciales.</li>
+          <li>Becario de la beca "Juan Ignacio Abate Molina" para pasantía en la Universidad Pública de Navarra, España.</li>
+        </ul>
+
+        <h2>Cómo se conecta con GEOMAV</h2>
+        <p>Si tu proyecto de subdivisión requiere no solo el plano topográfico, sino también la tramitación legal correspondiente —por ejemplo, bajo la <a href="../aprende/ley-sabag.html" style="color:var(--color-secundario); font-weight:700;">Ley Sabag</a> o el <a href="../aprende/decreto-ley-3516.html" style="color:var(--color-secundario); font-weight:700;">Decreto Ley 3.516</a>—, Carlos puede asesorarte en la parte jurídica del proceso, en conjunto con el trabajo topográfico que realiza GEOMAV.</p>
+
+        <div class="articulo-aviso-legal">
+          <strong>Nota:</strong> Carlos Verdugo Rebolledo es un profesional independiente, colaborador externo de GEOMAV. GEOMAV facilita el contacto pero la relación contractual por servicios legales es directamente entre el cliente y el abogado.
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="../aprende/" class="pie-enlace">Aprende</a></li>
+            <li><a href="index.html" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
