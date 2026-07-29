@@ -394,14 +394,15 @@
     .esfera-nucleo {
       width: 120px;
       height: 120px;
-      background-color: var(--color-primario);
+      background-color: var(--color-blanco);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 2;
+      box-shadow: 0 10px 25px rgba(10,34,64,0.12);
     }
-    .esfera-nucleo svg { width: 48px; height: 48px; fill: var(--color-blanco); }
+    .esfera-nucleo img { width: 78px; height: auto; display: block; }
 
     .orbita-icono {
       position: absolute;
