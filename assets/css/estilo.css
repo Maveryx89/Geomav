@@ -302,14 +302,27 @@
       position: relative;
       padding: 140px 0 100px;
       overflow: hidden;
+      /* Foto de fondo temporal (placeholder) — reemplazar por una foto real
+         de un proyecto GEOMAV (terreno, vuelo de dron, obra) cuando esté
+         disponible. Solo hay que cambiar la URL de abajo. */
+      background-image:
+        linear-gradient(100deg, rgba(10,34,64,0.88) 0%, rgba(10,34,64,0.72) 42%, rgba(10,34,64,0.35) 100%),
+        url('https://images.unsplash.com/photo-1503387762-592dee58c160?auto=format&fit=crop&q=80&w=1920');
+      background-size: cover;
+      background-position: center;
     }
 
-    .hero-fondo-patron {
-      position: absolute;
-      inset: 0;
-      background-image: radial-gradient(var(--color-borde) 1.5px, transparent 1.5px);
-      background-size: 48px 48px;
-      opacity: 0.5;
+    .hero .hero-fondo-patron { display: none; }
+
+    .hero .texto-destacado { color: #7FD4E8; }
+
+    .hero .boton-contorno {
+      color: var(--color-blanco);
+      border-color: rgba(255,255,255,0.6);
+    }
+    .hero .boton-contorno:hover {
+      background-color: var(--color-blanco);
+      color: var(--color-primario);
     }
 
     .hero-cuadricula {
@@ -325,14 +338,17 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      background-color: var(--color-blanco);
-      border: 1px solid var(--color-borde);
+      background-color: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.25);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      color: var(--color-blanco);
       padding: 10px 18px;
       border-radius: 50px;
       font-size: 0.8rem;
       font-weight: 700;
       margin-bottom: 32px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
     .hero-indicador-punto {
       width: 8px;
@@ -356,11 +372,12 @@
       line-height: 1.1;
       letter-spacing: -0.03em;
       margin-bottom: 24px;
+      color: var(--color-blanco);
     }
 
     .hero-descripcion {
       font-size: 1.2rem;
-      color: var(--color-muted);
+      color: rgba(255,255,255,0.82);
       max-width: 540px;
       margin-bottom: 40px;
     }
