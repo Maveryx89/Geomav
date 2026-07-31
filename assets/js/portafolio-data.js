@@ -12,9 +12,12 @@
 //   id        (único dentro de esa categoría)
 //   titulo    (nombre del proyecto)
 //   ubicacion (ciudad/región o referencia)
-//   url       (enlace embebible del mapa/PDF/tour/video)
+//   url       (enlace embebible del mapa/PDF/tour/video, O ruta a un archivo .glb)
 //   real      (true si ya es un proyecto real, false si es ejemplo/placeholder)
 //   icono     (opcional, un emoji; si se omite usa el ícono por defecto de la categoría)
+//   modelo3d  (opcional, true si "url" es un archivo .glb de fotogrametría —
+//              en ese caso se muestra en el visor 3D interactivo en vez del
+//              iframe normal. Ejemplo de url: 'assets/models/mi-proyecto.glb')
 // ─────────────────────────────────────────────
 
 const proyectosPortafolio = {
@@ -41,7 +44,7 @@ const proyectosPortafolio = {
   drones: [
     {
       id: 'cesfam-lautaro-caro-rios',
-      titulo: 'Cesfam Paillaco',
+      titulo: 'Plano de Emplazamiento Cesfam Lautaro Caro Ríos',
       ubicacion: 'Paillaco',
       url: 'https://drive.google.com/file/d/1d89oq7ygNcAdV29CrGD4zA0l2c0_kMEz/preview',
       real: true,
