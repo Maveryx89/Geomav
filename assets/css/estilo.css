@@ -162,14 +162,17 @@
       z-index: 1000;
       padding: 14px 0;
       transition: var(--transicion);
+      /* Fondo siempre presente (no solo al hacer scroll) para que el logo y
+         los textos del menú mantengan contraste sobre la foto del hero. */
+      background-color: rgba(244,243,239,0.9);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--color-borde);
     }
 
     .cabecera-activa {
-      background-color: rgba(244,243,239,0.95);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      background-color: rgba(244,243,239,0.97);
       padding: 9px 0;
-      border-bottom: 1px solid var(--color-borde);
     }
 
     .nav-flexible {
