@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fusión y Subdivisión Simultánea de Predios | GEOMAV</title>
+  <meta name="description" content="Cómo unir dos predios vecinos y volver a subdividirlos con una nueva geometría (de horizontal a vertical, por ejemplo) en un solo trámite ante la DOM, según el artículo 3.1.3 de la OGUC." />
+  <link rel="canonical" href="https://geomav.me/aprende/fusion-y-subdivision-simultanea.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Fusión y Subdivisión Simultánea de Predios | GEOMAV" />
+  <meta property="og:description" content="Cómo unir dos predios vecinos y volver a subdividirlos con una nueva geometría (de horizontal a vertical, por ejemplo) en un solo trámite ante la DOM, según el artículo 3.1.3 de la OGUC." />
+  <meta property="og:url" content="https://geomav.me/aprende/fusion-y-subdivision-simultanea.html" />
+  <meta property="og:locale" content="es_CL" />
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="index.html" class="menu-enlace">Aprende</a></li>
+          <li><a href="../alianzas/" class="menu-enlace">Alianzas</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="index.html" class="overlay-enlace">Aprende</a>
+    <a href="../alianzas/" class="overlay-enlace">Alianzas</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+
+  <!-- CABECERA DEL ARTÍCULO -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="index.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Aprende
+      </a>
+      <span class="etiqueta-seccion">Normativa / Subdivisión Urbana</span>
+      <h1 class="titulo-seccion">Fusión y Subdivisión <span class="texto-destacado">Simultánea de Predios</span></h1>
+      <p class="pagina-hero-descripcion">Cómo unir dos predios vecinos y volver a subdividirlos con una geometría distinta —por ejemplo, cambiar lotes horizontales por verticales— en un solo trámite ante la Dirección de Obras Municipales.</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL ARTÍCULO -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>El caso típico</h2>
+<p>Tienes dos terrenos vecinos, ya subdivididos, con una forma que ya no te acomoda —por ejemplo, dos lotes alargados en sentido horizontal, y lo que en realidad necesitas son dos lotes en sentido vertical, o de otra proporción—. La solución no es necesariamente subdividir de nuevo desde cero: existe un trámite pensado justo para este tipo de reordenamiento, llamado <strong>fusión y subdivisión simultánea</strong>.</p>
+        <h2>Qué es la fusión de predios</h2>
+<p>La fusión es el trámite que une dos o más terrenos vecinos y colindantes en uno solo, eliminando el deslinde que los separaba. Como beneficio adicional, la ley permite aumentar en un 30% el coeficiente de constructibilidad del predio resultante, respecto al que tendría cada lote por separado (artículo 63 de la Ley General de Urbanismo y Construcciones).</p>
+        <h2>Qué es la fusión y subdivisión simultánea</h2>
+<p>Es el mecanismo específico —regulado en el artículo 3.1.3 de la Ordenanza General de Urbanismo y Construcciones (OGUC)— que permite, en un mismo acto, traspasar un retazo de terreno desde un predio hacia el de al lado (fusionándolo) y, a la vez, volver a trazar la subdivisión con una geometría distinta a la original. Así es como, en la práctica, se puede pasar de dos lotes horizontales a dos lotes verticales: se "reparte" la superficie total entre ambos predios con un trazado nuevo, en vez de mantener las líneas divisorias originales.</p>
+        <h2>El requisito clave</h2>
+<p>La OGUC exige que el resto del predio que se subdivide siga cumpliendo con la superficie predial mínima que establece el Plan Regulador Comunal para esa zona —esta exigencia no aplica al retazo que se fusiona en el mismo acto—. En otras palabras: puedes mover una porción de terreno de un lote a otro y volver a trazar la línea divisoria, siempre que los lotes que queden (salvo el retazo) sigan siendo, al menos, del tamaño mínimo permitido en esa comuna.</p>
+        <h2>Un límite importante que hay que tener claro</h2>
+<p>Este mecanismo <strong>no sirve para fusionar dos predios completos y luego subdividirlos otra vez desde cero</strong> como si fuera un trámite genérico de "reordenar cualquier grupo de terrenos". Una circular del Ministerio de Vivienda y Urbanismo (Circular DDU 368, de 2017) aclaró expresamente que la fusión y subdivisión simultánea de dos o más predios completos no está regulada ni permitida por la Ley General de Urbanismo y Construcciones ni por la OGUC bajo esa lógica amplia. Lo que sí está permitido y regulado es específicamente el caso del artículo 3.1.3: el traspaso de un <strong>retazo</strong> de un predio a otro, combinado con la subdivisión del predio de origen. Por eso conviene revisar cada caso con un profesional antes de asumir que el trámite aplica tal como uno lo imagina.</p>
+        <h2>Qué se presenta ante la Dirección de Obras Municipales</h2>
+<p>El trámite se solicita en la DOM de la comuna donde están los predios, usando el <strong>Formulario 3.3</strong> ("Solicitud de aprobación de subdivisión, fusión, urbanización, loteo, loteo con construcción simultánea"), del Ministerio de Vivienda y Urbanismo. Se debe acompañar:</p><ul><li>Copia de la inscripción de dominio vigente de cada predio involucrado, emitida por el Conservador de Bienes Raíces.</li><li>Un plano firmado por el propietario y por el arquitecto proyectista (u otro profesional competente) que grafique la <strong>situación anterior</strong>, la <strong>situación intermedia</strong> (la fusión) y la <strong>situación aprobada</strong> (la nueva subdivisión), indicando los lotes involucrados, sus roles, medidas perimetrales, ubicación y un cuadro de superficies.</li></ul>
+        <h2>Cómo se resuelve</h2>
+<p>Una vez revisados los antecedentes, el Director de Obras Municipales aprueba la fusión y subdivisión "sin más trámite", autorizando su inscripción en el Conservador de Bienes Raíces correspondiente. Los derechos municipales a pagar corresponden a los que fija el artículo 130 de la Ley General de Urbanismo y Construcciones —por fusión, y adicionalmente por subdivisión cuando corresponda—.</p>
+        <h2>Dónde entra la topografía</h2>
+<p>El plano que exige este trámite —con la situación anterior, intermedia y propuesta, medidas exactas y cuadro de superficies— es, en esencia, un levantamiento topográfico bien hecho, llevado a formato de proyecto. Un error de medición o un deslinde mal representado en cualquiera de las tres situaciones graficadas puede significar el rechazo de la solicitud en la DOM, o peor, un problema de inscripción más adelante en el Conservador de Bienes Raíces.</p>
+        <h2>Importante</h2>
+<div class="articulo-aviso-legal"><strong>Nota:</strong> este artículo es una guía general y no reemplaza la asesoría de un arquitecto o abogado. La aplicabilidad de este mecanismo depende del Plan Regulador específico de tu comuna y de las características de los predios involucrados — conviene evaluar el caso concreto con un profesional antes de iniciar el trámite.</div>
+
+        <div class="articulo-aviso-legal" style="border-left-color: var(--color-secundario);">
+          <strong>¿Necesitas asesoría legal en este trámite?</strong> <a href="../alianzas/carlos-verdugo-rebolledo.html" style="color:var(--color-secundario); font-weight:700;">Carlos Verdugo Rebolledo</a>, abogado especialista en derecho inmobiliario, es uno de nuestros colaboradores externos.
+        </div>
+
+        <div class="articulo-cta">
+          <p>¿Necesitas el plano de fusión y subdivisión para tu trámite en la DOM?</p>
+          <a href="../index.html#contacto" class="boton boton-acento">Solicitar Cotización</a>
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="index.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="../alianzas/" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
