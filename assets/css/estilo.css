@@ -582,6 +582,8 @@
     }
     .visor-iframe.activo { display: block; animation: aparecer 0.8s ease forwards; }
 
+    model-viewer.visor-iframe { background-color: #1c1f26; --poster-color: transparent; }
+
     .visor-portada {
       position: absolute;
       inset: 0;
