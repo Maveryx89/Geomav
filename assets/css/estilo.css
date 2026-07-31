@@ -307,7 +307,7 @@
          disponible. Solo hay que cambiar la URL de abajo. */
       background-image:
         linear-gradient(100deg, rgba(10,34,64,0.88) 0%, rgba(10,34,64,0.72) 42%, rgba(10,34,64,0.35) 100%),
-        url('https://images.unsplash.com/photo-1503387762-592dee58c160?auto=format&fit=crop&q=80&w=1920');
+        url('assets/img/hero-foto.jpg');
       background-size: cover;
       background-position: center;
     }
