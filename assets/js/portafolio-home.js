@@ -7,6 +7,7 @@
 
 const botonesPestana = document.querySelectorAll('.pestana-boton');
 const iframeVisor = document.getElementById('iframeVisor');
+const modelVisor = document.getElementById('modelVisor');
 const portadaVisor = document.getElementById('portadaVisor');
 const botonIniciar = document.getElementById('botonIniciarVisor');
 const proyectosGrid = document.getElementById('toursGrid');
@@ -65,24 +66,40 @@ function renderizarGrid(tipo) {
   proyectosGrid.classList.add('visible');
 }
 
-function cargarEnVisor(url) {
-  if (iframeVisor.classList.contains('activo')) {
-    iframeVisor.style.opacity = '0';
-    setTimeout(() => {
-      iframeVisor.src = url;
-      iframeVisor.style.opacity = '1';
-    }, 300);
+// Carga un proyecto en el visor. Si el proyecto tiene `modelo3d: true` en
+// portafolio-data.js, se muestra en el visor de modelos 3D (<model-viewer>,
+// para archivos .glb de fotogrametría); si no, se muestra en el iframe de
+// siempre (tours 360°, PDFs, videos).
+function cargarEnVisor(proyecto) {
+  const esModelo3D = proyecto.modelo3d === true;
+
+  if (esModelo3D) {
+    iframeVisor.classList.remove('activo');
+    iframeVisor.removeAttribute('src');
+    modelVisor.setAttribute('src', proyecto.url);
+    modelVisor.classList.add('activo');
   } else {
-    iframeVisor.src = url;
+    modelVisor.classList.remove('activo');
+    modelVisor.removeAttribute('src');
+    if (iframeVisor.classList.contains('activo')) {
+      iframeVisor.style.opacity = '0';
+      setTimeout(() => {
+        iframeVisor.src = proyecto.url;
+        iframeVisor.style.opacity = '1';
+      }, 300);
+    } else {
+      iframeVisor.src = proyecto.url;
+    }
+    iframeVisor.classList.add('activo');
   }
+
   portadaVisor.classList.add('oculto');
-  iframeVisor.classList.add('activo');
 }
 
 function seleccionarProyecto(tipo, id) {
   activoPorTipo[tipo] = id;
   const proyecto = obtenerProyectoActivo(tipo);
-  cargarEnVisor(proyecto.url);
+  cargarEnVisor(proyecto);
   renderizarGrid(tipo);
 }
 
@@ -96,12 +113,11 @@ botonesPestana.forEach(boton => {
 
     renderizarGrid(tipo);
 
-    if (iframeVisor.classList.contains('activo')) {
-      iframeVisor.style.opacity = '0';
-      setTimeout(() => {
-        iframeVisor.src = proyecto.url;
-        iframeVisor.style.opacity = '1';
-      }, 300);
+    // Si el visor ya estaba activo (el usuario ya había hecho clic en
+    // "Iniciar Visualización"), se actualiza de inmediato al cambiar de
+    // pestaña; si todavía no se ha iniciado, se espera al clic del botón.
+    if (iframeVisor.classList.contains('activo') || modelVisor.classList.contains('activo')) {
+      cargarEnVisor(proyecto);
     }
   });
 });
@@ -109,7 +125,7 @@ botonesPestana.forEach(boton => {
 botonIniciar.addEventListener('click', () => {
   const tipoActivo = obtenerTipoActivo();
   const proyecto = obtenerProyectoActivo(tipoActivo);
-  cargarEnVisor(proyecto.url);
+  cargarEnVisor(proyecto);
 });
 
 // Cuadrícula inicial (la pestaña Topografía está activa por defecto al cargar)
