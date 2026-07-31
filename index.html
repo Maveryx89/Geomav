@@ -18,6 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="assets/css/estilo.css">
+  <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
 </head>
 <body>
 
@@ -274,6 +275,20 @@
           loading="lazy"
           title="Visor Interactivo GEOMAV">
         </iframe>
+
+        <!-- Visor de modelos 3D (fotogrametría). Se activa en vez del iframe
+             cuando el proyecto tiene modelo3d: true en portafolio-data.js -->
+        <model-viewer
+          id="modelVisor"
+          class="visor-iframe"
+          camera-controls
+          auto-rotate
+          shadow-intensity="1"
+          exposure="1"
+          ar
+          ar-modes="webxr scene-viewer quick-look"
+          alt="Modelo 3D del proyecto GEOMAV">
+        </model-viewer>
       </div>
 
       <!-- Cuadrícula de proyectos disponibles en la pestaña activa (Topografía,
