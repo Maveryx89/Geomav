@@ -26,6 +26,24 @@ const activoPorTipo = {
   timelapse: primerActivoPorDefecto(proyectosPortafolio.timelapse)
 };
 
+// ── Enlace directo a un proyecto puntual desde la portada ──
+// Formato: index.html?tipo=drones&p=cesfam-rauco-drones#portafolio
+// Si vienen en la URL al cargar la página y son válidos, se usan como
+// pestaña/proyecto inicial y el visor se activa de inmediato. Si no vienen
+// o no son válidos, el comportamiento es el de siempre.
+const parametrosUrl = new URLSearchParams(window.location.search);
+const tipoDesdeUrl = parametrosUrl.get('tipo');
+const idDesdeUrl = parametrosUrl.get('p');
+const tipoValidoDesdeUrl = tipoDesdeUrl && proyectosPortafolio[tipoDesdeUrl] ? tipoDesdeUrl : null;
+let proyectoInicialDesdeUrl = null;
+if (tipoValidoDesdeUrl && idDesdeUrl) {
+  const encontrado = proyectosPortafolio[tipoValidoDesdeUrl].find(p => p.id === idDesdeUrl);
+  if (encontrado) {
+    activoPorTipo[tipoValidoDesdeUrl] = encontrado.id;
+    proyectoInicialDesdeUrl = encontrado;
+  }
+}
+
 function obtenerTipoActivo() {
   return document.querySelector('.pestana-boton.activa').dataset.tipo;
 }
@@ -41,6 +59,17 @@ function ordenarProyectos(lista) {
 function obtenerProyectoActivo(tipo) {
   const lista = proyectosPortafolio[tipo];
   return lista.find(p => p.id === activoPorTipo[tipo]) || lista[0];
+}
+
+// Actualiza la URL (sin recargar la página) para que refleje la pestaña y
+// el proyecto que se está viendo — así se puede copiar el link tal cual
+// aparece en la barra de direcciones y comparte exactamente ese proyecto.
+function actualizarUrl(tipo, id) {
+  const params = new URLSearchParams(window.location.search);
+  params.set('tipo', tipo);
+  params.set('p', id);
+  const nuevaUrl = `${window.location.pathname}?${params.toString()}#portafolio`;
+  history.replaceState(null, '', nuevaUrl);
 }
 
 function renderizarGrid(tipo) {
@@ -101,6 +130,7 @@ function seleccionarProyecto(tipo, id) {
   const proyecto = obtenerProyectoActivo(tipo);
   cargarEnVisor(proyecto);
   renderizarGrid(tipo);
+  actualizarUrl(tipo, id);
 }
 
 botonesPestana.forEach(boton => {
@@ -118,6 +148,7 @@ botonesPestana.forEach(boton => {
     // pestaña; si todavía no se ha iniciado, se espera al clic del botón.
     if (iframeVisor.classList.contains('activo') || modelVisor.classList.contains('activo')) {
       cargarEnVisor(proyecto);
+      actualizarUrl(tipo, proyecto.id);
     }
   });
 });
@@ -126,7 +157,18 @@ botonIniciar.addEventListener('click', () => {
   const tipoActivo = obtenerTipoActivo();
   const proyecto = obtenerProyectoActivo(tipoActivo);
   cargarEnVisor(proyecto);
+  actualizarUrl(tipoActivo, proyecto.id);
 });
 
-// Cuadrícula inicial (la pestaña Topografía está activa por defecto al cargar)
-renderizarGrid('topografia');
+// Si se llegó por un enlace directo (?tipo=...&p=...), se activa esa
+// pestaña visualmente y se carga el visor de inmediato.
+if (tipoValidoDesdeUrl) {
+  botonesPestana.forEach(b => b.classList.toggle('activa', b.dataset.tipo === tipoValidoDesdeUrl));
+}
+
+// Cuadrícula inicial (Topografía por defecto, o la pestaña indicada en la URL)
+renderizarGrid(tipoValidoDesdeUrl || 'topografia');
+
+if (proyectoInicialDesdeUrl) {
+  cargarEnVisor(proyectoInicialDesdeUrl);
+}
