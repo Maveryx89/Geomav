@@ -24,7 +24,16 @@
   const lista = [...(proyectosPortafolio[TIPO_CATEGORIA] || [])]
     .sort((a, b) => (b.real === true) - (a.real === true));
 
-  let activoId = lista.length ? (lista.find(p => p.real) || lista[0]).id : null;
+  // Enlace directo a un proyecto puntual: ?p=id-del-proyecto
+  // Ej: drones-mapeo.html?p=cesfam-paillaco
+  // Si el id no existe o no viene el parámetro, se usa el comportamiento
+  // de siempre (primer proyecto real por defecto).
+  const idDesdeUrl = new URLSearchParams(window.location.search).get('p');
+  const proyectoDesdeUrl = idDesdeUrl ? lista.find(p => p.id === idDesdeUrl) : null;
+
+  let activoId = proyectoDesdeUrl
+    ? proyectoDesdeUrl.id
+    : (lista.length ? (lista.find(p => p.real) || lista[0]).id : null);
 
   if (contador) {
     contador.textContent = lista.length === 1 ? '1 proyecto' : `${lista.length} proyectos`;
@@ -92,4 +101,10 @@
   }
 
   render();
+
+  // Si se llegó por un enlace directo a un proyecto puntual, se activa el
+  // visor de inmediato (sin esperar el clic en "Iniciar Visualización").
+  if (proyectoDesdeUrl) {
+    cargarEnVisor(proyectoDesdeUrl);
+  }
 })();
