@@ -42,8 +42,7 @@ const proyectosPortafolio = {
       ubicacion: 'Documento PDF',
       url: 'https://drive.google.com/file/d/1stbt6yNY7TZmAFCiekQeuoQi3d0lbVTq/preview',
       real: true,
-      icono: '📄',
-      vertical: true
+      icono: '📄'
     }
   ],
   drones: [
