@@ -578,11 +578,67 @@
       height: 100%;
       border: none;
       background-color: #eee;
-      display: none; /* Se activa por JS */
+      display: block;
     }
-    .visor-iframe.activo { display: block; animation: aparecer 0.8s ease forwards; }
 
-    model-viewer.visor-iframe { background-color: #1c1f26; --poster-color: transparent; }
+    /* Envoltorio con scroll propio, necesario para poder desplazarse por el
+       PDF cuando se aplica zoom (el iframe crece más allá del 100% y este
+       contenedor permite hacer scroll para ver el resto). */
+    .visor-scroll {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      display: none;
+    }
+    .visor-scroll.activo { display: block; animation: aparecer 0.8s ease forwards; }
+
+    model-viewer.visor-iframe {
+      display: none;
+      background-color: #1c1f26;
+      --poster-color: transparent;
+    }
+    model-viewer.visor-iframe.activo { display: block; animation: aparecer 0.8s ease forwards; }
+
+    /* Controles de zoom, solo visibles para documentos PDF (Google Drive) */
+    .visor-zoom-controles {
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      z-index: 6;
+      display: none;
+      align-items: center;
+      gap: 4px;
+      background-color: rgba(10,34,64,0.85);
+      backdrop-filter: blur(6px);
+      border-radius: 50px;
+      padding: 6px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .visor-zoom-controles.visible { display: flex; }
+    .visor-zoom-boton {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: none;
+      background-color: transparent;
+      color: var(--color-blanco);
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transicion);
+    }
+    .visor-zoom-boton:hover { background-color: rgba(255,255,255,0.15); }
+    .visor-zoom-etiqueta {
+      min-width: 46px;
+      text-align: center;
+      color: var(--color-blanco);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
 
     .visor-portada {
       position: absolute;
