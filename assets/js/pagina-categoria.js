@@ -17,6 +17,7 @@
   const iframeVisor = document.getElementById('iframeVisor');
   const modelVisor = document.getElementById('modelVisor');
   const portadaVisor = document.getElementById('portadaVisor');
+  const visorContenedor = document.querySelector('.visor-contenedor');
   const botonIniciar = document.getElementById('botonIniciarVisor');
   const grid = document.getElementById('galeriaGrid');
   const contador = document.getElementById('galeriaContador');
@@ -50,9 +51,13 @@
 
   // Carga un proyecto en el visor. Si tiene `modelo3d: true` en
   // portafolio-data.js, se muestra en <model-viewer> (archivos .glb de
-  // fotogrametría); si no, se muestra en el iframe de siempre.
+  // fotogrametría); si no, se muestra en el iframe de siempre. Si tiene
+  // `vertical: true`, en CELULAR el visor cambia a proporción 9:16 (en
+  // escritorio siempre se mantiene en 16:9).
   function cargarEnVisor(proyecto) {
     const esModelo3D = proyecto.modelo3d === true;
+
+    visorContenedor.classList.toggle('visor-vertical', proyecto.vertical === true);
 
     if (esModelo3D) {
       iframeVisor.classList.remove('activo');
