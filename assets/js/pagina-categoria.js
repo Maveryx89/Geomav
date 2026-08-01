@@ -39,6 +39,15 @@
     contador.textContent = lista.length === 1 ? '1 proyecto' : `${lista.length} proyectos`;
   }
 
+  // Actualiza la URL (sin recargar la página) para que refleje el proyecto
+  // que se está viendo — así se puede copiar el link tal cual aparece en
+  // la barra de direcciones y comparte exactamente ese proyecto.
+  function actualizarUrl(id) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('p', id);
+    history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+  }
+
   // Carga un proyecto en el visor. Si tiene `modelo3d: true` en
   // portafolio-data.js, se muestra en <model-viewer> (archivos .glb de
   // fotogrametría); si no, se muestra en el iframe de siempre.
@@ -88,6 +97,7 @@
         activoId = proyecto.id;
         cargarEnVisor(proyecto);
         render();
+        actualizarUrl(proyecto.id);
       });
       grid.appendChild(btn);
     });
@@ -96,7 +106,10 @@
   if (botonIniciar) {
     botonIniciar.addEventListener('click', () => {
       const proyecto = lista.find(p => p.id === activoId);
-      if (proyecto) cargarEnVisor(proyecto);
+      if (proyecto) {
+        cargarEnVisor(proyecto);
+        actualizarUrl(proyecto.id);
+      }
     });
   }
 
