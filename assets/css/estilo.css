@@ -862,6 +862,13 @@
       .pie-cuadricula { grid-template-columns: 1fr; gap: 40px; }
       .pestanas-control { gap: 20px; overflow-x: auto; padding-bottom: 10px; }
       .pestana-boton { font-size: 0.8rem; white-space: nowrap; }
+
+      /* Proporción del visor en celular: por defecto sigue en 16:9 igual
+         que en escritorio. Se cambia a 9:16 solo cuando el proyecto activo
+         tiene `vertical: true` en portafolio-data.js (lo agrega el JS con
+         la clase .visor-vertical). En escritorio esta regla no aplica —
+         el visor siempre queda en 16:9 ahí. */
+      .visor-contenedor.visor-vertical { aspect-ratio: 9/16; max-width: 420px; margin: 0 auto; }
     }
 
 /* ─────────────────────────────────────────────
