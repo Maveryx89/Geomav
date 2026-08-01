@@ -18,6 +18,9 @@
 //   modelo3d  (opcional, true si "url" es un archivo .glb de fotogrametría —
 //              en ese caso se muestra en el visor 3D interactivo en vez del
 //              iframe normal. Ejemplo de url: 'assets/models/mi-proyecto.glb')
+//   vertical  (opcional, true si el archivo/contenido es vertical (9:16) en
+//              vez de horizontal. Solo afecta la vista en CELULAR — en
+//              escritorio el visor siempre se mantiene en 16:9)
 // ─────────────────────────────────────────────
 
 const proyectosPortafolio = {
@@ -30,7 +33,8 @@ const proyectosPortafolio = {
       // embeberlo (incluye zoom nativo del visor de Google).
       url: 'https://drive.google.com/file/d/1nS63Jp2wjZUknOJXReWGOUaiTkc49moz/preview',
       real: true,
-      icono: '📄'
+      icono: '📄',
+      vertical: true
     },
     {
       id: 'plano-real-2',
@@ -38,7 +42,8 @@ const proyectosPortafolio = {
       ubicacion: 'Documento PDF',
       url: 'https://drive.google.com/file/d/1stbt6yNY7TZmAFCiekQeuoQi3d0lbVTq/preview',
       real: true,
-      icono: '📄'
+      icono: '📄',
+      vertical: true
     }
   ],
   drones: [
