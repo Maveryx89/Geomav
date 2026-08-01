@@ -15,12 +15,40 @@
 
 (function () {
   const iframeVisor = document.getElementById('iframeVisor');
+  const visorScroll = document.getElementById('visorScroll');
   const modelVisor = document.getElementById('modelVisor');
   const portadaVisor = document.getElementById('portadaVisor');
   const visorContenedor = document.querySelector('.visor-contenedor');
   const botonIniciar = document.getElementById('botonIniciarVisor');
   const grid = document.getElementById('galeriaGrid');
   const contador = document.getElementById('galeriaContador');
+  const zoomControles = document.getElementById('visorZoomControles');
+  const zoomEtiqueta = document.getElementById('zoomEtiqueta');
+  const botonZoomIn = document.getElementById('zoomIn');
+  const botonZoomOut = document.getElementById('zoomOut');
+
+  // ── Zoom del visor (solo para PDFs de Google Drive) ──
+  const ZOOM_PASO = 0.25, ZOOM_MIN = 1, ZOOM_MAX = 2.5;
+  let zoomNivel = 1;
+
+  function aplicarZoom() {
+    iframeVisor.style.width = (100 * zoomNivel) + '%';
+    iframeVisor.style.height = (100 * zoomNivel) + '%';
+    zoomEtiqueta.textContent = Math.round(zoomNivel * 100) + '%';
+  }
+
+  botonZoomIn.addEventListener('click', () => {
+    zoomNivel = Math.min(ZOOM_MAX, zoomNivel + ZOOM_PASO);
+    aplicarZoom();
+  });
+  botonZoomOut.addEventListener('click', () => {
+    zoomNivel = Math.max(ZOOM_MIN, zoomNivel - ZOOM_PASO);
+    aplicarZoom();
+  });
+  zoomEtiqueta.addEventListener('click', () => {
+    zoomNivel = 1;
+    aplicarZoom();
+  });
 
   const lista = [...(proyectosPortafolio[TIPO_CATEGORIA] || [])]
     .sort((a, b) => (b.real === true) - (a.real === true));
@@ -51,23 +79,27 @@
 
   // Carga un proyecto en el visor. Si tiene `modelo3d: true` en
   // portafolio-data.js, se muestra en <model-viewer> (archivos .glb de
-  // fotogrametría); si no, se muestra en el iframe de siempre. Si tiene
-  // `vertical: true`, en CELULAR el visor cambia a proporción 9:16 (en
-  // escritorio siempre se mantiene en 16:9).
+  // fotogrametría); si no, se muestra en el iframe de siempre.
   function cargarEnVisor(proyecto) {
     const esModelo3D = proyecto.modelo3d === true;
+    const esPdfDrive = !esModelo3D && proyecto.url.includes('drive.google.com');
 
     visorContenedor.classList.toggle('visor-vertical', proyecto.vertical === true);
 
+    // El zoom siempre arranca en 100% con cada proyecto nuevo que se carga.
+    zoomNivel = 1;
+    aplicarZoom();
+    zoomControles.classList.toggle('visible', esPdfDrive);
+
     if (esModelo3D) {
-      iframeVisor.classList.remove('activo');
+      visorScroll.classList.remove('activo');
       iframeVisor.removeAttribute('src');
       modelVisor.setAttribute('src', proyecto.url);
       modelVisor.classList.add('activo');
     } else {
       modelVisor.classList.remove('activo');
       modelVisor.removeAttribute('src');
-      if (iframeVisor.classList.contains('activo')) {
+      if (visorScroll.classList.contains('activo')) {
         iframeVisor.style.opacity = '0';
         setTimeout(() => {
           iframeVisor.src = proyecto.url;
@@ -76,7 +108,7 @@
       } else {
         iframeVisor.src = proyecto.url;
       }
-      iframeVisor.classList.add('activo');
+      visorScroll.classList.add('activo');
     }
 
     portadaVisor.classList.add('oculto');
