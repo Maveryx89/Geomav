@@ -9,6 +9,7 @@ const botonesPestana = document.querySelectorAll('.pestana-boton');
 const iframeVisor = document.getElementById('iframeVisor');
 const modelVisor = document.getElementById('modelVisor');
 const portadaVisor = document.getElementById('portadaVisor');
+const visorContenedor = document.querySelector('.visor-contenedor');
 const botonIniciar = document.getElementById('botonIniciarVisor');
 const proyectosGrid = document.getElementById('toursGrid');
 
@@ -98,9 +99,12 @@ function renderizarGrid(tipo) {
 // Carga un proyecto en el visor. Si el proyecto tiene `modelo3d: true` en
 // portafolio-data.js, se muestra en el visor de modelos 3D (<model-viewer>,
 // para archivos .glb de fotogrametría); si no, se muestra en el iframe de
-// siempre (tours 360°, PDFs, videos).
+// siempre (tours 360°, PDFs, videos). Si tiene `vertical: true`, en
+// CELULAR el visor cambia a proporción 9:16 (en escritorio siempre 16:9).
 function cargarEnVisor(proyecto) {
   const esModelo3D = proyecto.modelo3d === true;
+
+  visorContenedor.classList.toggle('visor-vertical', proyecto.vertical === true);
 
   if (esModelo3D) {
     iframeVisor.classList.remove('activo');
