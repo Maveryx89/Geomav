@@ -266,15 +266,18 @@
           <p style="margin-top:24px; font-weight:800; color:white; text-transform:uppercase; letter-spacing:0.1em;">Iniciar Visualización Interactiva</p>
         </div>
 
-        <!-- Iframe optimizado para XR y Sensores -->
-        <iframe
-          id="iframeVisor"
-          class="visor-iframe"
-          src=""
-          allow="xr-spatial-tracking; gyroscope; accelerometer; fullscreen; autoplay; encrypted-media; picture-in-picture;"
-          loading="lazy"
-          title="Visor Interactivo GEOMAV">
-        </iframe>
+        <!-- Iframe optimizado para XR y Sensores, dentro de un contenedor
+             con scroll propio para poder desplazarse cuando se usa el zoom. -->
+        <div class="visor-scroll" id="visorScroll">
+          <iframe
+            id="iframeVisor"
+            class="visor-iframe"
+            src=""
+            allow="xr-spatial-tracking; gyroscope; accelerometer; fullscreen; autoplay; encrypted-media; picture-in-picture;"
+            loading="lazy"
+            title="Visor Interactivo GEOMAV">
+          </iframe>
+        </div>
 
         <!-- Visor de modelos 3D (fotogrametría). Se activa en vez del iframe
              cuando el proyecto tiene modelo3d: true en portafolio-data.js -->
@@ -289,6 +292,14 @@
           ar-modes="webxr scene-viewer quick-look"
           alt="Modelo 3D del proyecto GEOMAV">
         </model-viewer>
+
+        <!-- Controles de zoom, solo visibles cuando el proyecto activo es
+             un PDF cargado desde Google Drive. -->
+        <div class="visor-zoom-controles" id="visorZoomControles">
+          <button type="button" class="visor-zoom-boton" id="zoomOut" aria-label="Alejar">−</button>
+          <span class="visor-zoom-etiqueta" id="zoomEtiqueta" title="Restablecer zoom">100%</span>
+          <button type="button" class="visor-zoom-boton" id="zoomIn" aria-label="Acercar">+</button>
+        </div>
       </div>
 
       <!-- Cuadrícula de proyectos disponibles en la pestaña activa (Topografía,
