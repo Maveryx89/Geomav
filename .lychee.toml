@@ -1,0 +1,23 @@
+# Configuración de lychee (revisor de enlaces rotos)
+# https://github.com/lycheeverse/lychee
+
+# No revisar estos esquemas/patrones de enlace
+exclude = [
+  '^mailto:',
+  '^tel:',
+  '^https://wa\.me/',
+]
+
+# Reintentar antes de reportar un enlace como roto (evita falsos positivos
+# por webs lentas o con rate-limiting temporal)
+max_retries = 3
+retry_wait_time = 5
+
+# Tiempo máximo de espera por cada enlace
+timeout = 20
+
+# Algunos sitios bloquean bots sin User-Agent de navegador
+user_agent = "Mozilla/5.0 (compatible; lychee-linkcheck/1.0)"
+
+# No fallar por códigos que no siempre indican un enlace realmente roto
+accept = [200, 201, 202, 203, 204, 206, 301, 302, 303, 307, 308, 429]
