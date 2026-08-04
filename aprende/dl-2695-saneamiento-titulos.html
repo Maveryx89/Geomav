@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DL 2.695: Saneamiento de la Pequeña Propiedad Raíz | GEOMAV</title>
+  <meta name="description" content="Cómo regularizar el dominio de una propiedad que has poseído por años sin escritura a tu nombre, mediante el trámite de saneamiento del Decreto Ley 2.695." />
+  <link rel="canonical" href="https://geomav.me/aprende/dl-2695-saneamiento-titulos.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="DL 2.695: Saneamiento de la Pequeña Propiedad Raíz | GEOMAV" />
+  <meta property="og:description" content="Cómo regularizar el dominio de una propiedad que has poseído por años sin escritura a tu nombre, mediante el trámite de saneamiento del Decreto Ley 2.695." />
+  <meta property="og:url" content="https://geomav.me/aprende/dl-2695-saneamiento-titulos.html" />
+  <meta property="og:locale" content="es_CL" />
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="index.html" class="menu-enlace">Aprende</a></li>
+          <li><a href="../alianzas/" class="menu-enlace">Alianzas</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="index.html" class="overlay-enlace">Aprende</a>
+    <a href="../alianzas/" class="overlay-enlace">Alianzas</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+
+
+  <!-- CABECERA DEL ARTÍCULO -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="index.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Aprende
+      </a>
+      <span class="etiqueta-seccion">Normativa / Regularización</span>
+      <h1 class="titulo-seccion">DL 2.695: Saneamiento de <span class="texto-destacado">la Pequeña Propiedad Raíz</span></h1>
+      <p class="pagina-hero-descripcion">Si vives o usas una propiedad hace años pero no figuras como dueño en el Conservador de Bienes Raíces, este trámite administrativo —distinto a la Ley del Mono— puede ser el camino para regularizarla.</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL ARTÍCULO -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>El problema típico</h2>
+<p>Es una situación muy común, sobre todo en zonas rurales: una familia posee y usa un terreno o una casa desde hace generaciones —la ocupa, la cuida, paga las contribuciones—, pero nunca quedó una escritura inscrita a su nombre en el Conservador de Bienes Raíces. El dueño legal, según el papel, sigue siendo otra persona (o nadie, si el título se perdió en el tiempo).</p>
+        <h2>Qué es el DL 2.695</h2>
+<p>El Decreto Ley N° 2.695, de 1979, crea un procedimiento administrativo —a cargo del <strong>Ministerio de Bienes Nacionales</strong>, no de un tribunal— para regularizar el dominio de la "pequeña propiedad raíz" a favor de quien la ha poseído como dueño durante años. La ley busca reconocer legalmente una situación de hecho que ya existe, no inventar una propiedad de la nada.</p>
+        <h2>Requisitos principales</h2>
+<ul><li><strong>Posesión continua y exclusiva</strong> del inmueble, sin violencia ni clandestinidad, durante al menos <strong>5 años</strong>.</li><li><strong>Avalúo fiscal</strong> del inmueble igual o inferior a <strong>1.000 UTM</strong> (tras la última modificación legal, este tope aplica tanto a propiedades urbanas como rurales).</li><li>Que el inmueble no esté en una situación excluida por la ley (por ejemplo, ciertos bienes fiscales o casos ya en litigio).</li></ul>
+        <h2>Cómo funciona el trámite</h2>
+<p>Se presenta la solicitud ante el Ministerio de Bienes Nacionales, que revisa los antecedentes y publica avisos —en el Diario Oficial y un diario de la región— para que cualquier persona con mejor derecho pueda oponerse. Hay un <strong>plazo de 60 días</strong> para presentar oposición. Si nadie se opone, el trámite continúa hasta inscribir al solicitante como <strong>poseedor regular</strong> en el Conservador de Bienes Raíces.</p>
+        <h2>El paso final: de poseedor a dueño</h2>
+<p>Aquí está el mecanismo que hace especial a esta ley: una vez inscrita la posesión regular, transcurrido <strong>un año</strong> desde esa inscripción sin que haya juicios pendientes en contra, el solicitante adquiere el <strong>dominio pleno</strong> por prescripción —de forma automática, sin necesidad de un trámite adicional—. Es un plazo mucho más corto que la prescripción adquisitiva ordinaria del Código Civil (5 o 10 años).</p>
+        <h2>Plazos y costos aproximados</h2>
+<p>Sin oposición, el proceso completo —desde la solicitud hasta la inscripción— suele tomar entre <strong>12 y 24 meses</strong>. Si aparece un opositor, el caso pasa a un juicio sumario ante tribunales, lo que puede extender el proceso a 3 o 4 años. En costos, sin oposición, se estima entre $1.500.000 y $4.000.000 aproximadamente, considerando honorarios profesionales, tasación, plano, publicaciones legales, derechos ante Bienes Nacionales y la inscripción final en el Conservador. Existen además programas de tarifa reducida para propietarios de escasos recursos.</p>
+        <h2>Diferencia con la Ley del Mono y el DL 3.516</h2>
+<p>Es fácil confundir estos tres trámites, pero resuelven problemas distintos: la <strong>Ley del Mono</strong> (Ley 20.898) regulariza una construcción hecha sin permiso municipal; el <strong>DL 3.516</strong> regula la subdivisión de predios rústicos; y el <strong>DL 2.695</strong> regulariza el <strong>dominio</strong> —quién es el dueño legal— de un inmueble ya existente que se posee sin título inscrito. Un mismo caso puede incluso necesitar más de uno de estos trámites en conjunto.</p>
+        <h2>Dónde entra la topografía</h2>
+<p>La solicitud ante Bienes Nacionales exige acompañar un <strong>plano del inmueble</strong> que identifique con precisión su ubicación, deslindes y superficie. Un levantamiento topográfico mal hecho o con deslindes imprecisos puede generar observaciones que retrasan el trámite, o incluso facilitar que un tercero se oponga alegando una superposición con su propio predio.</p>
+        <h2>Importante</h2>
+<div class="articulo-aviso-legal"><strong>Nota:</strong> este artículo es una guía general y no reemplaza la asesoría de un abogado. La Corporación de Asistencia Judicial (CAJ) también ofrece orientación gratuita para este trámite. Cada caso de posesión tiene particularidades que conviene evaluar con un profesional antes de iniciar la solicitud.</div>
+
+        <div class="articulo-aviso-legal" style="border-left-color: var(--color-secundario);">
+          <strong>¿Necesitas asesoría legal en este trámite?</strong> <a href="../alianzas/carlos-verdugo-rebolledo.html" style="color:var(--color-secundario); font-weight:700;">Carlos Verdugo Rebolledo</a>, abogado especialista en derecho inmobiliario, es uno de nuestros colaboradores externos.
+        </div>
+
+        <div class="articulo-cta">
+          <p>¿Necesitas el plano de tu propiedad para el trámite de saneamiento?</p>
+          <a href="../index.html#contacto" class="boton boton-acento">Solicitar Cotización</a>
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="index.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="../alianzas/" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
