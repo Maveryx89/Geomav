@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Regularizar una Ampliación Reciente sin Permiso | GEOMAV</title>
+  <meta name="description" content="Cómo regularizar un segundo piso, quincho o bodega construido sin permiso en los últimos años — un trámite distinto a la Ley del Mono, que solo aplica a construcciones anteriores a 2016." />
+  <link rel="canonical" href="https://geomav.me/aprende/regularizar-ampliacion-reciente.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Regularizar una Ampliación Reciente sin Permiso | GEOMAV" />
+  <meta property="og:description" content="Cómo regularizar un segundo piso, quincho o bodega construido sin permiso en los últimos años — un trámite distinto a la Ley del Mono, que solo aplica a construcciones anteriores a 2016." />
+  <meta property="og:url" content="https://geomav.me/aprende/regularizar-ampliacion-reciente.html" />
+  <meta property="og:locale" content="es_CL" />
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="index.html" class="menu-enlace">Aprende</a></li>
+          <li><a href="../alianzas/" class="menu-enlace">Alianzas</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="index.html" class="overlay-enlace">Aprende</a>
+    <a href="../alianzas/" class="overlay-enlace">Alianzas</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+
+
+  <!-- CABECERA DEL ARTÍCULO -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="index.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Aprende
+      </a>
+      <span class="etiqueta-seccion">Normativa / Regularización</span>
+      <h1 class="titulo-seccion">Regularizar una Ampliación <span class="texto-destacado">Reciente sin Permiso</span></h1>
+      <p class="pagina-hero-descripcion">Construiste un segundo piso, un quincho o una bodega hace poco, sin sacar permiso municipal. Este trámite es distinto a la Ley del Mono —que solo aplica a construcciones anteriores a 2016— y conviene entenderlo antes de que se acumulen las multas.</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL ARTÍCULO -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>El problema típico</h2>
+<p>Es distinto al caso de la Ley del Mono: acá no hablamos de una casa completa construida hace décadas, sino de una <strong>ampliación reciente</strong> —un segundo piso, un quincho, una bodega, un estacionamiento techado— que se construyó en los últimos años sin pasar primero por el permiso municipal. Muchas veces se hace así por desconocimiento, por apuro, o pensando en "regularizarlo después".</p>
+        <h2>Por qué esto NO es la Ley del Mono</h2>
+<p>La Ley del Mono (Ley 20.898) tiene un requisito estricto de fecha: solo aplica a construcciones anteriores al <strong>4 de febrero de 2016</strong>. Una ampliación hecha este año, o en los últimos años, no califica para esa vía simplificada —tiene que regularizarse por el procedimiento general de la Ley General de Urbanismo y Construcciones (LGUC), que es más exigente en cuanto a plazos, costos y respaldo técnico.</p>
+        <h2>El costo de construir sin permiso primero</h2>
+<p>El artículo 133 de la LGUC establece que las construcciones ejecutadas sin permiso previo pagan un <strong>recargo del 50%</strong> sobre los derechos municipales que habría correspondido pagar si se hubiera tramitado el permiso a tiempo. Si el propietario no regulariza la situación, la Dirección de Obras Municipales (DOM) puede denunciar el caso ante el Juzgado de Policía Local, y el infractor puede terminar pagando esos derechos con un recargo de hasta el <strong>100%</strong>, además de la multa que fije el juzgado. En casos graves —construcciones que no cumplen la normativa y no son regularizables— la autoridad puede incluso ordenar la demolición.</p>
+        <h2>La vía para regularizar: Permiso de Obra Menor</h2>
+<p>Para ampliaciones de hasta <strong>100 m²</strong>, la Ordenanza General de Urbanismo y Construcciones (artículo 5.1.4) contempla un <strong>Permiso de Obra Menor</strong>, una vía más simple que un permiso de edificación completo. Si la ampliación supera esa superficie, se tramita como un permiso de edificación regular, con las mismas exigencias que cualquier proyecto nuevo.</p>
+        <h2>Qué exige el trámite</h2>
+<ul><li>Un <strong>arquitecto u otro profesional competente</strong> debe certificar que la ampliación cumple con la normativa del Plan Regulador Comunal vigente (distanciamientos, altura, constructibilidad, uso de suelo).</li><li>Un <strong>plano de la ampliación</strong> tal como quedó construida, con sus medidas reales.</li><li>En algunos casos, un <strong>cálculo estructural</strong>, salvo que aplique alguna exención de la OGUC (por ejemplo, para construcciones ligeras de un piso).</li><li>El pago de los derechos municipales correspondientes, con el recargo del 50% ya mencionado.</li></ul>
+        <h2>Qué pasa si no se regulariza</h2>
+<p>Más allá del riesgo de multa o demolición, una ampliación sin regularizar tiene consecuencias prácticas concretas: no se puede incluir en la tasación de la propiedad, complica obtener un crédito hipotecario, y puede transformarse en un problema serio al momento de vender —el comprador o su banco normalmente exige que la superficie construida coincida con lo inscrito.</p>
+        <h2>Dónde entra la topografía</h2>
+<p>El trámite exige un plano que represente fielmente cómo quedó la ampliación en la realidad: su ubicación exacta respecto a los deslindes, los distanciamientos que exige la norma, y la superficie real construida. Un levantamiento impreciso puede generar observaciones en la DOM que atrasan todo el proceso, justo cuando cada mes que pasa sigue sumando exposición a multas.</p>
+        <h2>Importante</h2>
+<div class="articulo-aviso-legal"><strong>Nota:</strong> este artículo es una guía general y no reemplaza la asesoría de un arquitecto o abogado. El procedimiento exacto puede variar según la comuna y las características específicas de la construcción — conviene evaluar el caso concreto con un profesional antes de iniciar el trámite.</div>
+
+        <div class="articulo-aviso-legal" style="border-left-color: var(--color-secundario);">
+          <strong>¿Necesitas asesoría legal en este trámite?</strong> <a href="../alianzas/carlos-verdugo-rebolledo.html" style="color:var(--color-secundario); font-weight:700;">Carlos Verdugo Rebolledo</a>, abogado especialista en derecho inmobiliario, es uno de nuestros colaboradores externos.
+        </div>
+
+        <div class="articulo-cta">
+          <p>¿Necesitas el plano de tu ampliación para regularizarla ante la DOM?</p>
+          <a href="../index.html#contacto" class="boton boton-acento">Solicitar Cotización</a>
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="index.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="../alianzas/" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
