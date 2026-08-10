@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fondo de Tierras Indígenas de CONADI: Cómo Funciona | GEOMAV</title>
+  <meta name="description" content="Cómo el Estado compra y entrega tierras a familias y comunidades indígenas a través de CONADI, y por qué se necesita un plano de subdivisión elaborado por un topógrafo." />
+  <link rel="canonical" href="https://geomav.me/aprende/fondo-tierras-conadi.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Fondo de Tierras Indígenas de CONADI: Cómo Funciona | GEOMAV" />
+  <meta property="og:description" content="Cómo el Estado compra y entrega tierras a familias y comunidades indígenas a través de CONADI, y por qué se necesita un plano de subdivisión elaborado por un topógrafo." />
+  <meta property="og:url" content="https://geomav.me/aprende/fondo-tierras-conadi.html" />
+  <meta property="og:locale" content="es_CL" />
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="index.html" class="menu-enlace">Aprende</a></li>
+          <li><a href="../alianzas/" class="menu-enlace">Alianzas</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="index.html" class="overlay-enlace">Aprende</a>
+    <a href="../alianzas/" class="overlay-enlace">Alianzas</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+
+
+
+
+
+
+  <!-- CABECERA DEL ARTÍCULO -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="index.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Aprende
+      </a>
+      <span class="etiqueta-seccion">Normativa / Tierras Indígenas</span>
+      <h1 class="titulo-seccion">Fondo de Tierras <span class="texto-destacado">Indígenas de CONADI</span></h1>
+      <p class="pagina-hero-descripcion">El Estado compra o subsidia la compra de terrenos para familias y comunidades indígenas a través de CONADI. Así funciona el proceso, y por qué necesita de un plano de subdivisión hecho por un topógrafo.</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL ARTÍCULO -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>Cómo funciona: el Fondo de Tierras y Aguas Indígenas</h2>
+<p>El artículo 20 de la <strong>Ley Indígena (Ley N° 19.253)</strong> crea el Fondo de Tierras y Aguas Indígenas, administrado por la <strong>CONADI</strong> (Corporación Nacional de Desarrollo Indígena). A través de este fondo, el Estado compra o subsidia la compra de tierras para personas, familias y comunidades indígenas. Tiene dos mecanismos principales, y es común confundirlos:</p>
+        <h2>Mecanismo 1: subsidio para comprar tierra (artículo 20, letra a)</h2>
+<p>Es un <strong>subsidio concursable</strong> de hasta $25.000.000 por familia, no reembolsable, para que la propia familia o comunidad compre un terreno. Se postula individualmente o como comunidad, y se asigna por puntaje según ahorro previo, situación socioeconómica y tamaño del grupo familiar (más antigüedad y número de asociados, en el caso de comunidades).</p>
+        <h2>Mecanismo 2: el Estado compra y restituye tierra (artículo 20, letra b)</h2>
+<p>Este es el que probablemente tenías en mente: cuando una comunidad puede acreditar —mediante <strong>títulos de merced</strong> u otros antecedentes legales— que perdió tierras en el pasado, la CONADI puede comprar directamente un predio en el mercado para <strong>restituírselo</strong> a esa comunidad. Es la vía de "reivindicación" o restitución histórica de tierras.</p>
+        <h2>Lo que viene después: dividir la tierra entre las familias</h2>
+<p>Una vez que un predio queda a nombre de una comunidad, normalmente se necesita repartirlo entre sus integrantes —para que cada familia tenga su propio espacio, pueda heredarlo, o postular a beneficios habitacionales del SERVIU—. Esto se hace mediante un <strong>proyecto de subdivisión</strong>, aprobado por la asamblea de la comunidad.</p>
+        <h2>El certificado de goce: dónde entra el topógrafo, explícitamente</h2>
+<p>Para que un integrante de la comunidad pueda solicitar un "goce" —un derecho de uso sobre una porción determinada del predio, útil por ejemplo para postular a un subsidio de vivienda—, la propia CONADI exige, entre los documentos requeridos: <strong>"Plano del proyecto de subdivisión elaborado por un topógrafo o profesional del área"</strong>, junto con una memoria explicativa de los goces individuales. Es de los pocos trámites donde la normativa nombra directamente al topógrafo como el profesional a cargo.</p>
+        <h2>Un ejemplo reciente</h2>
+<p>En junio de 2026, CONADI entregó títulos de dominio individuales a 16 personas en la Región de Aysén, integrantes de comunidades indígenas, tras el trámite de subdivisión de predios que la Corporación había adquirido —permitiéndoles heredar la tierra a sus hijos y acceder a mayor certeza jurídica sobre su propiedad—.</p>
+        <h2>Dónde entra la topografía</h2>
+<p>Todo el proceso —desde la subdivisión del predio adquirido, hasta el plano que respalda cada goce individual— depende de un levantamiento y un plano técnico bien hecho. Es, en la práctica, un trabajo de subdivisión predial como cualquier otro, solo que enmarcado dentro de un programa social del Estado en vez de una transacción privada.</p>
+
+        <h2>Paso a paso (para el goce individual, una vez que la comunidad ya tiene el predio)</h2>
+        <ol style="color:var(--color-muted); font-size:1.02rem; line-height:1.75; margin:0 0 18px 20px;">
+          <li>La comunidad aprueba en asamblea el proyecto de subdivisión del predio adquirido.</li>
+          <li>Encarga el plano del proyecto de subdivisión a un topógrafo, junto con la memoria explicativa de los goces individuales.</li>
+          <li>Cada beneficiario firma su declaración individual de goce, con fotocopia de cédula de identidad.</li>
+          <li>Se presentan los documentos en la oficina de CONADI correspondiente.</li>
+          <li>CONADI emite el certificado de goce de tierras indígenas, que habilita, entre otras cosas, la postulación a subsidios habitacionales del SERVIU.</li>
+        </ol>
+
+        <h2>Importante</h2>
+        <div class="articulo-aviso-legal"><strong>Nota:</strong> este artículo es una guía general y no reemplaza la asesoría de un profesional ni de CONADI directamente. Los requisitos específicos pueden variar según la región y el programa vigente.</div>
+
+        <p style="margin-top:24px; font-size:0.88rem; color:var(--color-dim);">
+          <strong>Fuente:</strong> <a href="https://www.bcn.cl/leychile/Navegar?idNorma=30620" target="_blank" rel="noopener noreferrer" style="color:var(--color-secundario); font-weight:700;">Ley N° 19.253 (Ley Indígena)</a> — Biblioteca del Congreso Nacional (bcn.cl/leychile).
+        </p>
+
+        <div class="articulo-cta">
+          <p>¿Tu comunidad necesita el plano de subdivisión para tramitar los goces individuales ante CONADI?</p>
+          <a href="../index.html#contacto" class="boton boton-acento">Solicitar Cotización</a>
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="index.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="../alianzas/" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
