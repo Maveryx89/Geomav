@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diferencia de Cabida: Qué Hacer Cuando el Título No Coincide | GEOMAV</title>
+  <meta name="description" content="Qué hacer cuando la superficie real de un predio no coincide con la cabida del título de dominio, y cómo rectificar errores de medida, área o nombres de colindantes antes de subdividir." />
+  <link rel="canonical" href="https://geomav.me/aprende/diferencia-cabida-rectificacion-titulo.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Diferencia de Cabida: Qué Hacer Cuando el Título No Coincide | GEOMAV" />
+  <meta property="og:description" content="Qué hacer cuando la superficie real de un predio no coincide con la cabida del título de dominio, y cómo rectificar errores de medida, área o nombres de colindantes antes de subdividir." />
+  <meta property="og:url" content="https://geomav.me/aprende/diferencia-cabida-rectificacion-titulo.html" />
+  <meta property="og:locale" content="es_CL" />
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="index.html" class="menu-enlace">Aprende</a></li>
+          <li><a href="../alianzas/" class="menu-enlace">Alianzas</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="index.html" class="overlay-enlace">Aprende</a>
+    <a href="../alianzas/" class="overlay-enlace">Alianzas</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+
+
+
+
+
+
+  <!-- CABECERA DEL ARTÍCULO -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="index.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Aprende
+      </a>
+      <span class="etiqueta-seccion">Normativa / Cabida y Deslindes</span>
+      <h1 class="titulo-seccion">Diferencia de Cabida: <span class="texto-destacado">Qué Hacer</span></h1>
+      <p class="pagina-hero-descripcion">Si el levantamiento topográfico arroja más o menos terreno que el título de dominio, esto es lo que dice la ley, y cómo corregir el título antes de poder avanzar con una subdivisión.</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL ARTÍCULO -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>Un problema muy común en terreno</h2>
+<p>Estás tramitando un proyecto de subdivisión, y al hacer el levantamiento topográfico descubres que el predio tiene <strong>más o menos superficie</strong> que la que dice el título de dominio inscrito. Es uno de los problemas más frecuentes —y más frustrantes— en un proyecto de subdivisión, porque puede detener el trámite hasta que se resuelva.</p>
+        <h2>Primero: entender qué dice la ley sobre esta diferencia ("cabida")</h2>
+<p>El Código Civil (artículos 1831 a 1836) regula qué pasa cuando la <strong>cabida real</strong> de un predio no coincide con la <strong>cabida declarada</strong> en el título. Ojo: estas reglas solo aplican si el predio se vendió "con relación a su cabida" —es decir, si la superficie fue lo que determinó el precio—. La mayoría de las compraventas en Chile se hacen "como cuerpo cierto" (una cláusula habitual), caso en el cual estas reglas de ajuste de precio no aplican.</p><ul><li><strong>Si hay más terreno que en el título</strong>: el comprador debe pagar el excedente proporcionalmente; si ese excedente vale más de un 10% del precio, puede optar por pagar el aumento o desistir del contrato.</li><li><strong>Si hay menos terreno que en el título</strong>: el vendedor debe completarlo si puede; si no puede, hay rebaja proporcional del precio; si lo que falta vale más de un 10%, el comprador puede optar por la rebaja o desistir del contrato.</li></ul><p>Importante: esto es un asunto <strong>entre comprador y vendedor</strong> —no se le puede reclamar la diferencia a un colindante—.</p>
+        <h2>Segundo: cómo se corrige el título mismo</h2>
+<p>Más allá del problema contractual, lo que realmente bloquea un proyecto de subdivisión es que el <strong>título inscrito no refleje la realidad</strong>. Aquí hay que distinguir dos situaciones:</p><ul><li><strong>Modificación de deslindes</strong>: cuando la realidad física del terreno no coincide con lo inscrito (el cierro real quedó en otra parte).</li><li><strong>Rectificación de deslindes o cabida</strong>: cuando hay un error de anotación —de cálculo, de medida, de transcripción— en el plano o la escritura. Esto incluye errores en los <strong>nombres de los colindantes</strong> registrados.</li></ul>
+        <h2>El paso práctico: la escritura de rectificación</h2>
+<p>Se redacta una <strong>escritura pública de rectificación</strong>, acompañada del plano topográfico actualizado que respalde la corrección, y se presenta al Conservador de Bienes Raíces para subinscribirla al margen de la inscripción original. La <strong>"regla de oro"</strong> de este trámite: cuando se modifican deslindes o se aumenta la cabida, es prácticamente indispensable que los <strong>colindantes directamente afectados firmen la escritura</strong>, reconociendo los nuevos límites y declarando que no hay superposición con su propio predio. Sin esa firma, la vía notarial directa se bloquea.</p>
+        <h2>Por qué el Conservador puede rechazar la rectificación</h2>
+<p>El Conservador de Bienes Raíces tiene la llamada "facultad de calificación registral" (arts. 13 y 14 del Reglamento del Registro Conservatorio), y puede negarse a inscribir la rectificación si sospecha que, en realidad, se está encubriendo una compraventa disimulada de una porción de terreno —para evitar el trámite normal de subdivisión, o el pago de impuestos—. Es más probable que esto ocurra cuanto mayor sea la diferencia de superficie.</p>
+        <h2>Si el Conservador se niega: las alternativas</h2>
+<ul><li><strong>Vía artículo 67 de la LGUC</strong>: si es estrictamente una corrección de deslindes (no de superficie), autorizada por la Dirección de Obras Municipales, se inscribe directo con esa autorización.</li><li><strong>Vía judicial</strong>: rectificación por jurisdicción voluntaria ante el tribunal civil competente, cuando no hay otra vía disponible.</li><li><strong>Vía DL 2.695</strong>, si el caso califica como saneamiento de un poseedor material sin título correcto.</li></ul>
+        <h2>Un fallo reciente que aclara algo clave</h2>
+<p>La Corte Suprema resolvió en octubre de 2024 que el SAG, al certificar un plano de subdivisión, <strong>no valida la exactitud de los antecedentes de dominio ni demarcatorios</strong> informados por el solicitante —esa responsabilidad es del propietario—. En el mismo fallo, se estableció que el Conservador tampoco puede rechazar la inscripción de una subdivisión ya aprobada por el SAG solo porque el título original no tenía las medidas exactas de los deslindes. Esto confirma algo importante en la práctica: el problema de cabida <strong>hay que resolverlo antes</strong> de iniciar la subdivisión, no durante el trámite ante el SAG.</p>
+        <h2>Dónde entra la topografía</h2>
+<p>Todo este proceso —detectar la diferencia de cabida, respaldar la corrección con precisión, y armar el plano que acompaña la escritura de rectificación— depende de un levantamiento topográfico bien hecho. Es, en la práctica, el primer paso obligado antes de poder avanzar con cualquier proyecto de subdivisión donde el título no coincide con la realidad del terreno.</p>
+
+        <h2>Paso a paso para rectificar el título</h2>
+        <ol style="color:var(--color-muted); font-size:1.02rem; line-height:1.75; margin:0 0 18px 20px;">
+          <li>Encarga el levantamiento topográfico que confirme la cabida real y los deslindes exactos del predio.</li>
+          <li>Identifica si el caso corresponde a una modificación de deslindes (realidad distinta a lo inscrito) o a una rectificación (error de anotación, medida o nombres de colindantes).</li>
+          <li>Contacta a los colindantes afectados para coordinar la firma de la escritura de rectificación.</li>
+          <li>Encarga a un abogado la redacción de la escritura pública de rectificación, acompañada del plano actualizado.</li>
+          <li>Presenta la escritura y el plano al Conservador de Bienes Raíces para subinscribirla al margen de la inscripción original — y, si es rechazada, evalúa la vía LGUC art. 67, la vía judicial, o el DL 2.695 según corresponda.</li>
+        </ol>
+
+        <h2>Importante</h2>
+        <div class="articulo-aviso-legal"><strong>Nota:</strong> este artículo es una guía general y no reemplaza la asesoría de un abogado. Cada Conservador de Bienes Raíces puede tener criterios distintos frente a una rectificación — conviene consultar antes de iniciar el trámite.</div>
+
+        <p style="margin-top:24px; font-size:0.88rem; color:var(--color-dim);">
+          <strong>Fuente:</strong> <a href="https://www.bcn.cl/leychile/navegar?idNorma=172986" target="_blank" rel="noopener noreferrer" style="color:var(--color-secundario); font-weight:700;">Código Civil</a> y <a href="https://www.bcn.cl/leychile/Navegar?idNorma=13560" target="_blank" rel="noopener noreferrer" style="color:var(--color-secundario); font-weight:700;">Ley General de Urbanismo y Construcciones (DFL 458)</a> — Biblioteca del Congreso Nacional (bcn.cl/leychile).
+        </p>
+
+        <div class="articulo-cta">
+          <p>¿La cabida real de tu predio no coincide con el título? Encarguemos el levantamiento que necesitas para rectificarlo.</p>
+          <a href="../index.html#contacto" class="boton boton-acento">Solicitar Cotización</a>
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="index.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="../alianzas/" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
