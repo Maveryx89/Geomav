@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Informe de Factibilidad (IFC) del SAG: Guía Completa | GEOMAV</title>
+  <meta name="description" content="Cómo obtener el Informe de Factibilidad del SAG para construir algo no agrícola —una casa, bodega o cabaña— en un terreno rural, según el artículo 55 de la LGUC." />
+  <link rel="canonical" href="https://geomav.me/aprende/informe-factibilidad-construcciones-ifc.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Informe de Factibilidad (IFC) del SAG: Guía Completa | GEOMAV" />
+  <meta property="og:description" content="Cómo obtener el Informe de Factibilidad del SAG para construir algo no agrícola —una casa, bodega o cabaña— en un terreno rural, según el artículo 55 de la LGUC." />
+  <meta property="og:url" content="https://geomav.me/aprende/informe-factibilidad-construcciones-ifc.html" />
+  <meta property="og:locale" content="es_CL" />
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="index.html" class="menu-enlace">Aprende</a></li>
+          <li><a href="../alianzas/" class="menu-enlace">Alianzas</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="index.html" class="overlay-enlace">Aprende</a>
+    <a href="../alianzas/" class="overlay-enlace">Alianzas</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+
+
+
+  <!-- CABECERA DEL ARTÍCULO -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="index.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Aprende
+      </a>
+      <span class="etiqueta-seccion">Normativa / Construcción Rural</span>
+      <h1 class="titulo-seccion">Informe de Factibilidad (IFC) <span class="texto-destacado">del SAG</span></h1>
+      <p class="pagina-hero-descripcion">Si quieres construir una vivienda, bodega u otra edificación no agrícola en un terreno rural, primero necesitas este informe del SAG —antes de que la municipalidad pueda darte el permiso de edificación.</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL ARTÍCULO -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>El problema típico</h2>
+<p>Quieres construir algo en un terreno rural que <strong>no es agrícola, ganadero ni forestal</strong> —una casa, una bodega, un taller, una cabaña para turismo rural—. Como el predio está fuera del límite urbano, no basta con el permiso municipal de siempre: primero hay que pasar por el Servicio Agrícola y Ganadero (SAG).</p>
+        <h2>Qué es el IFC</h2>
+<p>El Informe de Factibilidad para Construcciones Ajenas a la Agricultura en Área Rural (IFC) es el trámite, exigido por el <strong>artículo 55 de la Ley General de Urbanismo y Construcciones (LGUC)</strong>, mediante el cual el SAG evalúa si es factible autorizar una construcción no agropecuaria en un predio rural. Sin este informe favorable, la Dirección de Obras Municipales no puede tramitar el permiso de edificación correspondiente.</p>
+        <h2>Cómo se hace la evaluación</h2>
+<p>No es un trámite solo de escritorio: funcionarios del SAG concurren físicamente al predio donde se pretende construir. Ahí evalúan la capacidad de uso del suelo mediante <strong>calicatas</strong> (pozos de prueba excavados en puntos específicos, previamente definidos e informados al solicitante), y analizan las condiciones del entorno y la vocación agropecuaria del predio.</p>
+        <h2>Qué suelos complican la aprobación</h2>
+<p>El informe considera como suelos de <strong>alta prioridad agrícola</strong> los clasificados en las categorías I, II y III (las categorías más productivas para uso agropecuario). Si el terreno cae en esas categorías, es más exigente obtener un informe favorable, porque la norma busca justamente evitar que terrenos agrícolas valiosos se pierdan por urbanización dispersa.</p>
+        <h2>Qué se necesita para solicitarlo</h2>
+<p>El SAG exige antecedentes del predio y del proyecto (ubicación, plano de emplazamiento, características de la construcción proyectada) para poder coordinar la visita a terreno y definir el número de calicatas a evaluar. Cada Dirección Regional del SAG informa los detalles específicos del proceso en su región.</p>
+
+        <h2>Paso a paso</h2>
+        <ol style="color:var(--color-muted); font-size:1.02rem; line-height:1.75; margin:0 0 18px 20px;">
+          <li>Reúne los antecedentes del predio y del proyecto: ubicación, plano de emplazamiento, características de la construcción a realizar.</li>
+          <li>Presenta la solicitud en la Dirección Regional del SAG correspondiente a la ubicación del predio.</li>
+          <li>Coordina con el SAG el número y ubicación de las calicatas que deberás excavar y dejar disponibles antes de la visita.</li>
+          <li>Recibe la visita de los funcionarios del SAG, que evaluarán el suelo y las condiciones del entorno predial.</li>
+          <li>Obtén el informe de factibilidad y, con este documento favorable, continúa el trámite del permiso de edificación ante la Dirección de Obras Municipales.</li>
+        </ol>
+
+        <h2>Importante</h2>
+        <div class="articulo-aviso-legal"><strong>Nota:</strong> este artículo es una guía general y no reemplaza la asesoría de un profesional. Los requisitos específicos pueden variar según la región y las características del predio.</div>
+
+        <p style="margin-top:24px; font-size:0.88rem; color:var(--color-dim);">
+          <strong>Fuente:</strong> <a href="https://www.bcn.cl/leychile/Navegar?idNorma=13560" target="_blank" rel="noopener noreferrer" style="color:var(--color-secundario); font-weight:700;">Ley General de Urbanismo y Construcciones (DFL 458)</a> — Biblioteca del Congreso Nacional (bcn.cl/leychile).
+        </p>
+
+        <div class="articulo-cta">
+          <p>¿Necesitas el plano de emplazamiento para solicitar tu Informe de Factibilidad ante el SAG?</p>
+          <a href="../index.html#contacto" class="boton boton-acento">Solicitar Cotización</a>
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="index.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="../alianzas/" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
