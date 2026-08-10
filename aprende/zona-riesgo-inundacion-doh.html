@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zonas de Riesgo de Inundación: Trámite ante la DOH | GEOMAV</title>
+  <meta name="description" content="Cómo solicitar a la Dirección de Obras Hidráulicas (DOH) la aprobación técnica para reducir una franja de restricción por riesgo de inundación establecida en el Plan Regulador." />
+  <link rel="canonical" href="https://geomav.me/aprende/zona-riesgo-inundacion-doh.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Zonas de Riesgo de Inundación: Trámite ante la DOH | GEOMAV" />
+  <meta property="og:description" content="Cómo solicitar a la Dirección de Obras Hidráulicas (DOH) la aprobación técnica para reducir una franja de restricción por riesgo de inundación establecida en el Plan Regulador." />
+  <meta property="og:url" content="https://geomav.me/aprende/zona-riesgo-inundacion-doh.html" />
+  <meta property="og:locale" content="es_CL" />
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="index.html" class="menu-enlace">Aprende</a></li>
+          <li><a href="../alianzas/" class="menu-enlace">Alianzas</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="index.html" class="overlay-enlace">Aprende</a>
+    <a href="../alianzas/" class="overlay-enlace">Alianzas</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+
+
+
+
+
+  <!-- CABECERA DEL ARTÍCULO -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="index.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Aprende
+      </a>
+      <span class="etiqueta-seccion">Normativa / Cauces y Ríos</span>
+      <h1 class="titulo-seccion">Zonas de Riesgo <span class="texto-destacado">de Inundación</span></h1>
+      <p class="pagina-hero-descripcion">Si tu terreno cae dentro de una franja de restricción por riesgo de inundación en el Plan Regulador, existe un trámite técnico ante la DOH que puede habilitar tu proyecto.</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL ARTÍCULO -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>El problema típico</h2>
+<p>Tu terreno está cerca de un lago, río, estero o quebrada, y al revisar el Plan Regulador Comunal descubres que cae dentro de una <strong>zona de riesgo por inundación</strong> —una "franja de restricción" que limita o impide construir—. Esto no significa necesariamente que el proyecto sea inviable: existe un trámite para pedir una evaluación técnica que puede reducir esa franja.</p>
+        <h2>Qué es este trámite</h2>
+<p>Permite a propietarios de terrenos que colindan con lagos, ríos, esteros o quebradas solicitar a la Dirección de Obras Hidráulicas (DOH) la <strong>aprobación técnica</strong> de un estudio para autorizar el emplazamiento de un proyecto dentro de una zona identificada como inundable o potencialmente inundable. La DOH determina qué acciones habría que ejecutar para hacerlo viable —incluyendo, si corresponde, una evaluación de impacto ambiental bajo la Ley N° 19.300—.</p>
+        <h2>Qué autoridad decide finalmente</h2>
+<p>La DOH aprueba el estudio técnico, pero es el <strong>Plan Regulador</strong> el que finalmente establece las normas urbanísticas aplicables una vez que el proyecto cumple con los requisitos que fija ese estudio. Es decir, la aprobación de la DOH es el paso técnico previo que habilita a los organismos planificadores (municipalidad) a autorizar el proyecto.</p>
+        <h2>Qué se necesita para solicitarlo</h2>
+<ul><li>Los planos reguladores respectivos de la comuna donde está el terreno.</li><li>Un estudio técnico que respalde la propuesta de disminución de la franja de restricción, elaborado por un profesional competente.</li></ul>
+        <h2>Un dato práctico</h2>
+<p>El trámite se realiza en la oficina de la DOH más cercana a la propiedad, no tiene costo asociado, y la respuesta se entrega por oficio. El tiempo de respuesta varía según la complejidad del proyecto a evaluar.</p>
+        <h2>Dónde entra la topografía</h2>
+<p>El estudio técnico que sustenta la solicitud —para demostrar que un área específica dentro de la franja de restricción puede excluirse del riesgo, por su cota, su distancia al cauce, o su comportamiento hidráulico— se apoya directamente en un levantamiento topográfico preciso del terreno y su entorno. Sin esa base, no hay argumento técnico que presentarle a la DOH.</p>
+
+        <h2>Paso a paso</h2>
+        <ol style="color:var(--color-muted); font-size:1.02rem; line-height:1.75; margin:0 0 18px 20px;">
+          <li>Revisa el Plan Regulador Comunal para confirmar si tu terreno está dentro de una zona de riesgo por inundación.</li>
+          <li>Encarga el levantamiento topográfico y el estudio técnico que respalde la propuesta de reducción de la franja de restricción.</li>
+          <li>Presenta la solicitud en la oficina de la Dirección de Obras Hidráulicas (DOH) más cercana a la propiedad.</li>
+          <li>Espera la respuesta por oficio, con la aprobación técnica y las condiciones —incluyendo, si corresponde, la exigencia de evaluación de impacto ambiental—.</li>
+          <li>Con la aprobación de la DOH, continúa el trámite del proyecto ante la municipalidad, conforme a las normas del Plan Regulador.</li>
+        </ol>
+
+        <h2>Importante</h2>
+        <div class="articulo-aviso-legal"><strong>Nota:</strong> este artículo es una guía general y no reemplaza la asesoría de un profesional. Los requisitos específicos pueden variar según la región y las características del predio.</div>
+
+        <p style="margin-top:24px; font-size:0.88rem; color:var(--color-dim);">
+          <strong>Fuente:</strong> <a href="https://www.bcn.cl/leychile/Navegar?idNorma=13560" target="_blank" rel="noopener noreferrer" style="color:var(--color-secundario); font-weight:700;">Ley General de Urbanismo y Construcciones</a> y <a href="https://www.bcn.cl/leychile/navegar?idNorma=30667" target="_blank" rel="noopener noreferrer" style="color:var(--color-secundario); font-weight:700;">Ley N° 19.300</a> — Biblioteca del Congreso Nacional (bcn.cl/leychile).
+        </p>
+
+        <div class="articulo-cta">
+          <p>¿Necesitas el estudio topográfico para reducir una franja de restricción por riesgo de inundación?</p>
+          <a href="../index.html#contacto" class="boton boton-acento">Solicitar Cotización</a>
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="index.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="../alianzas/" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
