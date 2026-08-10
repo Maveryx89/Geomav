@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plan de Manejo Forestal: Qué Es y Cómo Tramitarlo | GEOMAV</title>
+  <meta name="description" content="Cómo obtener la autorización de CONAF para cortar bosque nativo o plantaciones forestales en tu predio, y por qué se necesita cartografía georreferenciada para tramitarlo." />
+  <link rel="canonical" href="https://geomav.me/aprende/plan-de-manejo-forestal.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Plan de Manejo Forestal: Qué Es y Cómo Tramitarlo | GEOMAV" />
+  <meta property="og:description" content="Cómo obtener la autorización de CONAF para cortar bosque nativo o plantaciones forestales en tu predio, y por qué se necesita cartografía georreferenciada para tramitarlo." />
+  <meta property="og:url" content="https://geomav.me/aprende/plan-de-manejo-forestal.html" />
+  <meta property="og:locale" content="es_CL" />
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="index.html" class="menu-enlace">Aprende</a></li>
+          <li><a href="../alianzas/" class="menu-enlace">Alianzas</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="index.html" class="overlay-enlace">Aprende</a>
+    <a href="../alianzas/" class="overlay-enlace">Alianzas</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+
+
+
+  <!-- CABECERA DEL ARTÍCULO -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="index.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Aprende
+      </a>
+      <span class="etiqueta-seccion">Normativa / Bosque y Forestal</span>
+      <h1 class="titulo-seccion">Plan de Manejo <span class="texto-destacado">Forestal</span></h1>
+      <p class="pagina-hero-descripcion">Antes de cortar árboles en tu predio —sea bosque nativo o una plantación— necesitas un plan de manejo aprobado por la CONAF. Esto es lo que exige el trámite, y dónde entra la cartografía.</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL ARTÍCULO -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>¿Puedo cortar árboles de mi predio sin más trámite?</h2>
+<p>No, en general no. Toda acción de corta de bosque nativo en Chile —sin importar el tipo de terreno en que se encuentre— requiere contar primero con un <strong>plan de manejo aprobado por la CONAF</strong> (Corporación Nacional Forestal). Esto aplica tanto si se trata de un bosque nativo extenso como de una intervención más acotada.</p>
+        <h2>Qué es un plan de manejo forestal</h2>
+<p>Es el instrumento técnico y legal que planifica la gestión del patrimonio ecológico o el aprovechamiento sustentable de los recursos forestales de un terreno determinado, resguardando la calidad de las aguas y evitando el deterioro de los suelos. Debe presentarlo el propietario (o poseedor en proceso de saneamiento de título) ante la CONAF, y elaborarlo un <strong>ingeniero forestal, ingeniero agrónomo especializado, u otro profesional con formación acreditada en ciencias forestales</strong>.</p>
+        <h2>Bosque nativo vs. plantaciones: dos normativas distintas</h2>
+<p>Es un punto que genera confusión: no es la misma ley la que regula ambos casos.</p><ul><li><strong>Bosque nativo</strong> (especies que crecieron naturalmente en el lugar): se rige por la Ley N° 20.283, sobre Recuperación del Bosque Nativo y Fomento Forestal.</li><li><strong>Plantaciones forestales</strong> (pino, eucalipto y otras especies plantadas, muchas veces bonificadas en su momento por el Estado): se rigen por el Decreto Ley N° 701, sobre Fomento Forestal.</li></ul><p>Cada una exige su propio tipo de plan (plan de manejo de bosque nativo, o plan de manejo/corta de plantaciones), aunque el objetivo de fondo —regular la corta y asegurar la sustentabilidad— es similar en ambos casos.</p>
+        <h2>Qué exige la solicitud</h2>
+<ul><li>Formulario de plan de manejo, según el objetivo de la corta, la localización y el tipo forestal.</li><li>Autorización de ingreso al predio (si no se ha presentado antes ante CONAF).</li><li><strong>Cartografía digital georreferenciada</strong> del predio y del área de intervención.</li><li>Copia simple de cédula de identidad o RUT del solicitante.</li></ul>
+        <h2>Plazos de aprobación</h2>
+<p>Para bosque nativo, la CONAF tiene <strong>90 días</strong> desde el ingreso de la solicitud para aprobar o rechazar el plan; si no se pronuncia dentro de ese plazo, el plan se entiende aprobado tal como fue propuesto (salvo excepciones específicas de la ley). Para plantaciones forestales, el plazo general es de <strong>120 días corridos</strong>, aunque se reduce a 30 días cuando el plan contempla solo corta final y reforestación en ciertas regiones (de Valparaíso a Los Lagos).</p>
+        <h2>Un caso especial: proyectos con evaluación ambiental</h2>
+<p>Si la corta corresponde a un proyecto que debe someterse al Sistema de Evaluación de Impacto Ambiental (por ejemplo, un loteo o urbanización de cierta envergadura), primero hay que contar con una <strong>Resolución de Calificación Ambiental</strong> aprobatoria, antes de presentar el plan de manejo ante CONAF.</p>
+        <h2>Después de la corta: las guías de libre tránsito</h2>
+<p>Una vez aprobado el plan y ejecutada la corta, para transportar los productos del bosque (madera, leña, etc.) se necesitan <strong>guías de libre tránsito</strong>, que acreditan que esos productos provienen de una corta autorizada. Se solicitan en la oficina de CONAF donde se aprobó el plan de manejo.</p>
+        <h2>Dónde entra la topografía</h2>
+<p>La cartografía digital georreferenciada que exige la solicitud —delimitando con precisión el predio y el área de intervención— es exactamente el tipo de levantamiento que se necesita antes de presentar cualquier plan de manejo. Un error en esa delimitación puede generar observaciones que atrasan la aprobación, o problemas más adelante si el área intervenida no coincide con lo autorizado.</p>
+
+        <h2>Paso a paso</h2>
+        <ol style="color:var(--color-muted); font-size:1.02rem; line-height:1.75; margin:0 0 18px 20px;">
+          <li>Define si tu caso corresponde a bosque nativo (Ley 20.283) o a una plantación forestal (DL 701).</li>
+          <li>Encarga la cartografía digital georreferenciada del predio y del área a intervenir.</li>
+          <li>Reúne los antecedentes: formulario de plan de manejo, autorización de ingreso al predio, identificación del solicitante.</li>
+          <li>Presenta la solicitud ante la oficina de CONAF correspondiente a la ubicación del predio.</li>
+          <li>Espera la resolución (hasta 90 días para bosque nativo, hasta 120 días para plantaciones) y, una vez aprobada, solicita las guías de libre tránsito para movilizar los productos.</li>
+        </ol>
+
+        <h2>Importante</h2>
+        <div class="articulo-aviso-legal"><strong>Nota:</strong> este artículo es una guía general y no reemplaza la asesoría de un profesional. Los requisitos específicos pueden variar según la región y las características del predio.</div>
+
+        <p style="margin-top:24px; font-size:0.88rem; color:var(--color-dim);">
+          <strong>Fuente:</strong> <a href="https://www.bcn.cl/leychile/navegar?idNorma=274894" target="_blank" rel="noopener noreferrer" style="color:var(--color-secundario); font-weight:700;">Ley N° 20.283</a> y <a href="https://www.bcn.cl/leychile/Navegar?idNorma=6954" target="_blank" rel="noopener noreferrer" style="color:var(--color-secundario); font-weight:700;">Decreto Ley N° 701</a> — Biblioteca del Congreso Nacional (bcn.cl/leychile).
+        </p>
+
+        <div class="articulo-cta">
+          <p>¿Necesitas la cartografía georreferenciada para presentar tu plan de manejo ante CONAF?</p>
+          <a href="../index.html#contacto" class="boton boton-acento">Solicitar Cotización</a>
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="index.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="../alianzas/" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
