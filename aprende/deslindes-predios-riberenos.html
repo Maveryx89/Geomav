@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deslindes de Predios Ribereños: Trámite ante la DOH | GEOMAV</title>
+  <meta name="description" content="Cómo se determina y valida el límite entre una propiedad privada y el cauce de un río, lago o estero, mediante el trámite ante la Dirección de Obras Hidráulicas (DOH) y el Ministerio de Bienes Nacionales." />
+  <link rel="canonical" href="https://geomav.me/aprende/deslindes-predios-riberenos.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Deslindes de Predios Ribereños: Trámite ante la DOH | GEOMAV" />
+  <meta property="og:description" content="Cómo se determina y valida el límite entre una propiedad privada y el cauce de un río, lago o estero, mediante el trámite ante la Dirección de Obras Hidráulicas (DOH) y el Ministerio de Bienes Nacionales." />
+  <meta property="og:url" content="https://geomav.me/aprende/deslindes-predios-riberenos.html" />
+  <meta property="og:locale" content="es_CL" />
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="index.html" class="menu-enlace">Aprende</a></li>
+          <li><a href="../alianzas/" class="menu-enlace">Alianzas</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="index.html" class="overlay-enlace">Aprende</a>
+    <a href="../alianzas/" class="overlay-enlace">Alianzas</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+
+
+
+
+
+  <!-- CABECERA DEL ARTÍCULO -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="index.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Aprende
+      </a>
+      <span class="etiqueta-seccion">Normativa / Cauces y Ríos</span>
+      <h1 class="titulo-seccion">Deslindes de <span class="texto-destacado">Predios Ribereños</span></h1>
+      <p class="pagina-hero-descripcion">Si tu terreno colinda con un río, lago o estero, el límite entre tu propiedad y el cauce puede no coincidir con la realidad actual. Así se revisa y valida ante la DOH y el Ministerio de Bienes Nacionales.</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL ARTÍCULO -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>Un problema que muchos propietarios no ven venir</h2>
+<p>Tu terreno colinda con un río, lago o estero. Con el tiempo, el cauce se mueve —erosiona una orilla, deposita sedimento en otra—, y en algún momento resulta que el límite "de papel" entre tu propiedad y el cauce ya no coincide con la realidad. En un caso real ocurrido en Valparaíso, un estudio de la DOH a gran escala dejó a mil predios privados con la posibilidad de reducir su tamaño, afectando a 700 viviendas.</p>
+        <h2>Qué es este trámite</h2>
+<p>Es un procedimiento —distinto a una demarcación entre vecinos— mediante el cual la Dirección de Obras Hidráulicas (DOH) analiza y valida los deslindes entre una propiedad privada ribereña y el cauce de un río, lago o estero, que es un <strong>bien nacional de uso público</strong>. Lo pueden solicitar tanto propietarios particulares como servicios públicos.</p>
+        <h2>Quién decide en realidad el deslinde</h2>
+<p>La DOH no fija el deslinde por sí sola: su rol —a través del Departamento de Defensas Fluviales— es <strong>informar técnicamente</strong> y proponer el trazado, acompañando un plano de la zona. Quien fija formalmente el deslinde, mediante un decreto supremo, es el <strong>Ministerio de Bienes Nacionales</strong> (antes Ministerio de Tierras y Colonización). Por eso el trámite exige primero un visado de la Secretaría Regional Ministerial (SEREMI) de Bienes Nacionales correspondiente.</p>
+        <h2>Qué se necesita para solicitarlo</h2>
+<ul><li>Oficio de la SEREMI de Bienes Nacionales, con el estudio técnico de fijación de deslinde, para el pronunciamiento del Departamento de Obras Fluviales.</li><li>Estudio de títulos de dominio de las propiedades afectadas.</li></ul><p>Antes de iniciar cualquier gestión, conviene consultar directamente con el Departamento de Obras Fluviales de la DOH si este trámite es realmente el que corresponde para tu caso —a veces la situación se resuelve por otra vía—.</p>
+        <h2>Cómo termina el proceso</h2>
+<p>La DOH emite un informe técnico con una propuesta de deslinde, que se deriva al Ministerio de Bienes Nacionales. Una vez que el deslinde queda fijado por decreto supremo, los propietarios ribereños afectados tienen un plazo de <strong>60 días</strong> para solicitar modificaciones si consideran que el trazado no es correcto.</p>
+        <h2>Dónde entra la topografía</h2>
+<p>El estudio técnico de fijación de deslinde que exige la SEREMI de Bienes Nacionales —y que la DOH revisa— es, en esencia, un levantamiento topográfico especializado del cauce y su relación con la propiedad privada. Es un trabajo técnico exigente, porque un error puede significar que un propietario pierda (o gane) una porción real de su terreno frente al Estado.</p>
+
+        <h2>Paso a paso</h2>
+        <ol style="color:var(--color-muted); font-size:1.02rem; line-height:1.75; margin:0 0 18px 20px;">
+          <li>Consulta primero con el Departamento de Obras Fluviales de la DOH si este trámite corresponde a tu caso.</li>
+          <li>Encarga el estudio técnico de fijación de deslinde, que identifique con precisión el cauce y su relación con tu propiedad.</li>
+          <li>Solicita el visado de ese estudio ante la SEREMI de Bienes Nacionales de tu región.</li>
+          <li>Presenta la solicitud en la oficina de partes de la DOH, junto con el oficio de la SEREMI y el estudio de títulos de dominio.</li>
+          <li>Recibe el informe técnico de la DOH y, una vez fijado el deslinde por decreto supremo, revisa si necesitas solicitar alguna modificación dentro del plazo de 60 días.</li>
+        </ol>
+
+        <h2>Importante</h2>
+        <div class="articulo-aviso-legal"><strong>Nota:</strong> este artículo es una guía general y no reemplaza la asesoría de un profesional. Los requisitos específicos pueden variar según la región y las características del predio.</div>
+
+        <p style="margin-top:24px; font-size:0.88rem; color:var(--color-dim);">
+          <strong>Fuente:</strong> <a href="https://www.bcn.cl/leychile/navegar?idNorma=133741" target="_blank" rel="noopener noreferrer" style="color:var(--color-secundario); font-weight:700;">Decreto N° 609, de 1978</a> — Biblioteca del Congreso Nacional (bcn.cl/leychile).
+        </p>
+
+        <div class="articulo-cta">
+          <p>¿Necesitas el estudio técnico de deslinde de tu propiedad ribereña?</p>
+          <a href="../index.html#contacto" class="boton boton-acento">Solicitar Cotización</a>
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="index.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="../alianzas/" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
