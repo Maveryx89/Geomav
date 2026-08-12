@@ -48,7 +48,7 @@ const proyectosPortafolio = {
   drones: [
     {
       id: 'cesfam-lautaro-caro-rios',
-      titulo: 'Plano de Emplazamiento Cesfam Lautaro Caro Ríos',
+      titulo: 'Cesfam Paillaco',
       ubicacion: 'Paillaco',
       url: 'https://drive.google.com/file/d/1d89oq7ygNcAdV29CrGD4zA0l2c0_kMEz/preview',
       real: true,
