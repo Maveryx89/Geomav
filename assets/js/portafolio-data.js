@@ -47,6 +47,16 @@ const proyectosPortafolio = {
   ],
   drones: [
     {
+      id: 'lote-coipue-barrancas',
+      titulo: 'Lote Coipué',
+      ubicacion: 'Barrancas',
+      url: 'https://drive.google.com/uc?export=download&id=1YPpTtGdQD1CePvTrqfb2e5G4H3KzBwI2',
+      real: true,
+      icono: '🚁',
+      modelo3d: true,
+      vertical: true
+    },
+    {
       id: 'cesfam-lautaro-caro-rios',
       titulo: 'Cesfam Paillaco',
       ubicacion: 'Paillaco',
