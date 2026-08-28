@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Servidumbre Eléctrica: Franja de Seguridad de Líneas de Alta Tensión | GEOMAV</title>
+  <meta name="description" content="Si un tendido eléctrico cruza tu predio, existe una franja de seguridad donde no se puede construir ni plantar. Cómo se calcula su ancho y qué dice la ley." />
+  <link rel="canonical" href="https://geomav.me/aprende/servidumbre-electrica-lineas.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Servidumbre Eléctrica: Franja de Seguridad de Líneas de Alta Tensión | GEOMAV" />
+  <meta property="og:description" content="Si un tendido eléctrico cruza tu predio, existe una franja de seguridad donde no se puede construir ni plantar. Cómo se calcula su ancho y qué dice la ley." />
+  <meta property="og:url" content="https://geomav.me/aprende/servidumbre-electrica-lineas.html" />
+  <meta property="og:locale" content="es_CL" />
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="index.html" class="menu-enlace">Aprende</a></li>
+          <li><a href="../alianzas/" class="menu-enlace">Alianzas</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="index.html" class="overlay-enlace">Aprende</a>
+    <a href="../alianzas/" class="overlay-enlace">Alianzas</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+
+  <!-- CABECERA DEL ARTÍCULO -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="index.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Aprende
+      </a>
+      <span class="etiqueta-seccion">Normativa / Deslindes</span>
+      <h1 class="titulo-seccion">Servidumbre Eléctrica: <span class="texto-destacado">Franja de Seguridad</span></h1>
+      <p class="pagina-hero-descripcion">Si una línea de alta o media tensión cruza tu predio, existe una franja donde no se puede construir ni plantar. Cómo se calcula su ancho y qué se puede hacer dentro de ella.</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL ARTÍCULO -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>Qué es la servidumbre eléctrica</h2>
+<p>La Ley General de Servicios Eléctricos (DFL N° 4/20.018) permite a las empresas concesionarias de líneas de transporte y distribución imponer servidumbres sobre predios particulares para tender líneas aéreas o subterráneas y ocupar los terrenos necesarios para transportar la energía. Esto significa que, si una línea eléctrica de la concesionaria pasa por tu terreno, existe un gravamen legal sobre esa franja específica, independiente de que tú seas o no cliente de esa empresa.</p>
+        <h2>La franja de seguridad no es un ancho fijo</h2>
+<p>A diferencia de la faja de un canal (que tiene una fórmula simple), el ancho de la franja de seguridad eléctrica se calcula técnicamente para cada línea según su tensión, el tipo de estructura, la longitud del vano y el efecto del viento sobre los conductores. Esto lo define el Pliego Técnico Normativo RPTD N°07 de la Superintendencia de Electricidad y Combustibles (SEC), dictado en aplicación del Reglamento de Seguridad de las Instalaciones Eléctricas (Decreto N° 109 de 2017).</p>
+        <h2>Distancias de seguridad según tensión</h2>
+<p>La tabla oficial de la SEC fija la distancia de seguridad mínima a cada lado del eje de la línea según su tensión máxima: 1,5 m hasta 1 kV, 2,0 m entre 1 y 36 kV, subiendo progresivamente hasta 11,4 m para líneas entre 550 y 800 kV. A esa distancia base se suma el desplazamiento lateral que el viento provoca en los conductores y en las cadenas de aisladores, por lo que el ancho final de la franja depende del diseño específico de cada línea y no puede estimarse solo mirando la tensión nominal.</p>
+        <h2>Qué está prohibido dentro de la franja</h2>
+<p>Dentro de la franja de seguridad no se permite la existencia de edificios, ni se pueden hacer plantaciones, construcciones ni obras de otra naturaleza que perturben la operación o mantenimiento de la línea, o que pongan en riesgo su integridad. Tampoco pueden quedar dentro de ella corrales, huertos, jardines o patios que dependan de edificios, salvo que se trate de una línea de distribución de baja tensión. Sí se permite la existencia de árboles o arbustos, siempre que se respete una altura máxima y una distancia vertical mínima al conductor, y que la línea cuente con protecciones adecuadas.</p>
+        <h2>Qué puede hacer el dueño del predio</h2>
+<p>El propietario puede seguir usando el terreno para cultivos bajos, pastoreo o actividades que no impliquen construir ni levantar estructuras altas. Si el predio atravesado por las líneas quiere ejecutar construcciones debajo de ellas, puede exigir al dueño de las líneas que varíe su trazado, corriendo esas obras modificatorias por cuenta del propietario del predio. Además, tiene derecho a indemnización por el valor del terreno ocupado por postes, torres y zanjas, por los perjuicios ocasionados durante la construcción, y por una faja adicional de hasta dos metros de ancho destinada al tránsito para labores de custodia, conservación y reparación de las líneas.</p>
+        <h2>Por qué esto importa en un levantamiento o subdivisión</h2>
+<p>Al mensurar un predio atravesado por líneas eléctricas de alta o media tensión, la franja de seguridad debe identificarse en el plano junto con los demás deslindes y restricciones, ya que condiciona dónde se puede construir, cercar o edificar. Ignorarla puede derivar en un proyecto que la empresa eléctrica objete posteriormente, o en construcciones que deban demolerse o modificarse a costa del propietario.</p>
+        <h2>Paso a paso</h2>
+        <ol style="color:var(--color-muted); font-size:1.02rem; line-height:1.75; margin:0 0 18px 20px;">
+          <li>Identifica en terreno el trazado de la línea eléctrica y su tipo de tensión (consultando a la empresa concesionaria si no es evidente).</li>
+          <li>Solicita a la empresa propietaria de la línea, o a la SEC, el plano especial de servidumbre aprobado para ese tramo.</li>
+          <li>Incorpora la franja de seguridad en el levantamiento topográfico y en el plano final del predio.</li>
+          <li>Verifica que ningún proyecto de construcción, cierre o plantación de árboles altos quede dentro de esa franja.</li>
+          <li>Si necesitas construir bajo una línea existente, evalúa con un profesional la opción de solicitar el cambio de trazado a la empresa eléctrica.</li>
+        </ol>
+        <h2>Importante</h2>
+<div class="articulo-aviso-legal"><strong>Nota:</strong> este artículo es una guía general y no reemplaza la asesoría de un abogado o de un ingeniero eléctrico. El ancho exacto de la franja de seguridad depende del diseño específico de cada línea y debe solicitarse a la empresa concesionaria o a la SEC antes de definir cualquier proyecto cerca de un tendido eléctrico.</div>
+
+        <div class="articulo-aviso-legal" style="border-left-color: var(--color-secundario);">
+          <strong>¿Necesitas asesoría legal en este tema?</strong> <a href="../alianzas/carlos-verdugo-rebolledo.html" style="color:var(--color-secundario); font-weight:700;">Carlos Verdugo Rebolledo</a>, abogado especialista en derecho inmobiliario, es uno de nuestros colaboradores externos.
+        </div>
+
+        <div class="articulo-aviso-legal" style="border-left-color: var(--color-acento);">
+          <strong>📄 Documento oficial:</strong> Esta servidumbre <strong>no tiene un formulario único descargable</strong> — el plano especial de servidumbre se solicita directamente a la empresa eléctrica concesionaria del tramo, o se consulta a través de la Superintendencia de Electricidad y Combustibles (SEC).
+        </div>
+
+        <p style="margin-top:24px; font-size:0.88rem; color:var(--color-dim);">
+          <strong>Fuente:</strong> <a href="https://www.bcn.cl/leychile/navegar?idNorma=258171" target="_blank" rel="noopener noreferrer" style="color:var(--color-secundario); font-weight:700;">Ley General de Servicios Eléctricos (DFL N° 4/20.018), Capítulo V "De las Servidumbres"</a> — Biblioteca del Congreso Nacional (bcn.cl/leychile). Distancias técnicas según el <a href="https://www.sec.cl/sitio-web/wp-content/uploads/2020/09/Pliego-T%C3%A9cnico-Normativo-RPTD-N%C2%B007-Franja-y-distancia-seguridad.pdf" target="_blank" rel="noopener noreferrer" style="color:var(--color-secundario); font-weight:700;">Pliego Técnico Normativo RPTD N°07 de la SEC</a> (Decreto N° 109 de 2017, Ministerio de Energía).
+        </p>
+
+        <div class="articulo-cta">
+          <p>¿Necesitas un levantamiento topográfico que identifique correctamente las servidumbres de tu predio?</p>
+          <a href="../index.html#contacto" class="boton boton-acento">Solicitar Cotización</a>
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="index.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="../alianzas/" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
