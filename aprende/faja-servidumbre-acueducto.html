@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Faja de Servidumbre de Canal: Cuánto Espacio Debes Dejar | GEOMAV</title>
+  <meta name="description" content="El Código de Aguas obliga a dejar una faja libre a cada lado de un canal. Cuánto mide, desde dónde se cuenta y qué no se puede hacer dentro de ella." />
+  <link rel="canonical" href="https://geomav.me/aprende/faja-servidumbre-acueducto.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Faja de Servidumbre de Canal: Cuánto Espacio Debes Dejar | GEOMAV" />
+  <meta property="og:description" content="El Código de Aguas obliga a dejar una faja libre a cada lado de un canal. Cuánto mide, desde dónde se cuenta y qué no se puede hacer dentro de ella." />
+  <meta property="og:url" content="https://geomav.me/aprende/faja-servidumbre-acueducto.html" />
+  <meta property="og:locale" content="es_CL" />
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="index.html" class="menu-enlace">Aprende</a></li>
+          <li><a href="../alianzas/" class="menu-enlace">Alianzas</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="index.html" class="overlay-enlace">Aprende</a>
+    <a href="../alianzas/" class="overlay-enlace">Alianzas</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+
+  <!-- CABECERA DEL ARTÍCULO -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="index.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Aprende
+      </a>
+      <span class="etiqueta-seccion">Normativa / Deslindes</span>
+      <h1 class="titulo-seccion">Faja de Servidumbre de <span class="texto-destacado">Canal</span></h1>
+      <p class="pagina-hero-descripcion">Si tu terreno tiene un canal de regadío, la ley obliga a dejar un espacio libre a cada lado. Aquí te explicamos cuánto mide exactamente y qué está prohibido dentro de esa faja.</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL ARTÍCULO -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>Qué es la servidumbre de acueducto</h2>
+<p>La servidumbre de acueducto, regulada entre los artículos 76 y 94 del Código de Aguas, es el derecho a conducir aguas por un predio ajeno hacia el terreno que se beneficia de ellas. En la práctica, esto es lo que ocurre cada vez que un canal de regadío atraviesa un predio distinto al del titular del derecho de aprovechamiento de agua: el dueño del canal tiene derecho a mantenerlo ahí, y el dueño del terreno (predio sirviente) debe tolerarlo.</p>
+        <h2>La faja lateral obligatoria</h2>
+<p>Lo que muchos propietarios no saben es que la servidumbre no se limita al espacio físico que ocupa el agua. El artículo 82 del Código de Aguas establece que, además del terreno ocupado por el canal mismo, existe una faja lateral obligatoria a cada uno de sus costados, medida desde el borde superior del cauce. Esa faja no puede ser inferior al 50% del ancho del canal, con un mínimo de un metro de anchura en toda la extensión de su curso.</p>
+        <h2>Cómo se calcula en terreno</h2>
+<p>El cálculo es directo: se mide el ancho del canal de borde a borde, se calcula el 50% de esa medida, y ese es el ancho mínimo de la faja por cada lado. Si el 50% del ancho del canal da menos de un metro, igual se debe dejar un metro completo — ese es el piso legal. La faja puede ser mayor si así lo acuerdan las partes, o si lo determina un juez cuando las circunstancias lo justifiquen (por ejemplo, para contener los escombros de la construcción del canal o de futuras limpias). En canales que corren por faldeos pronunciados, el espacio se extiende en su ancho total hacia el lado del cerro.</p>
+        <h2>Qué está prohibido dentro de la faja</h2>
+<p>El artículo 83 es igual de importante: el dueño del canal puede impedir toda plantación u obra nueva dentro de ese espacio lateral. Esto significa que construcciones, cierres, plantaciones de árboles o cualquier obra nueva dentro de la faja pueden ser objetadas por quien tiene la servidumbre a su favor, precisamente porque esa franja existe para proteger el canal y permitir su mantención. El mismo artículo autoriza al dueño del acueducto a reforzar los bordes del canal (muros, taludes) siempre que no perjudique al predio sirviente.</p>
+        <h2>Indemnización al dueño del predio sirviente</h2>
+<p>Cuando se constituye una servidumbre de acueducto nueva, el dueño del predio sirviente tiene derecho a que se le pague, además del valor del terreno ocupado por el canal y las mejoras afectadas, el valor correspondiente a esa faja lateral, más un recargo adicional del 10% sobre la suma total. Esto aplica a la constitución de servidumbres nuevas; en canales ya existentes desde hace tiempo, lo relevante en la práctica es que la faja sigue vigente como restricción de uso, se haya pagado o no en su momento.</p>
+        <h2>Por qué esto importa en un deslinde o subdivisión</h2>
+<p>Al mensurar un predio con un canal, la faja de servidumbre debe quedar identificada en el plano junto con el resto de los deslindes — no es un dato menor, porque limita dónde se puede construir, cercar o plantar. Ignorarla en un levantamiento puede derivar en un plano que no refleja las restricciones reales del terreno, o en construcciones futuras que terminen en conflicto con la organización de regantes o el titular del derecho de agua.</p>
+        <h2>Paso a paso</h2>
+        <ol style="color:var(--color-muted); font-size:1.02rem; line-height:1.75; margin:0 0 18px 20px;">
+          <li>Identifica en terreno el canal y mide su ancho de borde superior a borde superior.</li>
+          <li>Calcula el 50% de ese ancho; si el resultado es menor a 1 metro, usa 1 metro como mínimo por lado.</li>
+          <li>Marca esa faja a ambos costados del canal en el levantamiento topográfico y en el plano final.</li>
+          <li>Verifica que no existan plantaciones u obras nuevas proyectadas dentro de esa faja antes de definir el diseño del proyecto.</li>
+          <li>Si hay dudas sobre el ancho exacto o existe conflicto con el titular del canal, consulta a un abogado o a la organización de usuarios de agua correspondiente.</li>
+        </ol>
+        <h2>Importante</h2>
+<div class="articulo-aviso-legal"><strong>Nota:</strong> este artículo es una guía general y no reemplaza la asesoría de un abogado. La aplicación exacta de la servidumbre puede variar según si el canal es antiguo, si existe una organización de usuarios de aguas involucrada, o si hay convenios previos entre las partes. Evalúa el caso específico con un profesional antes de tomar decisiones sobre construcción o cierres cerca de un canal.</div>
+
+        <div class="articulo-aviso-legal" style="border-left-color: var(--color-secundario);">
+          <strong>¿Necesitas asesoría legal en este tema?</strong> <a href="../alianzas/carlos-verdugo-rebolledo.html" style="color:var(--color-secundario); font-weight:700;">Carlos Verdugo Rebolledo</a>, abogado especialista en derecho inmobiliario, es uno de nuestros colaboradores externos.
+        </div>
+
+        <div class="articulo-aviso-legal" style="border-left-color: var(--color-acento);">
+          <strong>📄 Documento oficial:</strong> Esta servidumbre <strong>no tiene un formulario de gobierno</strong> — su constitución, en caso de desacuerdo, se tramita mediante juicio sumario ante el tribunal competente (art. 177 del Código de Aguas), o se resuelve por acuerdo directo entre las partes.
+        </div>
+
+        <p style="margin-top:24px; font-size:0.88rem; color:var(--color-dim);">
+          <strong>Fuente:</strong> <a href="https://www.bcn.cl/leychile/navegar?idNorma=5605" target="_blank" rel="noopener noreferrer" style="color:var(--color-secundario); font-weight:700;">Código de Aguas (DFL N° 1.122, 1981), artículos 82 y 83</a> — Biblioteca del Congreso Nacional (bcn.cl/leychile).
+        </p>
+
+        <div class="articulo-cta">
+          <p>¿Necesitas un levantamiento topográfico que identifique correctamente las servidumbres de tu predio?</p>
+          <a href="../index.html#contacto" class="boton boton-acento">Solicitar Cotización</a>
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="index.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="../alianzas/" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
