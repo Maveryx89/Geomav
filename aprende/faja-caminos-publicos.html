@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Faja de Restricción en Caminos Públicos: los 35 Metros que No se Pueden Ocupar | GEOMAV</title>
+  <meta name="description" content="Los predios con frente a un camino público nacional tienen una faja de 35 metros por lado donde rige una restricción de uso. Qué dice la Ley de Caminos y qué excepciones existen." />
+  <link rel="canonical" href="https://geomav.me/aprende/faja-caminos-publicos.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Faja de Restricción en Caminos Públicos: los 35 Metros que No se Pueden Ocupar | GEOMAV" />
+  <meta property="og:description" content="Los predios con frente a un camino público nacional tienen una faja de 35 metros por lado donde rige una restricción de uso. Qué dice la Ley de Caminos y qué excepciones existen." />
+  <meta property="og:url" content="https://geomav.me/aprende/faja-caminos-publicos.html" />
+  <meta property="og:locale" content="es_CL" />
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="index.html" class="menu-enlace">Aprende</a></li>
+          <li><a href="../alianzas/" class="menu-enlace">Alianzas</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="index.html" class="overlay-enlace">Aprende</a>
+    <a href="../alianzas/" class="overlay-enlace">Alianzas</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+
+  <!-- CABECERA DEL ARTÍCULO -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="index.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Aprende
+      </a>
+      <span class="etiqueta-seccion">Normativa / Deslindes</span>
+      <h1 class="titulo-seccion">Faja de Restricción en <span class="texto-destacado">Caminos Públicos</span></h1>
+      <p class="pagina-hero-descripcion">Si tu predio tiene frente a un camino público nacional, existe una faja de 35 metros por lado donde no puedes construir libremente. Qué dice la ley y qué queda exceptuado.</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL ARTÍCULO -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>Qué regula la Ley de Caminos</h2>
+<p>El DFL N° 850 de 1997 (texto refundido de la Ley N° 15.840 y el DFL N° 206 de 1960) es la norma que ordena la construcción, conservación y administración de los caminos públicos en Chile, a cargo de la Dirección de Vialidad del Ministerio de Obras Públicas. Dentro de esta ley existe una restricción específica que afecta a todos los predios colindantes con caminos públicos nacionales: una faja donde el uso del suelo queda limitado.</p>
+        <h2>Los 35 metros de restricción</h2>
+<p>El artículo 39 del DFL 850 prohíbe a los dueños de predios colindantes con caminos públicos nacionales ocupar las fajas de 35 metros medidas a cada lado del camino, contadas desde el eje de la vía. Esta restricción existe para reservar el espacio necesario ante futuros ensanches, mejoramientos o duplicaciones de la vía, evitando que construcciones nuevas queden luego demasiado cerca de la calzada o compliquen una expropiación futura.</p>
+        <h2>Qué queda exceptuado</h2>
+<p>La misma norma exceptuá de esta restricción a los terrenos ocupados por edificios y sus dependencias, jardines, huertos, parques y viñedos que ya existían antes de la aplicación de la faja. En otras palabras, la restricción rige principalmente para construcciones nuevas dentro de esa franja, no para obtener la demolición retroactiva de lo que ya estaba construido de forma legal.</p>
+        <h2>Faja fiscal vs. faja de restricción</h2>
+<p>Es importante no confundir dos conceptos distintos: la faja fiscal del camino (el terreno que ocupa físicamente la vía, sus obras y su entorno inmediato, cuyo ancho exacto lo fija un decreto específico para cada camino) es administrada por la Dirección de Vialidad y está destinada al uso de las obras del camino mismo. La faja de restricción de 35 metros, en cambio, es una limitación al uso del suelo en los predios colindantes, pero el terreno sigue siendo de propiedad particular — solo se restringe qué se puede construir en él.</p>
+        <h2>Cuándo se aplica esta restricción</h2>
+<p>Esta faja aplica específicamente a caminos públicos nacionales (el Camino Longitudinal, los que unen capitales de provincia, y los calificados como tales por decreto). Para caminos regionales, comunales o vecinales las restricciones específicas pueden variar y conviene consultarlas directamente con la Dirección de Vialidad regional o la municipalidad correspondiente, ya que no siempre se aplica el mismo ancho de 35 metros.</p>
+        <h2>Por qué esto importa en un proyecto o subdivisión</h2>
+<p>Al proyectar una construcción, loteo o subdivisión en un predio con frente a un camino público nacional, la faja de 35 metros debe considerarse desde la etapa de diseño — no solo por cumplimiento legal, sino porque construir dentro de ella expone al propietario a una eventual orden de demolición o a que la obra quede en riesgo frente a un futuro ensanche del camino sin derecho a indemnización por esa parte de la construcción.</p>
+        <h2>Paso a paso</h2>
+        <ol style="color:var(--color-muted); font-size:1.02rem; line-height:1.75; margin:0 0 18px 20px;">
+          <li>Identifica si el camino que da frente a tu predio está clasificado como nacional, regional o comunal.</li>
+          <li>Ubica el eje del camino en el levantamiento topográfico y traza la faja de 35 metros hacia cada lado si es un camino nacional.</li>
+          <li>Verifica en terreno si existen construcciones, jardines o cultivos anteriores que puedan estar exceptuados de la restricción.</li>
+          <li>Consulta con la Dirección de Vialidad regional el ancho oficial de la faja fiscal del camino específico antes de proyectar cualquier obra nueva.</li>
+          <li>Diseña el proyecto dejando la faja de restricción completamente libre de construcciones nuevas.</li>
+        </ol>
+        <h2>Importante</h2>
+<div class="articulo-aviso-legal"><strong>Nota:</strong> este artículo es una guía general y no reemplaza la asesoría de un abogado o de la Dirección de Vialidad. El ancho exacto de la faja fiscal varía según el camino y se fija por decreto específico; antes de proyectar una construcción cerca de un camino público, conviene confirmar esta información directamente con la autoridad vial competente.</div>
+
+        <div class="articulo-aviso-legal" style="border-left-color: var(--color-secundario);">
+          <strong>¿Necesitas asesoría legal en este tema?</strong> <a href="../alianzas/carlos-verdugo-rebolledo.html" style="color:var(--color-secundario); font-weight:700;">Carlos Verdugo Rebolledo</a>, abogado especialista en derecho inmobiliario, es uno de nuestros colaboradores externos.
+        </div>
+
+        <div class="articulo-aviso-legal" style="border-left-color: var(--color-acento);">
+          <strong>📄 Documento oficial:</strong> Esta restricción <strong>no tiene un formulario descargable</strong> — el ancho oficial de la faja fiscal de un camino específico se consulta directamente ante la Dirección de Vialidad regional del MOP.
+        </div>
+
+        <p style="margin-top:24px; font-size:0.88rem; color:var(--color-dim);">
+          <strong>Fuente:</strong> <a href="https://www.bcn.cl/leychile/navegar?idNorma=97993" target="_blank" rel="noopener noreferrer" style="color:var(--color-secundario); font-weight:700;">DFL N° 850 de 1997, Ministerio de Obras Públicas, artículo 39</a> — Biblioteca del Congreso Nacional (bcn.cl/leychile).
+        </p>
+
+        <div class="articulo-cta">
+          <p>¿Necesitas un levantamiento topográfico que identifique correctamente las restricciones de tu predio?</p>
+          <a href="../index.html#contacto" class="boton boton-acento">Solicitar Cotización</a>
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="index.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="../alianzas/" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
