@@ -3189,6 +3189,15 @@ function renderMiniMapa(containerId, lat, lon, utmCaption){
   });
 }
 
+/* GPS continuo del Conversor UTM: a diferencia de capturarGPSPromediado (que promedia N lecturas
+   fijas y se detiene solo), aquí se sigue promediando mientras el usuario no toque "Detener" —
+   útil para ver cómo se va estabilizando la posición en vivo antes de fijarla. Se declara a nivel
+   de módulo (no dentro de renderUTM) para que render() pueda cortarlo si el usuario cambia de
+   herramienta sin detenerlo primero, igual que ya se hace con el GPS del Mapa Interactivo. */
+let uGpsWatch = null;
+let uGpsLecturas = [];
+function stopUGps(){ if(uGpsWatch){ uGpsWatch.clear(); uGpsWatch=null; } }
+
 function renderUTM(){
   const body = `
   <div class="field-card">
@@ -3197,10 +3206,8 @@ function renderUTM(){
       ${fieldRow('Latitud (°, sur negativo)','u_lat',-35.420410)}
       ${fieldRow('Longitud (°, oeste negativo)','u_lon',-71.673116)}
     </div>
-    <div class="field-row"><label>Lecturas a promediar</label>
-      <div class="n-stepper"><button type="button" id="uGpsMinus">−</button><span class="n-val" id="uGpsNVal">5</span><button type="button" id="uGpsPlus">+</button></div>
-    </div>
-    <button class="btn-sm" id="btnUGPS" type="button" style="margin-bottom:10px;">📍 Usar mi ubicación GPS</button>
+    <button class="btn-sm" id="btnUGPS" type="button" style="margin-bottom:10px;">📍 Usar mi ubicación GPS (promedio continuo)</button>
+    <button class="btn-sm" id="btnUGPSStop" type="button" style="margin-bottom:10px; display:none;">■ Detener y usar esta ubicación</button>
     <span id="uGpsMsg" class="proj-msg"></span>
     <button class="btn" id="btnU1" type="button">Calcular UTM</button>
     <div id="resU1"></div>
@@ -3289,25 +3296,43 @@ function renderUTM(){
     });
   }
 
-  let uGpsN = 5;
-  document.getElementById('uGpsMinus').addEventListener('click', ()=>{ if(uGpsN>1){uGpsN--; document.getElementById('uGpsNVal').textContent=uGpsN;}});
-  document.getElementById('uGpsPlus').addEventListener('click', ()=>{ if(uGpsN<15){uGpsN++; document.getElementById('uGpsNVal').textContent=uGpsN;}});
-
-  document.getElementById('btnUGPS').addEventListener('click', (e)=>{
+  document.getElementById('btnUGPS').addEventListener('click', ()=>{
+    const btnStart = document.getElementById('btnUGPS');
+    const btnStop = document.getElementById('btnUGPSStop');
     const msg = document.getElementById('uGpsMsg');
-    const btn = e.currentTarget;
-    btn.disabled = true;
-    msg.textContent = `Capturando lectura 0/${uGpsN}…`;
-    capturarGPSPromediado(uGpsN,
-      (n,total)=>{ msg.textContent = `Capturando lectura ${n}/${total}…`; },
-      (r)=>{
-        btn.disabled = false;
-        document.getElementById('u_lat').value = r.lat;
-        document.getElementById('u_lon').value = r.lon;
-        msg.textContent = `Ubicación GPS promediada (${r.n} lecturas, ±${fmtNum(r.accuracyPromedio,0)} m aprox.).`;
+    uGpsLecturas = [];
+    btnStart.style.display = 'none';
+    btnStop.style.display = '';
+    msg.textContent = 'Buscando señal GPS…';
+    uGpsWatch = geoWatchPosition(
+      (pos)=>{
+        uGpsLecturas.push({lat:pos.coords.latitude, lon:pos.coords.longitude, acc:pos.coords.accuracy});
+        const lat = uGpsLecturas.reduce((s,l)=>s+l.lat,0)/uGpsLecturas.length;
+        const lon = uGpsLecturas.reduce((s,l)=>s+l.lon,0)/uGpsLecturas.length;
+        const accProm = uGpsLecturas.reduce((s,l)=>s+l.acc,0)/uGpsLecturas.length;
+        document.getElementById('u_lat').value = lat;
+        document.getElementById('u_lon').value = lon;
+        msg.textContent = `Promediando en vivo… ${uGpsLecturas.length} lectura(s), ±${fmtNum(accProm,0)} m aprox. Toca "Detener" cuando esté estable.`;
       },
-      (err)=>{ btn.disabled = false; msg.textContent = `No se pudo obtener la ubicación: ${err.message}`; }
+      (err)=>{
+        stopUGps();
+        btnStart.style.display = ''; btnStop.style.display = 'none';
+        msg.textContent = `No se pudo obtener la ubicación: ${err.message}`;
+      },
+      {enableHighAccuracy:true, maximumAge:0, timeout:30000}
     );
+  });
+
+  document.getElementById('btnUGPSStop').addEventListener('click', ()=>{
+    const btnStart = document.getElementById('btnUGPS');
+    const btnStop = document.getElementById('btnUGPSStop');
+    const msg = document.getElementById('uGpsMsg');
+    stopUGps();
+    btnStart.style.display = ''; btnStop.style.display = 'none';
+    if(uGpsLecturas.length){
+      const accProm = uGpsLecturas.reduce((s,l)=>s+l.acc,0)/uGpsLecturas.length;
+      msg.textContent = `Ubicación GPS promediada (${uGpsLecturas.length} lectura(s), ±${fmtNum(accProm,0)} m aprox.) — detenida.`;
+    }
   });
 
   document.getElementById('btnU1').addEventListener('click', ()=>{
@@ -7788,6 +7813,7 @@ function render(){
   const goingHome = (route === 'home' || !RENDERERS[route]);
   if(!goingHome) window.scrollTo(0,0);
   if(route !== 'mapaInteractivo') stopMapaGPS();
+  if(route !== 'utm') stopUGps();
   if(route !== 'brujula'){
     cerrarVistaAR();
     if(brujulaStop){ brujulaStop(); brujulaStop=null; }
