@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Franco Garrido Ramírez — Constructor Civil | GEOMAV</title>
+  <meta name="description" content="Constructor Civil e Ingeniero en Construcción en la Región del Maule, especializado en proyectos sanitarios, ITO, tasaciones y regularización de viviendas. Colaborador externo de GEOMAV." />
+  <link rel="canonical" href="https://geomav.me/alianzas/franco-garrido-ramirez.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Franco Garrido Ramírez — Constructor Civil | GEOMAV" />
+  <meta property="og:description" content="Constructor Civil e Ingeniero en Construcción en la Región del Maule, especializado en proyectos sanitarios, ITO, tasaciones y regularización de viviendas. Colaborador externo de GEOMAV." />
+  <meta property="og:url" content="https://geomav.me/alianzas/franco-garrido-ramirez.html" />
+  <meta property="og:locale" content="es_CL" />
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="../aprende/" class="menu-enlace">Aprende</a></li>
+          <li><a href="index.html" class="menu-enlace">Alianzas</a></li>
+          <li><a href="../topocalc/" class="menu-enlace">Topo de Bolsillo</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="../aprende/" class="overlay-enlace">Aprende</a>
+    <a href="index.html" class="overlay-enlace">Alianzas</a>
+
+    <a href="../topocalc/" class="overlay-enlace">Topo de Bolsillo</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+
+  <!-- CABECERA DEL PERFIL -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="index.html" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Alianzas
+      </a>
+      <span class="etiqueta-seccion">Alianzas / Constructor Civil</span>
+      <div class="perfil-colaborador-cabecera">
+        <span class="perfil-colaborador-avatar" style="overflow:hidden; padding:0;">
+          <img src="../assets/img/colaboradores/franco-garrido.jpg" alt="Franco Garrido Ramírez" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+        </span>
+        <h1 class="titulo-seccion" style="margin-bottom:0;">Franco <span class="texto-destacado">Garrido Ramírez</span></h1>
+      </div>
+      <p class="pagina-hero-descripcion">Constructor Civil e Ingeniero en Construcción con más de 10 años de experiencia en obra, inspección técnica y proyectos sanitarios en la Región del Maule.</p>
+
+      <div class="perfil-contacto-directo">
+        <a class="perfil-contacto-boton" href="https://wa.me/56932003801" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.2 4.79 1.2h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m5.98 14.02c-.25.71-1.45 1.36-2 1.44-.51.08-1.15.11-1.86-.12-.43-.14-.98-.32-1.69-.63-2.97-1.28-4.91-4.27-5.06-4.47-.15-.2-1.21-1.61-1.21-3.07s.76-2.18 1.03-2.48c.27-.29.59-.36.79-.36l.56.01c.18.01.42-.07.66.5.25.6.84 2.07.91 2.22.07.15.12.33.02.53-.09.2-.14.32-.28.5-.14.17-.29.38-.42.51-.14.14-.28.29-.12.57.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.6-.07.16-.19.68-.79.87-1.06.18-.27.36-.22.6-.13.25.09 1.57.74 1.84.87.27.13.45.2.51.31.07.11.07.65-.18 1.36Z"/></svg>
+          +56 9 3200 3801
+        </a>
+        <a class="perfil-contacto-boton" href="mailto:francogarrido28@gmail.com">
+          <svg viewBox="0 0 24 24"><path d="M2 5.5A1.5 1.5 0 0 1 3.5 4h17A1.5 1.5 0 0 1 22 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 18.5v-13Zm2.2.5 7.8 6.24L19.8 6H4.2Zm15.8 1.61-7.36 5.89a1 1 0 0 1-1.28 0L4 7.61V18h16V7.61Z"/></svg>
+          francogarrido28@gmail.com
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENIDO DEL PERFIL -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <h2>Sobre Franco</h2>
+        <p>Franco es Constructor Civil titulado en INACAP (2016) e Ingeniero en Construcción con mención en Gestión de Obras por la Universidad de Aconcagua (2023). Cuenta con más de una década de experiencia en terreno: como maestro trazador en el Consorcio Constructor del Hospital de Talca, capataz de obra gruesa en proyectos de edificación en altura, Inspector Técnico de Obras en la Ilustre Municipalidad de Talca, y actualmente como supervisor de terreno en proyectos mineros de gran escala.</p>
+        <p>En paralelo, ejerce de forma independiente como constructor y proyectista sanitario, desarrollando viviendas y proyectos domiciliarios de agua potable y alcantarillado para clientes de la Región del Maule.</p>
+
+        <h2>Áreas de especialidad</h2>
+        <ul>
+          <li><strong>Proyectos sanitarios:</strong> diseño de instalaciones de agua potable y alcantarillado particular, y obtención de certificados de dotación para predios sin red pública.</li>
+          <li><strong>Regularización de viviendas:</strong> expedientes técnicos y postulación a subsidios habitacionales (DS255, DS27), con experiencia como Entidad Patrocinante.</li>
+          <li><strong>Inspección Técnica de Obras (ITO):</strong> control de obra para proyectos residenciales, comerciales y educacionales.</li>
+          <li><strong>Tasaciones inmobiliarias y agrícolas:</strong> diplomado en Tasación Inmobiliaria y Agrícola, Braniff Institute.</li>
+          <li><strong>Cubicación y presupuestos (APU):</strong> confección de presupuestos y análisis de precios unitarios para obra gruesa y terminaciones.</li>
+          <li><strong>Ejecución de obra gruesa:</strong> construcción de viviendas y proyectos independientes en Talca, San Clemente y Pelarco.</li>
+          <li><strong>Trazado y replanteo de obra:</strong> experiencia directa liderando equipos topográficos en proyectos de edificación de gran escala.</li>
+          <li><strong>Planes de Aseguramiento de la Calidad (PAC):</strong> gestión de calidad en obra bajo norma ISO 9001:2015.</li>
+        </ul>
+
+        <h2>Formación académica</h2>
+        <ul>
+          <li>Ingeniero en Construcción, mención Gestión de Obras — Universidad de Aconcagua (2022–2023).</li>
+          <li>Constructor Civil — INACAP, sede Talca (2011–2015).</li>
+          <li>Técnico de Nivel Superior en Construcción — C.F.T. Massachusetts, sede Talca (2008–2009).</li>
+          <li>Diplomado en Diseño de Instalaciones Sanitarias — CVA Capacitación (SENCE), 2024.</li>
+          <li>Diplomado en Inspección Técnica de Obras (ITO) — QCAP Capacitación, 2025.</li>
+          <li>Diplomado en Plan de Aseguramiento de la Calidad (PAC) en la Construcción — QCAP Capacitación, 2017.</li>
+          <li>Diplomado en Tasación Inmobiliaria y Agrícola — Braniff Institute, 2019.</li>
+          <li>Diplomado en Corretaje de Propiedades — Braniff Institute.</li>
+          <li>Diplomado en Dimensionamiento de Sistemas Fotovoltaicos On y Off Grid — Instituto Solar Chile.</li>
+        </ul>
+
+        <h2>Cómo se conecta con GEOMAV</h2>
+        <p>Después de una subdivisión rural bajo la <a href="../aprende/ley-sabag.html" style="color:var(--color-secundario); font-weight:700;">Ley Sabag</a> o el <a href="../aprende/decreto-ley-3516.html" style="color:var(--color-secundario); font-weight:700;">Decreto Ley 3.516</a>, Franco diseña la solución de agua potable y alcantarillado que exige la recepción municipal. También ejecuta el trazado y replanteo en obra a partir del levantamiento topográfico de GEOMAV, y respalda la tasación del predio antes o después del proyecto.</p>
+
+        <div class="articulo-aviso-legal">
+          <strong>Nota:</strong> Franco Garrido Ramírez es un profesional independiente, colaborador externo de GEOMAV. GEOMAV facilita el contacto pero la relación contractual por servicios de construcción es directamente entre el cliente y el constructor.
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="../aprende/" class="pie-enlace">Aprende</a></li>
+            <li><a href="index.html" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
+</body>
+</html>
