@@ -412,6 +412,24 @@ footer.app-foot .foot-copy{font-size:10px; opacity:.75;}
   #printArea, #printArea *{ visibility:visible; }
   #printArea{ display:block; position:absolute; top:0; left:0; width:100%; }
 }
+
+/* ===================== PANTALLAS ANCHAS / ESCRITORIO ===================== */
+/* La app nace mobile-first (#app con tope de 640px). En pantallas anchas (escritorio,
+   ventana de Windows) eso deja mucho espacio vacío a los costados. Desde estos breakpoints
+   se amplía el contenedor y se agregan más columnas donde tiene sentido (grilla de
+   herramientas del home), mientras que la vista de una calculadora individual (.tool-view)
+   se mantiene en un ancho de lectura cómodo y centrado, para que los formularios no
+   queden estirados de borde a borde. */
+@media (min-width:860px){
+  #app{max-width:1040px;}
+  main{padding:24px 28px 64px;}
+  .card-grid{grid-template-columns:repeat(3, 1fr);}
+  .tool-view{max-width:640px; margin:0 auto; width:100%;}
+}
+@media (min-width:1200px){
+  #app{max-width:1280px;}
+  .card-grid{grid-template-columns:repeat(4, 1fr);}
+}
 </style>
 
 <div id="app">
