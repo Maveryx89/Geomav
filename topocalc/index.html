@@ -1723,6 +1723,7 @@ const ICONS = {
   taquimetria: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 4v32M12 4h4M12 12h6M12 20h6M12 28h4"/><path d="M12 20 L32 10 M12 20 L32 30"/></svg>`,
   nivel: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 30h30"/><path d="M10 30V16l14-8 6 22"/><circle cx="24" cy="8" r="2" fill="currentColor" stroke="none"/></svg>`,
   talud: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 32 L32 32 L32 8 Z" fill="currentColor" fill-opacity=".1"/><path d="M5 32 L32 8" stroke-width="2"/></svg>`,
+  taludBancos: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 34 H12 V26 H20 V18 H28 V10 H36 V34 Z" fill="currentColor" fill-opacity=".1" stroke="none"/><path d="M4 34 H12 V26 H20 V18 H28 V10 H36" stroke-width="2"/></svg>`,
   reducHorizonte: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 32h28M6 32L28 12M28 32V12" stroke-dasharray="2 2.2"/><path d="M6 32L28 12" stroke-dasharray="0"/></svg>`,
   corrTemp: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="16" y="6" width="8" height="20" rx="4"/><circle cx="20" cy="30" r="5"/><path d="M20 12v14" stroke-width="2"/></svg>`,
   corrTension: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 14 Q20 30 36 14" /><path d="M4 14h4M32 14h4"/></svg>`,
@@ -1823,7 +1824,7 @@ const CATEGORIES = [
   },
   {
     id:'campo', name:'Terreno y Campo',
-    tools:['taquimetria','nivel','nivelDif','nivelBaro','talud','curvasNivel','pendienteDosPuntos','perfilLongitudinal','volumen','costo','cotizacion','boletaHonorarios','rendimientoBrigada','cotaProgresiva','plantillaZanja','capasPavimento']
+    tools:['taquimetria','nivel','nivelDif','nivelBaro','talud','taludBancos','curvasNivel','pendienteDosPuntos','perfilLongitudinal','volumen','costo','cotizacion','boletaHonorarios','rendimientoBrigada','cotaProgresiva','plantillaZanja','capasPavimento']
   },
   {
     id:'libreta', name:'Libreta de Puntos y Navegación',
@@ -1866,6 +1867,7 @@ const TOOLS = {
   nivelDif: {name:'Nivelación Diferencial', desc:'Tabla BS/FS', icon:ICONS.nivelDif},
   nivelBaro: {name:'Nivelación Barométrica', desc:'Desnivel por presión', icon:ICONS.nivelBaro},
   talud: {name:'Taludes y Pendientes', desc:'% y relación H:V', icon:ICONS.talud},
+  taludBancos: {name:'Taludes en Cascada (Bancos)', desc:'Bermas escalonadas y sección a escala', icon:ICONS.taludBancos},
   curvasNivel: {name:'Curvas de Nivel', desc:'Interpolación de cota', icon:ICONS.curvasNivel},
   volumen: {name:'Volúmenes de Tierra', desc:'Áreas extremas / prismoidal', icon:ICONS.volumen},
   costo: {name:'Costo de Brigada', desc:'Factor salarial diario', icon:ICONS.costo},
@@ -3768,6 +3770,103 @@ function svgTalud(h, d, r, fuente){
   </svg>`;
 }
 
+/* ---------- TALUDES EN CASCADA (BANCOS) ---------- */
+/* Geometría de bancos escalonados desde el eje de camino: cada banco avanza en horizontal
+   según su propio talud V:H y altura, y deja una berma antes de que empiece el siguiente
+   banco (que se apila encima). Banco 1 es el más cercano al camino. */
+function calcTaludBancosGeometry(glob, benches){
+  const results = [];
+  let x = Math.max(0, glob.halfWidth||0);
+  let y = 0;
+  benches.forEach(function(b, i){
+    const V = (b.V && b.V>0) ? b.V : 1;
+    const H = (b.H && b.H>=0) ? b.H : 0;
+    const height = Math.max(0, b.height||0);
+    const width = Math.max(0, b.width||0);
+    const ratio = H / V;
+    const run = height * ratio;
+    const slopeLength = Math.sqrt(height*height + run*run);
+    const toeX = x + run;
+    const toeY = y + height;
+    const crestX = toeX + width;
+    const crestY = toeY;
+    results.push({
+      index:i, height:height, V:V, H:H, width:width, ratio:ratio, run:run, slopeLength:slopeLength,
+      prevX:x, prevY:y, toeX:toeX, toeY:toeY, crestX:crestX, crestY:crestY,
+      exceedsMax: (glob.maxHeight>0) && (height > glob.maxHeight)
+    });
+    x = crestX; y = crestY;
+  });
+  return results;
+}
+
+/* Sección transversal a escala: plataforma con pendiente de corona, eje de camino y el
+   perfil escalonado completo, con cota de cada banco a la izquierda y distancia acumulada
+   al eje (línea de cota) apilada arriba de cada banco para no cruzar el dibujo. */
+function svgTaludBancos(glob, geo){
+  const halfWidth = Math.max(0, glob.halfWidth||0);
+  const crownDrop = Math.max(0, halfWidth * (glob.crownPct||0)/100);
+  const last = geo[geo.length-1];
+  const totalHeight = last ? last.crestY : 0;
+  const totalX = last ? last.crestX : halfWidth;
+  const n = geo.length;
+
+  const topReserve = Math.max(0.9, 0.5 + n*0.42);
+  const worldXmin = -halfWidth - 0.9;
+  const worldXmax = totalX + 0.9;
+  const worldYmin = -(crownDrop + 0.55);
+  const worldYmax = totalHeight + topReserve;
+  const worldW = Math.max(1, worldXmax - worldXmin);
+  const worldH = Math.max(1, worldYmax - worldYmin);
+
+  const w=300, padL=32, padR=14, padT=10, padB=22;
+  const scale = Math.max(6, Math.min(50, (w-padL-padR)/worldW));
+  const h = worldH*scale + padT + padB;
+
+  const X = wx => padL + (wx - worldXmin)*scale;
+  const Y = wy => padT + (worldYmax - wy)*scale;
+  const fs = relFont(w,0.03,7,9.5);
+  const fsSm = relFont(w,0.025,6,7.8);
+
+  let parts = [];
+  const baselineY = Y(worldYmin+0.15);
+  let groundPts = [[X(-halfWidth), baselineY],[X(-halfWidth), Y(0)],[X(0), Y(crownDrop)],[X(halfWidth), Y(0)]];
+  geo.forEach(function(g){ groundPts.push([X(g.toeX), Y(g.toeY)]); groundPts.push([X(g.crestX), Y(g.crestY)]); });
+  const lastPt = groundPts[groundPts.length-1];
+  groundPts.push([lastPt[0], baselineY]);
+  parts.push(`<polygon points="${groundPts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="var(--paper-sunken)" stroke="none"/>`);
+
+  const ejeTopY = Y(worldYmax-0.15);
+  parts.push(`<line x1="${X(0).toFixed(1)}" y1="${ejeTopY.toFixed(1)}" x2="${X(0).toFixed(1)}" y2="${baselineY.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="1,4"/>`);
+  parts.push(`<text x="${(X(0)+4).toFixed(1)}" y="${(baselineY-4).toFixed(1)}" font-family="var(--font-mono)" font-size="${fsSm}" fill="var(--ink-soft)">eje camino</text>`);
+
+  parts.push(`<polyline points="${X(-halfWidth).toFixed(1)},${Y(0).toFixed(1)} ${X(0).toFixed(1)},${Y(crownDrop).toFixed(1)} ${X(halfWidth).toFixed(1)},${Y(0).toFixed(1)}" fill="none" stroke="var(--ink)" stroke-width="2"/>`);
+
+  let profile=[[halfWidth,0]];
+  geo.forEach(function(g){ profile.push([g.toeX,g.toeY]); profile.push([g.crestX,g.crestY]); });
+  const profilePts = profile.map(function(p){ return X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1); }).join(' ');
+  parts.push(`<polyline points="${profilePts}" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`);
+
+  geo.forEach(function(g, i){
+    const x1=X(g.prevX), y1=Y(g.prevY), x2=X(g.toeX), y2=Y(g.toeY);
+    if(g.exceedsMax) parts.push(`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="var(--danger)" stroke-width="3.2" stroke-linecap="round" opacity=".85"/>`);
+    const mx=(x1+x2)/2, my=(y1+y2)/2;
+    parts.push(`<text x="${(mx-6).toFixed(1)}" y="${my.toFixed(1)}" text-anchor="end" font-family="var(--font-mono)" font-size="${fsSm}" fill="var(--ink-soft)">${fmtNum(g.V,1)}:${fmtNum(g.H,1)}</text>`);
+    const bx=(X(g.toeX)+X(g.crestX))/2, by=Y(g.crestY);
+    parts.push(`<text x="${bx.toFixed(1)}" y="${(by-5).toFixed(1)}" text-anchor="middle" font-family="var(--font-body)" font-weight="700" font-size="${fs}" fill="var(--ink)">B${i+1}</text>`);
+    const hx = X(worldXmin+0.3);
+    parts.push(`<line x1="${hx.toFixed(1)}" y1="${Y(g.prevY).toFixed(1)}" x2="${hx.toFixed(1)}" y2="${Y(g.toeY).toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>`);
+    parts.push(`<text x="${(hx-5).toFixed(1)}" y="${((Y(g.prevY)+Y(g.toeY))/2+3).toFixed(1)}" text-anchor="end" font-family="var(--font-mono)" font-size="${fsSm}" fill="var(--ink-soft)">${fmtNum(g.height,1)}</text>`);
+    const dimWorldY = totalHeight + 0.5 + i*0.42;
+    const dY = Y(dimWorldY);
+    const dX0=X(0), dX1=X(g.toeX);
+    parts.push(`<line x1="${dX0.toFixed(1)}" y1="${dY.toFixed(1)}" x2="${dX1.toFixed(1)}" y2="${dY.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1"/>`);
+    parts.push(`<text x="${((dX0+dX1)/2).toFixed(1)}" y="${(dY-4).toFixed(1)}" text-anchor="middle" font-family="var(--font-mono)" font-weight="600" font-size="${fsSm}" fill="var(--blueprint)">${fmtNum(g.toeX,2)}</text>`);
+  });
+
+  return `<svg viewBox="0 0 ${w} ${h.toFixed(1)}" xmlns="http://www.w3.org/2000/svg">${parts.join('')}</svg>`;
+}
+
 /* Diagrama de inversa múltiple: recorrido abierto A→B→C... a escala real, con distancia
    y azimut rotulados a lo largo de cada tramo (espaciados si hay muchos puntos). */
 function svgInversaMultiple(pts, tramos){
@@ -5122,6 +5221,93 @@ function renderTalud(){
       <div class="result-row"><span class="k">Relación H:V</span><span class="v">${fmtNum(r.relacion,2)} : 1</span></div>
       <div class="plot-wrap">${svgTalud(h,d,r)}</div>
     </div>`;
+  });
+}
+
+/* ---------- TALUDES EN CASCADA (BANCOS) ---------- */
+let tbN = 3;
+function renderTaludBancos(){
+  const body = `<div class="field-card">
+    <h3>Camino / plataforma</h3>
+    <div class="field-inline2">
+      ${fieldRow('Semiancho plataforma (m)','tb_halfWidth',2.5)}
+      ${fieldRow('Pendiente corona (%)','tb_crownPct',3)}
+    </div>
+    <h3 style="margin-top:14px;">Talud por defecto (bancos nuevos)</h3>
+    <div class="field-inline2">
+      ${fieldRow('Talud V','tb_defV',3)}
+      ${fieldRow('Talud H','tb_defH',2)}
+    </div>
+    ${fieldRow('Altura máxima recomendada por banco (m)','tb_maxHeight',5)}
+  </div>
+  <div class="field-card">
+    <div class="field-row"><label>Número de bancos</label>
+      <div class="n-stepper"><button type="button" id="tbMinus">−</button><span class="n-val" id="tbNVal">${tbN}</span><button type="button" id="tbPlus">+</button></div>
+    </div>
+    <div id="tbBenches"></div>
+  </div>
+  <button class="btn" id="btnTB" type="button">Calcular</button>
+  <div id="resTB"></div>`;
+  toolShell('taludBancos','Bancos escalonados (en cascada): distancias de seguridad al eje de camino, alturas acumuladas y sección transversal a escala. El Banco 1 es el más cercano al camino; cada banco siguiente se apila sobre el anterior.', body);
+
+  const draw = ()=>{
+    let html='';
+    for(let i=0;i<tbN;i++){
+      html += `<div class="station-block">
+        <div class="st-label">Banco ${i+1}</div>
+        <div class="field-inline2">
+          ${fieldRow('Altura (m)',`tb_h_${i}`, 5)}
+          ${fieldRow('Berma / ancho de banco (m)',`tb_w_${i}`, 2)}
+        </div>
+        <div class="field-inline2">
+          ${fieldRow('Talud V',`tb_rv_${i}`, val('tb_defV')||3)}
+          ${fieldRow('Talud H',`tb_rh_${i}`, val('tb_defH')||2)}
+        </div>
+      </div>`;
+    }
+    document.getElementById('tbBenches').innerHTML = html;
+  };
+  draw();
+  document.getElementById('tbMinus').addEventListener('click', ()=>{ if(tbN>1){tbN--; document.getElementById('tbNVal').textContent=tbN; draw();}});
+  document.getElementById('tbPlus').addEventListener('click', ()=>{ if(tbN<12){tbN++; document.getElementById('tbNVal').textContent=tbN; draw();}});
+
+  document.getElementById('btnTB').addEventListener('click', ()=>{
+    const box=document.getElementById('resTB');
+    const glob = {
+      halfWidth: val('tb_halfWidth'), crownPct: val('tb_crownPct'),
+      defV: val('tb_defV'), defH: val('tb_defH'), maxHeight: val('tb_maxHeight')
+    };
+    if([glob.halfWidth,glob.crownPct,glob.defV,glob.defH,glob.maxHeight].some(isNaN)){
+      box.innerHTML = `<p class="err-msg">Completa los datos de camino y talud por defecto.</p>`; return;
+    }
+    const benches = [];
+    for(let i=0;i<tbN;i++){
+      const height=val(`tb_h_${i}`), width=val(`tb_w_${i}`), V=val(`tb_rv_${i}`), H=val(`tb_rh_${i}`);
+      if([height,width,V,H].some(isNaN)){ box.innerHTML = `<p class="err-msg">Completa todos los bancos.</p>`; return; }
+      benches.push({height:height,width:width,V:V,H:H});
+    }
+    const geo = calcTaludBancosGeometry(glob, benches);
+    const last = geo[geo.length-1];
+    const totalHeight = last ? last.crestY : 0;
+    const totalToe = last ? last.toeX : glob.halfWidth;
+    const totalCrest = last ? last.crestX : glob.halfWidth;
+    const warnCount = geo.filter(function(g){return g.exceedsMax;}).length;
+
+    const trs = geo.map(function(g){
+      return `<tr><td>Banco ${g.index+1}</td><td>${fmtNum(g.height,2)}</td><td>${fmtNum(g.V,1)} : ${fmtNum(g.H,1)}</td><td>${fmtNum(g.slopeLength,2)}</td><td>${fmtNum(g.crestY,2)}</td><td>${fmtNum(g.toeX,3)}</td><td>${fmtNum(g.crestX,3)}</td></tr>`;
+    }).join('');
+
+    box.innerHTML = `<div class="results" style="margin-top:14px;">
+      <div class="result-row"><span class="k">Estado</span><span class="v">${warnCount>0 ? `<span class="pill bad"><span class="dot"></span>${warnCount} banco(s) superan la altura máxima</span>` : `<span class="pill ok"><span class="dot"></span>Todos los bancos dentro de la altura máxima</span>`}</span></div>
+      <div class="result-row"><span class="k">Altura total acumulada</span><span class="v accent big">${fmtNum(totalHeight,2)} m</span></div>
+      <div class="result-row"><span class="k">Distancia a pie del último talud</span><span class="v">${fmtNum(totalToe,3)} m</span></div>
+      <div class="result-row"><span class="k">Distancia a cresta del último banco</span><span class="v">${fmtNum(totalCrest,3)} m</span></div>
+      <div class="table-wrap" style="margin-top:12px;"><table class="data-table"><thead><tr><th>Banco</th><th>Altura</th><th>Talud V:H</th><th>Long. talud</th><th>Cota acum.</th><th>Dist. a pie</th><th>Dist. a cresta</th></tr></thead><tbody>${trs}</tbody></table></div>
+      <div class="plot-wrap">${svgTaludBancos(glob, geo)}</div>
+    </div>`;
+    const csvRows = ['banco,altura_m,talud_V,talud_H,long_talud_m,cota_acumulada_m,dist_pie_m,dist_cresta_m'];
+    geo.forEach(function(g){ csvRows.push(`Banco ${g.index+1},${g.height},${g.V},${g.H},${round(g.slopeLength,3)},${round(g.crestY,3)},${round(g.toeX,3)},${round(g.crestX,3)}`); });
+    addCSVButton(box, 'taludes_bancos.csv', csvRows.join('\n'));
   });
 }
 
@@ -7575,7 +7761,7 @@ const RENDERERS = {
   curvaV: renderCurvaV, peralte: renderPeralte, sector: renderSector,
   astronomica: renderAstronomica,
   taquimetria: renderTaqui, nivel: renderNivel, nivelDif: renderNivelDif,
-  nivelBaro: renderNivelBaro, talud: renderTalud, curvasNivel: renderCurvasNivel,
+  nivelBaro: renderNivelBaro, talud: renderTalud, taludBancos: renderTaludBancos, curvasNivel: renderCurvasNivel,
   volumen: renderVolumen, costo: renderCosto, cotizacion: renderCotizacion,
   boletaHonorarios: renderBoletaHonorarios,
   clotoide: renderClotoide, curvaCompuesta: renderCurvaCompuesta, curvaReversa: renderCurvaReversa,
