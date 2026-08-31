@@ -550,7 +550,7 @@ async function precargarIntersticial(){
 }
 async function mostrarBannerAd(){
   if(!CapAdMob || sinAnunciosComprado) return;
-  try{ await CapAdMob.showBanner({adId: ADMOB_BANNER_ID, adSize: 'ADAPTIVE_BANNER', position: 'BOTTOM_CENTER', isTesting: true}); }
+  try{ await CapAdMob.showBanner({adId: ADMOB_BANNER_ID, adSize: 'BANNER', position: 'BOTTOM_CENTER', isTesting: true}); }
   catch(e){}
 }
 async function ocultarBannerAd(){
