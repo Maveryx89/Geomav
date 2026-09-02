@@ -547,6 +547,13 @@ async function pedirPermisoCamara(){
    junto con el APPLICATION_ID en AndroidManifest.xml. */
 const CapAdMob = (CAP && CAP.Plugins) ? CAP.Plugins.AdMob : null;
 const CapPurchases = (CAP && CAP.Plugins) ? CAP.Plugins.Purchases : null;
+// RevenueCat: reemplaza por tu API key pública de Android (RevenueCat dashboard > Project settings > API keys)
+// y crea un Entitlement (ej. "sin_anuncios") asociado al producto de Play Billing "quitar_anuncios".
+const REVENUECAT_API_KEY_ANDROID = 'REEMPLAZAR_CON_TU_API_KEY_DE_REVENUECAT';
+const REVENUECAT_ENTITLEMENT_SIN_ANUNCIOS = 'sin_anuncios';
+if(CapPurchases){
+  CapPurchases.configure({ apiKey: REVENUECAT_API_KEY_ANDROID }).catch(()=>{});
+}
 const ADMOB_BANNER_ID = 'ca-app-pub-3940256099942544/6300978111';       // ID DE PRUEBA — reemplazar antes de publicar
 const ADMOB_INTERSTITIAL_ID = 'ca-app-pub-3940256099942544/1033173712'; // ID DE PRUEBA — reemplazar antes de publicar
 const SKU_QUITAR_ANUNCIOS = 'quitar_anuncios'; // debes crear un producto no-consumible con este mismo ID en Play Console
@@ -607,8 +614,8 @@ function registrarAperturaParaAnuncios(route){
 async function comprobarCompraSinAnuncios(){
   if(!CapPurchases) return;
   try{
-    const res = await CapPurchases.getCurrentEntitlements();
-    const tiene = (res.data || []).some(t => t.productIdentifier === SKU_QUITAR_ANUNCIOS);
+    const { customerInfo } = await CapPurchases.getCustomerInfo();
+    const tiene = !!(customerInfo && customerInfo.entitlements && customerInfo.entitlements.active && customerInfo.entitlements.active[REVENUECAT_ENTITLEMENT_SIN_ANUNCIOS]);
     if(tiene) activarSinAnuncios();
   }catch(e){}
 }
@@ -625,14 +632,23 @@ async function comprarQuitarAnuncios(onResult){
     return;
   }
   try{
-    const res = await CapPurchases.purchaseProduct({productIdentifier: SKU_QUITAR_ANUNCIOS});
-    if(res.responseCode === 1 || res.responseCode === 0){
-      onResult({ok:true, msg:'Abriendo la compra en Google Play…'});
-      setTimeout(comprobarCompraSinAnuncios, 1500);
-    } else {
-      onResult({ok:false, msg:res.responseMessage || 'No se pudo iniciar la compra.'});
+    const { products } = await CapPurchases.getProducts({ productIdentifiers: [SKU_QUITAR_ANUNCIOS], type: 'inapp' });
+    if(!products || !products.length){
+      onResult({ok:false, msg:'No se pudo cargar el producto. Intenta más tarde.'});
+      return;
     }
-  }catch(e){ onResult({ok:false, msg:e.message || 'Error al iniciar la compra.'}); }
+    const { customerInfo } = await CapPurchases.purchaseStoreProduct({ product: products[0] });
+    const activo = !!(customerInfo && customerInfo.entitlements && customerInfo.entitlements.active && customerInfo.entitlements.active[REVENUECAT_ENTITLEMENT_SIN_ANUNCIOS]);
+    if(activo){
+      onResult({ok:true, msg:'¡Listo! Ya no verás anuncios.'});
+      activarSinAnuncios();
+    } else {
+      onResult({ok:false, msg:'La compra no se completó.'});
+    }
+  }catch(e){
+    if(e && e.userCancelled){ onResult({ok:false, msg:'Compra cancelada.'}); }
+    else onResult({ok:false, msg:(e && e.message) || 'Error al iniciar la compra.'});
+  }
 }
 if(CapPurchases){
   CapPurchases.addListener('ANDROID-PURCHASE-RESPONSE', ()=>{ comprobarCompraSinAnuncios(); });
