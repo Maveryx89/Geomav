@@ -685,6 +685,9 @@ function fmtDMS(dec, suffixPos, suffixNeg){
   return `${sgn}${d}° ${String(m).padStart(2,'0')}' ${s.toFixed(1).padStart(4,'0')}" ${suf}`.trim();
 }
 function fmtNum(v, d=3){ if(!isFinite(v)) return '—'; return v.toLocaleString('es-CL',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+/* Como fmtNum, pero redondea a máximo "d" decimales sin rellenar con ceros: si tras redondear
+   no quedan decimales significativos, no muestra coma (ej: 12,5000 -> "12,5"; 100,0000 -> "100"). */
+function fmtNumTrim(v, d=3){ if(!isFinite(v)) return '—'; return v.toLocaleString('es-CL',{minimumFractionDigits:0,maximumFractionDigits:d}); }
 
 /* ---- Sistema angular: sexagesimal (360°, °'") vs centesimal (400g, gon) ---- */
 function degToGon(deg){ return deg*(400/360); }
@@ -7685,7 +7688,7 @@ function renderUnidadesAgrarias(){
     const v=val('ua_val'); const from=document.getElementById('ua_from').value, to=document.getElementById('ua_to').value;
     const box=document.getElementById('resUA');
     if(isNaN(v)){ box.innerHTML=`<p class="err-msg">Ingresa un valor.</p>`; return; }
-    box.innerHTML = `<div class="results" style="margin-top:12px;"><div class="result-row"><span class="k">Resultado</span><span class="v accent big">${fmtNum(convertSurface(v,from,to),6)} ${unitLabel[to]}</span></div></div>`;
+    box.innerHTML = `<div class="results" style="margin-top:12px;"><div class="result-row"><span class="k">Resultado</span><span class="v accent big">${fmtNumTrim(convertSurface(v,from,to),4)} ${unitLabel[to]}</span></div></div>`;
   });
 }
 
@@ -7707,7 +7710,7 @@ function renderConversorDistancia(){
     const v=val('ud_val'); const from=document.getElementById('ud_from').value, to=document.getElementById('ud_to').value;
     const box=document.getElementById('resUD');
     if(isNaN(v)){ box.innerHTML=`<p class="err-msg">Ingresa un valor.</p>`; return; }
-    box.innerHTML = `<div class="results" style="margin-top:12px;"><div class="result-row"><span class="k">Resultado</span><span class="v accent big">${fmtNum(convertLength(v,from,to),6)} ${unitLabel[to]}</span></div></div>`;
+    box.innerHTML = `<div class="results" style="margin-top:12px;"><div class="result-row"><span class="k">Resultado</span><span class="v accent big">${fmtNumTrim(convertLength(v,from,to),3)} ${unitLabel[to]}</span></div></div>`;
   });
 }
 
