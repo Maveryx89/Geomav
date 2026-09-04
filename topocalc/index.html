@@ -4370,7 +4370,11 @@ function svgPerfilNivel(cotas, labels){
    PC/PT, radio R, tangente T y arco Lc — para que "las propiedades de la curva" se lean directo en el dibujo. */
 function svgCurvaArco(R, deltaDeg, puntos, fuente, ptLabel, Tval, extras){
   const w=300,h=250,pad=30;
-  const d=Math.min(Math.max(deltaDeg,4),160);
+  // El dibujo es un esquema, no a escala real (R ya se recorta a 140px independientemente del
+  // R real ingresado). Con deflexiones muy chicas, PC/PT/PI quedan casi encimados y no cabe
+  // ningún rótulo sin superponerse — por eso la deflexión dibujada tiene un piso de 25°, aunque
+  // los valores numéricos de los rótulos siempre vienen de los datos reales, no de "d".
+  const d=Math.min(Math.max(deltaDeg,25),160);
   const theta = toRad(d/2);
   const scaledRv = (h-2*pad)*Math.cos(theta);
   const scaledRh = (w-2*pad)/(2*Math.sin(theta));
@@ -4392,54 +4396,108 @@ function svgCurvaArco(R, deltaDeg, puntos, fuente, ptLabel, Tval, extras){
       const q = pointAt(ang);
       const dx=q.x-O.x, dy=q.y-O.y, len=Math.hypot(dx,dy)||1;
       const lx=q.x+dx/len*10, ly=q.y+dy/len*10;
-      ticks += `<circle cx="${q.x.toFixed(1)}" cy="${q.y.toFixed(1)}" r="2.4" fill="var(--accent)"/>`;
-      if(i%tickStep===0) ticks += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="${tickFont}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">P${i+1}</text>`;
+      ticks += `<circle cx="${q.x.toFixed(1)}" cy="${q.y.toFixed(1)}" r="2.4" fill="var(--ink-soft)"/>`;
+      // Los puntos muy cercanos a PC o PT caen justo en la zona donde vive el rótulo "T=" (que
+      // sale de PC/PT hacia PI) — no importa cuántos puntos haya ni cómo estén espaciados, el
+      // punto más cercano a cada extremo siempre queda ahí. Se omite su número (el punto/circulito
+      // sigue marcado) cuando cae demasiado cerca de PC o PT en vez de intentar reacomodarlo.
+      // Con muchos puntos, el más cercano al vértice PI (el del medio del arco) puede caer tan
+      // pegado al marcador de PI que su número se monta encima del punto — se omite también ahí.
+      const nearEnd = Math.hypot(q.x-PC.x,q.y-PC.y)<26 || Math.hypot(q.x-PT.x,q.y-PT.y)<26 || Math.hypot(q.x-PI_.x,q.y-PI_.y)<14;
+      if(i%tickStep===0 && !nearEnd) ticks += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="${tickFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">P${i+1}</text>`;
     });
   }
   const dimFont=relFont(w,0.03,7.5,9.5), ptFont=relFont(w,0.033,8,10);
-  const Ttxt = Tval!==undefined?'T='+fmtNum(Tval,2):'T';
-  // Elementos adicionales (Lc, C, E, M): solo si se entrega el resultado de calcCurvaCircular.
-  // Geométricamente, PI, el punto medio del arco y O quedan alineados en la vertical x=cx;
-  // el punto medio de la cuerda PC-PT también cae en esa misma vertical (por simetría).
+  // El dibujo solo lleva el carácter (T, R, C...); el valor de cada uno va en la lista de la
+  // esquina, junto a Lc/E/M — así el dibujo no se llena de números y el valor siempre queda
+  // legible en un solo lugar, sea cual sea la deflexión.
+  const Ttxt = 'T';
+  // Los rótulos PC/PT no pueden ir simplemente "debajo" del punto: la línea punteada PC-O (o
+  // PT-O) también sale de ese mismo punto y, según la deflexión, puede apuntar casi derecho hacia
+  // abajo — igual que el rótulo — cruzándolo. Se ubican en cambio sobre la prolongación de la
+  // línea O→punto más allá del punto mismo, así el rótulo sigue exactamente la misma dirección en
+  // que la línea ya iba y nunca la cruza, sea cual sea la deflexión.
+  const extendFromO=(pt,dist)=>{
+    const dx=pt.x-O.x, dy=pt.y-O.y, len=Math.hypot(dx,dy)||1;
+    return {x:pt.x+dx/len*dist, y:pt.y+dy/len*dist};
+  };
+  const pcLbl=extendFromO(PC,15), ptLbl_=extendFromO(PT,15);
+  // Lista de magnitudes: cada valor (R, T, Lc, C, E, M) vive acá, nunca junto a su trazo en el
+  // dibujo. R y T siempre están (son datos base de cualquier curva); Lc/C/E/M solo si se entrega
+  // el resultado de calcCurvaCircular. Además, geométricamente, PI, el punto medio del arco y O
+  // quedan alineados en la vertical x=cx, y el punto medio de la cuerda PC-PT también cae en esa
+  // misma vertical (por simetría) — pero esa franja vertical entre PI y la cuerda puede ser muy
+  // angosta (a veces menos de 20px) incluso con deflexiones moderadas, porque el radio dibujado
+  // está topado a 140px independientemente del radio real: ahí no cabría ni el valor ni el
+  // carácter de C/Lc/E/M junto a su trazo sin chocar con T. Por eso todo el listado va aparte, en
+  // la esquina superior izquierda, y las líneas guía siguen marcando dónde se mide cada cosa.
+  // Cada magnitud tiene su propio color, sin repetirlo entre ellas, y ese mismo color se usa
+  // tanto en su trazo/carácter en el dibujo como en su línea en la lista — así se identifica de
+  // un vistazo qué trazo corresponde a qué valor, sin tener que leer el rótulo.
+  const colR='var(--blueprint)', colT='var(--accent)', colLc='var(--success)', colC='var(--danger)', colE='var(--ink-soft)', colM='var(--ink)';
+  const legendItems=[{label:'R', value:fmtNum(R,2), color:colR}];
+  if(Tval!==undefined) legendItems.push({label:'T', value:fmtNum(Tval,2), color:colT});
   let extraSvg = '';
   if(extras){
+    legendItems.push({label:'Lc', value:fmtNum(extras.Lc,2), color:colLc});
+    legendItems.push({label:'C', value:fmtNum(extras.C,2), color:colC});
+    legendItems.push({label:'E', value:fmtNum(extras.E,2), color:colE});
+    legendItems.push({label:'M', value:fmtNum(extras.M,2), color:colM});
     const midArc = pointAt(-90);
     const midChord = {x:cx, y:(PC.y+PT.y)/2};
-    const smallFont = relFont(w,0.026,6.5,8.2);
+    const cOffset=svgLineLabelAutoOffset(PC.x,PC.y,PT.x,PT.y,1,dimFont);
     extraSvg += `
-    <line x1="${PC.x.toFixed(1)}" y1="${PC.y.toFixed(1)}" x2="${PT.x.toFixed(1)}" y2="${PT.y.toFixed(1)}" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="3 2"/>
-    ${svgLineLabel(PC.x,PC.y,PT.x,PT.y, 'C='+fmtNum(extras.C,2), 'var(--accent)', smallFont, 1)}
-    <line x1="${PI_.x.toFixed(1)}" y1="${PI_.y.toFixed(1)}" x2="${midArc.x.toFixed(1)}" y2="${midArc.y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2"/>
-    <text x="${(cx+6).toFixed(1)}" y="${((PI_.y+midArc.y)/2).toFixed(1)}" font-size="${smallFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">E=${fmtNum(extras.E,2)}</text>
-    <line x1="${midArc.x.toFixed(1)}" y1="${midArc.y.toFixed(1)}" x2="${midChord.x.toFixed(1)}" y2="${midChord.y.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.4"/>
-    <text x="${(cx+6).toFixed(1)}" y="${((midArc.y+midChord.y)/2+3).toFixed(1)}" font-size="${smallFont}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="start">M=${fmtNum(extras.M,2)}</text>
-    <circle cx="${midArc.x.toFixed(1)}" cy="${midArc.y.toFixed(1)}" r="2.6" fill="var(--blueprint)"/>
-    <text x="${Math.max(pad,PC.x-15).toFixed(1)}" y="${(midArc.y+3).toFixed(1)}" font-size="${smallFont}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="end">Lc=${fmtNum(extras.Lc,2)}</text>`;
+    <line x1="${PC.x.toFixed(1)}" y1="${PC.y.toFixed(1)}" x2="${PT.x.toFixed(1)}" y2="${PT.y.toFixed(1)}" stroke="${colC}" stroke-width="1.2" stroke-dasharray="3 2"/>
+    ${svgLineLabel(PC.x,PC.y,PT.x,PT.y, 'C', colC, dimFont, 1, cOffset, 700)}
+    <line x1="${PI_.x.toFixed(1)}" y1="${PI_.y.toFixed(1)}" x2="${midArc.x.toFixed(1)}" y2="${midArc.y.toFixed(1)}" stroke="${colE}" stroke-width="1" stroke-dasharray="2 2"/>
+    <line x1="${midArc.x.toFixed(1)}" y1="${midArc.y.toFixed(1)}" x2="${midChord.x.toFixed(1)}" y2="${midChord.y.toFixed(1)}" stroke="${colM}" stroke-width="1.4"/>
+    <circle cx="${midArc.x.toFixed(1)}" cy="${midArc.y.toFixed(1)}" r="2.6" fill="${colLc}"/>`;
   }
+  const lgX=pad, lgY0=pad+dimFont*1.15, lgStep=dimFont*1.35;
+  const legendSvg = legendItems.map((it,i)=>`<text x="${lgX.toFixed(1)}" y="${(lgY0+lgStep*i).toFixed(1)}" font-size="${dimFont}" font-family="var(--font-mono)" font-weight="700" fill="${it.color}" text-anchor="start">${it.label}=${it.value}</text>`).join('');
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <path d="M${PI_.x.toFixed(1)} ${PI_.y.toFixed(1)} L${PC.x.toFixed(1)} ${PC.y.toFixed(1)}" stroke="var(--line-strong)" stroke-width="1.3"/>
-    <path d="M${PI_.x.toFixed(1)} ${PI_.y.toFixed(1)} L${PT.x.toFixed(1)} ${PT.y.toFixed(1)}" stroke="var(--line-strong)" stroke-width="1.3"/>
-    <path d="M${PC.x.toFixed(1)} ${PC.y.toFixed(1)} L${O.x.toFixed(1)} ${O.y.toFixed(1)} L${PT.x.toFixed(1)} ${PT.y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
-    <path d="${arcPath}" stroke="var(--blueprint)" stroke-width="2.2" fill="none"/>
+    <path d="M${PI_.x.toFixed(1)} ${PI_.y.toFixed(1)} L${PC.x.toFixed(1)} ${PC.y.toFixed(1)}" stroke="${colT}" stroke-width="1.3"/>
+    <path d="M${PI_.x.toFixed(1)} ${PI_.y.toFixed(1)} L${PT.x.toFixed(1)} ${PT.y.toFixed(1)}" stroke="${colT}" stroke-width="1.3"/>
+    <path d="M${PC.x.toFixed(1)} ${PC.y.toFixed(1)} L${O.x.toFixed(1)} ${O.y.toFixed(1)} L${PT.x.toFixed(1)} ${PT.y.toFixed(1)}" stroke="${colR}" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+    <path d="${arcPath}" stroke="${colLc}" stroke-width="2.2" fill="none"/>
     ${ticks}
     ${extraSvg}
+    ${legendSvg}
     <circle cx="${PI_.x.toFixed(1)}" cy="${PI_.y.toFixed(1)}" r="3" fill="var(--ink)"/>
     <circle cx="${PC.x.toFixed(1)}" cy="${PC.y.toFixed(1)}" r="3" fill="var(--ink)"/>
     <circle cx="${PT.x.toFixed(1)}" cy="${PT.y.toFixed(1)}" r="3" fill="var(--ink)"/>
     <circle cx="${O.x.toFixed(1)}" cy="${O.y.toFixed(1)}" r="2.4" fill="var(--ink-soft)"/>
     <text x="${PI_.x.toFixed(1)}" y="${(PI_.y-7).toFixed(1)}" font-size="${ptFont}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">PI</text>
-    <text x="${PC.x.toFixed(1)}" y="${(PC.y+14).toFixed(1)}" font-size="${ptFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">PC</text>
-    <text x="${PT.x.toFixed(1)}" y="${(PT.y+14).toFixed(1)}" font-size="${ptFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">${ptLabel||'PT'}</text>
+    <text x="${pcLbl.x.toFixed(1)}" y="${pcLbl.y.toFixed(1)}" font-size="${ptFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">PC</text>
+    <text x="${ptLbl_.x.toFixed(1)}" y="${ptLbl_.y.toFixed(1)}" font-size="${ptFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">${ptLabel||'PT'}</text>
     <text x="${O.x.toFixed(1)}" y="${(O.y+14).toFixed(1)}" font-size="${ptFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">O</text>
     ${(function(){
       // Las etiquetas de tangente se desplazan hacia PC/PT (usando un sub-segmento con el
-      // mismo ángulo) para no chocar con las etiquetas de E/Lc/M, que viven cerca de PI.
-      const t1={x:PI_.x+0.55*(PC.x-PI_.x), y:PI_.y+0.55*(PC.y-PI_.y)};
-      const t2={x:PI_.x+0.55*(PT.x-PI_.x), y:PI_.y+0.55*(PT.y-PI_.y)};
-      return svgLineLabel(t1.x,t1.y,PC.x,PC.y, Ttxt, 'var(--accent)', dimFont, 1)
-           + svgLineLabel(t2.x,t2.y,PT.x,PT.y, Ttxt, 'var(--accent)', dimFont, -1);
+      // mismo ángulo) para no chocar con las etiquetas de E/Lc/M, que viven cerca de PI. Su
+      // rotación depende de la deflexión ingresada, así que usan svgLineLabelAutoOffset.
+      const t1={x:PI_.x+0.72*(PC.x-PI_.x), y:PI_.y+0.72*(PC.y-PI_.y)};
+      const t2={x:PI_.x+0.72*(PT.x-PI_.x), y:PI_.y+0.72*(PT.y-PI_.y)};
+      const t1Offset=svgLineLabelAutoOffset(t1.x,t1.y,PC.x,PC.y,1,dimFont);
+      const t2Offset=svgLineLabelAutoOffset(t2.x,t2.y,PT.x,PT.y,-1,dimFont);
+      return svgLineLabel(t1.x,t1.y,PC.x,PC.y, Ttxt, colT, dimFont, 1, t1Offset, 700)
+           + svgLineLabel(t2.x,t2.y,PT.x,PT.y, Ttxt, colT, dimFont, -1, t2Offset, 700);
     })()}
-    ${svgLineLabel(O.x,O.y,PC.x,PC.y, 'R='+fmtNum(R,2), 'var(--blueprint)', dimFont, 1)}
+    ${(function(){
+      // La línea O→PC también rota según la deflexión ingresada, y su tratamiento depende de qué
+      // tan cerca queda O de la cuerda: con deflexiones chicas/medias, O→PC es larga (scaledR
+      // llega a 140px) y hay espacio de sobra en cualquier punto del tramo — se usa el punto medio
+      // clásico, al exterior del triángulo (side=-1). Con deflexiones grandes, O→PC se acorta
+      // mucho (scaledR puede bajar de 50px) y O queda pegado a PC/PT y a sus rótulos — ahí el
+      // rótulo se ancla justo más allá de O, en línea recta contraria a PC, para quedar lejos de
+      // PC y de su propio rótulo "O" sin importar cuán corto sea el radio dibujado.
+      if(scaledR < 70){
+        const rAnchor={x:O.x-1.15*(PC.x-O.x), y:O.y-1.15*(PC.y-O.y)};
+        const rOffset=svgLineLabelAutoOffset(O.x,O.y,rAnchor.x,rAnchor.y,1,dimFont,1.15);
+        return svgLineLabel(O.x,O.y,rAnchor.x,rAnchor.y, 'R', colR, dimFont, 1, rOffset, 700);
+      }
+      const rOffset=svgLineLabelAutoOffset(O.x,O.y,PC.x,PC.y,-1,dimFont);
+      return svgLineLabel(O.x,O.y,PC.x,PC.y, 'R', colR, dimFont, -1, rOffset, 700);
+    })()}
     ${fuente?svgFuente(fuente,w,h):''}
   </svg>`;
 }
