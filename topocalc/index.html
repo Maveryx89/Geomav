@@ -3886,15 +3886,32 @@ function svgDistPuntoLinea(e1, n1, e2, n2, ep, np, r, fuente){
   </svg>`;
 }
 
-/* Diagrama de talud: triángulo rectángulo distancia horizontal / desnivel / pendiente,
-   con arco de ángulo y relación H:V rotulada. */
+/* Diagrama de talud: triángulo rectángulo distancia horizontal / desnivel / pendiente, con
+   arco de ángulo. El dibujo solo lleva letras sueltas (d, h, Talud, α) — nunca el número
+   pegado al trazo — y el valor de cada una vive en una lista propia en la esquina superior
+   izquierda (mismo patrón que svgCurvaArco), con el mismo color entre trazo/letra y su línea
+   en la lista. d y h también están en los campos del formulario, y Pendiente/Ángulo/Relación
+   H:V en el panel de resultados justo encima del SVG, pero el usuario pidió explícitamente que
+   el propio dibujo lleve su lista, igual que en los demás diagramas del estándar. Relación H:V
+   no tiene trazo propio en el dibujo (no es más que una relectura de Talud/Ángulo), así que se
+   deja fuera de la lista para no romper la regla de "un color por magnitud con trazo propio";
+   sigue visible en el panel de resultados. La lista vive en la franja libre entre y=0 y
+   y=y0-roomV (arriba del vértice más alto posible): con la línea Talud llegando a esa altura
+   solo en su extremo derecho (x=x1), la lista —anclada a la izquierda— nunca se cruza con ella.
+   Los vértices se mantienen en tono neutro ink, sin reutilizar los colores de magnitud, igual
+   que en los demás diagramas.
+   Corrección de layout: el origen "y0" ahora queda a la misma distancia del techo y del piso
+   del SVG (roomV en cada sentido), en vez de pegado al borde inferior como antes — con
+   desnivel negativo (talud descendente) el vértice superior y la línea "h" se salían del
+   canvas porque solo había ~18px de margen hacia abajo contra 96px hacia arriba. */
 function svgTalud(h, d, r, fuente){
-  const w=280, hh=180, pad=34;
+  const w=280, pad=34, headroom=16, roomV=90;
+  const y0 = pad+headroom+roomV, hh = y0+headroom+roomV;
   const angDraw=toRad(Math.min(Math.max(Math.abs(r.anguloDeg),4),70));
   const baseW=w-2*pad;
   const dir=h>=0?-1:1;
-  const riseMag=Math.min(baseW*Math.tan(angDraw), hh-2*pad-16);
-  const x0=pad, y0=hh-pad;
+  const riseMag=Math.min(baseW*Math.tan(angDraw), roomV);
+  const x0=pad;
   const x1=w-pad, y1=y0+dir*riseMag;
   const realAngle=Math.atan2(y1-y0, x1-x0);
   const arcR=24;
@@ -3902,18 +3919,28 @@ function svgTalud(h, d, r, fuente){
   const arcEnd={x:x0+arcR*Math.cos(realAngle), y:y0+arcR*Math.sin(realAngle)};
   const sweepFlag=realAngle>=0?1:0;
   const labelFont=relFont(w,0.034,8,10.5);
+  const colD='var(--success)', colH='var(--danger)', colTalud='var(--blueprint)', colAng='var(--accent)';
+  const dimFont=relFont(w,0.03,7.5,9);
+  const legendItems=[
+    {label:'d', value:fmtNum(d,2)+' m', color:colD},
+    {label:'h', value:fmtNum(h,2)+' m', color:colH},
+    {label:'Talud', value:fmtNum(r.pendientePct,2)+' %', color:colTalud},
+    {label:'α', value:fmtAngle(r.anguloDeg), color:colAng}
+  ];
+  const lgX=8, lgY0=6+dimFont, lgStep=dimFont*1.35;
+  const legendSvg = legendItems.map((it,i)=>`<text x="${lgX}" y="${(lgY0+lgStep*i).toFixed(1)}" font-size="${dimFont}" font-family="var(--font-mono)" font-weight="700" fill="${it.color}" text-anchor="start">${it.label}=${it.value}</text>`).join('');
   return `<svg viewBox="0 0 ${w} ${hh}" xmlns="http://www.w3.org/2000/svg">
-    <path d="M${x0} ${y0} L${x1} ${y0}" stroke="var(--line)" stroke-width="1.4" fill="none"/>
-    <path d="M${x1} ${y0} L${x1} ${y1.toFixed(1)}" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="3 3" fill="none"/>
-    <path d="M${x0} ${y0} L${x1} ${y1.toFixed(1)}" stroke="var(--blueprint)" stroke-width="2" fill="none"/>
-    <path d="M${arcStart.x} ${arcStart.y} A${arcR} ${arcR} 0 0 ${sweepFlag} ${arcEnd.x.toFixed(1)} ${arcEnd.y.toFixed(1)}" stroke="var(--accent)" stroke-width="1.4" fill="none"/>
+    <path d="M${x0} ${y0} L${x1} ${y0}" stroke="${colD}" stroke-width="1.6" fill="none"/>
+    <path d="M${x1} ${y0} L${x1} ${y1.toFixed(1)}" stroke="${colH}" stroke-width="1.6" stroke-dasharray="3 3" fill="none"/>
+    <path d="M${x0} ${y0} L${x1} ${y1.toFixed(1)}" stroke="${colTalud}" stroke-width="2" fill="none"/>
+    <path d="M${arcStart.x} ${arcStart.y} A${arcR} ${arcR} 0 0 ${sweepFlag} ${arcEnd.x.toFixed(1)} ${arcEnd.y.toFixed(1)}" stroke="${colAng}" stroke-width="1.4" fill="none"/>
     <circle cx="${x0}" cy="${y0}" r="3" fill="var(--ink)"/>
-    <circle cx="${x1}" cy="${y1.toFixed(1)}" r="3.4" fill="var(--accent)"/>
-    <text x="${(x0+x1)/2}" y="${(y0+14).toFixed(1)}" font-size="${labelFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Distancia horizontal d=${fmtNum(d,2)} m</text>
-    ${svgLineLabel(x1,y0,x1,y1, 'Desnivel h='+fmtNum(h,2)+' m', 'var(--ink-soft)', labelFont, -1)}
-    ${svgLineLabel(x0,y0,x1,y1, 'Talud '+fmtNum(r.pendientePct,2)+'%', 'var(--blueprint)', labelFont, dir)}
-    <text x="${(x0+arcR+10).toFixed(1)}" y="${(y0+dir*14).toFixed(1)}" font-size="${relFont(w,0.028,7,8.5)}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="start">${fmtAngle(r.anguloDeg)}</text>
-    <text x="${x0}" y="${(hh-8).toFixed(1)}" font-size="${relFont(w,0.028,7,8.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Relación H:V = ${fmtNum(r.relacion,2)} : 1</text>
+    <circle cx="${x1}" cy="${y1.toFixed(1)}" r="3.4" fill="var(--ink)"/>
+    <text x="${(x0+x1)/2}" y="${(y0+14).toFixed(1)}" font-size="${labelFont}" font-family="var(--font-mono)" font-weight="700" fill="${colD}" text-anchor="middle">d</text>
+    ${svgLineLabel(x1,y0,x1,y1, 'h', colH, labelFont, -1, undefined, 700)}
+    ${svgLineLabel(x0,y0,x1,y1, 'Talud', colTalud, labelFont, dir, undefined, 700)}
+    <text x="${(x0+arcR+10).toFixed(1)}" y="${(y0+dir*14).toFixed(1)}" font-size="${relFont(w,0.03,7.5,9)}" font-family="var(--font-mono)" font-weight="700" fill="${colAng}" text-anchor="start">α</text>
+    ${legendSvg}
     ${fuente?svgFuente(fuente,w,hh):''}
   </svg>`;
 }
