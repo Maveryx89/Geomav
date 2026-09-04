@@ -3899,7 +3899,9 @@ function svgDistPuntoLinea(e1, n1, e2, n2, ep, np, r, fuente){
    y=y0-roomV (arriba del vértice más alto posible): con la línea Talud llegando a esa altura
    solo en su extremo derecho (x=x1), la lista —anclada a la izquierda— nunca se cruza con ella.
    Los vértices se mantienen en tono neutro ink, sin reutilizar los colores de magnitud, igual
-   que en los demás diagramas.
+   que en los demás diagramas. Texto reducido a pedido del usuario (relFont con multiplicador y
+   piso más bajos que el resto de los diagramas) para que el texto pese menos frente a la
+   geometría — al ser SVG vectorial no pierde nitidez si el usuario hace zoom para leer un valor.
    Corrección de layout: el origen "y0" ahora queda a la misma distancia del techo y del piso
    del SVG (roomV en cada sentido), en vez de pegado al borde inferior como antes — con
    desnivel negativo (talud descendente) el vértice superior y la línea "h" se salían del
@@ -3918,9 +3920,9 @@ function svgTalud(h, d, r, fuente){
   const arcStart={x:x0+arcR,y:y0};
   const arcEnd={x:x0+arcR*Math.cos(realAngle), y:y0+arcR*Math.sin(realAngle)};
   const sweepFlag=realAngle>=0?1:0;
-  const labelFont=relFont(w,0.034,8,10.5);
+  const labelFont=relFont(w,0.026,6,8);
   const colD='var(--success)', colH='var(--danger)', colTalud='var(--blueprint)', colAng='var(--accent)';
-  const dimFont=relFont(w,0.03,7.5,9);
+  const dimFont=relFont(w,0.022,5.5,7);
   const legendItems=[
     {label:'d', value:fmtNum(d,2)+' m', color:colD},
     {label:'h', value:fmtNum(h,2)+' m', color:colH},
@@ -3939,7 +3941,7 @@ function svgTalud(h, d, r, fuente){
     <text x="${(x0+x1)/2}" y="${(y0+14).toFixed(1)}" font-size="${labelFont}" font-family="var(--font-mono)" font-weight="700" fill="${colD}" text-anchor="middle">d</text>
     ${svgLineLabel(x1,y0,x1,y1, 'h', colH, labelFont, -1, undefined, 700)}
     ${svgLineLabel(x0,y0,x1,y1, 'Talud', colTalud, labelFont, dir, undefined, 700)}
-    <text x="${(x0+arcR+10).toFixed(1)}" y="${(y0+dir*14).toFixed(1)}" font-size="${relFont(w,0.03,7.5,9)}" font-family="var(--font-mono)" font-weight="700" fill="${colAng}" text-anchor="start">α</text>
+    <text x="${(x0+arcR+10).toFixed(1)}" y="${(y0+dir*14).toFixed(1)}" font-size="${dimFont}" font-family="var(--font-mono)" font-weight="700" fill="${colAng}" text-anchor="start">α</text>
     ${legendSvg}
     ${fuente?svgFuente(fuente,w,hh):''}
   </svg>`;
@@ -4450,7 +4452,7 @@ function svgCurvaArco(R, deltaDeg, puntos, fuente, ptLabel, Tval, extras){
       if(i%tickStep===0 && !nearEnd) ticks += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="${tickFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">P${i+1}</text>`;
     });
   }
-  const dimFont=relFont(w,0.03,7.5,9.5), ptFont=relFont(w,0.033,8,10);
+  const dimFont=relFont(w,0.022,5.5,7), ptFont=relFont(w,0.025,6,7.5);
   // El dibujo solo lleva el carácter (T, R, C...); el valor de cada uno va en la lista de la
   // esquina, junto a Lc/E/M — así el dibujo no se llena de números y el valor siempre queda
   // legible en un solo lugar, sea cual sea la deflexión.
