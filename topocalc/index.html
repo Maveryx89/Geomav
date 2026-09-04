@@ -3725,18 +3725,22 @@ function svgTrianguloVertical(anguloDeg, Di, Dh, Dv){
   const arcR=30;
   const arcEnd={x:x0+arcR*Math.cos(a), y:y0-arcR*Math.sin(a)};
 
-  const fontLbl=relFont(w,0.042,11,13.5);   // Dist Incl / Dist H / Dist Vert
-  const fontAng=relFont(w,0.034,9.5,11.5);  // ángulo junto al vértice
+  // Rótulos horizontal/vertical (Dist H, Dist Vert) leen a su altura de fuente real.
+  // El de la hipotenusa y el del ángulo van inclinados: a igual font-size, un texto rotado
+  // en un ángulo bajo "barre" más alto en pantalla que uno horizontal y se percibe más
+  // grande, así que se compensa con un tamaño algo menor para que la altura se vea igual.
+  const fontLbl=relFont(w,0.042,11,13.5);   // Dist H / Dist Vert
+  const fontHip=fontLbl*0.85;               // Dist Incl (inclinado)
+  const fontAng=fontHip*0.72;               // ángulo (inclinado, más chico que Dist Incl)
 
   const labelHip=`Dist Incl: ${fmtNum(Di,3)}m`;
   const labelDh=`Dist H: ${fmtNum(Dh,3)}m`;
 
-  // Ángulo: mismo tilt que la hipotenusa, anidado entre el arco y la base, cerca del vértice
-  const angDeg=-aClamped;
-  const angR=arcR+10;
-  const angBisector=a*0.42;
-  const angX=x0+angR*Math.cos(angBisector);
-  const angY=y0-angR*Math.sin(angBisector);
+  // Ángulo: mismo rótulo que la hipotenusa (misma inclinación, mismo lado por encima de la
+  // línea), pero centrado cerca del vértice en vez de a la mitad del tramo — se logra
+  // reusando svgLineLabel sobre un tramo corto desde el vértice.
+  const angT=0.20;
+  const angNearX=x0+angT*(x1-x0), angNearY=y0+angT*(y1-y0);
 
   // "Dist Vert" en dos columnas rotadas -90° (se lee de abajo hacia arriba), centradas
   // sobre el cateto vertical punteado
@@ -3750,8 +3754,8 @@ function svgTrianguloVertical(anguloDeg, Di, Dh, Dv){
     <path d="M${x0+arcR} ${y0} A${arcR} ${arcR} 0 0 0 ${arcEnd.x.toFixed(1)} ${arcEnd.y.toFixed(1)}" stroke="var(--accent)" stroke-width="1.6" fill="none"/>
     <circle cx="${x0}" cy="${y0}" r="3.2" fill="var(--ink)"/>
     <circle cx="${x1}" cy="${y1}" r="3.2" fill="var(--accent)"/>
-    ${svgLineLabel(x0,y0,x1,y1, labelHip, 'var(--ink)', fontLbl, -1, 1.15, 700)}
-    <text x="${angX.toFixed(1)}" y="${angY.toFixed(1)}" font-size="${fontAng.toFixed(1)}" font-family="var(--font-mono)" font-weight="700" fill="var(--blueprint)" text-anchor="start" transform="rotate(${angDeg.toFixed(1)} ${angX.toFixed(1)} ${angY.toFixed(1)})">${fmtNum(aClamped,4)}&#176;</text>
+    ${svgLineLabel(x0,y0,x1,y1, labelHip, 'var(--ink)', fontHip, -1, 1.15, 700)}
+    ${svgLineLabel(x0,y0,angNearX,angNearY, fmtNum(aClamped,4)+'&#176;', 'var(--blueprint)', fontAng, -1, 1.3, 700)}
     <text x="${((x0+x1)/2).toFixed(1)}" y="${(y0+20).toFixed(1)}" font-size="${fontLbl.toFixed(1)}" font-family="var(--font-mono)" font-weight="700" fill="var(--ink)" text-anchor="middle">${labelDh}</text>
     <text x="${vCol1X.toFixed(1)}" y="${vMidY.toFixed(1)}" font-size="${fontLbl.toFixed(1)}" font-family="var(--font-mono)" font-weight="700" fill="var(--ink)" text-anchor="middle" transform="rotate(-90 ${vCol1X.toFixed(1)} ${vMidY.toFixed(1)})">Dist Vert:</text>
     <text x="${vCol2X.toFixed(1)}" y="${vMidY.toFixed(1)}" font-size="${fontLbl.toFixed(1)}" font-family="var(--font-mono)" font-weight="700" fill="var(--ink)" text-anchor="middle" transform="rotate(-90 ${vCol2X.toFixed(1)} ${vMidY.toFixed(1)})">${fmtNum(Dv,3)}m</text>
