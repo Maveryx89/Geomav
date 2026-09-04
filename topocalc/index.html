@@ -3706,6 +3706,32 @@ function svgLineLabel(x1, y1, x2, y2, text, color, fontSize, side, offsetMult, w
   const fw=weight?` font-weight="${weight}"`:'';
   return `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="${(fontSize||8).toFixed ? (fontSize||8).toFixed(1) : (fontSize||8)}" font-family="var(--font-mono)"${fw} fill="${color}" text-anchor="middle" transform="rotate(${angle.toFixed(1)} ${lx.toFixed(1)} ${ly.toFixed(1)})">${text}</text>`;
 }
+/* Calcula el offsetMult que hay que pasarle a svgLineLabel para que, sea cual sea el ángulo de
+   rotación resultante, el rótulo quede a la misma distancia visual de su línea que un rótulo con
+   offsetMult por defecto (0.85) cuyo lado ascendente de la fuente mira hacia la línea (el caso
+   "bueno", sin que se note el ascendente/descendente). Según el ángulo final y el lado (side),
+   a veces el lado que queda hacia la línea es el descendente en vez del ascendente — como el
+   descendente es más chico, con el mismo offsetMult el rótulo se ve más lejos de la línea de lo
+   esperado (ver notas en svgPitagoras). Esta función detecta ese caso y devuelve un offsetMult
+   menor para compensarlo; en el caso normal devuelve baseOffsetMult sin cambios. Los ratios
+   ASC/DESC son metrics de la fuente monoespaciada de la app, medidos con getBBox real. */
+function svgLineLabelAutoOffset(x1,y1,x2,y2,side,fontSize,baseOffsetMult){
+  baseOffsetMult = baseOffsetMult===undefined ? 0.85 : baseOffsetMult;
+  const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy)||1;
+  const s = side===-1?-1:1;
+  const nx=-(dy/len)*s, ny=(dx/len)*s;
+  let angle = Math.atan2(dy,dx)*180/Math.PI;
+  if(angle>90) angle-=180;
+  if(angle<-90) angle+=180;
+  const th = angle*Math.PI/180;
+  const indicator = Math.sin(th)*nx - Math.cos(th)*ny; // >0: descendente hacia la línea (compensar)
+  if(indicator <= 1e-9) return baseOffsetMult;
+  const ASC=0.9133, DESC=0.2614;
+  const ascent=fontSize*ASC, descent=fontSize*DESC;
+  const offGood = fontSize*baseOffsetMult+2 - ascent;
+  const offNeeded = offGood + descent;
+  return Math.max(0, (offNeeded-2)/fontSize);
+}
 
 /* Decide qué índices de una serie de N puntos rotular para evitar amontonar texto: si hay pocos,
    se rotulan todos; si hay muchos, se espacian para dejar aire entre etiquetas. */
@@ -4493,16 +4519,52 @@ function svgInterseccion(e1,n1,az1,e2,n2,az2,eI,nI){
   const spanE=Math.max(maxE-minE,0.001), spanN=Math.max(maxN-minN,0.001);
   const scale=Math.min((w-2*pad)/spanE,(h-2*pad)/spanN);
   const px=e=>pad+(e-minE)*scale, py=n=>(h-pad)-(n-minN)*scale;
+
+  // Rótulo de azimut sobre el lado de la visual OPUESTO a donde cae I (el punto de intersección
+  // puede quedar hacia adelante o hacia atrás de cada estación según los datos ingresados): así
+  // nunca compite por espacio con I, y al no estar pegado a la estación tampoco se superpone con
+  // "Est. N".
+  const dirSign1 = (Math.sin(toRad(az1))*(eI-e1)+Math.cos(toRad(az1))*(nI-n1)) >= 0 ? -1 : 1;
+  const dirSign2 = (Math.sin(toRad(az2))*(eI-e2)+Math.cos(toRad(az2))*(nI-n2)) >= 0 ? -1 : 1;
+  const t1s=L*0.15, t1e=L*0.4, t2s=L*0.15, t2e=L*0.4;
+  const nearA0={e:e1+dirSign1*t1s*Math.sin(toRad(az1)), n:n1+dirSign1*t1s*Math.cos(toRad(az1))};
+  const nearA={e:e1+dirSign1*t1e*Math.sin(toRad(az1)), n:n1+dirSign1*t1e*Math.cos(toRad(az1))};
+  const nearB0={e:e2+dirSign2*t2s*Math.sin(toRad(az2)), n:n2+dirSign2*t2s*Math.cos(toRad(az2))};
+  const nearB={e:e2+dirSign2*t2e*Math.sin(toRad(az2)), n:n2+dirSign2*t2e*Math.cos(toRad(az2))};
+
+  // "Es1"/"Es2" (antes "Est. 1"/"Est. 2") se desplazan perpendicular a su línea (no solo hacia
+  // arriba en pantalla) para no quedar montados sobre ella; van al lado contrario de donde se
+  // ubica el rótulo Az (side=1), así no compiten entre sí.
+  const offPoint=(px0,py0,dxp,dyp,dist,side)=>{
+    const len=Math.hypot(dxp,dyp)||1, s=side===-1?-1:1;
+    const nx=-(dyp/len)*s, ny=(dxp/len)*s;
+    return {x:px0+nx*dist, y:py0+ny*dist};
+  };
+  const es1Pos=offPoint(px(e1),py(n1), px(pA.e)-px(e1), py(pA.n)-py(n1), 13, -1);
+  const es2Pos=offPoint(px(e2),py(n2), px(pB.e)-px(e2), py(pB.n)-py(n2), 13, -1);
+
+  // Los rótulos Az1/Az2 pueden quedar rotados en ángulos muy distintos según los azimuts
+  // ingresados; svgLineLabelAutoOffset ajusta cada uno por separado para que ambos queden a la
+  // misma distancia visual de su línea (ver comentario en esa función).
+  // El lado (side) que se le pasa a svgLineLabel se multiplica por dirSign: como nearA0->nearA
+  // puede apuntar hacia adelante o hacia atrás según dirSign, sin este ajuste el rótulo Az
+  // podría terminar cayendo del mismo lado físico que "Es1"/"Es2" (que siempre usan la dirección
+  // hacia adelante como referencia) y superponerse con ellos.
+  const azSide1=dirSign1, azSide2=dirSign2;
+  const azFont=relFont(w,0.028,7,9);
+  const azOffset1=svgLineLabelAutoOffset(px(nearA0.e),py(nearA0.n),px(nearA.e),py(nearA.n),azSide1,azFont);
+  const azOffset2=svgLineLabelAutoOffset(px(nearB0.e),py(nearB0.n),px(nearB.e),py(nearB.n),azSide2,azFont);
+
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <line x1="${px(pA0.e).toFixed(1)}" y1="${py(pA0.n).toFixed(1)}" x2="${px(pA.e).toFixed(1)}" y2="${py(pA.n).toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.8"/>
     <line x1="${px(pB0.e).toFixed(1)}" y1="${py(pB0.n).toFixed(1)}" x2="${px(pB.e).toFixed(1)}" y2="${py(pB.n).toFixed(1)}" stroke="var(--accent)" stroke-width="1.8"/>
     <circle cx="${px(e1).toFixed(1)}" cy="${py(n1).toFixed(1)}" r="3" fill="var(--blueprint)"/>
     <circle cx="${px(e2).toFixed(1)}" cy="${py(n2).toFixed(1)}" r="3" fill="var(--accent)"/>
     <circle cx="${px(eI).toFixed(1)}" cy="${py(nI).toFixed(1)}" r="4" fill="var(--ink)"/>
-    <text x="${px(e1).toFixed(1)}" y="${(py(n1)-8).toFixed(1)}" font-size="${relFont(w,0.03,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">Est. 1</text>
-    <text x="${px(e2).toFixed(1)}" y="${(py(n2)-8).toFixed(1)}" font-size="${relFont(w,0.03,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Est. 2</text>
-    ${svgLineLabel(px(e1),py(n1),px(pA.e),py(pA.n), 'Az1='+fmtNum(az1,2)+'°', 'var(--blueprint)', relFont(w,0.025,6.5,8), 1)}
-    ${svgLineLabel(px(e2),py(n2),px(pB.e),py(pB.n), 'Az2='+fmtNum(az2,2)+'°', 'var(--accent)', relFont(w,0.025,6.5,8), 1)}
+    <text x="${es1Pos.x.toFixed(1)}" y="${es1Pos.y.toFixed(1)}" font-size="${relFont(w,0.03,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">Es1</text>
+    <text x="${es2Pos.x.toFixed(1)}" y="${es2Pos.y.toFixed(1)}" font-size="${relFont(w,0.03,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Es2</text>
+    ${svgLineLabel(px(nearA0.e),py(nearA0.n),px(nearA.e),py(nearA.n), 'Az1: '+fmtNum(az1,2)+'°', 'var(--blueprint)', azFont, azSide1, azOffset1, 700)}
+    ${svgLineLabel(px(nearB0.e),py(nearB0.n),px(nearB.e),py(nearB.n), 'Az2: '+fmtNum(az2,2)+'°', 'var(--accent)', azFont, azSide2, azOffset2, 700)}
     <text x="${px(eI).toFixed(1)}" y="${(py(nI)-9).toFixed(1)}" font-size="${relFont(w,0.033,8,10)}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">I</text>
     ${svgNorthArrow(w-20,20)}
   </svg>`;
