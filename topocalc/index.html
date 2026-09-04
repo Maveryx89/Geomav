@@ -4596,12 +4596,19 @@ function svgPitagoras(a,b,c){
   const x1=x0+bx, y1=y0;
   const x2=x0, y2=y0-ay;
   const rs=12;
+  // Tamaño y cercanía a la línea calibrados como en Triangulación (relFont chico, offset por
+  // defecto de svgLineLabel) — solo se mantiene el rótulo abreviado en negrita.
+  // A y C usan offsetMult=0.16 (en vez del default 0.85): al rotar el texto, el lado que
+  // "come" espacio hacia la línea es el descendente (más chico que el ascendente que usa B),
+  // así que necesitan un offset menor para que la separación visual respecto a la línea
+  // quede igual a la de B.
+  const font=relFont(w,0.032,8,10);
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <path d="M${x0} ${y0} L${x1.toFixed(1)} ${y1} L${x2} ${y2.toFixed(1)} Z" fill="var(--blueprint)" fill-opacity=".1" stroke="var(--blueprint)" stroke-width="2" stroke-linejoin="round"/>
     <path d="M${x0} ${(y0-rs).toFixed(1)} L${(x0+rs).toFixed(1)} ${(y0-rs).toFixed(1)} L${(x0+rs).toFixed(1)} ${y0}" stroke="var(--ink-soft)" stroke-width="1.2" fill="none"/>
-    ${svgLineLabel(x0,y0,x1,y1, 'b = '+fmtNum(b,3), 'var(--ink)', 11, 1)}
-    ${svgLineLabel(x0,y0,x2,y2, 'a = '+fmtNum(a,3), 'var(--ink)', 11, -1, 1.4)}
-    ${svgLineLabel(x1,y1,x2,y2, 'c = '+fmtNum(c,3), 'var(--accent)', 11, 1, 1.4)}
+    ${svgLineLabel(x0,y0,x1,y1, 'B: '+fmtNum(b,3), 'var(--ink)', font, 1, undefined, 700)}
+    ${svgLineLabel(x0,y0,x2,y2, 'A: '+fmtNum(a,3), 'var(--ink)', font, -1, 0.16, 700)}
+    ${svgLineLabel(x1,y1,x2,y2, 'C: '+fmtNum(c,3), 'var(--accent)', font, 1, 0.16, 700)}
   </svg>`;
 }
 
