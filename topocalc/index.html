@@ -3690,7 +3690,7 @@ function relFont(w, mult, min, max){
 /* Rótulo de distancia/rumbo orientado a lo largo de una línea (x1,y1)-(x2,y2), como en un plano
    topográfico real: el texto queda paralelo a la línea, nunca invertido (boca abajo), y desplazado
    hacia un lado para no cruzar el trazo ni pisar otros rótulos cercanos. */
-function svgLineLabel(x1, y1, x2, y2, text, color, fontSize, side, offsetMult){
+function svgLineLabel(x1, y1, x2, y2, text, color, fontSize, side, offsetMult, weight){
   const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy)||1;
   const s = side===-1?-1:1;
   const nx=-(dy/len)*s, ny=(dx/len)*s;
@@ -3700,7 +3700,8 @@ function svgLineLabel(x1, y1, x2, y2, text, color, fontSize, side, offsetMult){
   const mx=(x1+x2)/2, my=(y1+y2)/2;
   const off=(fontSize||8)*(offsetMult||0.85)+2;
   const lx=mx+nx*off, ly=my+ny*off;
-  return `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="${(fontSize||8).toFixed ? (fontSize||8).toFixed(1) : (fontSize||8)}" font-family="var(--font-mono)" fill="${color}" text-anchor="middle" transform="rotate(${angle.toFixed(1)} ${lx.toFixed(1)} ${ly.toFixed(1)})">${text}</text>`;
+  const fw=weight?` font-weight="${weight}"`:'';
+  return `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="${(fontSize||8).toFixed ? (fontSize||8).toFixed(1) : (fontSize||8)}" font-family="var(--font-mono)"${fw} fill="${color}" text-anchor="middle" transform="rotate(${angle.toFixed(1)} ${lx.toFixed(1)} ${ly.toFixed(1)})">${text}</text>`;
 }
 
 /* Decide qué índices de una serie de N puntos rotular para evitar amontonar texto: si hay pocos,
@@ -3710,24 +3711,50 @@ function thinLabelStep(n, maxLabels){
   return Math.ceil(n/(maxLabels||10));
 }
 
-/* Diagrama de triángulo rectángulo: distancia inclinada Di, ángulo desde el horizonte, Dh y Dv */
-function svgTrianguloVertical(anguloDeg, labelHip, labelDh, labelDv){
-  const w=280,h=170,pad=30;
-  const baseW=w-2*pad, a=toRad(Math.min(Math.max(anguloDeg,3),75));
-  const baseH=Math.min(baseW*Math.tan(a), h-2*pad);
-  const x0=pad, y0=h-pad, x1=w-pad, y1=y0-baseH;
-  const arcR=26;
+/* Diagrama de triángulo rectángulo: distancia inclinada Di, ángulo desde el horizonte, Dh y Dv.
+   Rótulos completos ("Dist Incl:", "Dist H:", "Dist Vert:") en negrita, orientados a lo largo
+   de cada lado; el ángulo va como número rotado (paralelo a la hipotenusa) junto al vértice,
+   y "Dist Vert" queda en dos columnas de texto rotadas -90° a la derecha del cateto vertical. */
+function svgTrianguloVertical(anguloDeg, Di, Dh, Dv){
+  const w=320,h=210,pad=32,padR=56;
+  const aClamped=Math.min(Math.max(anguloDeg,3),75);
+  const a=toRad(aClamped);
+  const baseW=(w-padR)-pad;
+  const baseH=Math.min(baseW*Math.tan(a), h-2*pad-16);
+  const x0=pad, y0=h-pad, x1=w-padR, y1=y0-baseH;
+  const arcR=30;
   const arcEnd={x:x0+arcR*Math.cos(a), y:y0-arcR*Math.sin(a)};
-  const font=relFont(w,0.038,9,11);
+
+  const fontLbl=relFont(w,0.042,11,13.5);   // Dist Incl / Dist H / Dist Vert
+  const fontAng=relFont(w,0.034,9.5,11.5);  // ángulo junto al vértice
+
+  const labelHip=`Dist Incl: ${fmtNum(Di,3)}m`;
+  const labelDh=`Dist H: ${fmtNum(Dh,3)}m`;
+
+  // Ángulo: mismo tilt que la hipotenusa, anidado entre el arco y la base, cerca del vértice
+  const angDeg=-aClamped;
+  const angR=arcR+10;
+  const angBisector=a*0.42;
+  const angX=x0+angR*Math.cos(angBisector);
+  const angY=y0-angR*Math.sin(angBisector);
+
+  // "Dist Vert" en dos columnas rotadas -90° (se lee de abajo hacia arriba), centradas
+  // sobre el cateto vertical punteado
+  const vMidY=(y0+y1)/2;
+  const vCol1X=x1+fontLbl*0.95+5;
+  const vCol2X=x1+fontLbl*2.15+8;
+
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <path d="M${x0} ${y0} L${x1} ${y0} M${x0} ${y0} L${x1} ${y1}" stroke="var(--blueprint)" stroke-width="1.8" fill="none"/>
+    <path d="M${x0} ${y0} L${x1} ${y0} M${x0} ${y0} L${x1} ${y1}" stroke="var(--blueprint)" stroke-width="2" fill="none"/>
     <path d="M${x1} ${y0} L${x1} ${y1}" stroke="var(--line-strong)" stroke-width="1.4" stroke-dasharray="3 3" fill="none"/>
-    <path d="M${x0+arcR} ${y0} A${arcR} ${arcR} 0 0 0 ${arcEnd.x.toFixed(1)} ${arcEnd.y.toFixed(1)}" stroke="var(--accent)" stroke-width="1.4" fill="none"/>
-    <circle cx="${x0}" cy="${y0}" r="3" fill="var(--ink)"/>
-    <circle cx="${x1}" cy="${y1}" r="3" fill="var(--accent)"/>
-    ${svgLineLabel(x0,y0,x1,y1, labelHip||'', 'var(--blueprint)', font, -1)}
-    <text x="${(x0+x1)/2}" y="${y0+16}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">${labelDh||''}</text>
-    <text x="${x1+8}" y="${(y0+y1)/2}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">${labelDv||''}</text>
+    <path d="M${x0+arcR} ${y0} A${arcR} ${arcR} 0 0 0 ${arcEnd.x.toFixed(1)} ${arcEnd.y.toFixed(1)}" stroke="var(--accent)" stroke-width="1.6" fill="none"/>
+    <circle cx="${x0}" cy="${y0}" r="3.2" fill="var(--ink)"/>
+    <circle cx="${x1}" cy="${y1}" r="3.2" fill="var(--accent)"/>
+    ${svgLineLabel(x0,y0,x1,y1, labelHip, 'var(--ink)', fontLbl, -1, 1.15, 700)}
+    <text x="${angX.toFixed(1)}" y="${angY.toFixed(1)}" font-size="${fontAng.toFixed(1)}" font-family="var(--font-mono)" font-weight="700" fill="var(--blueprint)" text-anchor="start" transform="rotate(${angDeg.toFixed(1)} ${angX.toFixed(1)} ${angY.toFixed(1)})">${fmtNum(aClamped,4)}&#176;</text>
+    <text x="${((x0+x1)/2).toFixed(1)}" y="${(y0+20).toFixed(1)}" font-size="${fontLbl.toFixed(1)}" font-family="var(--font-mono)" font-weight="700" fill="var(--ink)" text-anchor="middle">${labelDh}</text>
+    <text x="${vCol1X.toFixed(1)}" y="${vMidY.toFixed(1)}" font-size="${fontLbl.toFixed(1)}" font-family="var(--font-mono)" font-weight="700" fill="var(--ink)" text-anchor="middle" transform="rotate(-90 ${vCol1X.toFixed(1)} ${vMidY.toFixed(1)})">Dist Vert:</text>
+    <text x="${vCol2X.toFixed(1)}" y="${vMidY.toFixed(1)}" font-size="${fontLbl.toFixed(1)}" font-family="var(--font-mono)" font-weight="700" fill="var(--ink)" text-anchor="middle" transform="rotate(-90 ${vCol2X.toFixed(1)} ${vMidY.toFixed(1)})">${fmtNum(Dv,3)}m</text>
   </svg>`;
 }
 
@@ -5258,7 +5285,7 @@ function renderNivel(){
       <div class="result-row"><span class="k">Distancia horizontal usada</span><span class="v">${fmtNum(D,3)} m</span></div>
       ${crRow}
       <div class="result-row"><span class="k">Desnivel</span><span class="v accent big">${fmtNum(desnivel,3)} m</span></div>
-      <div class="plot-wrap">${svgTrianguloVertical(ang, `Di ${fmtNum(Din,1)} m`, `Dh ${fmtNum(D,1)} m`, `Dv ${fmtNum(desnivel,2)} m`)}</div>
+      <div class="plot-wrap">${svgTrianguloVertical(ang, Din, D, desnivel)}</div>
     </div>`;
   });
 }
@@ -5601,7 +5628,7 @@ function renderReducHorizonte(){
     box.innerHTML = `<div class="results" style="margin-top:12px;">
       <div class="result-row"><span class="k">Distancia horizontal (Dh)</span><span class="v accent big">${fmtNum(r.Dh,3)} m</span></div>
       <div class="result-row"><span class="k">Distancia vertical (Dv)</span><span class="v">${fmtNum(r.Dv,3)} m</span></div>
-      <div class="plot-wrap">${svgTrianguloVertical(ang, `Di ${fmtNum(Di,1)}`, `Dh ${fmtNum(r.Dh,1)}`, `Dv ${fmtNum(r.Dv,1)}`)}</div>
+      <div class="plot-wrap">${svgTrianguloVertical(ang, Di, r.Dh, r.Dv)}</div>
     </div>`;
   });
 }
@@ -7542,7 +7569,7 @@ function renderPendienteDosPuntos(){
       <div class="result-row"><span class="k">Pendiente</span><span class="v accent big">${fmtNum(r.pendientePct,2)} %</span></div>
       <div class="result-row"><span class="k">Pendiente angular</span><span class="v">${fmtAngle(Math.abs(r.pendienteDeg))}</span></div>
       <div class="result-row"><span class="k">Relación H:V</span><span class="v">${relHV}</span></div>
-      <div class="plot-wrap">${svgTrianguloVertical(Math.abs(r.pendienteDeg), `${fmtNum(r.distInclinada,2)} m`, `Dh=${fmtNum(r.distH,2)}`, `Dv=${fmtNum(Math.abs(r.desnivel),2)}`)}</div>
+      <div class="plot-wrap">${svgTrianguloVertical(Math.abs(r.pendienteDeg), r.distInclinada, r.distH, Math.abs(r.desnivel))}</div>
     </div>`;
   });
 }
