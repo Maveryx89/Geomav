@@ -3834,9 +3834,40 @@ function svgDistPuntoLinea(e1, n1, e2, n2, ep, np, r, fuente){
   const Ax=px(e1),Ay=py(n1), Bx=px(e2),By=py(n2), Px=px(ep),Py=py(np), Fx=px(Fe),Fy=py(Fn);
   const dx=Bx-Ax, dy=By-Ay, len=Math.hypot(dx,dy)||1;
   const ux=dx/len, uy=dy/len;
-  const ext=Math.max(len*0.28, 18);
+  const ext=Math.max(len*0.28, 46);
   const Ex1={x:Ax-ux*ext,y:Ay-uy*ext}, Ex2={x:Bx+ux*ext,y:By+uy*ext};
-  const distFont=relFont(w,0.03,7.5,9.5);
+  const font=relFont(w,0.03,7.5,9.5);
+
+  // A, B y F (los tres sobre la recta) se rotulan perpendicular a AB, del lado contrario a
+  // donde cae P — así quedan del lado "exterior" de la figura y nunca compiten con P ni con
+  // el segmento punteado P→F.
+  const nx1=-dy/len, ny1=dx/len;
+  const pDot=(Px-Ax)*nx1+(Py-Ay)*ny1;
+  const abSide = pDot>0 ? -1 : 1;
+  const offPoint=(px0,py0,dxp,dyp,dist,side)=>{
+    const l=Math.hypot(dxp,dyp)||1, s=side===-1?-1:1;
+    const nx=-(dyp/l)*s, ny=(dxp/l)*s;
+    return {x:px0+nx*dist, y:py0+ny*dist};
+  };
+  const aPos=offPoint(Ax,Ay,dx,dy,12,abSide);
+  const bPos=offPoint(Bx,By,dx,dy,12,abSide);
+  const fPos=offPoint(Fx,Fy,dx,dy,12,abSide);
+  const pPos=offPoint(Px,Py, Fx-Px, Fy-Py, 12, 1);
+
+  // El rótulo "AB:" se ubica sobre la prolongación de la recta, a una distancia fija (no
+  // proporcional al largo de A-B, que puede verse muy corto en pantalla si P/F quedan lejos)
+  // más allá del extremo de A o de B que esté más lejos de F — así nunca compite con esos
+  // marcadores ni con el pie de la perpendicular, que puede caer en cualquier punto de la
+  // recta, incluso fuera del tramo A-B (con los valores por defecto de esta calculadora cae
+  // justo en el punto medio de A-B).
+  const extraPx=38;
+  const beyondB = r.tFraction < 0.5;
+  const Mx=(beyondB?Bx:Ax)+(beyondB?ux:-ux)*extraPx, My=(beyondB?By:Ay)+(beyondB?uy:-uy)*extraPx;
+  const segHalf=10;
+  const abLblA={x:Mx-ux*segHalf,y:My-uy*segHalf}, abLblB={x:Mx+ux*segHalf,y:My+uy*segHalf};
+  const abOffset=svgLineLabelAutoOffset(abLblA.x,abLblA.y,abLblB.x,abLblB.y,abSide,font);
+  const dOffset=svgLineLabelAutoOffset(Px,Py,Fx,Fy,-1,font);
+
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <line x1="${Ex1.x.toFixed(1)}" y1="${Ex1.y.toFixed(1)}" x2="${Ex2.x.toFixed(1)}" y2="${Ex2.y.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.8"/>
     <line x1="${Px.toFixed(1)}" y1="${Py.toFixed(1)}" x2="${Fx.toFixed(1)}" y2="${Fy.toFixed(1)}" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="3 3"/>
@@ -3844,13 +3875,12 @@ function svgDistPuntoLinea(e1, n1, e2, n2, ep, np, r, fuente){
     <circle cx="${Bx.toFixed(1)}" cy="${By.toFixed(1)}" r="3" fill="var(--ink)"/>
     <circle cx="${Px.toFixed(1)}" cy="${Py.toFixed(1)}" r="3.4" fill="var(--accent)"/>
     <circle cx="${Fx.toFixed(1)}" cy="${Fy.toFixed(1)}" r="3" fill="var(--blueprint)"/>
-    <text x="${Ax.toFixed(1)}" y="${(Ay-8).toFixed(1)}" font-size="${relFont(w,0.032,8,10)}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">A</text>
-    <text x="${Bx.toFixed(1)}" y="${(By-8).toFixed(1)}" font-size="${relFont(w,0.032,8,10)}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">B</text>
-    <text x="${Px.toFixed(1)}" y="${(Py-9).toFixed(1)}" font-size="${relFont(w,0.032,8,10)}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">P</text>
-    <text x="${(Fx+9).toFixed(1)}" y="${(Fy+3).toFixed(1)}" font-size="${relFont(w,0.026,6.5,8)}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="start">F (pie ⊥)</text>
-    ${svgLineLabel(Ax,Ay,Bx,By, 'A→B '+fmtNum(r.len,2)+' m', 'var(--blueprint)', distFont, 1)}
-    ${svgLineLabel(Px,Py,Fx,Fy, fmtNum(r.dist,2)+' m', 'var(--line-strong)', distFont, -1)}
-    <text x="${(w-6).toFixed(1)}" y="14" font-size="7.3" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="end">P queda a la ${r.lado} de A→B</text>
+    <text x="${aPos.x.toFixed(1)}" y="${aPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">A</text>
+    <text x="${bPos.x.toFixed(1)}" y="${bPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">B</text>
+    <text x="${pPos.x.toFixed(1)}" y="${pPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">P</text>
+    <text x="${fPos.x.toFixed(1)}" y="${fPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">F</text>
+    ${svgLineLabel(abLblA.x,abLblA.y,abLblB.x,abLblB.y, 'AB: '+fmtNum(r.len,2)+'m', 'var(--blueprint)', font, abSide, abOffset, 700)}
+    ${svgLineLabel(Px,Py,Fx,Fy, 'D: '+fmtNum(r.dist,2)+'m', 'var(--line-strong)', font, -1, dOffset, 700)}
     ${svgNorthArrow(w-20,h-20)}
     ${fuente?svgFuente(fuente,w,h):''}
   </svg>`;
