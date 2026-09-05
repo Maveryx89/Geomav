@@ -4951,6 +4951,20 @@ function rotateTranslatePts(pts, angleRad, ox, oy){
   const c=Math.cos(angleRad), s=Math.sin(angleRad);
   return pts.map(p=>({x: ox+p.x*c-p.y*s, y: oy+p.x*s+p.y*c}));
 }
+/* Diagrama compartido por Curva Circular Compuesta y Curva de Reversa (parámetro "reversa"):
+   dos arcos tangentes en PCC/PRC. Cada arco lleva un carácter suelto ("1"/"2"), en el mismo
+   color de su trazo, y un listado propio en la esquina superior izquierda con R/T/Lc/C de ese
+   tramo (mismo color que su arco) — a pedido explícito del usuario, aunque la tabla de
+   resultados de ambas calculadoras ya trae las mismas columnas por tramo (el listado en el SVG
+   no la reemplaza, la complementa para no tener que mirar fuera del dibujo). Como aquí lo que
+   distingue cada línea de la lista es el TRAMO (no una magnitud distinta cada vez), un mismo
+   color agrupa las 4 magnitudes de un tramo en su renglón, en vez de un color por magnitud.
+   Colores: tramo 1 = var(--blueprint), tramo 2 = var(--accent) (los mismos que ya traía el
+   diagrama). Los puntos PC/PCC(o PRC)/PT siguen en tono neutro ink/ink-soft, sin reutilizar los
+   colores de tramo. La lista se ancla arriba a la izquierda porque los arcos siempre arrancan
+   desde abajo (PC cerca del origen) y solo se acercan a esa esquina muy cerca de PT, lejos en
+   horizontal de donde vive la lista — probado con radios muy dispares y con curva de reversa
+   (forma en S) sin cruces entre el listado y el trazo. */
 function svgCurvaDoble(R1, d1Deg, R2, d2Deg, reversa){
   const n=20;
   const pts1 = curveArcPoints(R1,d1Deg,n,false);
@@ -4967,17 +4981,30 @@ function svgCurvaDoble(R1, d1Deg, R2, d2Deg, reversa){
   const path2=pts2.map(toXY).map((p,i)=>(i===0?'M':'L')+p.sx.toFixed(1)+' '+p.sy.toFixed(1)).join(' ');
   const pccS=toXY(pcc), startS=toXY(pts1[0]), endS=toXY(pts2[pts2.length-1]);
   const mid1S=toXY(pts1[Math.floor(n/2)]), mid2S=toXY(pts2[Math.floor(n/2)]);
+  const col1='var(--blueprint)', col2='var(--accent)';
+  const ptFont=relFont(w,0.03,7,9), segFont=relFont(w,0.032,7.5,9.5);
+  const listFont=relFont(w,0.022,5.5,7);
+  const t1r=toRad(d1Deg/2), t2r=toRad(d2Deg/2);
+  const T1=R1*Math.tan(t1r), T2=R2*Math.tan(t2r);
+  const Lc1=R1*toRad(d1Deg), Lc2=R2*toRad(d2Deg);
+  const C1=2*R1*Math.sin(t1r), C2=2*R2*Math.sin(t2r);
+  const lgX=8, lgY0=6+listFont, lgStep=listFont*1.4;
+  const rowTxt=(n,R,T,Lc,C)=>`${n}: R=${fmtNum(R,2)} T=${fmtNum(T,3)} Lc=${fmtNum(Lc,3)} C=${fmtNum(C,3)}`;
+  const legendSvg = `
+    <text x="${lgX}" y="${lgY0.toFixed(1)}" font-size="${listFont}" font-family="var(--font-mono)" font-weight="700" fill="${col1}" text-anchor="start">${rowTxt(1,R1,T1,Lc1,C1)}</text>
+    <text x="${lgX}" y="${(lgY0+lgStep).toFixed(1)}" font-size="${listFont}" font-family="var(--font-mono)" font-weight="700" fill="${col2}" text-anchor="start">${rowTxt(2,R2,T2,Lc2,C2)}</text>`;
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <path d="${path1}" stroke="var(--blueprint)" stroke-width="2.2" fill="none"/>
-    <path d="${path2}" stroke="var(--accent)" stroke-width="2.2" fill="none"/>
+    <path d="${path1}" stroke="${col1}" stroke-width="2.2" fill="none"/>
+    <path d="${path2}" stroke="${col2}" stroke-width="2.2" fill="none"/>
     <circle cx="${startS.sx.toFixed(1)}" cy="${startS.sy.toFixed(1)}" r="3" fill="var(--ink)"/>
     <circle cx="${pccS.sx.toFixed(1)}" cy="${pccS.sy.toFixed(1)}" r="3" fill="var(--ink)"/>
     <circle cx="${endS.sx.toFixed(1)}" cy="${endS.sy.toFixed(1)}" r="3" fill="var(--ink)"/>
-    <text x="${startS.sx.toFixed(1)}" y="${(startS.sy+14).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">PC</text>
-    <text x="${pccS.sx.toFixed(1)}" y="${(pccS.sy-8).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">${reversa?'PRC':'PCC'}</text>
-    <text x="${endS.sx.toFixed(1)}" y="${(endS.sy+14).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">PT</text>
-    <text x="${mid1S.sx.toFixed(1)}" y="${(mid1S.sy-6).toFixed(1)}" font-size="8.5" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">R1=${fmtNum(R1,1)}</text>
-    <text x="${mid2S.sx.toFixed(1)}" y="${(mid2S.sy-6).toFixed(1)}" font-size="8.5" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">R2=${fmtNum(R2,1)}</text>
+    <text x="${startS.sx.toFixed(1)}" y="${(startS.sy+14).toFixed(1)}" font-size="${ptFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">PC</text>
+    <text x="${pccS.sx.toFixed(1)}" y="${(pccS.sy-8).toFixed(1)}" font-size="${ptFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">${reversa?'PRC':'PCC'}</text>
+    <text x="${endS.sx.toFixed(1)}" y="${(endS.sy+14).toFixed(1)}" font-size="${ptFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">PT</text>
+    <text x="${mid1S.sx.toFixed(1)}" y="${(mid1S.sy-6).toFixed(1)}" font-size="${segFont}" font-family="var(--font-mono)" font-weight="700" fill="${col1}" text-anchor="middle">1</text>
+    <text x="${mid2S.sx.toFixed(1)}" y="${(mid2S.sy-6).toFixed(1)}" font-size="${segFont}" font-family="var(--font-mono)" font-weight="700" fill="${col2}" text-anchor="middle">2</text>
+    ${legendSvg}
   </svg>`;
 }
 
