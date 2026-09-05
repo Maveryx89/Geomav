@@ -4913,6 +4913,14 @@ function svgReplanteoCuerda(R, deltaDeg, rows, Lchord, M){
 }
 
 /* Diagrama de la clotoide (espiral de transicion) */
+/* Diagrama compartido por "Curva de Transición (Clotoide)" y "Clotoide por Progresiva" (el
+   segundo parámetro extra lEstaca/estLabel solo lo usa la segunda). Se quitaron las leyendas
+   "Ls=X m" y "R=X m" que llevaba pegadas al dibujo: ninguna de las dos etiqueta un trazo
+   propio dentro del SVG (no hay un radio dibujado, y la línea de referencia horizontal es
+   solo la base de la escala, no un trazo de "Ls"), y ambas repiten datos que el usuario ya
+   ingresó en el formulario — igual que se quitó el título "Peralte e=X%" en Peralte en Vías.
+   El marcador en accent (con su rótulo "Km X") de Clotoide por Progresiva se mantiene igual:
+   no es un valor pegado a una magnitud, es la identificación de la propia estaca calculada. */
 function svgClotoide(R, Ls, lEstaca, estLabel, fuente){
   const n=24;
   const pts=[];
@@ -4927,9 +4935,27 @@ function svgClotoide(R, Ls, lEstaca, estLabel, fuente){
   const te=toXY(pts[0]), ec=toXY(pts[pts.length-1]);
   let estMark='';
   if(lEstaca!==undefined && lEstaca!==null && !isNaN(lEstaca)){
-    const pe = toXY(clotoidePunto(R,Ls,Math.min(Math.max(lEstaca,0),Ls)));
+    const lClamped = Math.min(Math.max(lEstaca,0),Ls);
+    const pe = toXY(clotoidePunto(R,Ls,lClamped));
+    // Tangente local de la curva en el punto de la estaca: la etiqueta se rota para quedar
+    // paralela a la línea (en vez de siempre horizontal), así nunca la atraviesa aunque la
+    // pendiente sea pronunciada cerca del EC. El offset perpendicular a esa tangente separa el
+    // texto de la línea; tras normalizar el ángulo a [-90°,90°] ese offset siempre queda "hacia
+    // arriba" de la curva, igual que el offset fijo que tenía antes cerca del TE (pendiente ~0).
+    const dl = Math.max(Ls*0.02, 0.05);
+    const pBack = toXY(clotoidePunto(R,Ls,Math.max(lClamped-dl,0)));
+    const pFwd = toXY(clotoidePunto(R,Ls,Math.min(lClamped+dl,Ls)));
+    let angDeg = Math.atan2(pFwd.sy-pBack.sy, pFwd.sx-pBack.sx)*180/Math.PI;
+    if(angDeg>90) angDeg-=180; else if(angDeg<-90) angDeg+=180;
+    const angRad = angDeg*Math.PI/180, offset=9;
+    const lx = pe.sx + Math.sin(angRad)*offset, ly = pe.sy - Math.cos(angRad)*offset;
+    // Cerca de un extremo (TE o EC) el texto se ancla para que crezca "hacia atrás" (lejos de
+    // ese extremo) en vez de crecer parejo a ambos lados del punto, y así no invada el rótulo
+    // TE/EC que está justo ahí.
+    const nearFrac = Ls>0 ? lClamped/Ls : 0.5;
+    const anchor = nearFrac>0.85 ? 'end' : (nearFrac<0.15 ? 'start' : 'middle');
     estMark = `<circle cx="${pe.sx.toFixed(1)}" cy="${pe.sy.toFixed(1)}" r="3.4" fill="var(--accent)" stroke="var(--ink)" stroke-width="0.6"/>
-      <text x="${pe.sx.toFixed(1)}" y="${(pe.sy-9).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">${estLabel||'Estaca'}</text>`;
+      <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="${anchor}" transform="rotate(${angDeg.toFixed(1)} ${lx.toFixed(1)} ${ly.toFixed(1)})">${estLabel||'Estaca'}</text>`;
   }
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <line x1="${ox}" y1="${oy}" x2="${(ox+maxX*scaleX+10).toFixed(1)}" y2="${oy}" stroke="var(--line-strong)" stroke-width="1.4" stroke-dasharray="2 2"/>
@@ -4939,8 +4965,6 @@ function svgClotoide(R, Ls, lEstaca, estLabel, fuente){
     ${estMark}
     <text x="${te.sx.toFixed(1)}" y="${(oy+16).toFixed(1)}" font-size="10" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">TE</text>
     <text x="${ec.sx.toFixed(1)}" y="${(ec.sy-10).toFixed(1)}" font-size="10" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">EC</text>
-    <text x="${(ox+maxX*scaleX/2).toFixed(1)}" y="${(oy-8).toFixed(1)}" font-size="8" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">Ls=${fmtNum(Ls,2)} m</text>
-    <text x="${ox}" y="${(padT-4).toFixed(1)}" font-size="8" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">R=${fmtNum(R,2)} m</text>
     ${fuente?svgFuente(fuente,w,h):''}
   </svg>`;
 }
