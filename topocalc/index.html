@@ -4732,36 +4732,44 @@ function svgVolumen(A1,A2,Am){
 /* Diagrama de peralte (seccion transversal de via) */
 /* Sección transversal completa de la vía peraltada: ambos lados de la calzada (interior y
    exterior) respecto al eje, girando uniformemente en torno a él. Pendiente exagerada para
-   que sea visible (un peralte real de pocos % es imperceptible a escala real). */
+   que sea visible (un peralte real de pocos % es imperceptible a escala real). El dibujo solo
+   lleva los rótulos sueltos "Ext"/"Int" (color de la cota, junto al punto de cada borde) y
+   "Ancho" (color del ancho de pista, junto a cada mitad de la calzada) — sin ningún valor
+   pegado al trazo: la cota de ambos bordes ya está en el panel de resultados justo encima del
+   SVG (mismo color, accent, entre el punto del dibujo y su fila en ese panel) y el ancho de
+   pista es un dato que el usuario ya escribió en el formulario, así que tampoco hace falta
+   repetir su valor acá. Se quitó también el título "Peralte e=X%" que llevaba el dibujo — es
+   redundante con el encabezado de la herramienta y con el campo "e" del formulario, y ningún
+   otro diagrama de la app repite así su propio dato de entrada como título. */
 function svgPeralteSeccion(ePct, anchoPista, cotaExt, cotaInt){
   const w=300, h=200, pad=34;
   const angDraw = toRad(Math.min(Math.max(Math.abs(ePct)*4,3),60));
   const halfW = w-2*pad;
   const dir = ePct>=0 ? 1 : -1;
   const yEje = 118;
-  // Presupuesto de espacio hacia arriba y hacia abajo por separado (no simétrico: arriba
-  // solo hay que dejar sitio al título, abajo hay línea de referencia + etiqueta + pie de
-  // nota), para que ningún borde de la calzada quede recortado contra el viewBox.
-  const topBudget = yEje-42, botBudget = (h-40)-yEje;
+  // Presupuesto de espacio hacia arriba y hacia abajo por separado (abajo hay línea de
+  // referencia + etiqueta + pie de nota), para que ningún borde de la calzada quede
+  // recortado contra el viewBox.
+  const topBudget = yEje-16, botBudget = (h-40)-yEje;
   const maxRise = Math.max(10, Math.min(topBudget, botBudget));
   const rise = Math.min(halfW*Math.tan(angDraw), maxRise);
   const xEje=w/2;
   const xExt=w-pad, yExt=yEje-dir*rise;
   const xInt=pad, yInt=yEje+dir*rise;
   const font=relFont(w,0.03,7.5,9.5);
+  const colCota='var(--accent)', colAncho='var(--blueprint)';
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <line x1="${pad}" y1="${h-14}" x2="${w-pad}" y2="${h-14}" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 2"/>
     <text x="${w-pad}" y="${h-18}" font-size="6.8" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="end">horizontal</text>
-    <path d="M${xInt} ${yInt.toFixed(1)} L${xEje} ${yEje} L${xExt} ${yExt.toFixed(1)}" stroke="var(--blueprint)" stroke-width="2.4" fill="none" stroke-linejoin="round"/>
+    <path d="M${xInt} ${yInt.toFixed(1)} L${xEje} ${yEje} L${xExt} ${yExt.toFixed(1)}" stroke="${colAncho}" stroke-width="2.4" fill="none" stroke-linejoin="round"/>
     <circle cx="${xEje}" cy="${yEje}" r="3" fill="var(--ink)"/>
-    <circle cx="${xExt}" cy="${yExt.toFixed(1)}" r="3" fill="var(--accent)"/>
-    <circle cx="${xInt}" cy="${yInt.toFixed(1)}" r="3" fill="var(--accent)"/>
+    <circle cx="${xExt}" cy="${yExt.toFixed(1)}" r="3" fill="${colCota}"/>
+    <circle cx="${xInt}" cy="${yInt.toFixed(1)}" r="3" fill="${colCota}"/>
     <text x="${xEje}" y="${(yEje+16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Eje</text>
-    <text x="${xExt}" y="${(yExt+(dir>0?-8:14)).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="end">Borde ext. ${cotaExt>=0?'+':''}${fmtNum(cotaExt,3)} m</text>
-    <text x="${xInt}" y="${(yInt+(dir>0?14:-8)).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="start">Borde int. ${cotaInt>=0?'+':''}${fmtNum(cotaInt,3)} m</text>
-    ${svgLineLabel(xEje,yEje,xExt,yExt,'Pista ext. '+fmtNum(anchoPista,2)+' m','var(--blueprint)',font,-1)}
-    ${svgLineLabel(xEje,yEje,xInt,yInt,'Pista int. '+fmtNum(anchoPista,2)+' m','var(--blueprint)',font,1)}
-    <text x="${xEje}" y="16" font-size="${relFont(w,0.034,8,10.5)}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">Peralte e=${fmtNum(ePct,2)}%</text>
+    <text x="${xExt}" y="${(yExt+(dir>0?-8:14)).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" font-weight="700" fill="${colCota}" text-anchor="end">Ext</text>
+    <text x="${xInt}" y="${(yInt+(dir>0?14:-8)).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" font-weight="700" fill="${colCota}" text-anchor="start">Int</text>
+    ${svgLineLabel(xEje,yEje,xExt,yExt,'Ancho',colAncho,font,-1,undefined,700)}
+    ${svgLineLabel(xEje,yEje,xInt,yInt,'Ancho',colAncho,font,1,undefined,700)}
     <text x="${xEje}" y="${(h-4).toFixed(1)}" font-size="6.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(pendiente exagerada para visibilidad, sección esquemática)</text>
   </svg>`;
 }
