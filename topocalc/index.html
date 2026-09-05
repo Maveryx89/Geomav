@@ -3823,7 +3823,7 @@ function svgRumboAzimut(e1, n1, e2, n2, r, fuente){
 /* Diagrama de distancia punto-línea: recta A-B (prolongada para dar contexto visual),
    punto externo P, perpendicular punteada hasta el pie F sobre la recta. */
 function svgDistPuntoLinea(e1, n1, e2, n2, ep, np, r, fuente){
-  const w=280, h=220, pad=30;
+  const w=280, h=220, pad=48;
   const Fe=r.footE, Fn=r.footN;
   const allE=[e1,e2,ep,Fe], allN=[n1,n2,np,Fn];
   const minE=Math.min(...allE), maxE=Math.max(...allE);
@@ -3879,8 +3879,8 @@ function svgDistPuntoLinea(e1, n1, e2, n2, ep, np, r, fuente){
     <text x="${bPos.x.toFixed(1)}" y="${bPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">B</text>
     <text x="${pPos.x.toFixed(1)}" y="${pPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">P</text>
     <text x="${fPos.x.toFixed(1)}" y="${fPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">F</text>
-    ${svgLineLabel(abLblA.x,abLblA.y,abLblB.x,abLblB.y, 'AB: '+fmtNum(r.len,2)+'m', 'var(--blueprint)', font, abSide, abOffset, 700)}
-    ${svgLineLabel(Px,Py,Fx,Fy, 'D: '+fmtNum(r.dist,2)+'m', 'var(--line-strong)', font, -1, dOffset, 700)}
+    ${svgLineLabel(abLblA.x,abLblA.y,abLblB.x,abLblB.y, 'AB', 'var(--blueprint)', font, abSide, abOffset, 700)}
+    ${svgLineLabel(Px,Py,Fx,Fy, 'D', 'var(--line-strong)', font, -1, dOffset, 700)}
     ${svgNorthArrow(w-20,h-20)}
     ${fuente?svgFuente(fuente,w,h):''}
   </svg>`;
