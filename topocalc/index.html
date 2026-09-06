@@ -3212,98 +3212,106 @@ function svgSkyPlot(satelites){
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">${anillos}${ejes}${puntos}</svg>`;
 }
 
-/* Mini-mapas GPS del Conversor UTM (uno por bloque, Grados→UTM y UTM→Grados): antes este mapa
-   se centraba en el punto ingresado/calculado en el formulario, lo que lo dejaba mostrando
-   ubicaciones sin sentido (o directamente en gris, sin cargar nada) cuando el usuario no había
-   tocado los valores de ejemplo del formulario — el punto calculado podía caer literalmente en
-   cualquier lugar del planeta. Ahora el mapa nunca depende de un dato ingresado: arranca con un
-   mensaje pidiendo activar el GPS, y una vez activado sigue la ubicación real y en vivo del
-   dispositivo (mismo estilo de marcador circular azul que la posición en vivo del Mapa
-   Interactivo). Se guarda un estado por contenedor (mapa, marcador, watch) en miniMapaGpsState
-   para que ambos bloques funcionen de forma independiente; render() los detiene a los dos al
-   salir de la herramienta, igual que ya se hacía con stopUGps(). */
+/* Mini-mapas GPS del Conversor UTM (uno por bloque, Grados→UTM y UTM→Grados): antes cada mapa se
+   centraba en el punto ingresado/calculado de su propio formulario (podía mostrar cualquier cosa,
+   válida o sin sentido, según el dato) — ahora ambos comparten UN solo GPS. Activar cualquiera de
+   los dos ("Activar GPS") pide permiso de ubicación una sola vez y, en cuanto llega la primera
+   posición, los DOS mapas se abren solos con la ubicación en vivo (mismo estilo de marcador
+   circular azul que la posición en vivo del Mapa Interactivo) — ya no hace falta activarlos por
+   separado. Esto reemplaza también al viejo botón "Usar mi ubicación GPS (promedio continuo)" de
+   este bloque (que solo llenaba los campos de latitud/longitud): ya no es necesario, el mapa en
+   vivo cumple el mismo propósito de mostrar dónde estás parado. El texto de estado ("Buscando
+   señal GPS…", "Ubicación GPS en vivo · ±X m aprox.") reusa el mismo criterio visual que tenía
+   ese botón viejo (clase .proj-msg, gris), ahora ubicado arriba de cada mapa en vez de sobre el
+   formulario. Se guarda un estado por contenedor (instancia de mapa/marcador Leaflet) en
+   miniMapaGpsState — el GPS en sí es un único geoWatchPosition compartido (utmGpsWatch); render()
+   lo detiene al salir de la herramienta. */
 const miniMapaGpsState = {};
+const MINI_MAPA_UTM_IDS = ['miniMapaU1','miniMapaU2'];
+let utmGpsWatch = null;
 
-function stopMiniMapaGPS(containerId){
+function resetMiniMapaUTM(containerId){
   const st = miniMapaGpsState[containerId];
-  if(!st) return;
-  if(st.watch){ st.watch.clear(); st.watch = null; }
-  if(st.map){ st.map.remove(); st.map = null; st.marker = null; }
-  st.initializing = false;
-}
-function stopTodasMiniMapaGPS(){ Object.keys(miniMapaGpsState).forEach(stopMiniMapaGPS); }
-
-function renderMiniMapaGPS(containerId){
-  stopMiniMapaGPS(containerId);
-  miniMapaGpsState[containerId] = {watch:null, map:null, marker:null, initializing:false};
+  if(st && st.map){ st.map.remove(); }
+  miniMapaGpsState[containerId] = {map:null, marker:null, initializing:false};
   const el = document.getElementById(containerId);
   if(!el) return;
   el.innerHTML = `<div style="padding:14px; text-align:center;">
     <p class="tool-blurb" style="margin:0 0 10px;">Activa el GPS para ver tu ubicación en el mapa.</p>
     <button class="btn-sm" id="${containerId}_btnGps" type="button">📍 Activar GPS</button>
   </div>`;
-  document.getElementById(`${containerId}_btnGps`).addEventListener('click', ()=> startMiniMapaGPS(containerId));
+  document.getElementById(`${containerId}_btnGps`).addEventListener('click', startUtmGps);
 }
 
-function startMiniMapaGPS(containerId){
-  const st = miniMapaGpsState[containerId];
-  if(!st || st.watch) return;
+function stopUtmGps(){
+  if(utmGpsWatch){ utmGpsWatch.clear(); utmGpsWatch = null; }
+  MINI_MAPA_UTM_IDS.forEach(resetMiniMapaUTM);
+}
+
+function mostrarMapaUTM(containerId, pos){
+  const st = miniMapaGpsState[containerId] || (miniMapaGpsState[containerId] = {map:null, marker:null, initializing:false});
   const el = document.getElementById(containerId);
-  el.innerHTML = `<p class="tool-blurb" style="padding:14px; text-align:center;">Buscando señal GPS…</p>`;
-  st.watch = geoWatchPosition(
-    (pos)=>{
-      const lat = pos.coords.latitude, lon = pos.coords.longitude;
-      if(st.map){
-        st.marker.setLatLng([lat,lon]);
-        st.map.setView([lat,lon]);
-        const c = document.getElementById(`${containerId}_coords`);
-        if(c) c.textContent = `${fmtNum(lat,6)}, ${fmtNum(lon,6)}`;
-        return;
-      }
-      if(st.initializing) return;
-      st.initializing = true;
-      el.innerHTML = `<div id="${containerId}_mapa" style="height:200px; width:100%;"></div>
-        <div style="padding:6px 10px; font-family:var(--font-mono); font-size:11px; color:var(--ink-soft); border-top:1px solid var(--line); background:var(--paper-sunken); display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <span id="${containerId}_coords">${fmtNum(lat,6)}, ${fmtNum(lon,6)}</span>
-          <button class="btn-sm" id="${containerId}_btnStop" type="button" style="margin:0;">■ Detener</button>
-        </div>`;
-      document.getElementById(`${containerId}_btnStop`).addEventListener('click', ()=> renderMiniMapaGPS(containerId));
-      ensureLeaflet().then(()=>{
-        if(miniMapaGpsState[containerId] !== st) return; // el usuario ya reinició este mapa mientras cargaba
-        st.map = window.L.map(`${containerId}_mapa`, {zoomControl:false, attributionControl:true}).setView([lat,lon], 17);
-        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom:19
-        }).addTo(st.map);
-        st.marker = window.L.circleMarker([lat,lon], {radius:8, color:'#1e88e5', fillColor:'#1e88e5', fillOpacity:0.9, weight:2}).addTo(st.map);
-        st.initializing = false;
-      }).catch(err=>{
-        st.initializing = false;
-        el.innerHTML = `<p class="err-msg" style="padding:14px;">${err.message}</p>
-          <div style="text-align:center; padding-bottom:10px;"><button class="btn-sm" id="${containerId}_btnRetry" type="button">📍 Reintentar</button></div>`;
-        const retryBtn = document.getElementById(`${containerId}_btnRetry`);
-        if(retryBtn) retryBtn.addEventListener('click', ()=> renderMiniMapaGPS(containerId));
-      });
-    },
+  if(!el) return;
+  const lat = pos.coords.latitude, lon = pos.coords.longitude, acc = pos.coords.accuracy;
+  const statusTxt = (acc!=null && !isNaN(acc)) ? `Ubicación GPS en vivo · ±${fmtNum(acc,0)} m aprox.` : 'Ubicación GPS en vivo.';
+  if(st.map){
+    st.marker.setLatLng([lat,lon]);
+    st.map.setView([lat,lon]);
+    const s = document.getElementById(`${containerId}_status`);
+    if(s) s.textContent = statusTxt;
+    return;
+  }
+  if(st.initializing) return;
+  st.initializing = true;
+  el.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding:6px 10px;">
+      <span class="proj-msg" id="${containerId}_status">Buscando señal GPS…</span>
+      <button class="btn-sm" id="${containerId}_btnStop" type="button" style="margin:0;">■ Detener</button>
+    </div>
+    <div id="${containerId}_mapa" style="height:200px; width:100%;"></div>`;
+  document.getElementById(`${containerId}_btnStop`).addEventListener('click', stopUtmGps);
+  ensureLeaflet().then(()=>{
+    if(!document.getElementById(`${containerId}_mapa`)) return; // el usuario ya salió/reinició mientras cargaba
+    st.map = window.L.map(`${containerId}_mapa`, {zoomControl:false, attributionControl:true}).setView([lat,lon], 17);
+    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom:19
+    }).addTo(st.map);
+    st.marker = window.L.circleMarker([lat,lon], {radius:8, color:'#1e88e5', fillColor:'#1e88e5', fillOpacity:0.9, weight:2}).addTo(st.map);
+    st.initializing = false;
+    const s = document.getElementById(`${containerId}_status`);
+    if(s) s.textContent = statusTxt;
+  }).catch(err=>{
+    st.initializing = false;
+    el.innerHTML = `<p class="err-msg" style="padding:14px;">${err.message}</p>
+      <div style="text-align:center; padding-bottom:10px;"><button class="btn-sm" id="${containerId}_btnRetry" type="button">📍 Reintentar</button></div>`;
+    const retryBtn = document.getElementById(`${containerId}_btnRetry`);
+    if(retryBtn) retryBtn.addEventListener('click', startUtmGps);
+  });
+}
+
+function startUtmGps(){
+  if(utmGpsWatch) return; // ya activo: la posición que ya está llegando alimenta a ambos mapas
+  MINI_MAPA_UTM_IDS.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = `<p class="proj-msg" style="padding:14px; text-align:center;">Buscando señal GPS…</p>`;
+  });
+  utmGpsWatch = geoWatchPosition(
+    (pos)=> MINI_MAPA_UTM_IDS.forEach(id=> mostrarMapaUTM(id, pos)),
     (err)=>{
-      renderMiniMapaGPS(containerId);
-      const el2 = document.getElementById(containerId);
-      if(el2) el2.innerHTML = `<p class="err-msg" style="padding:14px;">No se pudo obtener tu ubicación: ${err.message}</p>
-        <div style="text-align:center; padding-bottom:10px;"><button class="btn-sm" id="${containerId}_btnRetry" type="button">📍 Reintentar</button></div>`;
-      const retryBtn = document.getElementById(`${containerId}_btnRetry`);
-      if(retryBtn) retryBtn.addEventListener('click', ()=> renderMiniMapaGPS(containerId));
+      utmGpsWatch = null;
+      MINI_MAPA_UTM_IDS.forEach(id=>{
+        const st = miniMapaGpsState[id];
+        if(st && st.map){ st.map.remove(); st.map = null; st.marker = null; }
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.innerHTML = `<p class="err-msg" style="padding:14px;">No se pudo obtener tu ubicación: ${err.message}</p>
+          <div style="text-align:center; padding-bottom:10px;"><button class="btn-sm" id="${id}_btnRetry" type="button">📍 Reintentar</button></div>`;
+        const retryBtn = document.getElementById(`${id}_btnRetry`);
+        if(retryBtn) retryBtn.addEventListener('click', startUtmGps);
+      });
     },
     {enableHighAccuracy:true, maximumAge:2000, timeout:15000}
   );
 }
-
-/* GPS continuo del Conversor UTM: a diferencia de capturarGPSPromediado (que promedia N lecturas
-   fijas y se detiene solo), aquí se sigue promediando mientras el usuario no toque "Detener" —
-   útil para ver cómo se va estabilizando la posición en vivo antes de fijarla. Se declara a nivel
-   de módulo (no dentro de renderUTM) para que render() pueda cortarlo si el usuario cambia de
-   herramienta sin detenerlo primero, igual que ya se hace con el GPS del Mapa Interactivo. */
-let uGpsWatch = null;
-let uGpsLecturas = [];
-function stopUGps(){ if(uGpsWatch){ uGpsWatch.clear(); uGpsWatch=null; } }
 
 function renderUTM(){
   const body = `
@@ -3313,9 +3321,6 @@ function renderUTM(){
       ${fieldRow('Latitud (°, sur negativo)','u_lat',-35.420410)}
       ${fieldRow('Longitud (°, oeste negativo)','u_lon',-71.673116)}
     </div>
-    <button class="btn-sm" id="btnUGPS" type="button" style="margin-bottom:10px;">📍 Usar mi ubicación GPS (promedio continuo)</button>
-    <button class="btn-sm" id="btnUGPSStop" type="button" style="margin-bottom:10px; display:none;">■ Detener y usar esta ubicación</button>
-    <span id="uGpsMsg" class="proj-msg"></span>
     <button class="btn" id="btnU1" type="button">Calcular UTM</button>
     <div id="resU1"></div>
     <div id="miniMapaU1" class="plot-wrap" style="padding:0; overflow:hidden;"></div>
@@ -3344,8 +3349,7 @@ function renderUTM(){
   </div>`;
   toolShell('utm','Proyección UTM sobre elipsoide WGS84 (Gauss-Krüger). Ingresa un lado del cálculo, el otro se completa en el formulario opuesto.', body);
 
-  renderMiniMapaGPS('miniMapaU1');
-  renderMiniMapaGPS('miniMapaU2');
+  MINI_MAPA_UTM_IDS.forEach(resetMiniMapaUTM);
 
   /* Panel de detalle GNSS: solo tiene sentido corriendo como app nativa (Android), ya que
      depende de un plugin propio que expone la API GnssStatus — no existe equivalente en
@@ -3405,45 +3409,6 @@ function renderUTM(){
       if(gnssCallbackId) gnssPlugin.removeListener && gnssPlugin.removeListener(gnssCallbackId);
     });
   }
-
-  document.getElementById('btnUGPS').addEventListener('click', ()=>{
-    const btnStart = document.getElementById('btnUGPS');
-    const btnStop = document.getElementById('btnUGPSStop');
-    const msg = document.getElementById('uGpsMsg');
-    uGpsLecturas = [];
-    btnStart.style.display = 'none';
-    btnStop.style.display = '';
-    msg.textContent = 'Buscando señal GPS…';
-    uGpsWatch = geoWatchPosition(
-      (pos)=>{
-        uGpsLecturas.push({lat:pos.coords.latitude, lon:pos.coords.longitude, acc:pos.coords.accuracy});
-        const lat = uGpsLecturas.reduce((s,l)=>s+l.lat,0)/uGpsLecturas.length;
-        const lon = uGpsLecturas.reduce((s,l)=>s+l.lon,0)/uGpsLecturas.length;
-        const accProm = uGpsLecturas.reduce((s,l)=>s+l.acc,0)/uGpsLecturas.length;
-        document.getElementById('u_lat').value = lat;
-        document.getElementById('u_lon').value = lon;
-        msg.textContent = `Promediando en vivo… ${uGpsLecturas.length} lectura(s), ±${fmtNum(accProm,0)} m aprox. Toca "Detener" cuando esté estable.`;
-      },
-      (err)=>{
-        stopUGps();
-        btnStart.style.display = ''; btnStop.style.display = 'none';
-        msg.textContent = `No se pudo obtener la ubicación: ${err.message}`;
-      },
-      {enableHighAccuracy:true, maximumAge:0, timeout:30000}
-    );
-  });
-
-  document.getElementById('btnUGPSStop').addEventListener('click', ()=>{
-    const btnStart = document.getElementById('btnUGPS');
-    const btnStop = document.getElementById('btnUGPSStop');
-    const msg = document.getElementById('uGpsMsg');
-    stopUGps();
-    btnStart.style.display = ''; btnStop.style.display = 'none';
-    if(uGpsLecturas.length){
-      const accProm = uGpsLecturas.reduce((s,l)=>s+l.acc,0)/uGpsLecturas.length;
-      msg.textContent = `Ubicación GPS promediada (${uGpsLecturas.length} lectura(s), ±${fmtNum(accProm,0)} m aprox.) — detenida.`;
-    }
-  });
 
   document.getElementById('btnU1').addEventListener('click', ()=>{
     const lat=val('u_lat'), lon=val('u_lon');
@@ -8489,7 +8454,7 @@ function render(){
   const goingHome = (route === 'home' || !RENDERERS[route]);
   if(!goingHome) window.scrollTo(0,0);
   if(route !== 'mapaInteractivo') stopMapaGPS();
-  if(route !== 'utm'){ stopUGps(); stopTodasMiniMapaGPS(); }
+  if(route !== 'utm') stopUtmGps();
   if(route !== 'brujula'){
     cerrarVistaAR();
     if(brujulaStop){ brujulaStop(); brujulaStop=null; }
