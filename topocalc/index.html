@@ -8292,33 +8292,31 @@ function renderEscalaPlano(){
   toolShell('escalaPlano','Relación entre una distancia real y su representación en un plano o mapa (escala = distancia real ÷ distancia en el plano).', body);
   const realEl=document.getElementById('ep_real'), planoEl=document.getElementById('ep_plano'), nEl=document.getElementById('ep_n');
   let updating=false;
-  // Orden de los últimos campos editados (el más reciente primero). A diferencia del Conversor de
-  // Ángulos (una sola magnitud con 3 representaciones), acá hay 3 magnitudes con 1 sola ecuación
-  // entre ellas — con 2 valores cualesquiera se obtiene el tercero. Se recalcula siempre el campo
-  // que lleva más tiempo sin tocarse (el que no está entre los 2 editados más recientemente),
-  // manteniendo fijos los otros dos.
-  let orden = ['ep_n','ep_plano','ep_real'];
+  // Regla fija (sin estado oculto de "qué se editó antes", para que el resultado sea siempre
+  // predecible): Distancia real y Distancia en el plano son las 2 magnitudes medidas — al tocar
+  // cualquiera de las 2 se recalcula la Escala a partir de ambas. La Escala es la magnitud derivada:
+  // al tocarla se recalcula la Distancia en el plano, manteniendo fija la Distancia real (mismo
+  // criterio que la 3ª tarjeta del diseño anterior: "Escala + distancia real → Distancia en el plano").
   const roundNum = (v,d)=> Math.round(v*Math.pow(10,d))/Math.pow(10,d);
-  function recalcular(editado){
+  function recalcularEscala(){
     if(updating) return;
-    orden = [editado, ...orden.filter(id=>id!==editado)];
-    const [a1,a2,viejo] = orden;
-    const v1=val(a1), v2=val(a2);
-    if(isNaN(v1)||isNaN(v2)) return;
-    const vals = {}; vals[a1]=v1; vals[a2]=v2;
+    const real=val('ep_real'), plano=val('ep_plano');
+    if(isNaN(real)||isNaN(plano)||plano<=0) return;
     updating=true;
-    if(viejo==='ep_n'){
-      if(vals.ep_plano>0) nEl.value = roundNum(calcEscalaDesdeDistancias(vals.ep_real,vals.ep_plano),2);
-    } else if(viejo==='ep_plano'){
-      if(vals.ep_n>0) planoEl.value = roundNum(calcDistanciaPlanoDesdeEscala(vals.ep_n,vals.ep_real),4);
-    } else { // viejo === 'ep_real'
-      if(vals.ep_n>0) realEl.value = roundNum(calcDistanciaRealDesdeEscala(vals.ep_n,vals.ep_plano),3);
-    }
+    nEl.value = roundNum(calcEscalaDesdeDistancias(real,plano),2);
     updating=false;
   }
-  realEl.addEventListener('input', ()=>recalcular('ep_real'));
-  planoEl.addEventListener('input', ()=>recalcular('ep_plano'));
-  nEl.addEventListener('input', ()=>recalcular('ep_n'));
+  function recalcularPlano(){
+    if(updating) return;
+    const n=val('ep_n'), real=val('ep_real');
+    if(isNaN(n)||isNaN(real)||n<=0) return;
+    updating=true;
+    planoEl.value = roundNum(calcDistanciaPlanoDesdeEscala(n,real),4);
+    updating=false;
+  }
+  realEl.addEventListener('input', recalcularEscala);
+  planoEl.addEventListener('input', recalcularEscala);
+  nEl.addEventListener('input', recalcularPlano);
 }
 
 /* ---------- REPLANTEO DE UN PUNTO AISLADO ---------- */
