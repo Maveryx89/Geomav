@@ -4366,34 +4366,63 @@ function svgPlantillaZanja(K1,Cp1,S,Kx,hcama,HI,r){
 }
 
 /* Diagrama de capas de pavimento: sección transversal esquemática con el paquete
-   estructural y la caída por bombeo hacia ambos bordes. */
+   estructural y la caída por bombeo hacia ambos bordes.
+   Rótulos sueltos (sin valor pegado): Cras/i/d/e1/e2/e3 ya los escribe el usuario en el
+   formulario, y las tres cotas (eje, borde izquierdo, borde derecho) ya se muestran en el
+   panel de resultados. "Eje — <capa>" identifica el punto calculado en el eje (usa accent,
+   el mismo énfasis que su fila "Cota en el eje" en el panel, ya que el punto en sí es la
+   magnitud principal calculada); "Izq"/"Der" identifican los puntos de borde (blueprint,
+   magnitud secundaria — misma cota entre sí por tratarse de un bombeo simétrico). Las líneas
+   de capa (Carpeta/Base/Subbase) y la rasante se mantienen en tono neutro: son solo referencia
+   estructural de entrada, no magnitudes calculadas.
+   Nota de geometría: todas las posiciones de este diagrama son fijas (esquemático, no a
+   escala) y dependen solo de qué capa se seleccione (Base/Subbase/Subrasante) — ningún valor
+   numérico ingresado cambia el layout, así que basta con probar las 3 selecciones de capa.
+   Hallazgos de esta pasada (no pedidos, ya existían en producción, nunca verificados
+   programáticamente para este diagrama):
+   (1) el rótulo de la línea de capa que coincide con la capa seleccionada (ej. "Carpeta"
+   cuando se calcula la cota de Base, ya que esa cota cae justo en el límite inferior de la
+   Carpeta) quedaba pegado al círculo del punto "Eje" que cae justo sobre esa misma línea —
+   se corrigió separando el rótulo 9px más a la derecha del eje (mismo criterio ya usado en
+   Plantillado de Zanja para el mismo tipo de choque texto-círculo).
+   (2) la línea guía vertical punteada hacia el rótulo "Eje" pasaba exactamente por debajo del
+   rótulo "Rasante" (ambos centrados en el eje, x idéntica) — se corrigió anclando "Rasante" al
+   borde izquierdo en vez de centrado, fuera del paso de esa línea guía.
+   (3) con la capa "Subbase" seleccionada, el rótulo "Izq"/"Der" (bajo el punto de borde) caía
+   justo encima de la línea de Subbase (yE3) y quedaba atravesado por ella — se corrigió
+   empujando el rótulo por debajo de esa línea cuando la posición natural cae demasiado cerca. */
 function svgCapasPavimento(Cras,i,d,e1,e2,e3,capa,r){
   const w=300, h=180, pad=26;
   const xEje=w/2, xR=w-pad, xL=pad;
   const yRas=34, yE1=52, yE2=72, yE3=96;
   const font=relFont(w,0.028,7,9);
+  const smallFont=relFont(w,0.024,6,7.5);
   const capaY = capa===1?yE3 : capa===2?yE2 : yE1;
   const capaLabel = capa===1?'Subrasante' : capa===2?'Subbase' : 'Base';
   const dropPx=14;
+  const lblX=xEje+9;
+  const borderY=capaY+dropPx;
+  let borderLabelY=borderY+16;
+  if(Math.abs(borderLabelY-yE3)<12) borderLabelY=yE3+18;
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <line x1="${xL}" y1="${yRas}" x2="${xR}" y2="${yRas}" stroke="var(--ink-soft)" stroke-width="1.4"/>
-    <text x="${xEje}" y="${yRas-8}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Rasante (eje) Cras=${fmtNum(Cras,3)}</text>
+    <text x="${xL}" y="${yRas-8}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Rasante</text>
     <line x1="${xL}" y1="${yE1}" x2="${xR}" y2="${yE1}" stroke="var(--line)" stroke-width="1"/>
-    <text x="${(xEje+6)}" y="${yE1-3}" font-size="${relFont(w,0.024,6,7.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Carpeta e1=${fmtNum(e1,3)}</text>
+    <text x="${lblX}" y="${(yE1-3).toFixed(1)}" font-size="${smallFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Carpeta</text>
     <line x1="${xL}" y1="${yE2}" x2="${xR}" y2="${yE2}" stroke="var(--line)" stroke-width="1"/>
-    <text x="${(xEje+6)}" y="${yE2-3}" font-size="${relFont(w,0.024,6,7.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Base e2=${fmtNum(e2,3)}</text>
+    <text x="${lblX}" y="${(yE2-3).toFixed(1)}" font-size="${smallFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Base</text>
     <line x1="${xL}" y1="${yE3}" x2="${xR}" y2="${yE3}" stroke="var(--line)" stroke-width="1"/>
-    <text x="${(xEje+6)}" y="${yE3-3}" font-size="${relFont(w,0.024,6,7.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Subbase e3=${fmtNum(e3,3)}</text>
-    <line x1="${xEje}" y1="14" x2="${xEje}" y2="${capaY}" stroke="var(--line-strong)" stroke-width="0.8" stroke-dasharray="2 2"/>
-    <circle cx="${xEje}" cy="${capaY}" r="3.4" fill="var(--ink)"/>
-    <text x="${xEje}" y="14" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">Eje — ${capaLabel}</text>
-    <line x1="${xEje}" y1="${capaY}" x2="${xL}" y2="${capaY+dropPx}" stroke="var(--accent)" stroke-width="1.8"/>
-    <line x1="${xEje}" y1="${capaY}" x2="${xR}" y2="${capaY+dropPx}" stroke="var(--accent)" stroke-width="1.8"/>
-    <circle cx="${xL}" cy="${capaY+dropPx}" r="3" fill="var(--accent)"/>
-    <circle cx="${xR}" cy="${capaY+dropPx}" r="3" fill="var(--accent)"/>
-    <text x="${xL}" y="${capaY+dropPx+14}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="start">Borde izq, d=${fmtNum(Math.abs(d),2)} m: ${fmtNum(r.CbordeIzq,3)}</text>
-    <text x="${xR}" y="${capaY+dropPx+27}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="end">Borde der, d=${fmtNum(Math.abs(d),2)} m: ${fmtNum(r.CbordeDer,3)}</text>
-    <text x="${xEje}" y="${h-6}" font-size="${relFont(w,0.024,6,7.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Bombeo i=${fmtNum(i,2)}% — sección simétrica, esquemática</text>
+    <text x="${lblX}" y="${(yE3-3).toFixed(1)}" font-size="${smallFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Subbase</text>
+    <line x1="${xEje}" y1="20" x2="${xEje}" y2="${capaY}" stroke="var(--accent)" stroke-width="0.8" stroke-dasharray="2 2"/>
+    <circle cx="${xEje}" cy="${capaY}" r="3.4" fill="var(--accent)"/>
+    <text x="${xEje}" y="14" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Eje — ${capaLabel}</text>
+    <line x1="${xEje}" y1="${capaY}" x2="${xL}" y2="${borderY.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.8"/>
+    <line x1="${xEje}" y1="${capaY}" x2="${xR}" y2="${borderY.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.8"/>
+    <circle cx="${xL}" cy="${borderY.toFixed(1)}" r="3" fill="var(--blueprint)"/>
+    <circle cx="${xR}" cy="${borderY.toFixed(1)}" r="3" fill="var(--blueprint)"/>
+    <text x="${xL}" y="${borderLabelY.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="start">Izq</text>
+    <text x="${xR}" y="${borderLabelY.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="end">Der</text>
+    <text x="${xEje}" y="${(h-6).toFixed(1)}" font-size="${smallFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(sección simétrica, esquemática)</text>
   </svg>`;
 }
 
