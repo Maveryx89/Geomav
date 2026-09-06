@@ -4339,9 +4339,15 @@ function svgCapasPavimento(Cras,i,d,e1,e2,e3,capa,r){
 }
 
 /* Diagrama de progresiva y offset: eje P1-P2 (prolongado), punto P3, perpendicular
-   punteada hasta su pie sobre el eje (la progresiva Kp), con el offset rotulado. */
+   punteada hasta su pie sobre el eje (la progresiva Kp), con el offset rotulado.
+   Los rótulos "K" y "Offset" van sueltos (sin valor pegado): el panel de resultados, justo
+   encima del SVG, ya muestra "Progresiva (K)" y "Offset" en grande — y K1 (P1) es un dato que
+   el usuario ya escribió en el formulario, así que tampoco hace falta repetirlo junto al punto.
+   El rótulo "Offset" usa var(--ink-soft) (no var(--line-strong), muy tenue para una palabra
+   completa) para que se lea con buen contraste. El margen interno (pad) se amplió de 30 a 42px:
+   ver comentario junto al rótulo "Offset" más abajo para el porqué. */
 function svgProgresivaOffset(n1,e1,k1,n2,e2,np,ep,r){
-  const w=290, h=220, pad=30;
+  const w=290, h=220, pad=42;
   const allE=[e1,e2,ep,r.footE], allN=[n1,n2,np,r.footN];
   const minE=Math.min(...allE), maxE=Math.max(...allE);
   const minN=Math.min(...allN), maxN=Math.max(...allN);
@@ -4360,6 +4366,18 @@ function svgProgresivaOffset(n1,e1,k1,n2,e2,np,ep,r){
   const haciaP3=(Px-Fx)*perp.x+(Py-Fy)*perp.y;
   const lejos = haciaP3>=0 ? {x:-perp.x,y:-perp.y} : perp;
   const kLabel={x:Fx+lejos.x*16, y:Fy+lejos.y*16};
+  // Rótulos P1/P2: desplazados en la dirección PERPENDICULAR del eje (mismo lado que "K", lejos
+  // de P3) en vez de siempre "hacia arriba" en pantalla. Con un desplazamiento fijo hacia arriba,
+  // si el eje quedaba vertical en pantalla ese desplazamiento corría a lo largo de la propia línea
+  // y el rótulo terminaba montado sobre ella (y sobre su prolongación); moverlo en perpendicular
+  // lo saca de la línea sin importar su orientación, y al ser el lado opuesto a P3/Offset tampoco
+  // choca con esas etiquetas. La magnitud del desplazamiento varía con la orientación: cuando el
+  // eje es más bien horizontal en pantalla, ese perpendicular es más vertical y hay que separar más
+  // (21px) para despegar el texto de la línea; cuando el eje es más vertical, el perpendicular es
+  // más horizontal y con menos separación (13px) ya se distingue bien, sin quedar demasiado lejos.
+  const pushP12 = 13 + 8*Math.abs(lejos.y);
+  const p1Label={x:Ax+lejos.x*pushP12, y:Ay+lejos.y*pushP12};
+  const p2Label={x:Bx+lejos.x*pushP12, y:By+lejos.y*pushP12};
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <line x1="${Ex1.x.toFixed(1)}" y1="${Ex1.y.toFixed(1)}" x2="${Ex2.x.toFixed(1)}" y2="${Ex2.y.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.8"/>
     <line x1="${Px.toFixed(1)}" y1="${Py.toFixed(1)}" x2="${Fx.toFixed(1)}" y2="${Fy.toFixed(1)}" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="3 3"/>
@@ -4367,18 +4385,24 @@ function svgProgresivaOffset(n1,e1,k1,n2,e2,np,ep,r){
     <circle cx="${Bx.toFixed(1)}" cy="${By.toFixed(1)}" r="3" fill="var(--ink)"/>
     <circle cx="${Px.toFixed(1)}" cy="${Py.toFixed(1)}" r="3.4" fill="var(--accent)"/>
     <circle cx="${Fx.toFixed(1)}" cy="${Fy.toFixed(1)}" r="3" fill="var(--blueprint)"/>
-    <text x="${Ax.toFixed(1)}" y="${(Ay-8).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">P1 (K=${fmtNum(k1,2)})</text>
-    <text x="${Bx.toFixed(1)}" y="${(By-8).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">P2</text>
+    <text x="${p1Label.x.toFixed(1)}" y="${(p1Label.y-4).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">P1</text>
+    <text x="${p2Label.x.toFixed(1)}" y="${(p2Label.y-4).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">P2</text>
     <text x="${Px.toFixed(1)}" y="${(Py-9).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">P3</text>
-    <text x="${kLabel.x.toFixed(1)}" y="${(kLabel.y-6).toFixed(1)}" font-size="${relFont(w,0.026,6.5,8)}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">K=${fmtNum(r.Kp,2)}</text>
+    <text x="${kLabel.x.toFixed(1)}" y="${(kLabel.y-6).toFixed(1)}" font-size="${relFont(w,0.026,6.5,8)}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">K</text>
     ${(function(){
-      // Etiqueta del offset: apilada verticalmente respecto al pie F (arriba/abajo fijo),
-      // en vez de rotada sobre el segmento P3-F — ese segmento suele ser muy corto en esta
-      // escala (offsets típicos de pocos metros vs. ejes de cientos de metros) y rotarla
-      // la deja siempre montada sobre el propio eje. Se ubica al lado contrario de K.
-      const away = haciaP3>=0 ? -1 : 1;
-      const ly = Fy + away*18;
-      return `<text x="${Fx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--line-strong)" text-anchor="middle">${fmtNum(Math.abs(r.offset),2)} m (${r.lado})</text>`;
+      // Etiqueta del offset: ubicada en la dirección PERPENDICULAR real del eje (mismo lado que P3,
+      // lado contrario a "K"), no rotada sobre el segmento P3-F — ese segmento suele ser muy corto en
+      // esta escala (offsets típicos de pocos metros vs. ejes de cientos de metros) y rotarla la deja
+      // siempre montada sobre el propio eje. Cuando el offset es chico frente al largo del eje (el caso
+      // más común), P3 queda pixelmente pegado a F y un desplazamiento fijo de 18px no basta para librar
+      // la etiqueta "P3": se mide entonces desde P3 (no desde F) para quedar siempre más allá de él. Si
+      // P3 ya está lejos de F (offset grande en la escala del dibujo) se mantiene el desplazamiento fijo
+      // de siempre, sin empujar la etiqueta más allá de P3 -evita que se salga del lienzo-.
+      const ladoOffset = haciaP3>=0 ? perp : {x:-perp.x,y:-perp.y};
+      const perpDistP3 = Math.abs(haciaP3);
+      const pushOffset = perpDistP3<24 ? perpDistP3+26 : 18;
+      const offLabel = {x:Fx+ladoOffset.x*pushOffset, y:Fy+ladoOffset.y*pushOffset};
+      return `<text x="${offLabel.x.toFixed(1)}" y="${(offLabel.y-6).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Offset</text>`;
     })()}
     ${svgNorthArrow(w-20,h-20)}
   </svg>`;
