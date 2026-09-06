@@ -4258,7 +4258,17 @@ function svgEstacionEDM(distAB,distBC,distAC,r){
 }
 
 /* Diagrama de rasante: perfil con dos puntos sobre la pendiente de proyecto (escala
-   vertical exagerada para que la pendiente sea visible; se rotula explícitamente). */
+   vertical exagerada para que la pendiente sea visible; se rotula explícitamente).
+   Los rótulos van sueltos (sin valor pegado): "Origen"/"Eval" identifican los puntos (Kini/Cini
+   y Keval ya los escribió el usuario en el formulario, y la Cota en Keval ya se muestra en grande
+   en el panel de resultados) y "S" identifica la línea de pendiente (D ya está en el panel como
+   "Distancia parcial"). Encontrado probando pendientes pronunciadas (no pedido, pero en la misma
+   función): con el offset vertical fijo "-9" de antes, la propia línea podía atravesar el rótulo
+   "Origen"/"Eval" cuando la pendiente era empinada (el punto queda cerca del rótulo del extremo
+   opuesto, y el trazo sube/baja rápido justo debajo del texto). Se corrigió ubicando ambos rótulos
+   en la dirección perpendicular real de la línea (siempre "hacia arriba" en pantalla, ya que el
+   eje horizontal x1→x2 nunca se invierte) — mismo lado que usa el rótulo "S" (side=-1), separados
+   lo suficiente de él por estar junto a los extremos y no al medio. */
 function svgCotaProgresiva(Kini,Cini,S,Keval,r){
   const w=280, h=170, pad=32;
   const minC=Math.min(Cini,r.Ceval), maxC=Math.max(Cini,r.Ceval,minC+0.01);
@@ -4266,13 +4276,17 @@ function svgCotaProgresiva(Kini,Cini,S,Keval,r){
   const x1=pad, x2=w-pad;
   const y1=y(Cini), y2=y(r.Ceval);
   const font=relFont(w,0.03,7.5,9.5);
+  const dxL=x2-x1, dyL=y2-y1, lenL=Math.hypot(dxL,dyL)||1;
+  const perpUp={x:dyL/lenL, y:-dxL/lenL};
+  const originLabel={x:x1+perpUp.x*13, y:y1+perpUp.y*13};
+  const evalLabel={x:x2+perpUp.x*13, y:y2+perpUp.y*13};
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <line x1="${x1}" y1="${y1.toFixed(1)}" x2="${x2}" y2="${y2.toFixed(1)}" stroke="var(--blueprint)" stroke-width="2"/>
     <circle cx="${x1}" cy="${y1.toFixed(1)}" r="3.4" fill="var(--ink)"/>
     <circle cx="${x2}" cy="${y2.toFixed(1)}" r="3.4" fill="var(--accent)"/>
-    <text x="${x1}" y="${(y1-9).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="start">K=${fmtNum(Kini,2)}, C=${fmtNum(Cini,3)}</text>
-    <text x="${x2}" y="${(y2-9).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="end">K=${fmtNum(Keval,2)}, C=${fmtNum(r.Ceval,3)}</text>
-    ${svgLineLabel(x1,y1,x2,y2, 'S='+fmtNum(S,2)+'%, D='+fmtNum(r.D,2)+' m', 'var(--blueprint)', font, -1)}
+    <text x="${originLabel.x.toFixed(1)}" y="${(originLabel.y-3).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">Origen</text>
+    <text x="${evalLabel.x.toFixed(1)}" y="${(evalLabel.y-3).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Eval</text>
+    ${svgLineLabel(x1,y1,x2,y2, 'S', 'var(--blueprint)', font, -1)}
     <text x="${(x1+x2)/2}" y="${(h-8).toFixed(1)}" font-size="${relFont(w,0.026,6.5,8)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(escala vertical exagerada, no a escala real)</text>
   </svg>`;
 }
