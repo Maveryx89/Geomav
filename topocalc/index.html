@@ -4098,9 +4098,40 @@ function svgInversaMultiple(pts, tramos){
 }
 
 /* Diagrama de la prueba de las dos estacas para chequeo de nivel: dos montajes del
-   instrumento sobre el mismo par de pegas A/B, cada uno con sus visuales rotuladas. */
+   instrumento sobre el mismo par de pegas A/B, cada uno con sus visuales rotuladas.
+   Rótulos sueltos (sin valor pegado): D/d/a1/b1/a2/b2 ya los escribe el usuario en el
+   formulario; el desnivel y el error de colimación ya se muestran en el panel de resultados.
+   Color por posición del instrumento (no por magnitud, ya que lo que hay que distinguir es
+   "a qué montaje pertenece esta visual"): Posición 1 = blueprint, Posición 2 = accent — mismo
+   criterio ya usado en Curva Circular Compuesta (color por tramo).
+   Hallazgos de esta pasada (no pedidos, ya existían en producción, nunca verificados
+   programáticamente para este diagrama):
+   (1) el rótulo "Posición 1" traía literalmente el texto "D/2=D/2" (sin interpolar el valor
+   real) en vez de mostrar la mitad de D — como D ya lo escribe el usuario en el formulario, se
+   quitó del todo en vez de arreglar la interpolación.
+   (2) el rótulo "Posición 1 (centrada)" quedaba pegado a su propio círculo en TODOS los
+   escenarios (no dependía de los datos) — se alejó de 8 a 15px, igual que ya usaba "Posición 2".
+   (3) los 4 puntos a1/b1/a2/b2 tienen cada uno su propia visual llegando exactamente a esa
+   posición, y entre las 4 visuales barren casi todo el ancho y alto del diagrama según los
+   datos — un offset fijo chico, e incluso uno perpendicular a la propia visual (primer intento),
+   no basta: puede acercar el rótulo a la visual de la OTRA posición, al título "Mira en A/B" o al
+   poste vertical. Se verificó geométricamente que las 4 visuales están siempre confinadas entre
+   las dos estacas en x — así que cualquier rótulo ubicado a la izquierda de la estaca A o a la
+   derecha de la estaca B queda garantizado libre de cualquier visual, sea cual sea el dato (mismo
+   principio ya usado para "Terreno"/"D", aplicado ahora en el eje horizontal). Se aplicó esa
+   franja segura a los 4 rótulos (a1/a2 a la izquierda de A, b1/b2 a la derecha de B), con un
+   desplazamiento distinto entre el rótulo de Posición 1 y el de Posición 2 de cada estaca para
+   que no choquen entre sí cuando ambas lecturas son parecidas — el caso típico de esta prueba, ya
+   que su objetivo es justamente comparar dos visuales que deberían casi coincidir.
+   (4) los rótulos "Terreno" y "D" (asociados a la línea de terreno) podían quedar atravesados
+   por alguna de las 4 visuales — como el nivel de Posición 2 puede plantarse muy cerca de
+   cualquiera de las dos estacas (es el procedimiento estándar de esta prueba), su visual hacia
+   la estaca lejana barre gran parte del ancho del diagrama y puede pasar por cualquier punto
+   intermedio a la altura del terreno. La única franja del diagrama que ninguna visual puede
+   alcanzar (verificado geométricamente: todas las visuales existen solo entre las alturas de
+   Posición 1 y Posición 2) es debajo de Posición 2 — se movieron ambos rótulos ahí. */
 function svgNivelDosEstacas(a1,b1,a2,b2,D,d,r){
-  const w=300, h=210, pad=28;
+  const w=300, h=225, pad=28;
   const xA=pad+18, xB=w-pad-18;
   const xPos2 = xA + Math.min(Math.max(d/D,0),1)*(xB-xA);
   const xMid = (xA+xB)/2;
@@ -4110,31 +4141,33 @@ function svgNivelDosEstacas(a1,b1,a2,b2,D,d,r){
   const font=relFont(w,0.028,7,9);
   const y1a=markerY(a1), y1b=markerY(b1), y2a=markerY(a2), y2b=markerY(b2);
   const instr1Y=58, instr2Y=182;
-  const labelX2=Math.min(Math.max(xPos2,85),w-85); // evita que el texto largo de "Posición 2" se corte contra el borde
+  const pos2Text='Posición 2 (cerca de A)';
+  const pos2HalfW=(pos2Text.length*font*0.62)/2;
+  const labelX2=Math.min(Math.max(xPos2,4+pos2HalfW),w-4-pos2HalfW);
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <line x1="${(xA-16).toFixed(1)}" y1="${baseY}" x2="${(xB+16).toFixed(1)}" y2="${baseY}" stroke="var(--line)" stroke-width="1.2"/>
-    <text x="${(xA-14).toFixed(1)}" y="${(baseY+13).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Terreno</text>
     <line x1="${xA}" y1="${baseY}" x2="${xA}" y2="${staffTop}" stroke="var(--line-strong)" stroke-width="1.6"/>
     <line x1="${xB}" y1="${baseY}" x2="${xB}" y2="${staffTop}" stroke="var(--line-strong)" stroke-width="1.6"/>
-    <text x="${xA}" y="${(staffTop-6).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">Mira en A</text>
-    <text x="${xB}" y="${(staffTop-6).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">Mira en B</text>
+    <text x="${xA}" y="${(staffTop-16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">Mira en A</text>
+    <text x="${xB}" y="${(staffTop-16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">Mira en B</text>
     <circle cx="${xMid}" cy="${instr1Y}" r="4" fill="var(--blueprint)"/>
     <line x1="${xMid}" y1="${instr1Y}" x2="${xA}" y2="${y1a.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.3"/>
     <line x1="${xMid}" y1="${instr1Y}" x2="${xB}" y2="${y1b.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.3"/>
     <circle cx="${xA}" cy="${y1a.toFixed(1)}" r="2.6" fill="var(--blueprint)"/>
     <circle cx="${xB}" cy="${y1b.toFixed(1)}" r="2.6" fill="var(--blueprint)"/>
-    <text x="${xMid}" y="${(instr1Y-8).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">Posición 1 (centrada, D/2=D/2)</text>
-    <text x="${(xA+6).toFixed(1)}" y="${(y1a-4).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="start">a1=${fmtNum(a1,3)}</text>
-    <text x="${(xB-6).toFixed(1)}" y="${(y1b-4).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="end">b1=${fmtNum(b1,3)}</text>
+    <text x="${xMid}" y="${(instr1Y-15).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">Posición 1 (centrada)</text>
+    <text x="${(xA-24).toFixed(1)}" y="${y1a.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="end">a1</text>
+    <text x="${(xB+24).toFixed(1)}" y="${y1b.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="start">b1</text>
     <circle cx="${xPos2.toFixed(1)}" cy="${instr2Y}" r="4" fill="var(--accent)"/>
     <line x1="${xPos2.toFixed(1)}" y1="${instr2Y}" x2="${xA}" y2="${y2a.toFixed(1)}" stroke="var(--accent)" stroke-width="1.3"/>
     <line x1="${xPos2.toFixed(1)}" y1="${instr2Y}" x2="${xB}" y2="${y2b.toFixed(1)}" stroke="var(--accent)" stroke-width="1.3"/>
     <circle cx="${xA}" cy="${y2a.toFixed(1)}" r="2.6" fill="var(--accent)"/>
     <circle cx="${xB}" cy="${y2b.toFixed(1)}" r="2.6" fill="var(--accent)"/>
-    <text x="${labelX2.toFixed(1)}" y="${(instr2Y+15).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Posición 2 (cerca de A, d=${fmtNum(d,1)} m)</text>
-    <text x="${(xA+6).toFixed(1)}" y="${(y2a+12).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="start">a2=${fmtNum(a2,3)}</text>
-    <text x="${(xB-6).toFixed(1)}" y="${(y2b+12).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="end">b2=${fmtNum(b2,3)}</text>
-    <text x="${xMid}" y="${(baseY+26).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">D=${fmtNum(D,1)} m</text>
+    <text x="${labelX2.toFixed(1)}" y="${(instr2Y+15).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">${pos2Text}</text>
+    <text x="${(xA-9).toFixed(1)}" y="${y2a.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="end">a2</text>
+    <text x="${(xB+9).toFixed(1)}" y="${y2b.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="start">b2</text>
+    <text x="${(xA-16).toFixed(1)}" y="${(h-8).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Terreno</text>
+    <text x="${(xB+16).toFixed(1)}" y="${(h-8).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="end">D</text>
   </svg>`;
 }
 
