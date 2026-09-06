@@ -4292,30 +4292,75 @@ function svgCotaProgresiva(Kini,Cini,S,Keval,r){
 }
 
 /* Diagrama de plantillado de zanja: radier teórico, fondo de excavación (bajo la cama)
-   y la lectura de mira esperada desde la altura instrumental del nivel. */
+   y la lectura de mira esperada desde la altura instrumental del nivel.
+   Los rótulos van sueltos (sin valor pegado): K1/Cp1/S/Kx/hcama/HI ya los escribe el usuario en
+   el formulario, y Cradier/Cexc/Lmira ya se muestran en el panel de resultados ("Cota de radier
+   teórico", "Cota de fondo de excavación", "Lectura de mira esperada"). "Pozo inicial" identifica
+   el punto de partida; "Radier" y "Fondo" identifican los puntos calculados en Kx (mantienen el
+   mismo color que su fila en el panel: blueprint y accent respectivamente, ya que el punto en sí
+   es la magnitud medida); "S" identifica la línea de pendiente, "hcama" el tramo de cama de apoyo,
+   "HI" la línea de nivel instrumental y "Mira" el tramo de lectura de mira.
+   Hallazgos de esta pasada (no pedidos, encontrados probando varias combinaciones — ya existían en
+   producción, nunca se habían verificado programáticamente para este diagrama):
+   (1) "Radier" usa offset perpendicular a la línea de pendiente (misma técnica que Cota por
+   Progresiva y Pendiente) para que la propia línea no atraviese el rótulo en pendientes empinadas,
+   acotado (clampMid) para no invadir la columna de "Mira" a la derecha. "Pozo inicial" NO puede
+   usar la misma técnica: al estar pegado al borde izquierdo (x1=pad) y ser un texto largo (dos
+   palabras), la distancia que hay para moverlo en esa dirección es demasiado chica y clampear su
+   posición horizontal rompe la garantía de separación del offset perpendicular — probando pendientes
+   muy pronunciadas se encontró que igual terminaba cruzado por la línea. En vez de eso, "Pozo
+   inicial" se queda anclado en x1 (nunca se mueve horizontalmente, nunca se sale del canvas) y solo
+   se decide arriba/abajo según hacia dónde se aleja la línea a lo largo del ancho del propio rótulo
+   (si la línea baja, el rótulo va arriba; si sube, va abajo) — como es un tramo recto (no curvo),
+   alcanza con mirar hacia dónde se aleja en ese tramo para garantizar que nunca la cruce.
+   (2) El rótulo "hcama" vivía a la izquierda de Kx, en el punto medio entre Radier y Fondo — con
+   la cama de apoyo físicamente delgada frente a la escala completa del diagrama (dominada por HI),
+   ese punto medio casi siempre cae pegado a Radier, y ahí la línea de pendiente (que también
+   termina en Radier) lo atraviesa. Se corrigió moviendo "hcama" al lado derecho de Kx (su propia
+   columna, junto a "Mira", con espacio propio para no quedar pegado a los círculos de Radier/Fondo),
+   fuera del alcance geométrico de la línea de pendiente (que solo existe entre K1 y Kx) — así no
+   hace falta forzar su posición vertical para esquivarla.
+   (3) La columna de "Mira" (línea + rótulo) se separó de "hcama" y se le dio margen propio en el
+   canvas: el rótulo "Lmira=X" original (con su valor pegado) ya se recortaba levemente contra el
+   borde derecho del viewBox. */
 function svgPlantillaZanja(K1,Cp1,S,Kx,hcama,HI,r){
-  const w=290, h=200, pad=32;
+  const w=330, h=200, pad=32;
   const vals=[Cp1,r.Cradier,r.Cexc,HI];
   const minC=Math.min(...vals), maxC=Math.max(...vals,minC+0.01);
   const y=c=>(h-pad)-(c-minC)/(maxC-minC)*(h-2*pad);
-  const x1=pad, x2=w-pad;
+  const x1=pad, x2=258;
   const yCp1=y(Cp1), yRadier=y(r.Cradier), yExc=y(r.Cexc), yHI=y(HI);
   const font=relFont(w,0.028,7,9);
+  const dxL=x2-x1, dyL=yRadier-yCp1, lenL=Math.hypot(dxL,dyL)||1;
+  const perpUp={x:dyL/lenL, y:-dxL/lenL};
+  const clampMid=(cx,text,fs)=>{
+    const hw=(text.length*fs*0.62)/2;
+    return Math.min(Math.max(cx, 4+hw), w-4-hw);
+  };
+  const hcamaX=x2+9, miraLineX=x2+36;
+  const pozoLabelW='Pozo inicial'.length*font*0.62;
+  const pozoLineDrop=(dyL/dxL)*pozoLabelW;
+  const pozoClearance=font*0.9+4;
+  const pozoLabel={x:x1, y: pozoLineDrop>=0 ? (yCp1-pozoClearance) : (yCp1+pozoClearance)};
+  let radierX=clampMid(x2+perpUp.x*13, 'Radier', font);
+  radierX=Math.min(radierX, hcamaX-('Radier'.length*font*0.62)/2-4);
+  const radierLabel={x:radierX, y:yRadier+perpUp.y*13};
+  const hcamaFont=relFont(w,0.024,6,7.5);
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <line x1="${x1}" y1="${yHI.toFixed(1)}" x2="${x2}" y2="${yHI.toFixed(1)}" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="3 2"/>
-    <text x="${x1}" y="${(yHI-6).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">HI nivel = ${fmtNum(HI,3)} m</text>
+    <text x="${x1}" y="${(yHI-6).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">HI</text>
     <line x1="${x1}" y1="${yCp1.toFixed(1)}" x2="${x2}" y2="${yRadier.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.8"/>
     <circle cx="${x1}" cy="${yCp1.toFixed(1)}" r="3.2" fill="var(--ink)"/>
-    <text x="${x1}" y="${(yCp1+14).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="start">Pozo inicial K=${fmtNum(K1,2)}, C=${fmtNum(Cp1,3)}</text>
-    ${svgLineLabel(x1,yCp1,x2,yRadier, 'radier teórico S='+fmtNum(S,2)+'%', 'var(--blueprint)', font, -1)}
+    <text x="${pozoLabel.x.toFixed(1)}" y="${pozoLabel.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="start">Pozo inicial</text>
+    ${svgLineLabel(x1,yCp1,x2,yRadier, 'S', 'var(--blueprint)', font, -1)}
     <circle cx="${x2}" cy="${yRadier.toFixed(1)}" r="3" fill="var(--blueprint)"/>
-    <text x="${x2}" y="${(yRadier-8).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="end">Cradier=${fmtNum(r.Cradier,3)}</text>
+    <text x="${radierLabel.x.toFixed(1)}" y="${radierLabel.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">Radier</text>
     <line x1="${x2}" y1="${yRadier.toFixed(1)}" x2="${x2}" y2="${yExc.toFixed(1)}" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="2 2"/>
-    <text x="${(x2-4).toFixed(1)}" y="${((yRadier+yExc)/2).toFixed(1)}" font-size="${relFont(w,0.024,6,7.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="end">hcama=${fmtNum(hcama,3)}</text>
+    <text x="${hcamaX.toFixed(1)}" y="${((yRadier+yExc)/2).toFixed(1)}" font-size="${hcamaFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">hcama</text>
     <circle cx="${x2}" cy="${yExc.toFixed(1)}" r="3.4" fill="var(--accent)"/>
-    <text x="${x2}" y="${(yExc+14).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="end">Fondo zanja Cexc=${fmtNum(r.Cexc,3)}</text>
-    <line x1="${(x2+10).toFixed(1)}" y1="${yHI.toFixed(1)}" x2="${(x2+10).toFixed(1)}" y2="${yExc.toFixed(1)}" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="2 2"/>
-    <text x="${(x2+14).toFixed(1)}" y="${((yHI+yExc)/2).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="start">Lmira=${fmtNum(r.Lmira,3)}</text>
+    <text x="${x2}" y="${(yExc+14).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="end">Fondo</text>
+    <line x1="${miraLineX.toFixed(1)}" y1="${yHI.toFixed(1)}" x2="${miraLineX.toFixed(1)}" y2="${yExc.toFixed(1)}" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="2 2"/>
+    <text x="${(miraLineX+4).toFixed(1)}" y="${((yHI+yExc)/2).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="start">Mira</text>
     <text x="${(x1+x2)/2}" y="${(h-6).toFixed(1)}" font-size="${relFont(w,0.024,6,7.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(escala vertical esquemática)</text>
   </svg>`;
 }
