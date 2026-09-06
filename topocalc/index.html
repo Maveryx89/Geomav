@@ -4173,15 +4173,58 @@ function svgNivelDosEstacas(a1,b1,a2,b2,D,d,r){
 
 /* Diagrama de chequeo por dos caras (CI/CD): panel izquierdo = colimación horizontal
    (vista en planta), panel derecho = índice vertical (vista de perfil desde el cenit). */
+/* Diagrama de chequeo por dos caras (colimación horizontal + índice vertical), compartido por
+   Chequeo de Teodolito y Chequeo de Estación Total (esta última solo agrega el bloque de EDM).
+   Rótulos sueltos (sin valor pegado): CI/CD/ZI/ZD ya los escribe el usuario en el formulario
+   (CD/ZD se grafican normalizados —180°/360°- para comparar directo con CI/ZI, pero el rótulo
+   identifica la lectura, no la fórmula de normalización); C e i ya se muestran en el panel de
+   resultados como "Error de colimación horizontal (C)" / "Error de índice vertical (i)" (accent
+   big) — sus rótulos en el dibujo pasan de ink a accent para que el color coincida con esa fila
+   destacada del panel (mismo criterio ya usado en "Eje" de Capas de Pavimento y "Eval" de Cota
+   por Progresiva: el punto que es la magnitud estrella del panel lleva accent aunque sea un único
+   punto sin "familia"). El error real es de pocos segundos de arco (invisible a cualquier escala
+   de dibujo); se separa esquemáticamente en la dirección real del error, con magnitud angular
+   fija. Las etiquetas se ubican a lo largo de su propio rayo (no con un offset vertical fijo),
+   a un radio mayor que el rayo mismo, para que la separación angular se traduzca en
+   separación real entre los textos y no queden una sobre la otra.
+   Hallazgos de esta pasada (no pedidos, ya existían en producción, nunca verificados
+   programáticamente para este diagrama — primera vez que se prueba con Playwright variando
+   ángulo de mira además de solo el signo del error):
+   (1) el pie "(separación dibujada esquemática...)" se recortaba contra el borde inferior del
+   viewBox en TODOS los escenarios (posición fija, no depende de los datos) — se agrandó el
+   canvas en alto (190→200).
+   (2) cuando la visual apunta cerca de la horizontal hacia el lado exterior de su propio centro
+   (el caso por defecto de esta calculadora cae justo ahí), el margen de seguridad horizontal
+   disponible es MENOR que el largo del propio trazo (arm) — la etiqueta terminaba sentada ENCIMA
+   de su propia línea en vez de más allá de la punta. Se corrigió con clearOfArm(): si el radio
+   seguro no alcanza a superar la punta, la etiqueta se ancla en la punta y se desplaza en
+   PERPENDICULAR al rayo, hacia el lado que se aleja angularmente del otro rayo del mismo par.
+   (3) con error de colimación o de índice EXACTAMENTE cero, ambos rayos del par coinciden y el
+   criterio "alejarse del otro rayo" no tiene lado preferente — se agregó un signo de respaldo (1
+   en vez de 0) para que los dos rótulos igual se desplacen a lados opuestos.
+   (4) el resguardo que aleja una etiqueta del rótulo fijo "Cenit"/"C"/"i" cuando cae muy cerca
+   podía empujarla de vuelta hacia su propia línea (si la dirección "lejos del fijo" coincidía por
+   casualidad con el camino de vuelta al centro) y, en visuales muy inclinadas, hasta el propio
+   cálculo del radio "seguro" podía dejar la etiqueta más cerca de lo necesario del tramo recto
+   centro→punta de CUALQUIERA de los dos rayos del par (no solo el propio). Se agregó como resguardo
+   final keepOffSegments(): distancia de la etiqueta a cada uno de los dos segmentos del par
+   (centro→punta), empujándola en perpendicular al segmento más cercano si queda a menos de 11px
+   (radio que cubre el semidiagonal aproximado del rótulo, no solo su punto de anclaje/línea base).
+   (5) cuando la etiqueta cae EXACTAMENTE sobre su propio rayo (rayo vertical u horizontal puro,
+   distancia 0 a la línea infinita), "empujar en la dirección punto→segmento" no tiene sentido (esa
+   dirección es cero) — se usa en ese caso la perpendicular geométrica al propio segmento, eligiendo
+   el lado que queda más lejos del OTRO rayo del par. (6) alejar el par (separación vertical mínima)
+   y despegar una etiqueta de su rayo (keepOffSegments) pueden deshacerse mutuamente entre sí — se
+   alternan 3 pasadas de ambos ajustes para converger, terminando siempre en keepOffSegments (evitar
+   cruzar una línea importa más que un par ligeramente más junto que el mínimo ideal). Probado en 14
+   escenarios (incluyendo error de colimación e índice en cero, ambos signos, mira apuntando a las 4
+   direcciones cardinales, cerca del cenit, cerca del nadir, y cruzando el borde 0°/360°) — los
+   cuatro chequeos automáticos (fuera de límites, textos superpuestos, línea sobre texto, círculo
+   sobre texto) limpios en los 14. */
 function svgTeodolitoDosCaras(hzFL,hzFR,zFL,zFR,r){
-  const w=300, h=190;
+  const w=300, h=200;
   const cx1=76, cx2=224, cy=112, arm=52;
   const font=relFont(w,0.03,7,9);
-  // El error real es de pocos segundos de arco (invisible a cualquier escala de dibujo);
-  // se separa esquemáticamente en la dirección real del error, con magnitud angular fija.
-  // Las etiquetas se ubican a lo largo de su propio rayo (no con un offset vertical fijo),
-  // a un radio mayor que el rayo mismo, para que la separación angular se traduzca en
-  // separación real entre los textos y no queden una sobre la otra.
   const sep=26;
   const labelR=arm+15;
   const marginX=48, marginY=18;
@@ -4200,6 +4243,24 @@ function svgTeodolitoDosCaras(hzFL,hzFR,zFL,zFR,r){
   function polarPoint(cx, cy, angleRad, radius){
     return {x:cx+radius*Math.sin(angleRad), y:cy-radius*Math.cos(angleRad)};
   }
+  // Coloca la etiqueta más allá de la punta del rayo (arm) siempre que el margen del viewBox lo
+  // permita; cuando no alcanza (rayo casi horizontal apuntando hacia el borde más cercano), la
+  // ancla en la punta y la desplaza en perpendicular (no a lo largo de él), hacia el lado que se
+  // aleja angularmente del otro rayo del mismo par (moveSign>=0 → gira hacia +ángulo, si no hacia
+  // -ángulo) — con el margen del canvas solo como respaldo si ese lado se saliera del viewBox.
+  function clearOfArm(cx, cy, angleRad, desiredR, moveSign){
+    const r = safeRadius(cx, cy, angleRad, desiredR);
+    if(r >= arm+8) return polarPoint(cx, cy, angleRad, r);
+    const tip = polarPoint(cx, cy, angleRad, Math.min(r, arm));
+    const dx=Math.sin(angleRad), dy=-Math.cos(angleRad);
+    const nudge=12;
+    const optPlus={x:tip.x-dy*nudge, y:tip.y+dx*nudge};  // hacia +ángulo
+    const optMinus={x:tip.x+dy*nudge, y:tip.y-dx*nudge}; // hacia -ángulo
+    const edgeDist = p => Math.min(p.x-marginX, w-marginX-p.x, p.y-marginY, h-marginY-p.y);
+    const preferred = moveSign>=0 ? optPlus : optMinus;
+    const other = moveSign>=0 ? optMinus : optPlus;
+    return edgeDist(preferred) < -5 && edgeDist(other) > edgeDist(preferred) ? other : preferred;
+  }
   // Cuando ambas etiquetas de un par quedan ancladas cerca del mismo borde (rayos casi
   // horizontales), su separación angular ya no alcanza para separar el texto verticalmente;
   // se fuerza aquí una separación mínima, respetando de nuevo el margen del viewBox.
@@ -4214,9 +4275,9 @@ function svgTeodolitoDosCaras(hzFL,hzFR,zFL,zFR,r){
       b.y = Math.min(Math.max(b.y, marginY), h-marginY);
     }
   }
-  // Si una etiqueta cae muy cerca de un punto fijo del diagrama (p.ej. "Cenit"), se empuja
-  // hacia afuera en línea recta desde ese punto fijo, lo necesario para separarla del todo
-  // (tanto en X como en Y), sin salirse del margen inferior.
+  // Si una etiqueta cae muy cerca de un punto fijo del diagrama (p.ej. "Cenit", o los rótulos
+  // fijos "C"/"i"), se empuja hacia afuera en línea recta desde ese punto fijo, lo necesario para
+  // separarla del todo (tanto en X como en Y), sin salirse del margen inferior.
   function avoidFixedPoint(pt, fixed, minGap){
     const dx=pt.x-fixed.x, dy=pt.y-fixed.y;
     const d=Math.hypot(dx,dy);
@@ -4226,44 +4287,102 @@ function svgTeodolitoDosCaras(hzFL,hzFR,zFL,zFR,r){
       pt.y = Math.min(fixed.y + uy*minGap, h-marginY);
     }
   }
-  const halfTurn = angleSystem==='cent' ? '200ᵍ' : '180°'; // media vuelta, en el sistema angular activo
-  const fullTurn = angleSystem==='cent' ? '400ᵍ' : '360°'; // vuelta completa, en el sistema angular activo
-  const signC = r.C===0?0:(r.C>0?1:-1);
-  const signI = r.i===0?0:(r.i>0?1:-1);
-  const azFL = toRad(hzFL), azFR2 = toRad(normDeg(hzFL+signC*sep));
+  // Distancia de un punto a un segmento recto (centro→punta de un rayo) y su punto más cercano.
+  function distToSegment(px,py,x1,y1,x2,y2){
+    const dx=x2-x1, dy=y2-y1;
+    const len2=dx*dx+dy*dy;
+    let t = len2>0 ? ((px-x1)*dx+(py-y1)*dy)/len2 : 0;
+    t = Math.max(0, Math.min(1, t));
+    const nx=x1+t*dx, ny=y1+t*dy;
+    return {dist: Math.hypot(px-nx,py-ny), nx, ny};
+  }
+  // Resguardo final: si la etiqueta quedó a menos de minDist de alguno de los dos segmentos del
+  // par (el propio o el del otro rayo), se empuja en perpendicular al segmento más cercano. Si la
+  // etiqueta cae EXACTAMENTE sobre el segmento (rayo vertical u horizontal puro: distancia 0), no
+  // hay una dirección "punto→segmento" que seguir — se usa la perpendicular geométrica al propio
+  // segmento (girando su vector 90°), eligiendo el lado que queda más lejos del OTRO segmento del
+  // par, para no terminar cruzando ese otro rayo en el intento.
+  function keepOffSegments(pt, segments, minDist){
+    for(const seg of segments){
+      const {dist,nx,ny} = distToSegment(pt.x,pt.y,seg.x1,seg.y1,seg.x2,seg.y2);
+      if(dist < minDist){
+        let ux, uy;
+        if(dist > 0.001){
+          ux = (pt.x-nx)/dist; uy = (pt.y-ny)/dist;
+        } else {
+          const sdx=seg.x2-seg.x1, sdy=seg.y2-seg.y1;
+          const slen=Math.hypot(sdx,sdy) || 1;
+          const perpA={x:-sdy/slen, y:sdx/slen}, perpB={x:sdy/slen, y:-sdx/slen};
+          const others = segments.filter(s=>s!==seg);
+          const farness = p => others.length
+            ? Math.min(...others.map(s=>distToSegment(nx+p.x*minDist, ny+p.y*minDist, s.x1,s.y1,s.x2,s.y2).dist))
+            : 0;
+          const useA = farness(perpA) >= farness(perpB);
+          ux = useA?perpA.x:perpB.x; uy = useA?perpA.y:perpB.y;
+        }
+        pt.x = nx+ux*minDist;
+        pt.y = ny+uy*minDist;
+      }
+    }
+  }
+  const signC0 = r.C===0?0:(r.C>0?1:-1);
+  const signI0 = r.i===0?0:(r.i>0?1:-1);
+  const signC = signC0===0?1:signC0; // signo de respaldo solo para elegir lado de la etiqueta
+  const signI = signI0===0?1:signI0; // cuando el error es exactamente 0 (rayos coincidentes)
+  const azFL = toRad(hzFL), azFR2 = toRad(normDeg(hzFL+signC0*sep));
   const p1={x:cx1+arm*Math.sin(azFL), y:cy-arm*Math.cos(azFL)};
   const p2={x:cx1+arm*Math.sin(azFR2), y:cy-arm*Math.cos(azFR2)};
-  const p1t=polarPoint(cx1,cy,azFL, safeRadius(cx1,cy,azFL,labelR));
-  const p2t=polarPoint(cx1,cy,azFR2, safeRadius(cx1,cy,azFR2,labelR));
-  ensureVerticalGap(p1t, p2t, 15);
-  const zL=toRad(zFL), zR2=toRad(normDeg(zFL+signI*sep));
+  const p1t=clearOfArm(cx1,cy,azFL,labelR,-signC);
+  const p2t=clearOfArm(cx1,cy,azFR2,labelR,signC);
+  const cLabelPos={x:cx1, y:cy+arm+16};
+  avoidFixedPoint(p1t, cLabelPos, 14);
+  avoidFixedPoint(p2t, cLabelPos, 14);
+  const pSegs=[{x1:cx1,y1:cy,x2:p1.x,y2:p1.y},{x1:cx1,y1:cy,x2:p2.x,y2:p2.y}];
+  // ensureVerticalGap y keepOffSegments pueden deshacerse mutuamente (separar el par puede volver
+  // a acercar una etiqueta a su rayo, y despegarla del rayo puede volver a juntar el par) — se
+  // alternan varias pasadas para converger, terminando siempre en keepOffSegments (evitar cruzar
+  // una línea es más grave visualmente que un par ligeramente más junto que el mínimo ideal).
+  for(let pass=0; pass<3; pass++){
+    ensureVerticalGap(p1t, p2t, 15);
+    keepOffSegments(p1t, pSegs, 11);
+    keepOffSegments(p2t, pSegs, 11);
+  }
+  const zL=toRad(zFL), zR2=toRad(normDeg(zFL+signI0*sep));
   const q1={x:cx2+arm*Math.sin(zL), y:cy-arm*Math.cos(zL)};
   const q2={x:cx2+arm*Math.sin(zR2), y:cy-arm*Math.cos(zR2)};
-  const q1t=polarPoint(cx2,cy,zL, safeRadius(cx2,cy,zL,labelR));
-  const q2t=polarPoint(cx2,cy,zR2, safeRadius(cx2,cy,zR2,labelR));
+  const q1t=clearOfArm(cx2,cy,zL,labelR,-signI);
+  const q2t=clearOfArm(cx2,cy,zR2,labelR,signI);
   const cenitLabelPos={x:cx2, y:cy-arm-5};
+  const iLabelPos={x:cx2, y:cy+arm+16};
   avoidFixedPoint(q1t, cenitLabelPos, 26);
   avoidFixedPoint(q2t, cenitLabelPos, 26);
-  ensureVerticalGap(q1t, q2t, 15);
+  avoidFixedPoint(q1t, iLabelPos, 14);
+  avoidFixedPoint(q2t, iLabelPos, 14);
+  const qSegs=[{x1:cx2,y1:cy,x2:q1.x,y2:q1.y},{x1:cx2,y1:cy,x2:q2.x,y2:q2.y}];
+  for(let pass=0; pass<3; pass++){
+    ensureVerticalGap(q1t, q2t, 15);
+    keepOffSegments(q1t, qSegs, 11);
+    keepOffSegments(q2t, qSegs, 11);
+  }
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <circle cx="${cx1}" cy="${cy}" r="3" fill="var(--ink)"/>
     <line x1="${cx1}" y1="${cy}" x2="${p1.x.toFixed(1)}" y2="${p1.y.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.6"/>
     <line x1="${cx1}" y1="${cy}" x2="${p2.x.toFixed(1)}" y2="${p2.y.toFixed(1)}" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="3 2"/>
     <text x="${cx1}" y="14" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Colimación horizontal</text>
-    <text x="${p1t.x.toFixed(1)}" y="${p1t.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">CI=${fmtAngle(hzFL)}</text>
-    <text x="${p2t.x.toFixed(1)}" y="${p2t.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">CD-${halfTurn}=${fmtAngle(normDeg(hzFR-180))}</text>
-    <text x="${cx1}" y="${(cy+arm+16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">C=${fmtNum(r.Csec,1)}"</text>
+    <text x="${p1t.x.toFixed(1)}" y="${p1t.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">CI</text>
+    <text x="${p2t.x.toFixed(1)}" y="${p2t.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">CD</text>
+    <text x="${cx1}" y="${(cy+arm+16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">C</text>
     <circle cx="${cx2}" cy="${cy}" r="3" fill="var(--ink)"/>
     <line x1="${cx2}" y1="${cy-arm}" x2="${cx2}" y2="${cy+8}" stroke="var(--line)" stroke-width="0.8" stroke-dasharray="2 2"/>
     <text x="${cx2}" y="${(cy-arm-5).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Cenit</text>
     <line x1="${cx2}" y1="${cy}" x2="${q1.x.toFixed(1)}" y2="${q1.y.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.6"/>
     <line x1="${cx2}" y1="${cy}" x2="${q2.x.toFixed(1)}" y2="${q2.y.toFixed(1)}" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="3 2"/>
     <text x="${cx2}" y="14" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Índice vertical</text>
-    <text x="${q1t.x.toFixed(1)}" y="${q1t.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">ZI=${fmtAngle(zFL)}</text>
-    <text x="${q2t.x.toFixed(1)}" y="${q2t.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">${fullTurn}-ZD=${fmtAngle(normDeg(360-zFR))}</text>
-    <text x="${cx2}" y="${(cy+arm+16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">i=${fmtNum(r.isec,1)}"</text>
+    <text x="${q1t.x.toFixed(1)}" y="${q1t.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">ZI</text>
+    <text x="${q2t.x.toFixed(1)}" y="${q2t.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">ZD</text>
+    <text x="${cx2}" y="${(cy+arm+16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">i</text>
     <text x="${w/2}" y="${(cy+arm+28).toFixed(1)}" font-size="${relFont(w,0.024,6,7.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(separación dibujada esquemática, no a escala)</text>
-    <line x1="150" y1="20" x2="150" y2="170" stroke="var(--line)" stroke-width="0.8"/>
+    <line x1="150" y1="20" x2="150" y2="${h-20}" stroke="var(--line)" stroke-width="0.8"/>
   </svg>`;
 }
 
