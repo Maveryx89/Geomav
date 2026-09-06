@@ -357,7 +357,12 @@ table.data-table td:first-child, table.data-table th:first-child{text-align:left
 .table-wrap{overflow-x:auto; margin:-4px; padding:4px;}
 
 .plot-wrap{margin-top:6px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--paper-raised); padding:8px;}
-.plot-wrap svg{width:100%; height:auto; display:block;}
+/* Selector de HIJO DIRECTO (no descendiente): los diagramas propios de la app (svgX()) van
+   siempre como hijo directo de .plot-wrap. Un descendiente `svg` habría alcanzado también el
+   <svg> interno del renderer de Leaflet (varios niveles más adentro, dentro de .leaflet-pane),
+   forzándolo a width:100%/height:auto y colapsándolo a tamaño 0 — eso hacía que el marcador de
+   ubicación de los mini-mapas GPS del Conversor UTM quedara invisible aunque el mapa cargara bien. */
+.plot-wrap > svg{width:100%; height:auto; display:block;}
 
 .err-msg{
   background:var(--danger-soft); color:var(--danger);
