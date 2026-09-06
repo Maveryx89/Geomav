@@ -4387,6 +4387,22 @@ function svgTeodolitoDosCaras(hzFL,hzFR,zFL,zFR,r){
 }
 
 /* Diagrama de la línea base A-B-C para la constante aditiva del EDM. */
+/* Rótulos sueltos (sin valor pegado): AB/BC/AC ya las escribe el usuario en el formulario
+   (distancias medidas A-B, B-C, A-C); se quitó también el título "Constante aditiva K=X mm"
+   que llevaba el dibujo — K ya se muestra en el panel de resultados como "Constante aditiva
+   del EDM (K)" (accent big), y a diferencia de C/i en Chequeo de Teodolito, K no corresponde
+   a ningún punto o trazo propio del dibujo (es un valor derivado de las tres distancias, no
+   una posición geométrica), así que no lleva carácter suelto en el SVG.
+   Bug preexistente encontrado probando AB/BC muy dispares entre sí (no pedido, nunca antes
+   verificado programáticamente para este diagrama): como A-B-C son colineales y el ancho de
+   dibujo disponible (240px) se reparte SIEMPRE completo entre ambos tramos (xB-xA y xC-xB
+   suman exactamente ese ancho, sea cual sea el dato), cuando uno de los dos tramos es muy
+   corto frente al otro, el punto intermedio B queda a solo unos pocos píxeles de A o de C —
+   los rótulos sueltos "A"/"B"/"C" (antes con valor pegado, que ya disimulaba el problema al
+   ser cada uno más ancho) quedan superpuestos. Como los dos tramos siempre suman el ancho
+   completo, nunca pueden ser angostos los dos a la vez — así que B es siempre el único que
+   puede necesitar moverse, y alcanza con subirlo a la altura del rótulo "AC" (ya alejado
+   horizontalmente del punto medio en ambos casos límite) en vez de la fila normal de A/C. */
 function svgEstacionEDM(distAB,distBC,distAC,r){
   const w=300, h=110, pad=30;
   const totalDraw=w-2*pad;
@@ -4394,18 +4410,20 @@ function svgEstacionEDM(distAB,distBC,distAC,r){
   const xA=pad, xB=pad+distAB*scale, xC=pad+(distAB+distBC)*scale;
   const y=55;
   const font=relFont(w,0.03,7.5,9.5);
+  const minGap=10;
+  const bTooCloseToA = (xB-xA) < minGap, bTooCloseToC = (xC-xB) < minGap;
+  const yB = (bTooCloseToA || bTooCloseToC) ? y-24 : y-8;
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <line x1="${xA.toFixed(1)}" y1="${y}" x2="${xC.toFixed(1)}" y2="${y}" stroke="var(--blueprint)" stroke-width="1.8"/>
     <circle cx="${xA.toFixed(1)}" cy="${y}" r="3.2" fill="var(--ink)"/>
     <circle cx="${xB.toFixed(1)}" cy="${y}" r="3.2" fill="var(--ink)"/>
     <circle cx="${xC.toFixed(1)}" cy="${y}" r="3.2" fill="var(--ink)"/>
     <text x="${xA.toFixed(1)}" y="${(y-8).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">A</text>
-    <text x="${xB.toFixed(1)}" y="${(y-8).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">B</text>
+    <text x="${xB.toFixed(1)}" y="${yB.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">B</text>
     <text x="${xC.toFixed(1)}" y="${(y-8).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">C</text>
-    <text x="${((xA+xB)/2).toFixed(1)}" y="${(y+16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">AB=${fmtNum(distAB,4)} m</text>
-    <text x="${((xB+xC)/2).toFixed(1)}" y="${(y+16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">BC=${fmtNum(distBC,4)} m</text>
-    <text x="${((xA+xC)/2).toFixed(1)}" y="${(y-24).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">AC medido=${fmtNum(distAC,4)} m</text>
-    <text x="${((xA+xC)/2).toFixed(1)}" y="18" font-size="${relFont(w,0.032,8,10)}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Constante aditiva K=${fmtNum(r.K*1000,1)} mm</text>
+    <text x="${((xA+xB)/2).toFixed(1)}" y="${(y+16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">AB</text>
+    <text x="${((xB+xC)/2).toFixed(1)}" y="${(y+16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">BC</text>
+    <text x="${((xA+xC)/2).toFixed(1)}" y="${(y-24).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">AC</text>
   </svg>`;
 }
 
