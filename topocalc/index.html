@@ -4762,82 +4762,93 @@ function svgProgresivaOffset(n1,e1,k1,n2,e2,np,ep,r){
   </svg>`;
 }
 
-/* Nivelación diferencial: esquema de campo (trípode + mira + terreno), como Taquimetría/Nivelación Trig. */
+/* Nivelación diferencial: esquema de campo (trípode + mira + terreno), como Taquimetría/Nivelación Trig.
+   Agrupa filas en ESTACIONES: una fila con BS en blanco es una vista adicional (radiada) desde
+   la MISMA estación anterior, sin mover el instrumento — no 1 trípode por fila. */
 function svgNivelacionDiferencial(cotas, filas){
   const n = filas.length;
   const nPts = cotas.length;
   if(nPts<2 || n<1) return '';
-  const His = [];
-  for(let i=0;i<n;i++){ His.push(cotas[i]+filas[i].bs); }
-  const allVals = [...cotas, ...His].filter(isFinite);
+
+  const stations = [];
+  let i = 0;
+  while(i<n){
+    const fromPt = i;
+    const hi = cotas[fromPt] + filas[i].bs;
+    const toPts = [];
+    let j = i;
+    do{
+      toPts.push(j+1);
+      j++;
+    } while(j<n && !isFinite(filas[j].bs));
+    stations.push({fromPt, toPts, hi});
+    i = j;
+  }
+
+  const allVals = [...cotas, ...stations.map(s=>s.hi)].filter(isFinite);
   const minC=Math.min(...allVals), maxC=Math.max(...allVals);
   const span=Math.max(maxC-minC, 0.001);
   const w=320, h=190, pad=26, yTop=44, yBot=h-40;
   const stepX=(w-2*pad)/n;
-  const px = i => pad + i*stepX;
+  const px = idx => pad + idx*stepX;
   const py = v => yBot - ((v-minC)/span)*(yBot-yTop);
 
-  const ptX = cotas.map((_,i)=>px(i));
+  const ptX = cotas.map((_,idx)=>px(idx));
   const ptY = cotas.map(c=>py(c));
-  const stX = His.map((_,i)=>(ptX[i]+ptX[i+1])/2);
-  const stY = His.map(hiv=>py(hiv));
 
-  const staffTopY = cotas.map((c,i)=>{
-    let top = ptY[i];
-    if(i>0) top = Math.min(top, stY[i-1]);
-    if(i<n) top = Math.min(top, stY[i]);
+  const touchY = cotas.map(()=>[]);
+  stations.forEach(s=>{
+    const y = py(s.hi);
+    touchY[s.fromPt].push(y);
+    s.toPts.forEach(p=>touchY[p].push(y));
+  });
+  const staffTopY = cotas.map((c,idx)=>{
+    let top = ptY[idx];
+    touchY[idx].forEach(y=>{ top = Math.min(top, y); });
     return top - 6;
   });
 
   let out = '';
 
-  // terreno (segmentos rectos entre puntos de terreno)
   let terrainD = `M ${ptX[0].toFixed(1)} ${(ptY[0]+3).toFixed(1)}`;
-  for(let i=1;i<nPts;i++) terrainD += ` L ${ptX[i].toFixed(1)} ${(ptY[i]+3).toFixed(1)}`;
+  for(let idx=1;idx<nPts;idx++) terrainD += ` L ${ptX[idx].toFixed(1)} ${(ptY[idx]+3).toFixed(1)}`;
   out += `<path d="${terrainD}" fill="none" stroke="#8B6B47" stroke-width="1.6"/>\n`;
 
-  // miras + marcas BS/FS + puntos de terreno
-  for(let i=0;i<nPts;i++){
-    out += `<line x1="${ptX[i].toFixed(1)}" y1="${(ptY[i]+3).toFixed(1)}" x2="${ptX[i].toFixed(1)}" y2="${staffTopY[i].toFixed(1)}" stroke="var(--ink)" stroke-width="1.6"/>\n`;
-    out += `<circle cx="${ptX[i].toFixed(1)}" cy="${(ptY[i]+3).toFixed(1)}" r="2.6" fill="var(--accent)"/>\n`;
-    const lbl = i===0 ? 'BM' : (i===nPts-1 ? 'PF' : 'PC'+i);
-    out += `<text x="${ptX[i].toFixed(1)}" y="${(ptY[i]+3+11).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--accent)" text-anchor="middle">${lbl}</text>\n`;
-    // Ambas etiquetas (FS entrante, BS saliente) centradas en el propio poste — nunca se
-    // acercan al trípode vecino — con una separación vertical mínima entre ellas para que
-    // no se toquen cuando las dos alturas de instrumento (HI) resultan muy parecidas.
-    let fsLabelY = i>0 ? stY[i-1]-5 : null;
-    let bsLabelY = i<n ? stY[i]+8.5 : null;
-    if(fsLabelY!==null && bsLabelY!==null){
-      const labelMinGap=10;
-      if(bsLabelY-fsLabelY<labelMinGap){
-        const mid=(fsLabelY+bsLabelY)/2;
-        fsLabelY=mid-labelMinGap/2; bsLabelY=mid+labelMinGap/2;
-      }
-    }
-    if(i>0){
-      out += `<line x1="${(ptX[i]-4).toFixed(1)}" y1="${stY[i-1].toFixed(1)}" x2="${(ptX[i]+4).toFixed(1)}" y2="${stY[i-1].toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.4"/>\n`;
-      out += `<text x="${ptX[i].toFixed(1)}" y="${fsLabelY.toFixed(1)}" font-size="7.3" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="middle">FS</text>\n`;
-    }
-    if(i<n){
-      out += `<line x1="${(ptX[i]-4).toFixed(1)}" y1="${stY[i].toFixed(1)}" x2="${(ptX[i]+4).toFixed(1)}" y2="${stY[i].toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.4"/>\n`;
-      out += `<text x="${ptX[i].toFixed(1)}" y="${bsLabelY.toFixed(1)}" font-size="7.3" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="middle">BS</text>\n`;
-    }
+  for(let idx=0;idx<nPts;idx++){
+    out += `<line x1="${ptX[idx].toFixed(1)}" y1="${(ptY[idx]+3).toFixed(1)}" x2="${ptX[idx].toFixed(1)}" y2="${staffTopY[idx].toFixed(1)}" stroke="var(--ink)" stroke-width="1.6"/>\n`;
+    out += `<circle cx="${ptX[idx].toFixed(1)}" cy="${(ptY[idx]+3).toFixed(1)}" r="2.6" fill="var(--accent)"/>\n`;
+    const lbl = idx===0 ? 'BM' : (idx===nPts-1 ? 'PF' : 'PC'+idx);
+    out += `<text x="${ptX[idx].toFixed(1)}" y="${(ptY[idx]+3+11).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--accent)" text-anchor="middle">${lbl}</text>\n`;
   }
 
-  // estaciones: trípode + línea de visual (HI) punteada horizontal
-  for(let i=0;i<n;i++){
-    const Vx=stX[i], Vy=stY[i];
-    const t=(Vx-ptX[i])/(ptX[i+1]-ptX[i]);
-    const terrainAtV = (ptY[i]+3) + ((ptY[i+1]+3)-(ptY[i]+3))*t;
-    out += `<line x1="${ptX[i].toFixed(1)}" y1="${Vy.toFixed(1)}" x2="${ptX[i+1].toFixed(1)}" y2="${Vy.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.3" stroke-dasharray="3 2"/>\n`;
+  stations.forEach(s=>{
+    const y = py(s.hi);
+    const xFrom = ptX[s.fromPt];
+    const xLast = ptX[s.toPts[s.toPts.length-1]];
+    const Vx = (xFrom+xLast)/2, Vy = y;
+
+    out += `<line x1="${(xFrom-4).toFixed(1)}" y1="${y.toFixed(1)}" x2="${(xFrom+4).toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.4"/>\n`;
+    out += `<text x="${xFrom.toFixed(1)}" y="${(y-5).toFixed(1)}" font-size="7.3" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="middle">BS</text>\n`;
+
+    s.toPts.forEach(p=>{
+      const x = ptX[p];
+      out += `<line x1="${(x-4).toFixed(1)}" y1="${y.toFixed(1)}" x2="${(x+4).toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.4"/>\n`;
+      out += `<text x="${x.toFixed(1)}" y="${(y+8.5).toFixed(1)}" font-size="7.3" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="middle">FS</text>\n`;
+    });
+
+    out += `<line x1="${xFrom.toFixed(1)}" y1="${y.toFixed(1)}" x2="${xLast.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.3" stroke-dasharray="3 2"/>\n`;
     out += `<text x="${Vx.toFixed(1)}" y="${(Vy-9).toFixed(1)}" font-size="8" font-family="var(--font-mono)" font-weight="700" fill="var(--blueprint)" text-anchor="middle">HI</text>\n`;
+
+    const idxLo = Math.floor((Vx-pad)/stepX), idxHi = Math.min(idxLo+1, nPts-1);
+    const t = Math.max(0, Math.min(1, (Vx-ptX[idxLo])/(ptX[idxHi]-ptX[idxLo]||1)));
+    const terrainAtV = (ptY[idxLo]+3) + ((ptY[idxHi]+3)-(ptY[idxLo]+3))*t;
     out += `<line x1="${(Vx-3).toFixed(1)}" y1="${(Vy+2).toFixed(1)}" x2="${(Vx-9).toFixed(1)}" y2="${terrainAtV.toFixed(1)}" stroke="var(--ink)" stroke-width="1.3"/>\n`;
     out += `<line x1="${(Vx+3).toFixed(1)}" y1="${(Vy+2).toFixed(1)}" x2="${(Vx+7).toFixed(1)}" y2="${terrainAtV.toFixed(1)}" stroke="var(--ink)" stroke-width="1.3"/>\n`;
     out += `<line x1="${Vx.toFixed(1)}" y1="${(Vy+3).toFixed(1)}" x2="${(Vx-1).toFixed(1)}" y2="${terrainAtV.toFixed(1)}" stroke="var(--ink)" stroke-width="1.3"/>\n`;
     out += `<line x1="${Vx.toFixed(1)}" y1="${(Vy-1).toFixed(1)}" x2="${(Vx+8).toFixed(1)}" y2="${(Vy-1).toFixed(1)}" stroke="var(--ink)" stroke-width="1.5"/>\n`;
     out += `<rect x="${(Vx-4).toFixed(1)}" y="${(Vy-3.7).toFixed(1)}" width="8" height="5.4" rx="1.1" fill="var(--ink)"/>\n`;
     out += `<circle cx="${Vx.toFixed(1)}" cy="${(Vy-0.9).toFixed(1)}" r="1.4" fill="var(--paper)"/>\n`;
-  }
+  });
 
   out += `<text x="${w/2}" y="${h-4}" font-size="7.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(esquemático, no a escala)</text>\n`;
 
@@ -6941,7 +6952,7 @@ function renderNivelDif(){
     box.innerHTML = `<div class="results" style="margin-top:14px;">
       ${cierreRow}
       <div class="table-wrap" style="margin-top:${cierreRow?'10px':'0'};"><table class="data-table"><thead><tr><th>Vista</th><th>BS</th><th>FS</th><th>H.I.</th><th>Cota</th></tr></thead><tbody>${rows}</tbody></table></div>
-      <div class="plot-wrap">${(filas.every(f=>isFinite(f.bs)&&isFinite(f.fs)) && filas.length<=7) ? svgNivelacionDiferencial(cotas, filas) : svgPerfilNivel(cotas, cotas.map((_,i)=> i===0?'BM':(i===cotas.length-1?'PF':'PC'+i)))}</div>
+      <div class="plot-wrap">${(filas.length>0 && isFinite(filas[0].bs) && filas.every(f=>isFinite(f.fs)) && filas.length<=7) ? svgNivelacionDiferencial(cotas, filas) : svgPerfilNivel(cotas, cotas.map((_,i)=> i===0?'BM':(i===cotas.length-1?'PF':'PC'+i)))}</div>
     </div>`;
   });
 }
