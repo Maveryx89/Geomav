@@ -3780,46 +3780,106 @@ function thinLabelStep(n, maxLabels){
    Rótulos abreviados ("DI:", "DH:", "DV:") en negrita, mismo tamaño de fuente los 3, orientados
    a lo largo de cada lado; el ángulo va como número rotado (paralelo a la hipotenusa) junto al
    vértice, y "DV" queda en dos columnas de texto rotadas -90° a la derecha del cateto vertical. */
-function svgTrianguloVertical(anguloDeg, Di, Dh, Dv){
-  const w=320,h=210,pad=32,padR=56;
-  const aClamped=Math.min(Math.max(anguloDeg,3),75);
-  const a=toRad(aClamped);
-  const baseW=(w-padR)-pad;
-  const baseH=Math.min(baseW*Math.tan(a), h-2*pad-16);
-  const x0=pad, y0=h-pad, x1=w-padR, y1=y0-baseH;
-  const arcR=30;
-  const arcEnd={x:x0+arcR*Math.cos(a), y:y0-arcR*Math.sin(a)};
+function svgTrianguloVertical(anguloDeg, Dh, hi, hm, desnivel){
+  const w=300,h=228;
+  const V={x:54,y:120};
+  const rodX=236;
+  const dx=rodX-V.x;
+  let aVis=Math.max(-70,Math.min(anguloDeg,70));
+  if(Math.abs(aVis)<3) aVis = aVis<0 ? -3 : 3;
+  let dy=dx*Math.tan(toRad(aVis));
+  dy=Math.max(-68,Math.min(dy,68));
+  const P={x:rodX, y:V.y-dy}; // punto visado (B), a la altura de la visual
 
-  // Un solo tamaño para los 3 rótulos (DI, DH, DV) — 75% del tamaño anterior.
-  const fontLbl=relFont(w,0.042,11,13.5)*0.75;
-  const fontAng=fontLbl; // ángulo — misma altura que DI/DH/DV
+  // Brackets esquemáticos (no a escala) para Hi y hp — su longitud real casi nunca es
+  // comparable a Dh, así que se fija un tramo de píxeles razonable en vez de escalarlos.
+  const hiPx=24, hpPx=26;
+  const groundA={x:V.x, y:V.y+hiPx};
+  const groundB={x:rodX, y:Math.min(P.y+hpPx, h-8)};
 
-  const labelHip=`DI: ${fmtNum(Di,3)}m`;
-  const labelDh=`DH: ${fmtNum(Dh,3)}m`;
+  function arcPt(cx,cy,angDeg,r){ const a=angDeg*Math.PI/180; return {x:cx+r*Math.cos(a), y:cy-r*Math.sin(a)}; }
+  const rAlpha=22, rZ=40;
+  const alphaSweep = aVis>=0 ? 0 : 1;
+  const a0=arcPt(V.x,V.y,0,rAlpha), a1=arcPt(V.x,V.y,aVis,rAlpha);
+  const alphaMid=arcPt(V.x,V.y,aVis/2,rAlpha+13);
+  const z0=arcPt(V.x,V.y,aVis,rZ), z1=arcPt(V.x,V.y,90,rZ);
+  const zSweep = aVis>=0 ? 0 : 1;
+  const zMid=arcPt(V.x,V.y,(aVis+90)/2,rZ+11);
+  const nTipY=V.y-rZ-12;
 
-  // Ángulo: mismo rótulo que la hipotenusa (misma inclinación, mismo lado por encima de la
-  // línea), pero centrado cerca del vértice en vez de a la mitad del tramo — se logra
-  // reusando svgLineLabel sobre un tramo corto desde el vértice.
-  const angT=0.20;
-  const angNearX=x0+angT*(x1-x0), angNearY=y0+angT*(y1-y0);
+  // Terreno: curva café entre la base del trípode y la base del jalón/prisma
+  const gStartX=V.x-16, gStartY=groundA.y+3;
+  const gEndX=rodX+16, gEndY=groundB.y+3;
+  const gc1x=gStartX+(gEndX-gStartX)*0.32, gc1y=gStartY+(gEndY-gStartY)*0.18;
+  const gc2x=gStartX+(gEndX-gStartX)*0.68, gc2y=gEndY-(gEndY-gStartY)*0.18;
+  const legFootY=groundA.y-2;
 
-  // "DV" en dos columnas rotadas -90° (se lee de abajo hacia arriba), centradas
-  // sobre el cateto vertical punteado
-  const vMidY=(y0+y1)/2;
-  const vCol1X=x1+fontLbl*0.95+5;
-  const vCol2X=x1+fontLbl*2.15+8;
+  // Bracket Hi (a la izquierda del trípode)
+  const hiX=V.x-15;
+  // Bracket hp (pegado al jalón, a la derecha)
+  const hpX=rodX+11;
+  // Bracket ΔH (más a la derecha, entre la prolongación horizontal de groundA y groundB)
+  const dhX=rodX+37;
+  let arrowUpY = groundA.y<groundB.y ? groundA.y : groundB.y; // extremo superior real del bracket
+  let arrowDnY = groundA.y<groundB.y ? groundB.y : groundA.y;
+  // Separación mínima visual para que el bracket ΔH siga siendo legible cuando el
+  // desnivel resulta muy pequeño en píxeles (no altera el valor numérico, solo el dibujo).
+  const minGap=15;
+  if(arrowDnY-arrowUpY<minGap){
+    const mid=(arrowUpY+arrowDnY)/2;
+    arrowUpY=mid-minGap/2; arrowDnY=mid+minGap/2;
+  }
 
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <path d="M${x0} ${y0} L${x1} ${y0} M${x0} ${y0} L${x1} ${y1}" stroke="var(--blueprint)" stroke-width="2" fill="none"/>
-    <path d="M${x1} ${y0} L${x1} ${y1}" stroke="var(--line-strong)" stroke-width="1.4" stroke-dasharray="3 3" fill="none"/>
-    <path d="M${x0+arcR} ${y0} A${arcR} ${arcR} 0 0 0 ${arcEnd.x.toFixed(1)} ${arcEnd.y.toFixed(1)}" stroke="var(--accent)" stroke-width="1.6" fill="none"/>
-    <circle cx="${x0}" cy="${y0}" r="3.2" fill="var(--ink)"/>
-    <circle cx="${x1}" cy="${y1}" r="3.2" fill="var(--accent)"/>
-    ${svgLineLabel(x0,y0,x1,y1, labelHip, 'var(--ink)', fontLbl, -1, 1.15, 700)}
-    ${svgLineLabel(x0,y0,angNearX,angNearY, 'A: '+fmtNum(aClamped,4)+'&#176;', 'var(--blueprint)', fontAng, -1, 1.3, 700)}
-    <text x="${((x0+x1)/2).toFixed(1)}" y="${(y0+20).toFixed(1)}" font-size="${fontLbl.toFixed(1)}" font-family="var(--font-mono)" font-weight="700" fill="var(--ink)" text-anchor="middle">${labelDh}</text>
-    <text x="${vCol1X.toFixed(1)}" y="${vMidY.toFixed(1)}" font-size="${fontLbl.toFixed(1)}" font-family="var(--font-mono)" font-weight="700" fill="var(--ink)" text-anchor="middle" transform="rotate(-90 ${vCol1X.toFixed(1)} ${vMidY.toFixed(1)})">DV:</text>
-    <text x="${vCol2X.toFixed(1)}" y="${vMidY.toFixed(1)}" font-size="${fontLbl.toFixed(1)}" font-family="var(--font-mono)" font-weight="700" fill="var(--ink)" text-anchor="middle" transform="rotate(-90 ${vCol2X.toFixed(1)} ${vMidY.toFixed(1)})">${fmtNum(Dv,3)}m</text>
+    <path d="M ${gStartX.toFixed(1)} ${gStartY.toFixed(1)} C ${gc1x.toFixed(1)} ${gc1y.toFixed(1)}, ${gc2x.toFixed(1)} ${gc2y.toFixed(1)}, ${gEndX.toFixed(1)} ${gEndY.toFixed(1)}" fill="none" stroke="#8B6B47" stroke-width="1.6"/>
+
+    <line x1="${V.x}" y1="${V.y}" x2="${V.x}" y2="${nTipY}" stroke="var(--ink-soft)" stroke-width="1.2"/>
+    <polygon points="${V.x-4},${nTipY+8} ${V.x+4},${nTipY+8} ${V.x},${nTipY}" fill="var(--ink-soft)"/>
+    <text x="${V.x}" y="${nTipY-6}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="middle">N</text>
+
+    <line x1="${V.x}" y1="${V.y}" x2="${rodX}" y2="${V.y}" stroke="var(--ink-soft)" stroke-width="1.3" stroke-dasharray="3 2"/>
+    ${svgLineLabel(V.x,V.y,rodX,V.y,'Dh','var(--ink-soft)',9,1,0.9,700)}
+
+    <line x1="${V.x}" y1="${V.y}" x2="${P.x}" y2="${P.y}" stroke="var(--blueprint)" stroke-width="1.6"/>
+    ${svgLineLabel(V.x,V.y,P.x,P.y,'Di','var(--blueprint)',9,-1,0.9,700)}
+
+    <path d="M ${a0.x.toFixed(1)} ${a0.y.toFixed(1)} A ${rAlpha} ${rAlpha} 0 0 ${alphaSweep} ${a1.x.toFixed(1)} ${a1.y.toFixed(1)}" fill="none" stroke="var(--blueprint)" stroke-width="1"/>
+    <text x="${alphaMid.x.toFixed(1)}" y="${alphaMid.y.toFixed(1)}" font-size="8.5" font-family="var(--font-mono)" font-weight="700" fill="var(--blueprint)" text-anchor="middle">α</text>
+
+    <path d="M ${z0.x.toFixed(1)} ${z0.y.toFixed(1)} A ${rZ} ${rZ} 0 0 ${zSweep} ${z1.x.toFixed(1)} ${z1.y.toFixed(1)}" fill="none" stroke="var(--ink-soft)" stroke-width="0.9" stroke-dasharray="2 2"/>
+    <text x="${zMid.x.toFixed(1)}" y="${zMid.y.toFixed(1)}" font-size="8.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Z</text>
+
+    <line x1="${hiX}" y1="${groundA.y.toFixed(1)}" x2="${hiX}" y2="${V.y}" stroke="var(--ink-soft)" stroke-width="1.3"/>
+    <line x1="${hiX-3}" y1="${groundA.y.toFixed(1)}" x2="${hiX+3}" y2="${groundA.y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.3"/>
+    <line x1="${hiX-3}" y1="${V.y}" x2="${hiX+3}" y2="${V.y}" stroke="var(--ink-soft)" stroke-width="1.3"/>
+    <text x="${(hiX-5).toFixed(1)}" y="${((groundA.y+V.y)/2+3).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="end">Hi</text>
+
+    <line x1="${hpX}" y1="${groundB.y.toFixed(1)}" x2="${hpX}" y2="${P.y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.3"/>
+    <line x1="${hpX-3}" y1="${groundB.y.toFixed(1)}" x2="${hpX+3}" y2="${groundB.y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.3"/>
+    <line x1="${hpX-3}" y1="${P.y.toFixed(1)}" x2="${hpX+3}" y2="${P.y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.3"/>
+    <text x="${(hpX+5).toFixed(1)}" y="${((groundB.y+P.y)/2+3).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="start">hp</text>
+
+    <line x1="${gEndX.toFixed(1)}" y1="${groundA.y.toFixed(1)}" x2="${dhX}" y2="${groundA.y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2"/>
+    <line x1="${rodX}" y1="${groundB.y.toFixed(1)}" x2="${dhX}" y2="${groundB.y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2"/>
+    <line x1="${dhX}" y1="${arrowUpY.toFixed(1)}" x2="${dhX}" y2="${arrowDnY.toFixed(1)}" stroke="var(--accent)" stroke-width="1.6"/>
+    <polygon points="${dhX-3},${(arrowUpY+6).toFixed(1)} ${dhX+3},${(arrowUpY+6).toFixed(1)} ${dhX},${arrowUpY.toFixed(1)}" fill="var(--accent)"/>
+    <polygon points="${dhX-3},${(arrowDnY-6).toFixed(1)} ${dhX+3},${(arrowDnY-6).toFixed(1)} ${dhX},${arrowDnY.toFixed(1)}" fill="var(--accent)"/>
+    <text x="${(dhX+7).toFixed(1)}" y="${((arrowUpY+arrowDnY)/2+3).toFixed(1)}" font-size="9.5" font-family="var(--font-mono)" font-weight="700" fill="var(--accent)" text-anchor="start">ΔH</text>
+
+    <line x1="${(V.x-3).toFixed(1)}" y1="${(V.y+2).toFixed(1)}" x2="${(V.x-11).toFixed(1)}" y2="${legFootY.toFixed(1)}" stroke="var(--ink)" stroke-width="1.4"/>
+    <line x1="${(V.x+3).toFixed(1)}" y1="${(V.y+2).toFixed(1)}" x2="${(V.x+8).toFixed(1)}" y2="${legFootY.toFixed(1)}" stroke="var(--ink)" stroke-width="1.4"/>
+    <line x1="${V.x}" y1="${(V.y+3).toFixed(1)}" x2="${(V.x-1).toFixed(1)}" y2="${legFootY.toFixed(1)}" stroke="var(--ink)" stroke-width="1.4"/>
+    <line x1="${V.x}" y1="${(V.y-1).toFixed(1)}" x2="${(V.x+9).toFixed(1)}" y2="${(V.y-1).toFixed(1)}" stroke="var(--ink)" stroke-width="1.6"/>
+    <rect x="${(V.x-4.5).toFixed(1)}" y="${(V.y-4).toFixed(1)}" width="9" height="6" rx="1.3" fill="var(--ink)"/>
+    <circle cx="${V.x}" cy="${(V.y-1).toFixed(1)}" r="1.6" fill="var(--paper)"/>
+    <text x="${(V.x-13).toFixed(1)}" y="${(V.y+9).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink)" text-anchor="end">A</text>
+
+    <line x1="${rodX}" y1="${groundB.y.toFixed(1)}" x2="${rodX}" y2="${(P.y+3).toFixed(1)}" stroke="var(--ink)" stroke-width="1.6"/>
+    <rect x="${rodX-3.3}" y="${(P.y-5).toFixed(1)}" width="6.6" height="6.6" rx="1" fill="var(--ink)"/>
+    <circle cx="${rodX}" cy="${(P.y-1.7).toFixed(1)}" r="1.2" fill="var(--paper)"/>
+    <text x="${(rodX+6).toFixed(1)}" y="${(groundB.y+9).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink)" text-anchor="start">B</text>
+
+    <text x="${w/2}" y="${h-4}" font-size="7.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(esquemático, no a escala)</text>
   </svg>`;
 }
 
@@ -5921,7 +5981,7 @@ function renderNivel(){
       <div class="result-row"><span class="k">Distancia horizontal usada</span><span class="v">${fmtNum(D,3)} m</span></div>
       ${crRow}
       <div class="result-row"><span class="k">Desnivel</span><span class="v accent big">${fmtNum(desnivel,3)} m</span></div>
-      <div class="plot-wrap">${svgTrianguloVertical(ang, Din, D, desnivel)}</div>
+      <div class="plot-wrap">${svgTrianguloVertical(ang, D, hi, hm, desnivel)}</div>
     </div>`;
   });
 }
