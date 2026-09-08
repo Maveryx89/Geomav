@@ -4933,7 +4933,11 @@ function svgTaquimetria(hs,hm,hi_lect,anguloDeg){
   const alphaMid=arcPt(V.x,V.y,aVis/2,rAlpha+12);
   const v0=arcPt(V.x,V.y,aVis,rVr), v1=arcPt(V.x,V.y,90,rVr);
   const vrMid=arcPt(V.x,V.y,(aVis+90)/2,rVr+9);
-  const nTipY=16;
+  // El brazo de N solo necesita llegar un poco más arriba que el arco de Vr (no hasta
+  // el borde del lienzo) — el resto de ese espacio sobrante arriba se recorta del
+  // viewBox (topCrop) para que el dibujo útil ocupe más del marco visible.
+  const nTipY=V.y-rVr-12;
+  const topCrop=44;
   const groundStartX=V.x-16, groundStartY=V.y+17;
   const groundEndX=rodX+6, groundEndY=Math.min(y_hi+14, h-8);
   const gc1x=groundStartX+(groundEndX-groundStartX)*0.32, gc1y=groundStartY+9;
@@ -4947,7 +4951,7 @@ function svgTaquimetria(hs,hm,hi_lect,anguloDeg){
   } else if(V.y > rodBase){
     dashedProj = `<line x1="${rodX}" y1="${rodBase.toFixed(1)}" x2="${rodX}" y2="${V.y}" stroke="var(--ink-soft)" stroke-width="1.6" stroke-dasharray="3 2"/>`;
   }
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+  return `<svg viewBox="0 ${topCrop} ${w} ${h-topCrop}" xmlns="http://www.w3.org/2000/svg">
     <path d="M ${groundStartX.toFixed(1)} ${groundStartY.toFixed(1)} C ${gc1x.toFixed(1)} ${gc1y.toFixed(1)}, ${gc2x.toFixed(1)} ${gc2y.toFixed(1)}, ${groundEndX.toFixed(1)} ${groundEndY.toFixed(1)}" fill="none" stroke="var(--ink-soft)" stroke-width="1.4"/>
     <text x="${(groundStartX+2).toFixed(1)}" y="${(groundStartY+13).toFixed(1)}" font-size="7.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Terreno</text>
     <line x1="${V.x}" y1="${V.y}" x2="${V.x}" y2="${nTipY}" stroke="var(--ink-soft)" stroke-width="1.2"/>
