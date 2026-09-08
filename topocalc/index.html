@@ -4952,8 +4952,7 @@ function svgTaquimetria(hs,hm,hi_lect,anguloDeg){
     dashedProj = `<line x1="${rodX}" y1="${rodBase.toFixed(1)}" x2="${rodX}" y2="${V.y}" stroke="var(--ink-soft)" stroke-width="1.6" stroke-dasharray="3 2"/>`;
   }
   return `<svg viewBox="0 ${topCrop} ${w} ${h-topCrop}" xmlns="http://www.w3.org/2000/svg">
-    <path d="M ${groundStartX.toFixed(1)} ${groundStartY.toFixed(1)} C ${gc1x.toFixed(1)} ${gc1y.toFixed(1)}, ${gc2x.toFixed(1)} ${gc2y.toFixed(1)}, ${groundEndX.toFixed(1)} ${groundEndY.toFixed(1)}" fill="none" stroke="var(--ink-soft)" stroke-width="1.4"/>
-    <text x="${(groundStartX+2).toFixed(1)}" y="${(groundStartY+13).toFixed(1)}" font-size="7.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Terreno</text>
+    <path d="M ${groundStartX.toFixed(1)} ${groundStartY.toFixed(1)} C ${gc1x.toFixed(1)} ${gc1y.toFixed(1)}, ${gc2x.toFixed(1)} ${gc2y.toFixed(1)}, ${groundEndX.toFixed(1)} ${groundEndY.toFixed(1)}" fill="none" stroke="#8B6B47" stroke-width="1.6"/>
     <line x1="${V.x}" y1="${V.y}" x2="${V.x}" y2="${nTipY}" stroke="var(--ink-soft)" stroke-width="1.2"/>
     <polygon points="${V.x-4},${nTipY+8} ${V.x+4},${nTipY+8} ${V.x},${nTipY}" fill="var(--ink-soft)"/>
     <text x="${V.x}" y="${nTipY-6}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="middle">N</text>
