@@ -4934,12 +4934,19 @@ function svgTaquimetria(hs,hm,hi_lect,anguloDeg){
   const v0=arcPt(V.x,V.y,aVis,rVr), v1=arcPt(V.x,V.y,90,rVr);
   const vrMid=arcPt(V.x,V.y,(aVis+90)/2,rVr+9);
   const nTipY=16;
-  const rodYTop=16, rodYBot=h-14;
   const groundStartX=V.x-16, groundStartY=V.y+17;
   const groundEndX=rodX+6, groundEndY=Math.min(y_hi+14, h-8);
   const gc1x=groundStartX+(groundEndX-groundStartX)*0.32, gc1y=groundStartY+9;
   const gc2x=groundStartX+(groundEndX-groundStartX)*0.68, gc2y=groundEndY-7;
   const legFootY=groundStartY-2;
+  const rodTopVisible=Math.max(16, y_hs-10);
+  const rodBase=groundEndY;
+  let dashedProj='';
+  if(V.y < rodTopVisible){
+    dashedProj = `<line x1="${rodX}" y1="${rodTopVisible.toFixed(1)}" x2="${rodX}" y2="${V.y}" stroke="var(--ink-soft)" stroke-width="1.6" stroke-dasharray="3 2"/>`;
+  } else if(V.y > rodBase){
+    dashedProj = `<line x1="${rodX}" y1="${rodBase.toFixed(1)}" x2="${rodX}" y2="${V.y}" stroke="var(--ink-soft)" stroke-width="1.6" stroke-dasharray="3 2"/>`;
+  }
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <path d="M ${groundStartX.toFixed(1)} ${groundStartY.toFixed(1)} C ${gc1x.toFixed(1)} ${gc1y.toFixed(1)}, ${gc2x.toFixed(1)} ${gc2y.toFixed(1)}, ${groundEndX.toFixed(1)} ${groundEndY.toFixed(1)}" fill="none" stroke="var(--ink-soft)" stroke-width="1.4"/>
     <text x="${(groundStartX+2).toFixed(1)}" y="${(groundStartY+13).toFixed(1)}" font-size="7.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Terreno</text>
@@ -4948,7 +4955,8 @@ function svgTaquimetria(hs,hm,hi_lect,anguloDeg){
     <text x="${V.x}" y="${nTipY-6}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="middle">N</text>
     <line x1="${V.x}" y1="${V.y}" x2="${rodX}" y2="${V.y}" stroke="var(--accent)" stroke-width="1.3" stroke-dasharray="3 2"/>
     ${svgLineLabel(V.x,V.y,rodX,V.y,'DH','var(--accent)',9,1,0.9,700)}
-    <line x1="${rodX}" y1="${rodYTop}" x2="${rodX}" y2="${rodYBot}" stroke="var(--ink)" stroke-width="2.4"/>
+    ${dashedProj}
+    <line x1="${rodX}" y1="${rodTopVisible.toFixed(1)}" x2="${rodX}" y2="${rodBase.toFixed(1)}" stroke="var(--ink)" stroke-width="2.4"/>
     <line x1="${V.x}" y1="${V.y}" x2="${rodX}" y2="${y_hs.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2"/>
     <line x1="${V.x}" y1="${V.y}" x2="${rodX}" y2="${y_hi.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2"/>
     <line x1="${V.x}" y1="${V.y}" x2="${rodX}" y2="${y_hm.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.6"/>
