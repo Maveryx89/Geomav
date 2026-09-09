@@ -115,6 +115,15 @@ const proyectosPortafolio = {
       icono: '🏠'
     },
     {
+      id: 'parcela-n6',
+      titulo: 'Parcela N°6',
+      ubicacion: 'Talca, Región del Maule',
+      url: 'https://parcela-n-6.netlify.app/',
+      real: true,
+      icono: '🌳',
+      vertical: true
+    },
+    {
       id: 'ejemplo-comercial',
       titulo: 'Edificio Comercial (ejemplo)',
       ubicacion: 'Demo Matterport',
