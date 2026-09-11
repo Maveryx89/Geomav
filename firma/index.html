@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Firma de Correo — GEOMAV</title>
+<meta name="description" content="Crea tu firma de correo GEOMAV con logo, elige entre varios estilos y cópiala lista para Gmail y Outlook (escritorio, web y móvil).">
+<meta name="robots" content="noindex">
+<link rel="icon" href="../assets/img/geomav-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
+<link rel="stylesheet" href="../assets/css/estilo.css">
+<style>
+  /* ── Página "Firma de Correo" — hereda variables y tipografía de assets/css/estilo.css ── */
+
+  body.firma-body { padding-top: 88px; }
+
+  .firma-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    padding: 16px 0;
+    background-color: rgba(244,243,239,0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--color-borde);
+  }
+  .firma-header-inner {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .firma-header .logotipo-imagen { height: 40px; width: auto; display: block; }
+  .firma-volver {
+    font-size: 0.85rem; font-weight: 600; color: var(--color-primario);
+    text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    transition: var(--transicion);
+  }
+  .firma-volver:hover { color: var(--color-secundario); }
+
+  .firma-intro { padding: 56px 0 32px; }
+  .firma-intro-desc {
+    max-width: 62ch; font-size: 1.02rem; color: var(--color-muted); line-height: 1.6;
+  }
+
+  .firma-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+    padding-bottom: 90px;
+  }
+  @media (max-width: 800px) {
+    .firma-layout { grid-template-columns: 1fr; }
+  }
+
+  .firma-panel {
+    background: var(--color-blanco);
+    border: 1px solid var(--color-borde);
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 4px 16px var(--color-sombra);
+  }
+  .firma-panel + .firma-panel { margin-top: 20px; }
+
+  .firma-eyebrow {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--color-acento); margin: 0 0 16px;
+  }
+
+  .firma-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .firma-field label {
+    font-size: 0.78rem; font-weight: 700; color: var(--color-muted);
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .firma-field input[type="text"], .firma-field input[type="email"],
+  .firma-field input[type="tel"], .firma-field input[type="url"] {
+    font: inherit; font-size: 0.94rem; color: var(--color-primario);
+    background: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 7px;
+    padding: 10px 12px;
+    width: 100%;
+    transition: var(--transicion);
+  }
+  .firma-field input:focus-visible {
+    outline: none; border-color: var(--color-secundario);
+    box-shadow: 0 0 0 3px var(--color-acento-tenue);
+  }
+  .firma-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 440px) { .firma-row2 { grid-template-columns: 1fr; } }
+
+  .firma-logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .firma-logo-swatch {
+    width: 52px; height: 52px; border: 1px solid var(--color-borde); border-radius: 8px;
+    background: var(--color-blanco); display: flex; align-items: center; justify-content: center;
+    flex: none; overflow: hidden;
+  }
+  .firma-logo-swatch img { max-width: 42px; max-height: 42px; display: block; }
+  .firma-file-btn {
+    font-family: inherit; font-size: 0.82rem; font-weight: 700; color: var(--color-primario);
+    background: var(--color-fondo); border: 1px solid var(--color-borde); border-radius: 7px;
+    padding: 9px 14px; cursor: pointer; transition: var(--transicion);
+  }
+  .firma-file-btn:hover { border-color: var(--color-secundario); }
+  .firma-file-btn input[type="file"] { display: none; }
+  .firma-link-btn {
+    font-family: inherit; font-size: 0.78rem; color: var(--color-muted); background: none;
+    border: none; text-decoration: underline; cursor: pointer; padding: 0;
+  }
+  .firma-hint { font-size: 0.76rem; color: var(--color-dim); margin: 8px 0 0; }
+
+  /* ── selector de plantillas ── */
+  .firma-tpl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
+  @media (max-width: 480px) { .firma-tpl-grid { grid-template-columns: repeat(2, 1fr); } }
+  .firma-tpl-card {
+    border: 1px solid var(--color-borde); border-radius: 8px; padding: 8px; cursor: pointer;
+    background: var(--color-fondo); position: relative; text-align: left; font: inherit; color: inherit;
+    transition: var(--transicion);
+  }
+  .firma-tpl-card:hover { border-color: var(--color-secundario); }
+  .firma-tpl-card.selected {
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 2px var(--color-primario) inset;
+    background: var(--color-blanco);
+  }
+  .firma-tpl-name {
+    display: block; font-size: 0.72rem; font-weight: 700; color: var(--color-muted);
+    margin-top: 7px; text-align: center;
+  }
+  .firma-tpl-card.selected .firma-tpl-name { color: var(--color-primario); }
+  .firma-tpl-check {
+    position: absolute; top: 5px; right: 5px; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--color-primario); color: #FFFFFF; font-size: 10px; display: none;
+    align-items: center; justify-content: center; line-height: 1;
+  }
+  .firma-tpl-card.selected .firma-tpl-check { display: flex; }
+  .firma-tpl-thumb {
+    height: 46px; background: #FFFFFF; border: 1px solid var(--color-borde); border-radius: 5px;
+    display: flex; padding: 6px; box-sizing: border-box;
+  }
+  .firma-tpl-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--color-borde); flex: none; }
+  .firma-tpl-bar { height: 3px; background: var(--color-borde); border-radius: 2px; }
+  .firma-tpl-bar.dark { background: var(--color-primario); opacity: 0.6; }
+
+  /* ── vista previa "compose window" — papel siempre blanco, como un correo real ── */
+  .firma-compose-frame {
+    border: 1px solid var(--color-borde); border-radius: 10px; overflow: hidden; background: var(--color-blanco);
+  }
+  .firma-compose-titlebar {
+    display: flex; align-items: center; gap: 7px; padding: 10px 14px;
+    background: var(--color-fondo); border-bottom: 1px solid var(--color-borde);
+  }
+  .firma-compose-titlebar .firma-dots { display: flex; gap: 5px; }
+  .firma-compose-titlebar .firma-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--color-borde); }
+  .firma-compose-titlebar .firma-label {
+    margin-left: 6px; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-muted);
+  }
+  .firma-compose-paper { background: #FFFFFF; color: #333333; padding: 24px 24px 28px; }
+  .firma-compose-paper .firma-sendoff {
+    font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #333333; margin: 0 0 16px; line-height: 1.5;
+  }
+  .firma-compose-paper .firma-sig-mount { border-top: 1px solid #E3E3E3; padding-top: 16px; }
+
+  .firma-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+
+  .firma-callout {
+    display: flex; gap: 10px; background: var(--color-acento-tenue);
+    border: 1px solid var(--color-borde); border-left: 3px solid var(--color-acento);
+    border-radius: 8px; padding: 14px 16px; font-size: 0.86rem; color: var(--color-primario); margin-top: 20px;
+  }
+  .firma-callout strong { color: var(--color-primario); }
+
+  .firma-howto {
+    border: 1px solid var(--color-borde); border-radius: 8px; padding: 4px 16px; margin-bottom: 8px; background: var(--color-fondo);
+  }
+  .firma-howto + .firma-howto { margin-top: 8px; }
+  .firma-howto summary {
+    cursor: pointer; padding: 12px 0; font-size: 0.9rem; font-weight: 700; color: var(--color-primario);
+    list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .firma-howto summary::-webkit-details-marker { display: none; }
+  .firma-howto summary::after { content: "+"; color: var(--color-muted); font-size: 1.1rem; flex: none; }
+  .firma-howto[open] summary::after { content: "\2212"; }
+  .firma-howto p { margin: 0 0 14px; font-size: 0.88rem; color: var(--color-muted); line-height: 1.6; }
+  .firma-howto code {
+    background: var(--color-borde); border-radius: 4px; padding: 1px 5px; font-size: 0.84em; color: var(--color-primario);
+  }
+
+  #firma-toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 12px);
+    background: var(--color-secundario); color: #FFFFFF; font-size: 0.86rem; font-weight: 700;
+    padding: 12px 20px; border-radius: 999px; box-shadow: 0 8px 24px rgba(10,34,64,0.25);
+    opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease; z-index: 2000;
+  }
+  #firma-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  .firma-footer-mini {
+    padding: 28px 0 40px; border-top: 1px solid var(--color-borde); background: var(--color-blanco);
+  }
+  .firma-footer-mini .contenedor {
+    display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;
+    font-size: 0.88rem; color: var(--color-dim);
+  }
+</style>
+</head>
+<body class="firma-body">
+
+  <header class="firma-header">
+    <div class="contenedor firma-header-inner">
+      <a href="../index.html" class="logotipo"><img src="../assets/img/geomav-logo.png" alt="GEOMAV" class="logotipo-imagen"></a>
+      <a href="../index.html" class="firma-volver">&larr; Volver al sitio</a>
+    </div>
+  </header>
+
+  <section class="firma-intro">
+    <div class="contenedor">
+      <p class="etiqueta-seccion">Herramienta interna &middot; GEOMAV</p>
+      <h1 class="titulo-seccion">Generador de Firma de Correo</h1>
+      <p class="firma-intro-desc">Completa tus datos, elige un estilo y copia la firma lista para pegar en Gmail o Outlook &mdash; con o sin logo, según la plataforma.</p>
+    </div>
+  </section>
+
+  <main class="contenedor firma-layout">
+    <!-- FORMULARIO -->
+    <div class="firma-panel">
+      <p class="firma-eyebrow">Estilo de firma</p>
+      <div class="firma-tpl-grid" id="tpl-grid">
+        <button type="button" class="firma-tpl-card" data-tpl="classic">
+          <span class="firma-tpl-check">&#10003;</span>
+          <span class="firma-tpl-thumb" style="align-items:center; gap:6px;">
+            <span class="firma-tpl-dot"></span>
+            <span style="width:1px; align-self:stretch; background:var(--color-borde);"></span>
+            <span style="display:flex; flex-direction:column; gap:3px; flex:1; justify-content:center;">
+              <span class="firma-tpl-bar dark" style="width:70%;"></span>
+              <span class="firma-tpl-bar" style="width:90%;"></span>
+              <span class="firma-tpl-bar" style="width:55%;"></span>
+            </span>
+          </span>
+          <span class="firma-tpl-name">Clásica</span>
+        </button>
+
+        <button type="button" class="firma-tpl-card" data-tpl="stacked">
+          <span class="firma-tpl-check">&#10003;</span>
+          <span class="firma-tpl-thumb" style="flex-direction:column; align-items:center; justify-content:center; gap:3px;">
+            <span class="firma-tpl-dot" style="width:11px; height:11px;"></span>
+            <span class="firma-tpl-bar dark" style="width:55%;"></span>
+            <span class="firma-tpl-bar" style="width:70%;"></span>
+          </span>
+          <span class="firma-tpl-name">Apilada</span>
+        </button>
+
+        <button type="button" class="firma-tpl-card" data-tpl="twocol">
+          <span class="firma-tpl-check">&#10003;</span>
+          <span class="firma-tpl-thumb" style="flex-direction:column; justify-content:center; gap:5px;">
+            <span style="display:flex; align-items:center; gap:5px;">
+              <span class="firma-tpl-dot" style="width:11px; height:11px;"></span>
+              <span class="firma-tpl-bar dark" style="width:50%;"></span>
+            </span>
+            <span style="display:flex; gap:6px; padding-left:16px;">
+              <span class="firma-tpl-bar" style="width:32%;"></span>
+              <span class="firma-tpl-bar" style="width:32%;"></span>
+            </span>
+          </span>
+          <span class="firma-tpl-name">Dos columnas</span>
+        </button>
+
+        <button type="button" class="firma-tpl-card" data-tpl="right">
+          <span class="firma-tpl-check">&#10003;</span>
+          <span class="firma-tpl-thumb" style="align-items:center; gap:6px; flex-direction:row-reverse;">
+            <span class="firma-tpl-dot"></span>
+            <span style="width:1px; align-self:stretch; background:var(--color-borde);"></span>
+            <span style="display:flex; flex-direction:column; gap:3px; flex:1; justify-content:center; align-items:flex-end;">
+              <span class="firma-tpl-bar dark" style="width:70%;"></span>
+              <span class="firma-tpl-bar" style="width:90%;"></span>
+              <span class="firma-tpl-bar" style="width:55%;"></span>
+            </span>
+          </span>
+          <span class="firma-tpl-name">Logo a la derecha</span>
+        </button>
+
+        <button type="button" class="firma-tpl-card" data-tpl="oneline">
+          <span class="firma-tpl-check">&#10003;</span>
+          <span class="firma-tpl-thumb" style="align-items:center; gap:6px;">
+            <span class="firma-tpl-dot" style="width:10px; height:10px;"></span>
+            <span class="firma-tpl-bar dark" style="width:88%;"></span>
+          </span>
+          <span class="firma-tpl-name">Línea única</span>
+        </button>
+      </div>
+
+      <p class="firma-eyebrow">Datos de la firma</p>
+
+      <div class="firma-logo-row">
+        <div class="firma-logo-swatch"><img id="logo-thumb" src="" alt=""></div>
+        <label class="firma-file-btn">
+          Cambiar logo
+          <input type="file" id="f-logo" accept="image/png,image/jpeg,image/svg+xml">
+        </label>
+        <button type="button" class="firma-link-btn" id="btn-reset-logo">Usar logo GEOMAV</button>
+      </div>
+      <p class="firma-hint">Se reduce automáticamente a un tamaño liviano para correo.</p>
+
+      <div class="firma-field">
+        <label for="f-name">Nombre completo</label>
+        <input type="text" id="f-name" value="Mario Verdugo Astorga">
+      </div>
+      <div class="firma-field">
+        <label for="f-role">Cargo / título</label>
+        <input type="text" id="f-role" value="Técnico en Topografía · Perito Topográfico Judicial">
+      </div>
+      <div class="firma-field">
+        <label for="f-brand">Empresa / marca</label>
+        <input type="text" id="f-brand" value="GeoMav — Topografía &amp; Fotogrametría">
+      </div>
+      <div class="firma-row2">
+        <div class="firma-field">
+          <label for="f-phone">Teléfono</label>
+          <input type="tel" id="f-phone" value="+56 9 8486 7813">
+        </div>
+        <div class="firma-field">
+          <label for="f-email">Correo</label>
+          <input type="email" id="f-email" value="mverdugoa89@gmail.com">
+        </div>
+      </div>
+      <div class="firma-field">
+        <label for="f-city">Ciudad / ubicación</label>
+        <input type="text" id="f-city" value="Talca, Región del Maule, Chile">
+      </div>
+      <div class="firma-field">
+        <label for="f-website">Enlace opcional (portafolio, recorrido virtual, sitio web)</label>
+        <input type="url" id="f-website" placeholder="https://" value="">
+      </div>
+    </div>
+
+    <!-- VISTA PREVIA + ACCIONES -->
+    <div>
+      <div class="firma-panel">
+        <p class="firma-eyebrow">Vista previa</p>
+        <div class="firma-compose-frame">
+          <div class="firma-compose-titlebar">
+            <div class="firma-dots"><span></span><span></span><span></span></div>
+            <span class="firma-label">Fin del correo</span>
+          </div>
+          <div class="firma-compose-paper">
+            <p class="firma-sendoff">Quedo atento a cualquier consulta.<br>Saludos cordiales,</p>
+            <div class="firma-sig-mount" id="sig-mount"></div>
+          </div>
+        </div>
+
+        <div class="firma-actions">
+          <button type="button" class="boton boton-primario" id="btn-copy-rich">Copiar firma con logo</button>
+          <button type="button" class="boton boton-contorno" id="btn-copy-plain">Copiar versión de texto plano</button>
+        </div>
+
+        <div class="firma-callout">
+          <span aria-hidden="true">&#9888;&#65039;</span>
+          <span><strong>Outlook para celular</strong> no admite logos ni formato — usa ahí la versión de texto plano. En todo lo demás (Gmail y Outlook de escritorio o web) funciona la firma con logo.</span>
+        </div>
+      </div>
+
+      <div class="firma-panel">
+        <p class="firma-eyebrow">Cómo instalarla en cada plataforma</p>
+
+        <details class="firma-howto" open>
+          <summary>Gmail (navegador, computador)</summary>
+          <p>Copia la firma con logo. Ve a <code>Configuración ⚙ → Ver toda la configuración → General → Firma</code>, crea una firma nueva y pégala ahí. Guarda los cambios al final de la página.</p>
+        </details>
+
+        <details class="firma-howto">
+          <summary>Gmail — app Android</summary>
+          <p>Desde la actualización 2025 de Gmail, la app usa automáticamente la misma firma que configuraste en el navegador, con logo y formato incluidos — siempre que no tengas una firma manual distinta puesta en la app. Revisa <code>Configuración → tu cuenta → Firma</code> y quita cualquier texto propio para que herede la del navegador.</p>
+        </details>
+
+        <details class="firma-howto">
+          <summary>Gmail desde el navegador del celular</summary>
+          <p>No requiere configuración aparte: al ser el mismo Gmail web (en formato móvil), toma automáticamente la firma que ya configuraste ahí.</p>
+        </details>
+
+        <details class="firma-howto">
+          <summary>Outlook (escritorio o outlook.com)</summary>
+          <p>Outlook no sincroniza firmas entre plataformas, así que se configura por separado en cada una. Ve a <code>Configuración → Correo → Redactar y responder → Firma de correo</code> y pega ahí la misma firma con logo. Repite el mismo paso tanto en la app de escritorio como en outlook.com.</p>
+        </details>
+
+        <details class="firma-howto">
+          <summary>Outlook — app móvil</summary>
+          <p>El editor de firma de la app no admite imágenes ni HTML. Copia la <strong>versión de texto plano</strong> y pégala en <code>Configuración ⚙ → cuenta → Firma</code>.</p>
+        </details>
+      </div>
+    </div>
+  </main>
+
+  <footer class="firma-footer-mini">
+    <div class="contenedor">
+      <span>&copy; 2025 GEOMAV Soluciones. Todos los derechos reservados. Chile.</span>
+      <a href="../index.html" class="pie-enlace">Volver al inicio</a>
+    </div>
+  </footer>
+
+  <div id="firma-toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  // El logo por defecto se carga desde el propio sitio (misma imagen que usa
+  // el resto de geomav.me), evitando duplicar el binario en base64 aquí.
+  var DEFAULT_LOGO_URL = '../assets/img/geomav-logo.png';
+  var DISPLAY_MAX_W = 58;
+
+  var state = { logo: null, template: 'classic' };
+  var toastTimer = null;
+
+  var els = {
+    name: document.getElementById('f-name'),
+    role: document.getElementById('f-role'),
+    brand: document.getElementById('f-brand'),
+    phone: document.getElementById('f-phone'),
+    email: document.getElementById('f-email'),
+    city: document.getElementById('f-city'),
+    website: document.getElementById('f-website'),
+    logoFile: document.getElementById('f-logo'),
+    logoThumb: document.getElementById('logo-thumb'),
+    resetLogo: document.getElementById('btn-reset-logo'),
+    sigMount: document.getElementById('sig-mount'),
+    copyRich: document.getElementById('btn-copy-rich'),
+    copyPlain: document.getElementById('btn-copy-plain'),
+    toast: document.getElementById('firma-toast'),
+    tplGrid: document.getElementById('tpl-grid'),
+    tplCards: Array.prototype.slice.call(document.querySelectorAll('.firma-tpl-card'))
+  };
+
+  function escapeHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function normalizeUrl(u) {
+    u = (u || '').trim();
+    if (!u) return '';
+    if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+    return u;
+  }
+
+  function currentData() {
+    return {
+      name: els.name.value.trim(),
+      role: els.role.value.trim(),
+      brand: els.brand.value.trim(),
+      phone: els.phone.value.trim(),
+      email: els.email.value.trim(),
+      city: els.city.value.trim(),
+      website: els.website.value.trim(),
+      logo: state.logo
+    };
+  }
+
+  function buildClassic(d) {
+    var logoCell = '';
+    var textPad = 'padding-left:0;';
+    if (d.logo) {
+      logoCell =
+        '<td style="padding-right:14px; border-right:2px solid #1F3864; vertical-align:middle;">' +
+        '<img src="' + d.logo.dataUrl + '" width="' + d.logo.w + '" height="' + d.logo.h + '" alt="' + escapeHtml(d.brand) + '" style="display:block;">' +
+        '</td>';
+      textPad = 'padding-left:14px;';
+    }
+    var websiteLine = '';
+    if (d.website) {
+      websiteLine =
+        '<div style="font-size:12px; color:#1F3864; line-height:1.5;">' +
+        '<a href="' + escapeHtml(normalizeUrl(d.website)) + '" style="color:#1F3864; text-decoration:none;">' + escapeHtml(d.website) + '</a>' +
+        '</div>';
+    }
+    return (
+      '<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;">' +
+      '<tr>' + logoCell +
+      '<td style="' + textPad + ' vertical-align:middle;">' +
+      '<div style="font-size:14px; font-weight:bold; color:#1F3864; line-height:1.3;">' + escapeHtml(d.name) + '</div>' +
+      '<div style="font-size:12px; color:#333333; line-height:1.4;">' + escapeHtml(d.role) + '</div>' +
+      '<div style="font-size:12px; color:#1F3864; font-weight:bold; line-height:1.6;">' + escapeHtml(d.brand) + '</div>' +
+      '<div style="font-size:12px; color:#333333; line-height:1.4;">' + escapeHtml(d.phone) + ' &nbsp;&middot;&nbsp; ' +
+      '<a href="mailto:' + escapeHtml(d.email) + '" style="color:#333333; text-decoration:none;">' + escapeHtml(d.email) + '</a></div>' +
+      '<div style="font-size:11px; color:#777777; line-height:1.4;">' + escapeHtml(d.city) + '</div>' +
+      websiteLine +
+      '</td></tr></table>'
+    );
+  }
+
+  function buildStacked(d) {
+    var logoRow = d.logo ?
+      '<tr><td align="center" style="padding-bottom:8px;"><img src="' + d.logo.dataUrl + '" width="' + d.logo.w + '" height="' + d.logo.h + '" alt="' + escapeHtml(d.brand) + '" style="display:block; margin:0 auto;"></td></tr>' +
+      '<tr><td align="center" style="padding-bottom:9px;"><div style="width:36px; height:2px; background:#1F3864; margin:0 auto; font-size:0; line-height:0;">&nbsp;</div></td></tr>' : '';
+    var websiteLine = d.website ?
+      '<div style="font-size:12px; color:#1F3864; line-height:1.5; text-align:center;"><a href="' + escapeHtml(normalizeUrl(d.website)) + '" style="color:#1F3864; text-decoration:none;">' + escapeHtml(d.website) + '</a></div>' : '';
+    return (
+      '<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif; margin:0 auto;">' +
+      logoRow +
+      '<tr><td align="center">' +
+      '<div style="font-size:14px; font-weight:bold; color:#1F3864; line-height:1.3; text-align:center;">' + escapeHtml(d.name) + '</div>' +
+      '<div style="font-size:12px; color:#333333; line-height:1.4; text-align:center;">' + escapeHtml(d.role) + '</div>' +
+      '<div style="font-size:12px; color:#1F3864; font-weight:bold; line-height:1.6; text-align:center;">' + escapeHtml(d.brand) + '</div>' +
+      '<div style="font-size:12px; color:#333333; line-height:1.4; text-align:center;">' + escapeHtml(d.phone) + ' &nbsp;&middot;&nbsp; ' +
+      '<a href="mailto:' + escapeHtml(d.email) + '" style="color:#333333; text-decoration:none;">' + escapeHtml(d.email) + '</a></div>' +
+      '<div style="font-size:11px; color:#777777; line-height:1.4; text-align:center;">' + escapeHtml(d.city) + '</div>' +
+      websiteLine +
+      '</td></tr></table>'
+    );
+  }
+
+  function buildTwoCol(d) {
+    var logoCell = d.logo ?
+      '<td rowspan="2" style="padding-right:14px; border-right:2px solid #1F3864; vertical-align:middle;">' +
+      '<img src="' + d.logo.dataUrl + '" width="' + d.logo.w + '" height="' + d.logo.h + '" alt="' + escapeHtml(d.brand) + '" style="display:block;"></td>' : '';
+    var pad = d.logo ? 'padding-left:14px;' : '';
+    var websiteLine = d.website ?
+      '<div style="font-size:11px; color:#1F3864; line-height:1.5;"><a href="' + escapeHtml(normalizeUrl(d.website)) + '" style="color:#1F3864; text-decoration:none;">' + escapeHtml(d.website) + '</a></div>' : '';
+    return (
+      '<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;">' +
+      '<tr>' + logoCell +
+      '<td style="' + pad + ' vertical-align:bottom; padding-bottom:4px;">' +
+      '<div style="font-size:14px; font-weight:bold; color:#1F3864; line-height:1.3;">' + escapeHtml(d.name) + '</div>' +
+      '<div style="font-size:12px; color:#1F3864; font-weight:bold; line-height:1.5;">' + escapeHtml(d.brand) + '</div>' +
+      '</td></tr>' +
+      '<tr><td style="' + pad + ' vertical-align:top;">' +
+      '<table cellpadding="0" cellspacing="0" border="0"><tr>' +
+      '<td style="padding-right:18px; vertical-align:top;">' +
+      '<div style="font-size:11px; color:#333333; line-height:1.6;">' + escapeHtml(d.role) + '</div>' +
+      '<div style="font-size:11px; color:#333333; line-height:1.6;">' + escapeHtml(d.phone) + '</div>' +
+      '<div style="font-size:11px; color:#333333; line-height:1.6;"><a href="mailto:' + escapeHtml(d.email) + '" style="color:#333333; text-decoration:none;">' + escapeHtml(d.email) + '</a></div>' +
+      '</td>' +
+      '<td style="vertical-align:top; border-left:1px solid #E3E3E3; padding-left:14px;">' +
+      '<div style="font-size:11px; color:#777777; line-height:1.6;">' + escapeHtml(d.city) + '</div>' +
+      websiteLine +
+      '</td>' +
+      '</tr></table>' +
+      '</td></tr></table>'
+    );
+  }
+
+  function buildLogoRight(d) {
+    var logoCell = d.logo ?
+      '<td style="padding-left:14px; border-left:2px solid #1F3864; vertical-align:middle;">' +
+      '<img src="' + d.logo.dataUrl + '" width="' + d.logo.w + '" height="' + d.logo.h + '" alt="' + escapeHtml(d.brand) + '" style="display:block;"></td>' : '';
+    var pad = d.logo ? 'padding-right:14px;' : '';
+    var websiteLine = d.website ?
+      '<div style="font-size:12px; color:#1F3864; line-height:1.5; text-align:right;"><a href="' + escapeHtml(normalizeUrl(d.website)) + '" style="color:#1F3864; text-decoration:none;">' + escapeHtml(d.website) + '</a></div>' : '';
+    return (
+      '<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;">' +
+      '<tr><td style="' + pad + ' vertical-align:middle; text-align:right;">' +
+      '<div style="font-size:14px; font-weight:bold; color:#1F3864; line-height:1.3;">' + escapeHtml(d.name) + '</div>' +
+      '<div style="font-size:12px; color:#333333; line-height:1.4;">' + escapeHtml(d.role) + '</div>' +
+      '<div style="font-size:12px; color:#1F3864; font-weight:bold; line-height:1.6;">' + escapeHtml(d.brand) + '</div>' +
+      '<div style="font-size:12px; color:#333333; line-height:1.4;">' +
+      '<a href="mailto:' + escapeHtml(d.email) + '" style="color:#333333; text-decoration:none;">' + escapeHtml(d.email) + '</a> &nbsp;&middot;&nbsp; ' + escapeHtml(d.phone) +
+      '</div>' +
+      '<div style="font-size:11px; color:#777777; line-height:1.4;">' + escapeHtml(d.city) + '</div>' +
+      websiteLine +
+      '</td>' + logoCell + '</tr></table>'
+    );
+  }
+
+  function buildOneLine(d) {
+    var logoImg = d.logo ?
+      '<td style="padding-right:10px; vertical-align:middle;"><img src="' + d.logo.dataUrl + '" width="' + Math.round(d.logo.w * 0.55) + '" height="' + Math.round(d.logo.h * 0.55) + '" alt="' + escapeHtml(d.brand) + '" style="display:block;"></td>' : '';
+    var parts = [
+      '<b style="color:#1F3864;">' + escapeHtml(d.name) + '</b>',
+      escapeHtml(d.role),
+      '<b style="color:#1F3864;">' + escapeHtml(d.brand) + '</b>',
+      escapeHtml(d.phone),
+      '<a href="mailto:' + escapeHtml(d.email) + '" style="color:#333333; text-decoration:none;">' + escapeHtml(d.email) + '</a>',
+      escapeHtml(d.city)
+    ];
+    if (d.website) {
+      parts.push('<a href="' + escapeHtml(normalizeUrl(d.website)) + '" style="color:#1F3864; text-decoration:none;">' + escapeHtml(d.website) + '</a>');
+    }
+    return (
+      '<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;"><tr>' +
+      logoImg +
+      '<td style="font-size:11px; color:#333333; line-height:1.6; vertical-align:middle;">' + parts.join(' &nbsp;&middot;&nbsp; ') + '</td>' +
+      '</tr></table>'
+    );
+  }
+
+  var TEMPLATES = {
+    classic: { label: 'Clásica', build: buildClassic },
+    stacked: { label: 'Apilada', build: buildStacked },
+    twocol: { label: 'Dos columnas', build: buildTwoCol },
+    right: { label: 'Logo a la derecha', build: buildLogoRight },
+    oneline: { label: 'Línea única', build: buildOneLine }
+  };
+
+  function buildPlainText(d, tplKey) {
+    if (tplKey === 'oneline') {
+      var parts = [d.name, d.role, d.brand, d.phone, d.email, d.city];
+      if (d.website) parts.push(d.website);
+      return parts.filter(Boolean).join(' · ');
+    }
+    var lines = [d.name, d.role, d.brand, [d.phone, d.email].filter(Boolean).join(' · '), d.city];
+    if (d.website) lines.push(d.website);
+    return lines.filter(Boolean).join('\n');
+  }
+
+  function selectTemplate(key) {
+    if (!TEMPLATES[key]) return;
+    state.template = key;
+    els.tplCards.forEach(function (card) {
+      card.classList.toggle('selected', card.getAttribute('data-tpl') === key);
+    });
+    render();
+  }
+
+  els.tplCards.forEach(function (card) {
+    card.addEventListener('click', function () {
+      selectTemplate(card.getAttribute('data-tpl'));
+    });
+  });
+
+  function render() {
+    var d = currentData();
+    var tpl = TEMPLATES[state.template] || TEMPLATES.classic;
+    els.sigMount.innerHTML = tpl.build(d);
+    if (d.logo) {
+      els.logoThumb.src = d.logo.dataUrl;
+      els.logoThumb.alt = 'Logo actual';
+    }
+    saveState(d);
+  }
+
+  function saveState(d) {
+    try {
+      var toSave = {
+        name: d.name, role: d.role, brand: d.brand, phone: d.phone,
+        email: d.email, city: d.city, website: d.website,
+        template: state.template,
+        logo: (d.logo && d.logo.custom) ? d.logo : null
+      };
+      localStorage.setItem('geomav-sig-state', JSON.stringify(toSave));
+    } catch (e) { /* modo privado / storage bloqueado — ignorar */ }
+  }
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem('geomav-sig-state');
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) { return null; }
+  }
+
+  function setLogoFromImage(img, isCustom) {
+    var scale = Math.min(1, DISPLAY_MAX_W / (img.naturalWidth || img.width));
+    var w = Math.round((img.naturalWidth || img.width) * scale);
+    var h = Math.round((img.naturalHeight || img.height) * scale);
+    var canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    state.logo = { dataUrl: canvas.toDataURL('image/png'), w: w, h: h, custom: !!isCustom };
+    render();
+  }
+
+  function loadDefaultLogo() {
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function () { setLogoFromImage(img, false); };
+    img.src = DEFAULT_LOGO_URL;
+  }
+
+  els.logoFile.addEventListener('change', function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      var img = new Image();
+      img.onload = function () { setLogoFromImage(img, true); };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  els.resetLogo.addEventListener('click', function () {
+    els.logoFile.value = '';
+    loadDefaultLogo();
+  });
+
+  ['name', 'role', 'brand', 'phone', 'email', 'city', 'website'].forEach(function (key) {
+    els[key].addEventListener('input', render);
+  });
+
+  function showToast(msg) {
+    els.toast.textContent = msg;
+    els.toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { els.toast.classList.remove('show'); }, 2600);
+  }
+
+  function selectAndCopyNode(node) {
+    var range = document.createRange();
+    range.selectNodeContents(node);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    sel.removeAllRanges();
+    return ok;
+  }
+
+  async function copyRich() {
+    var html = els.sigMount.innerHTML;
+    var text = els.sigMount.innerText;
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        var item = new ClipboardItem({
+          'text/html': new Blob([html], { type: 'text/html' }),
+          'text/plain': new Blob([text], { type: 'text/plain' })
+        });
+        await navigator.clipboard.write([item]);
+        showToast('Firma copiada — pégala en Gmail u Outlook');
+        return;
+      }
+    } catch (e) { /* fall through a execCommand */ }
+    if (selectAndCopyNode(els.sigMount)) {
+      showToast('Firma copiada — pégala en Gmail u Outlook');
+    } else {
+      showToast('No se pudo copiar automáticamente — selecciona la firma y usa Ctrl+C');
+    }
+  }
+
+  async function copyPlain() {
+    var text = buildPlainText(currentData(), state.template);
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('Texto plano copiado — pégalo en Outlook móvil');
+      return;
+    } catch (e) { /* fall through */ }
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    showToast(ok ? 'Texto plano copiado — pégalo en Outlook móvil' : 'No se pudo copiar — selecciona el texto manualmente');
+  }
+
+  els.copyRich.addEventListener('click', copyRich);
+  els.copyPlain.addEventListener('click', copyPlain);
+
+  function boot(saved) {
+    if (saved) {
+      els.name.value = saved.name || els.name.value;
+      els.role.value = saved.role || els.role.value;
+      els.brand.value = saved.brand || els.brand.value;
+      els.phone.value = saved.phone || els.phone.value;
+      els.email.value = saved.email || els.email.value;
+      els.city.value = saved.city || els.city.value;
+      els.website.value = saved.website || els.website.value;
+    }
+    state.template = (saved && TEMPLATES[saved.template]) ? saved.template : 'classic';
+    els.tplCards.forEach(function (card) {
+      card.classList.toggle('selected', card.getAttribute('data-tpl') === state.template);
+    });
+    if (saved && saved.logo && saved.logo.dataUrl) {
+      state.logo = saved.logo;
+      render();
+    } else {
+      loadDefaultLogo();
+    }
+  }
+
+  boot(loadState());
+})();
+</script>
+</body>
+</html>
