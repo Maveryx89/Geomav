@@ -516,20 +516,20 @@
     var socialRow = '';
     if (socialLinks.length) {
       var iconCells = socialLinks.map(function (s) {
-        return '<a href="' + escapeHtml(s.href) + '" target="_blank" style="text-decoration:none; margin-right:13px;">' +
+        return '<a href="' + escapeHtml(s.href) + '" target="_blank" style="text-decoration:none; margin-right:20px;">' +
           '<img src="' + s.icon + '" width="20" height="20" alt="' + s.alt + '" style="display:inline-block; border:0; vertical-align:middle;">' +
           '</a>';
       }).join('');
-      socialRow = '<tr><td style="padding:16px 0 0 0; mso-line-height-rule:exactly; line-height:20px; font-size:0;">' + iconCells + '</td></tr>';
+      socialRow = '<tr><td style="padding:14px 0 0 0; mso-line-height-rule:exactly; line-height:20px; font-size:0;">' + iconCells + '</td></tr>';
     }
     return (
       '<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;">' +
       '<tr>' + logoCell +
       '<td style="' + textPad + ' vertical-align:middle;">' +
       '<table cellpadding="0" cellspacing="0" border="0" role="presentation">' +
-      '<tr><td style="font-size:14px; font-weight:bold; color:#1F3864; mso-line-height-rule:exactly; line-height:18px; padding:0 0 4px 0;">' + escapeHtml(d.name) + '</td></tr>' +
-      '<tr><td style="font-size:12px; color:#333333; mso-line-height-rule:exactly; line-height:16px; padding:0 0 4px 0;">' + escapeHtml(d.role) + '</td></tr>' +
-      '<tr><td style="font-size:12px; color:#1F3864; font-weight:bold; mso-line-height-rule:exactly; line-height:18px; padding:0 0 6px 0;">' + escapeHtml(d.brand) + '</td></tr>' +
+      '<tr><td style="font-size:14px; font-weight:bold; color:#1F3864; mso-line-height-rule:exactly; line-height:17px; padding:0 0 2px 0;">' + escapeHtml(d.name) + '</td></tr>' +
+      '<tr><td style="font-size:12px; color:#333333; mso-line-height-rule:exactly; line-height:15px; padding:0 0 2px 0;">' + escapeHtml(d.role) + '</td></tr>' +
+      '<tr><td style="font-size:12px; color:#1F3864; font-weight:bold; mso-line-height-rule:exactly; line-height:16px; padding:0 0 3px 0;">' + escapeHtml(d.brand) + '</td></tr>' +
       '<tr><td style="font-size:11px; color:#777777; mso-line-height-rule:exactly; line-height:14px; padding:0;">' + escapeHtml(d.city) + '</td></tr>' +
       socialRow +
       '</table>' +
