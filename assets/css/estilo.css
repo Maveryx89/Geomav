@@ -858,7 +858,7 @@
     .pie-pagina { padding: 80px 0 40px; background-color: var(--color-blanco); }
     .pie-cuadricula {
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
       gap: 60px;
       margin-bottom: 60px;
     }
