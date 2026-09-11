@@ -516,11 +516,11 @@
     var socialRow = '';
     if (socialLinks.length) {
       var iconCells = socialLinks.map(function (s) {
-        return '<a href="' + escapeHtml(s.href) + '" target="_blank" style="text-decoration:none; margin-right:8px;">' +
+        return '<a href="' + escapeHtml(s.href) + '" target="_blank" style="text-decoration:none; margin-right:13px;">' +
           '<img src="' + s.icon + '" width="20" height="20" alt="' + s.alt + '" style="display:inline-block; border:0; vertical-align:middle;">' +
           '</a>';
       }).join('');
-      socialRow = '<tr><td style="padding:10px 0 0 0; mso-line-height-rule:exactly; line-height:20px; font-size:0;">' + iconCells + '</td></tr>';
+      socialRow = '<tr><td style="padding:16px 0 0 0; mso-line-height-rule:exactly; line-height:20px; font-size:0;">' + iconCells + '</td></tr>';
     }
     return (
       '<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;">' +
