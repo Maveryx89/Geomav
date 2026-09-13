@@ -6404,54 +6404,87 @@ function calcDisenoEscalera(H, Cp, P, A, maxPorTramo, fondoDescanso){
   return {n, CpReal, blondelCm, blondelEstado, pasoSugerido, tramos, contrahuellasPorTramo, huellasPorTramo, horizPorTramo, numDescansos, longHorizontalTotal, huellasTotal};
 }
 
-function svgDisenoEscalera(r, P){
+function svgDisenoEscalera(r, P, fondoDescanso){
   const w=340, h=200, pad=28;
-  const font = relFont(w,0.028,7,9);
+  const font = relFont(w,0.026,6.5,8.5);
   const maxDisplaySteps = 6;
   const rows = [];
   r.contrahuellasPorTramo.forEach((c,i)=>{
     const shown = Math.min(c, maxDisplaySteps);
-    for(let k=0;k<shown;k++) rows.push({type:'step'});
-    if(i < r.contrahuellasPorTramo.length-1) rows.push({type:'landing'});
+    for(let k=0;k<shown;k++) rows.push({type:'step', seg:'t'+i});
+    if(i < r.contrahuellasPorTramo.length-1) rows.push({type:'landing', seg:'d'+i});
   });
   const stepRows = rows.filter(x=>x.type==='step').length;
   const landingRows = rows.filter(x=>x.type==='landing').length;
   const availW = w - 2*pad;
   const unit = availW / Math.max(stepRows + landingRows*1.4, 1);
   const tw = unit, lw = unit*1.4;
-  const rh = (h - 2*pad - 10) / Math.max(stepRows,1);
-  let x = pad, y = h - pad;
-  let pathD = `M${x},${y}`;
+  const bottomReserve = 26, topReserve = 14;
+  const rh = (h - pad - bottomReserve - topReserve) / Math.max(stepRows,1);
+  const baseline = h - pad - bottomReserve;
+
+  let x = pad, y = baseline;
+  let outline = [{x,y}];
   let firstStep = null;
+  const segRanges = {};
   rows.forEach(seg=>{
+    const segId = seg.seg;
+    if(!segRanges[segId]) segRanges[segId] = {x0:x, y:y, isLanding: seg.type==='landing'};
     if(seg.type==='step'){
-      const y0 = y;
+      const y0=y;
       y -= rh;
-      pathD += ` L${x.toFixed(1)},${y.toFixed(1)}`;
-      const x0 = x;
+      outline.push({x,y});
+      const x0=x;
       x += tw;
-      pathD += ` L${x.toFixed(1)},${y.toFixed(1)}`;
+      outline.push({x,y});
       if(!firstStep) firstStep = {x0, y0, x1:x, y1:y};
     } else {
       x += lw;
-      pathD += ` L${x.toFixed(1)},${y.toFixed(1)}`;
+      outline.push({x,y});
+    }
+    segRanges[segId].x1 = x;
+  });
+  const topX = x, topY = y;
+
+  const pathPts = outline.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L');
+  const fillPath = `M${pad},${baseline} L${pathPts} L${topX.toFixed(1)},${baseline} Z`;
+
+  const dimY = baseline + 12;
+  let dimTicks = '';
+  Object.keys(segRanges).forEach(segId=>{
+    const seg = segRanges[segId];
+    const mid = (seg.x0+seg.x1)/2;
+    const idx = parseInt(segId.slice(1),10);
+    const label = seg.isLanding ? fmtNum(fondoDescanso,2) : fmtNum(r.horizPorTramo[idx],2);
+    dimTicks += `<line x1="${seg.x0.toFixed(1)}" y1="${(dimY-3).toFixed(1)}" x2="${seg.x0.toFixed(1)}" y2="${(dimY+3).toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>`;
+    dimTicks += `<text x="${mid.toFixed(1)}" y="${(dimY+11).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">${label}</text>`;
+    if(seg.isLanding){
+      dimTicks += `<text x="${mid.toFixed(1)}" y="${(seg.y-6).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Descanso</text>`;
     }
   });
-  const groundY = h - pad;
-  const truncated = r.contrahuellasPorTramo.some(c=>c>maxDisplaySteps);
-  const note = truncated ? `<text x="${w/2}" y="${h-6}" font-size="${relFont(w,0.024,6,7.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(esquemático — ver tabla para el detalle real de peldaños)</text>` : '';
+  dimTicks += `<line x1="${topX.toFixed(1)}" y1="${(dimY-3).toFixed(1)}" x2="${topX.toFixed(1)}" y2="${(dimY+3).toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>`;
+  const dimLine = `<line x1="${pad}" y1="${dimY.toFixed(1)}" x2="${topX.toFixed(1)}" y2="${dimY.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>`;
+
+  const hDimX = pad - 12;
+  const hMidY = (baseline+topY)/2;
+  const hDim = `<line x1="${hDimX.toFixed(1)}" y1="${baseline.toFixed(1)}" x2="${hDimX.toFixed(1)}" y2="${topY.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>
+    <line x1="${(hDimX-3).toFixed(1)}" y1="${baseline.toFixed(1)}" x2="${(hDimX+3).toFixed(1)}" y2="${baseline.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>
+    <line x1="${(hDimX-3).toFixed(1)}" y1="${topY.toFixed(1)}" x2="${(hDimX+3).toFixed(1)}" y2="${topY.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>
+    <text x="${(hDimX-4).toFixed(1)}" y="${hMidY.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="end" transform="rotate(-90 ${(hDimX-4).toFixed(1)} ${hMidY.toFixed(1)})">H = ${fmtNum(r.n*r.CpReal,2)} m</text>`;
+
   let dims = '';
   if(firstStep){
     dims += svgLineLabel(firstStep.x0, firstStep.y0, firstStep.x0, firstStep.y1, 'Cp', 'var(--blueprint)', font, -1);
     dims += svgLineLabel(firstStep.x0, firstStep.y1, firstStep.x1, firstStep.y1, 'P', 'var(--blueprint)', font, -1);
   }
+  const truncated = r.contrahuellasPorTramo.some(c=>c>maxDisplaySteps);
+  const note = truncated ? `<text x="${w/2}" y="${h-4}" font-size="${relFont(w,0.022,6,7)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(esquemático — ver tabla para el detalle real de peldaños)</text>` : '';
+
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${pad}" y1="${groundY}" x2="${w-pad}" y2="${groundY}" stroke="var(--line-strong)" stroke-width="1" stroke-dasharray="3 2"/>
-    <path d="${pathD}" fill="none" stroke="var(--ink)" stroke-width="1.8"/>
-    <circle cx="${pad}" cy="${groundY}" r="3" fill="var(--ink)"/>
-    <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="var(--accent)"/>
-    <text x="${x.toFixed(1)}" y="${(y-6).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="end">H = ${fmtNum(r.n*r.CpReal,2)} m</text>
-    <text x="${pad}" y="${(groundY+14).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">n = ${r.n} peldaños · ${r.tramos} tramo${r.tramos>1?'s':''}</text>
+    <path d="${fillPath}" fill="var(--ink)" fill-opacity=".08" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+    ${dimLine}
+    ${dimTicks}
+    ${hDim}
     ${dims}
     ${note}
   </svg>`;
@@ -6507,7 +6540,7 @@ function renderDisenoEscalera(){
       <div class="result-row"><span class="k">Huella, P = ${fmtNum(P,3)} m</span><span class="v">${pTxt}</span></div>
       <p class="proj-msg" style="margin-top:8px;">Criterios generales de comodidad y buena práctica; las exigencias exactas (ancho, contrahuella, tramos sin descanso) varían según el uso del edificio — verificar con la DOM correspondiente antes de construir.</p>
     </div>
-    <div class="plot-wrap">${svgDisenoEscalera(r, P)}</div>`;
+    <div class="plot-wrap">${svgDisenoEscalera(r, P, fondoDescanso)}</div>`;
   });
 }
 
