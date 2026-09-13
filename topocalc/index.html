@@ -1834,7 +1834,8 @@ const ICONS = {
   cotaProgresiva: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 30 L36 12" stroke-width="2"/><circle cx="4" cy="30" r="2" fill="currentColor" stroke="none"/><circle cx="36" cy="12" r="2" fill="currentColor" stroke="none"/><path d="M4 34h32M8 30v4M32 12v22" stroke-dasharray="1.5 1.5" stroke-width="1"/></svg>`,
   plantillaZanja: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 14 L34 14" stroke-dasharray="2 2" stroke-width="1"/><path d="M6 20 L34 26" stroke-width="1.8"/><path d="M34 26 L34 34 L26 34 L26 26 Z"/><path d="M34 14 L34 20" stroke-dasharray="1.5 1.5" stroke-width="1"/></svg>`,
   capasPavimento: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 14 L36 14M4 21 L36 21M4 28 L36 28" stroke-width="1.3"/><path d="M20 8v6M8 21l-4 7M32 21l4 7" stroke-width="1.1"/></svg>`,
-  progresivaOffset: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 34 L36 6" stroke-width="2"/><circle cx="30" cy="24" r="2" fill="currentColor" stroke="none"/><path d="M30 24 L20.5 20" stroke-dasharray="2 2" stroke-width="1.1"/><circle cx="20.5" cy="20" r="1.6" fill="currentColor" stroke="none"/></svg>`
+  progresivaOffset: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 34 L36 6" stroke-width="2"/><circle cx="30" cy="24" r="2" fill="currentColor" stroke="none"/><path d="M30 24 L20.5 20" stroke-dasharray="2 2" stroke-width="1.1"/><circle cx="20.5" cy="20" r="1.6" fill="currentColor" stroke="none"/></svg>`,
+  disenoEscalera: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 34 H10 V27 H16 V20 H22 V13 H28 V6 H34" fill="currentColor" fill-opacity=".08"/></svg>`
 };
 
 /* ===================== TOOL DEFINITIONS ===================== */
@@ -1869,7 +1870,7 @@ const CATEGORIES = [
   },
   {
     id:'campo', name:'Terreno y Campo',
-    tools:['taquimetria','nivel','nivelDif','nivelBaro','talud','taludBancos','curvasNivel','pendienteDosPuntos','perfilLongitudinal','volumen','costo','cotizacion','boletaHonorarios','rendimientoBrigada','cotaProgresiva','plantillaZanja','capasPavimento']
+    tools:['taquimetria','nivel','nivelDif','nivelBaro','talud','taludBancos','curvasNivel','pendienteDosPuntos','perfilLongitudinal','volumen','costo','cotizacion','boletaHonorarios','rendimientoBrigada','cotaProgresiva','plantillaZanja','capasPavimento','disenoEscalera']
   },
   {
     id:'libreta', name:'Libreta de Puntos y Navegación',
@@ -1963,6 +1964,7 @@ const TOOLS = {
   cotaProgresiva: {name:'Cota por Progresiva y Pendiente', desc:'Cota de rasante en cualquier progresiva', icon:ICONS.cotaProgresiva},
   plantillaZanja: {name:'Plantillado de Zanja (Alcantarillado)', desc:'Cota de excavación y lectura de mira', icon:ICONS.plantillaZanja},
   capasPavimento: {name:'Capas de Pavimento', desc:'Subrasante, subbase y base con bombeo', icon:ICONS.capasPavimento},
+  disenoEscalera: {name:'Diseño y Trazado de Escalera', desc:'Peldaños, tramos, descansos y cumplimiento normativo', icon:ICONS.disenoEscalera},
   progresivaOffset: {name:'Progresiva y Offset desde un Eje', desc:'Inversa de un eje de proyecto', icon:ICONS.progresivaOffset}
 };
 
@@ -2093,7 +2095,9 @@ const GLOSARIO = {
   'CD': 'Cara Derecha — lectura del instrumento en posición inversa (anteojo volteado)',
   'ZI': 'Ángulo cenital leído en Cara Izquierda',
   'ZD': 'Ángulo cenital leído en Cara Derecha',
-  'EDM': 'Electronic Distance Measurement — el distanciómetro electrónico integrado en una estación total'
+  'EDM': 'Electronic Distance Measurement — el distanciómetro electrónico integrado en una estación total',
+  'P': 'Paso (huella) — ancho horizontal de cada peldaño, medido borde a borde',
+  'Cp': 'Contrapaso (alzada) — altura vertical de cada peldaño'
 };
 function glosarioHtml(keys){
   if(!keys || !keys.length) return '';
@@ -6372,6 +6376,141 @@ function renderCapasPavimento(){
   });
 }
 
+/* ---------- DISEÑO Y TRAZADO DE ESCALERA (geométrico, no estructural) ---------- */
+/* Calcula contrahuellas, contrapaso real ajustado, verificación de la fórmula de Blondel
+   (2*Cp+P), reparto en tramos según el máximo de peldaños permitido sin descanso, y
+   longitud horizontal total en planta. La verificación se presenta como criterios
+   generales de comodidad y buena práctica de construcción en Chile (no se cita un
+   artículo específico de la OGUC sin confirmar contra bcn.cl) — se remite a la DOM
+   correspondiente para la exigencia exacta según el uso del edificio. */
+function calcDisenoEscalera(H, Cp, P, A, maxPorTramo, fondoDescanso){
+  const n = Math.max(1, Math.round(H/Cp));
+  const CpReal = H/n;
+  const blondelCm = (2*CpReal + P) * 100;
+  let blondelEstado;
+  if(blondelCm>=60 && blondelCm<=64) blondelEstado='ideal';
+  else if(blondelCm>=58 && blondelCm<=65) blondelEstado='aceptable';
+  else blondelEstado='fuera';
+  const pasoSugerido = 0.64 - 2*CpReal;
+  const tramos = Math.max(1, Math.ceil(n/maxPorTramo));
+  const base = Math.floor(n/tramos), extra = n % tramos;
+  const contrahuellasPorTramo = [];
+  for(let i=0;i<tramos;i++) contrahuellasPorTramo.push(base + (i<extra?1:0));
+  const huellasPorTramo = contrahuellasPorTramo.map(c=>c-1);
+  const horizPorTramo = huellasPorTramo.map(hu=>hu*P);
+  const numDescansos = tramos-1;
+  const longHorizontalTotal = horizPorTramo.reduce((a,b)=>a+b,0) + numDescansos*fondoDescanso;
+  const huellasTotal = n - tramos;
+  return {n, CpReal, blondelCm, blondelEstado, pasoSugerido, tramos, contrahuellasPorTramo, huellasPorTramo, horizPorTramo, numDescansos, longHorizontalTotal, huellasTotal};
+}
+
+function svgDisenoEscalera(r, P){
+  const w=340, h=200, pad=28;
+  const font = relFont(w,0.028,7,9);
+  const maxDisplaySteps = 6;
+  const rows = [];
+  r.contrahuellasPorTramo.forEach((c,i)=>{
+    const shown = Math.min(c, maxDisplaySteps);
+    for(let k=0;k<shown;k++) rows.push({type:'step'});
+    if(i < r.contrahuellasPorTramo.length-1) rows.push({type:'landing'});
+  });
+  const stepRows = rows.filter(x=>x.type==='step').length;
+  const landingRows = rows.filter(x=>x.type==='landing').length;
+  const availW = w - 2*pad;
+  const unit = availW / Math.max(stepRows + landingRows*1.4, 1);
+  const tw = unit, lw = unit*1.4;
+  const rh = (h - 2*pad - 10) / Math.max(stepRows,1);
+  let x = pad, y = h - pad;
+  let pathD = `M${x},${y}`;
+  let firstStep = null;
+  rows.forEach(seg=>{
+    if(seg.type==='step'){
+      const y0 = y;
+      y -= rh;
+      pathD += ` L${x.toFixed(1)},${y.toFixed(1)}`;
+      const x0 = x;
+      x += tw;
+      pathD += ` L${x.toFixed(1)},${y.toFixed(1)}`;
+      if(!firstStep) firstStep = {x0, y0, x1:x, y1:y};
+    } else {
+      x += lw;
+      pathD += ` L${x.toFixed(1)},${y.toFixed(1)}`;
+    }
+  });
+  const groundY = h - pad;
+  const truncated = r.contrahuellasPorTramo.some(c=>c>maxDisplaySteps);
+  const note = truncated ? `<text x="${w/2}" y="${h-6}" font-size="${relFont(w,0.024,6,7.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(esquemático — ver tabla para el detalle real de peldaños)</text>` : '';
+  let dims = '';
+  if(firstStep){
+    dims += svgLineLabel(firstStep.x0, firstStep.y0, firstStep.x0, firstStep.y1, 'Cp', 'var(--blueprint)', font, -1);
+    dims += svgLineLabel(firstStep.x0, firstStep.y1, firstStep.x1, firstStep.y1, 'P', 'var(--blueprint)', font, -1);
+  }
+  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+    <line x1="${pad}" y1="${groundY}" x2="${w-pad}" y2="${groundY}" stroke="var(--line-strong)" stroke-width="1" stroke-dasharray="3 2"/>
+    <path d="${pathD}" fill="none" stroke="var(--ink)" stroke-width="1.8"/>
+    <circle cx="${pad}" cy="${groundY}" r="3" fill="var(--ink)"/>
+    <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="var(--accent)"/>
+    <text x="${x.toFixed(1)}" y="${(y-6).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="end">H = ${fmtNum(r.n*r.CpReal,2)} m</text>
+    <text x="${pad}" y="${(groundY+14).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">n = ${r.n} peldaños · ${r.tramos} tramo${r.tramos>1?'s':''}</text>
+    ${dims}
+    ${note}
+  </svg>`;
+}
+
+function renderDisenoEscalera(){
+  const body = `<div class="field-card">
+    <h3>Datos de la escalera</h3>
+    ${fieldRow('Altura total a salvar, H (m)','de_h',2.60)}
+    ${fieldRow('Contrapaso deseado, Cp (m)','de_cp',0.17,{step:0.005})}
+    ${fieldRow('Paso (huella) deseado, P (m)','de_p',0.28,{step:0.005})}
+    ${fieldRow('Ancho de la escalera, A (m)','de_a',1.00,{step:0.05})}
+    ${fieldRow('Máx. peldaños por tramo sin descanso','de_max',16,{step:1})}
+    ${fieldRow('Fondo del descanso (m)','de_fd',1.00,{step:0.05})}
+    <button class="btn" id="btnDE" type="button">Calcular</button>
+    <div id="resDE"></div>
+  </div>`;
+  toolShell('disenoEscalera','Calcula el número de peldaños, el contrapaso real ajustado, la cantidad de tramos y descansos necesarios, y verifica el diseño contra criterios generales de comodidad y buena práctica de construcción en Chile.', body, ['P','Cp']);
+  document.getElementById('btnDE').addEventListener('click', ()=>{
+    const H=val('de_h'), Cp=val('de_cp'), P=val('de_p'), A=val('de_a'), maxPorTramo=valInt('de_max'), fondoDescanso=val('de_fd');
+    const box=document.getElementById('resDE');
+    if([H,Cp,P,A,maxPorTramo,fondoDescanso].some(isNaN) || H<=0 || Cp<=0 || P<=0 || A<=0 || maxPorTramo<1 || fondoDescanso<0){
+      box.innerHTML = `<p class="err-msg">Completa todos los campos con valores válidos.</p>`; return;
+    }
+    const r = calcDisenoEscalera(H,Cp,P,A,maxPorTramo,fondoDescanso);
+
+    const blondelTxt = r.blondelEstado==='ideal' ? '✅ Ideal (rango de confort 60–64 cm)'
+      : r.blondelEstado==='aceptable' ? '⚠️ Aceptable, en el límite (recomendado 60–64 cm)'
+      : `❌ Fuera de rango — paso sugerido ≈ ${fmtNum(r.pasoSugerido,2)} m`;
+    const anchoTxt = A>=0.90 ? '✅ Cómodo (≥ 0.90 m)' : A>=0.80 ? '⚠️ Mínimo aceptable en vivienda unifamiliar (≥ 0.80 m) — uso público exige más' : '❌ Bajo el mínimo recomendado (0.80 m)';
+    const cpTxt = (r.CpReal>=0.16 && r.CpReal<=0.18) ? '✅ Dentro del rango recomendado (16 – 18 cm)' : (r.CpReal<0.16 ? '⚠️ Bajo el rango recomendado (16 – 18 cm)' : '❌ Sobre el rango recomendado (16 – 18 cm)');
+    const pTxt = (P>=0.28 && P<=0.32) ? '✅ Dentro del rango recomendado (28 – 32 cm)' : (P<0.28 ? '❌ Bajo el rango recomendado (28 – 32 cm)' : '⚠️ Sobre el rango recomendado (28 – 32 cm)');
+
+    const tablaTramos = r.tramos>1 ? `<table class="data-table"><thead><tr><th>Tramo</th><th>N° contrahuellas</th><th>N° huellas</th><th>Proyección horiz.</th></tr></thead><tbody>
+      ${r.contrahuellasPorTramo.map((c,i)=>`<tr><td>${i+1}</td><td>${c}</td><td>${r.huellasPorTramo[i]}</td><td>${fmtNum(r.horizPorTramo[i],2)} m</td></tr>`).join('')}
+    </tbody></table>` : '';
+
+    box.innerHTML = `<div class="results" style="margin-top:12px;">
+      <div class="result-row"><span class="k">N° de contrahuellas (peldaños)</span><span class="v accent big">${r.n}</span></div>
+      <div class="result-row"><span class="k">Contrapaso real ajustado, Cp</span><span class="v">${fmtNum(r.CpReal,3)} m</span></div>
+      <div class="result-row"><span class="k">Fórmula de Blondel (2Cp + P)</span><span class="v">${fmtNum(r.blondelCm,1)} cm</span></div>
+      <div class="result-row"><span class="k">N° de tramos necesarios</span><span class="v">${r.tramos}</span></div>
+      <div class="result-row"><span class="k">N° de descansos</span><span class="v">${r.numDescansos}</span></div>
+      <div class="result-row"><span class="k">Huellas totales</span><span class="v">${r.huellasTotal}</span></div>
+      <div class="result-row"><span class="k">Longitud horizontal total (en planta)</span><span class="v accent big">${fmtNum(r.longHorizontalTotal,2)} m</span></div>
+    </div>
+    ${tablaTramos}
+    <div class="field-card" style="margin-top:14px;">
+      <h3>Criterios generales de diseño (uso residencial)</h3>
+      <div class="result-row"><span class="k">Comodidad (Blondel)</span><span class="v">${blondelTxt}</span></div>
+      <div class="result-row"><span class="k">Ancho, A = ${fmtNum(A,2)} m</span><span class="v">${anchoTxt}</span></div>
+      <div class="result-row"><span class="k">Contrapaso, Cp = ${fmtNum(r.CpReal,3)} m</span><span class="v">${cpTxt}</span></div>
+      <div class="result-row"><span class="k">Huella, P = ${fmtNum(P,3)} m</span><span class="v">${pTxt}</span></div>
+      <p class="proj-msg" style="margin-top:8px;">Criterios generales de comodidad y buena práctica; las exigencias exactas (ancho, contrahuella, tramos sin descanso) varían según el uso del edificio — verificar con la DOM correspondiente antes de construir.</p>
+    </div>
+    <div class="plot-wrap">${svgDisenoEscalera(r, P)}</div>`;
+  });
+}
+
 /* ---------- PROGRESIVA Y OFFSET DESDE UN EJE ---------- */
 function renderProgresivaOffset(){
   const body = `<div class="field-card">
@@ -8652,7 +8791,7 @@ const RENDERERS = {
   cuadrilateroTriangulacion: renderCuadrilateroTriangulacion, cuadrilateroTrilateracion: renderCuadrilateroTrilateracion,
   chequeoNivel: renderChequeoNivel, chequeoTeodolito: renderChequeoTeodolito, chequeoEstacion: renderChequeoEstacion,
   cotaProgresiva: renderCotaProgresiva, plantillaZanja: renderPlantillaZanja, capasPavimento: renderCapasPavimento,
-  progresivaOffset: renderProgresivaOffset
+  progresivaOffset: renderProgresivaOffset, disenoEscalera: renderDisenoEscalera
 };
 
 function render(){
