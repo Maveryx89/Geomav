@@ -905,10 +905,12 @@
        RESPONSIVIDAD
     ───────────────────────────────────────────── */
     @media (max-width: 1024px) {
-      .hero-cuadricula, .servicios-cuadricula, .contacto-cuadricula { grid-template-columns: 1fr; gap: 60px; }
+      /* minmax(0,1fr): la columna puede encogerse; con 1fr la esfera de 380px fija
+         obligaba al contenedor a medir 428px y el texto del hero se cortaba en móviles. */
+      .hero-cuadricula, .servicios-cuadricula, .contacto-cuadricula { grid-template-columns: minmax(0, 1fr); gap: 60px; }
       .beneficios-cuadricula { grid-template-columns: repeat(2, 1fr); }
       .pie-cuadricula { grid-template-columns: 1fr 1fr; }
-      .esfera-contenedor { width: 380px; height: 380px; }
+      .esfera-contenedor { width: min(380px, 100%); height: auto; aspect-ratio: 1 / 1; margin: 0 auto; }
     }
 
     @media (max-width: 768px) {
