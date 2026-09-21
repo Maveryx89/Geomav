@@ -92,6 +92,7 @@
     zoomControles.classList.toggle('visible', esPdfDrive);
 
     if (esModelo3D) {
+      if (typeof cargarModelViewer === 'function') cargarModelViewer().catch(() => {});
       visorScroll.classList.remove('activo');
       iframeVisor.removeAttribute('src');
       modelVisor.setAttribute('src', proyecto.url);
