@@ -763,58 +763,17 @@ function utmBanda(latDeg){
 }
 
 function latLonToUTM(latDeg, lonDeg){
-  const G = toRad(lonDeg);
-  const H = toRad(latDeg);
   const zona = Math.trunc(lonDeg/6 + 31);
   const meridianoCentral = 6*zona - 183;
-  const K = G - toRad(meridianoCentral);
-  const L = Math.cos(H)*Math.sin(K);
-  const M = 0.5*Math.log((1+L)/(1-L));
-  const N = Math.atan(Math.tan(H)/Math.cos(K)) - H;
-  const O = (RC/Math.sqrt(1+EP2*Math.pow(Math.cos(H),2)))*0.9996;
-  const P = (EP2/2)*M*M*Math.pow(Math.cos(H),2);
-  const Q = Math.sin(2*H);
-  const R = Q*Math.pow(Math.cos(H),2);
-  const S = H + Q/2;
-  const T = (3*S+R)/4;
-  const U = (5*T + R*Math.pow(Math.cos(H),2))/3;
-  const V = (3/4)*EP2;
-  const W = (5/3)*V*V;
-  const X = (35/27)*Math.pow(V,3);
-  const Y = 0.9996*RC*(H - V*S + W*T - X*U);
-  const este = M*O*(1+P/3) + 500000;
   const hemisferio = latDeg < 0 ? 'S' : 'N';
-  let norte = N*O*(1+P) + Y;
-  if (hemisferio === 'S') norte += 10000000;
-  return {zona, banda: utmBanda(latDeg), este, norte, hemisferio, meridianoCentral};
+  const r = tmDirecta(latDeg, lonDeg, meridianoCentral, 0.9996, 500000, hemisferio==='S' ? 10000000 : 0, ELL_A, (ELL_A-ELL_B)/ELL_A);
+  return {zona, banda: utmBanda(latDeg), este: r.este, norte: r.norte, hemisferio, meridianoCentral};
 }
 
 function utmToLatLon(este, norte, zona, hemisferio){
   const meridianoCentral = 6*zona - 183;
-  const Oadj = hemisferio === 'S' ? norte - 10000000 : norte;
-  const Kfi = Oadj/(6366197.724*0.9996);
-  const L = (RC/Math.sqrt(1+EP2*Math.pow(Math.cos(Kfi),2)))*0.9996;
-  const P = (este-500000)/L;
-  const Q = Math.sin(2*Kfi);
-  const R = Q*Math.pow(Math.cos(Kfi),2);
-  const S = Kfi + Q/2;
-  const T = (3*S+R)/4;
-  const U = (5*T + R*Math.pow(Math.cos(Kfi),2))/3;
-  const V = (3/4)*EP2;
-  const W = (5/3)*V*V;
-  const X = (35/27)*Math.pow(V,3);
-  const Y = 0.9996*RC*(Kfi - V*S + W*T - X*U);
-  const Zb = (Oadj - Y)/L;
-  const AAzeta = ((EP2*P*P)/2)*Math.pow(Math.cos(Kfi),2);
-  const ABxi = P*(1-(AAzeta/3));
-  const ACeta = Zb*(1-AAzeta)+Kfi;
-  const ADsinh = (Math.exp(ABxi)-Math.exp(-ABxi))/2;
-  const AEdl = Math.atan(ADsinh/Math.cos(ACeta));
-  const AFtau = Math.atan(Math.cos(AEdl)*Math.tan(ACeta));
-  const Mfi = Kfi + (1+EP2*Math.pow(Math.cos(Kfi),2) - 1.5*EP2*Math.sin(Kfi)*Math.cos(Kfi)*(AFtau-Kfi))*(AFtau-Kfi);
-  const lat = toDeg(Mfi);
-  const lon = toDeg(AEdl) + meridianoCentral;
-  return {lat, lon, meridianoCentral};
+  const r = tmInversa(este, norte, meridianoCentral, 0.9996, 500000, hemisferio==='S' ? 10000000 : 0, ELL_A, (ELL_A-ELL_B)/ELL_A);
+  return {lat: r.lat, lon: r.lon, meridianoCentral};
 }
 
 function azToRumbo(az){
@@ -1078,7 +1037,11 @@ function calcConvergencia(latDeg, lonDeg, zonaManual){
   const zona = zonaManual || Math.trunc(lonDeg/6 + 31);
   const mc = 6*zona - 183;
   const deltaLambda = lonDeg - mc;
-  const conv = deltaLambda*Math.sin(toRad(latDeg));
+  // Convergencia EXACTA sobre el elipsoide: ángulo entre el meridiano y el norte de la cuadrícula UTM, obtenido derivando la propia
+  // proyección a lo largo del meridiano. (La fórmula clásica de 1.er orden, Δλ·senφ, se desvía hasta ~3" a 3° del meridiano central.)
+  const f = (ELL_A-ELL_B)/ELL_A, h = 1e-4;
+  const s = tmDirecta(latDeg-h, lonDeg, mc, 0.9996, 500000, 0, ELL_A, f), n = tmDirecta(latDeg+h, lonDeg, mc, 0.9996, 500000, 0, ELL_A, f);
+  const conv = -toDeg(Math.atan2(n.este - s.este, n.norte - s.norte));
   return {zona, mc, deltaLambda, conv};
 }
 
@@ -1588,27 +1551,58 @@ function factorEscalaPuntoUTM(este, latDeg, a, f, k0){
 
 /* ---- Proyección Gauss-Krüger generalizada (parámetros propios de meridiano central, falso
    origen y k0) — base tanto de UTM como de PTL (Plano Topográfico Local). ---- */
+/* ---- Proyección transversal de Mercator por la serie de Krüger (orden n^6, Karney 2011): error < 0,1 mm hasta ±4° del meridiano
+   central. Reemplaza la serie clásica truncada, cuyo Norte tenía un sesgo de 9 a 21 mm (arco de meridiano truncado en e'^6). ---- */
+const _krugerCache = {};
+function _krugerCoef(a,f){
+  const key=a+'|'+f; if(_krugerCache[key]) return _krugerCache[key];
+  const n=f/(2-f), n2=n*n, n3=n2*n, n4=n3*n, n5=n4*n, n6=n5*n;
+  return _krugerCache[key] = {
+    e: Math.sqrt(f*(2-f)),
+    A: a/(1+n)*(1 + n2/4 + n4/64 + n6/256),                       // radio rectificador
+    alfa: [ n/2 - 2*n2/3 + 5*n3/16 + 41*n4/180 - 127*n5/288 + 7891*n6/37800,
+            13*n2/48 - 3*n3/5 + 557*n4/1440 + 281*n5/630 - 1983433*n6/1935360,
+            61*n3/240 - 103*n4/140 + 15061*n5/26880 + 167603*n6/181440,
+            49561*n4/161280 - 179*n5/168 + 6601661*n6/7257600,
+            34729*n5/80640 - 3418889*n6/1995840,
+            212378941*n6/319334400 ],
+    beta: [ n/2 - 2*n2/3 + 37*n3/96 - n4/360 - 81*n5/512 + 96199*n6/604800,
+            n2/48 + n3/15 - 437*n4/1440 + 46*n5/105 - 1118711*n6/3870720,
+            17*n3/480 - 37*n4/840 - 209*n5/4480 + 5569*n6/90720,
+            4397*n4/161280 - 11*n5/504 - 830251*n6/7257600,
+            4583*n5/161280 - 108847*n6/3991680,
+            20648693*n6/638668800 ]
+  };
+}
+function tmDirecta(latDeg, lonDeg, lon0Deg, k0, falseE, falseN, a, f){          // geográficas → este, norte
+  const c=_krugerCoef(a,f), phi=toRad(latDeg), lam=toRad(lonDeg-lon0Deg), e=c.e;
+  const chi = Math.atan(Math.sinh(Math.asinh(Math.tan(phi)) - e*Math.atanh(e*Math.sin(phi))));   // latitud conforme
+  const xi1 = Math.atan2(Math.sin(chi), Math.cos(chi)*Math.cos(lam));
+  const eta1 = Math.atanh(Math.cos(chi)*Math.sin(lam));
+  let xi = xi1, eta = eta1;
+  for(let j=1;j<=6;j++){
+    xi  += c.alfa[j-1]*Math.sin(2*j*xi1)*Math.cosh(2*j*eta1);
+    eta += c.alfa[j-1]*Math.cos(2*j*xi1)*Math.sinh(2*j*eta1);
+  }
+  return {este: falseE + k0*c.A*eta, norte: falseN + k0*c.A*xi};
+}
+function tmInversa(este, norte, lon0Deg, k0, falseE, falseN, a, f){              // este, norte → geográficas
+  const c=_krugerCoef(a,f), xi=(norte-falseN)/(k0*c.A), eta=(este-falseE)/(k0*c.A);
+  let xi1 = xi, eta1 = eta;
+  for(let j=1;j<=6;j++){
+    xi1  -= c.beta[j-1]*Math.sin(2*j*xi)*Math.cosh(2*j*eta);
+    eta1 -= c.beta[j-1]*Math.cos(2*j*xi)*Math.sinh(2*j*eta);
+  }
+  const chi = Math.asin(Math.sin(xi1)/Math.cosh(eta1));
+  const lam = Math.atan2(Math.sinh(eta1), Math.cos(xi1));
+  const tc = Math.tan(chi); let phi = chi;                                        // latitud geodésica desde la conforme (punto fijo)
+  for(let i=0;i<10;i++) phi = Math.atan(Math.sinh(Math.asinh(tc) + c.e*Math.atanh(c.e*Math.sin(phi))));
+  return {lat: toDeg(phi), lon: lon0Deg + toDeg(lam)};
+}
 function gaussKrugerGeneral(latDeg, lonDeg, a, ep2, rc, opts){
   const {lon0Deg, k0, falseE, falseN} = opts;
-  const G = toRad(lonDeg), H = toRad(latDeg);
-  const K = G - toRad(lon0Deg);
-  const L = Math.cos(H)*Math.sin(K);
-  const M = 0.5*Math.log((1+L)/(1-L));
-  const N = Math.atan(Math.tan(H)/Math.cos(K)) - H;
-  const O = (rc/Math.sqrt(1+ep2*Math.pow(Math.cos(H),2)))*k0;
-  const P = (ep2/2)*M*M*Math.pow(Math.cos(H),2);
-  const Q = Math.sin(2*H);
-  const R = Q*Math.pow(Math.cos(H),2);
-  const S = H + Q/2;
-  const T = (3*S+R)/4;
-  const U = (5*T + R*Math.pow(Math.cos(H),2))/3;
-  const V = (3/4)*ep2;
-  const W = (5/3)*V*V;
-  const X = (35/27)*Math.pow(V,3);
-  const Y = k0*rc*(H - V*S + W*T - X*U);
-  const este = M*O*(1+P/3) + falseE;
-  const norte = N*O*(1+P) + Y + falseN;
-  return {este, norte};
+  const f = 1 - 1/Math.sqrt(1+ep2);                                              // aplanamiento a partir de la 2.ª excentricidad
+  return tmDirecta(latDeg, lonDeg, lon0Deg, k0, falseE, falseN, a, f);
 }
 /* PTL: igual que Gauss-Krüger pero con origen/falso-origen propios + factor de escala por elevación
    media de la zona de trabajo (N+H)/N — reduce la deformación en zonas de altiplano/cordillera. */
@@ -1636,32 +1630,58 @@ function areaElipsoidal(lat1Deg,lat2Deg,lon1Deg,lon2Deg,a,f){
 }
 
 /* ===================== AJUSTES GEODÉSICOS DE UN CUADRILÁTERO (2 diagonales) =====================
-   Método clásico de compensación por condición de figura: 3 condiciones angulares (una por cada
-   triángulo que comparte una diagonal) + 1 condición de lado, resueltas por el reparto -1/8 estándar. */
+   Ajuste por mínimos cuadrados (correcciones mínimas, pesos iguales) de los 8 ángulos observados, imponiendo:
+   3 condiciones de figura (suma 180° en cada triángulo) + 1 condición de lado (ecuación de senos). */
+function _resolverSistema(M, b){            // Gauss con pivoteo parcial: resuelve M·x = b (M cuadrada, pequeña)
+  const n=b.length, A=M.map((r,i)=>[...r,b[i]]);
+  for(let c=0;c<n;c++){
+    let p=c; for(let r=c+1;r<n;r++) if(Math.abs(A[r][c])>Math.abs(A[p][c])) p=r;
+    [A[c],A[p]]=[A[p],A[c]];
+    for(let r=c+1;r<n;r++){ const k=A[r][c]/A[c][c]; for(let q=c;q<=n;q++) A[r][q]-=k*A[c][q]; }
+  }
+  const x=new Array(n).fill(0);
+  for(let r=n-1;r>=0;r--){ let s=A[r][n]; for(let q=r+1;q<n;q++) s-=A[r][q]*x[q]; x[r]=s/A[r][r]; }
+  return x;
+}
 function ajusteCuadrilateroAngulos(A1,A2,A3,A4,B1,B2,B3,B4){
-  // Ángulos en GRADOS decimales. I,J,K = cierres angulares de las 3 condiciones de figura.
-  const I = (A1+B4+A4+B3)-180;
-  const J = (B1+A2+B2+A3)-180;
-  const K = (A1+A2+B1+B4)-180;
-  const C12 = (-1/8)*(I-J+2*K);
-  const C13 = (-1/8)*(-I+J+2*K);
-  const C14 = (-1/8)*(I+3*J-2*K);
-  const C15 = (-1/8)*(3*I+J-2*K);
-  // Ángulos preliminares corregidos (reparto de las 4 correcciones entre los 8 ángulos observados)
-  const a1=A1+C12, a4=A4+C12, b3=B3+C13, b4=B4+C13, b1=B1+C14, b2=B2+C14, a2=A2+C15, a3=A3+C15;
-  // Condición de lado (ecuación de senos del cuadrilátero con diagonales)
-  const toR = toRad;
-  const ladoRatio = (Math.sin(toR(b1))*Math.sin(toR(b2))*Math.sin(toR(a2))*Math.sin(toR(a3)))/
-                     (Math.sin(toR(a1))*Math.sin(toR(a4))*Math.sin(toR(b3))*Math.sin(toR(b4)))-1;
-  const sumaCotan = (1/Math.tan(toR(b1))+1/Math.tan(toR(b2))+1/Math.tan(toR(a2))+1/Math.tan(toR(a3)))+
-                     (1/Math.tan(toR(a1))+1/Math.tan(toR(a4))+1/Math.tan(toR(b3))+1/Math.tan(toR(b4)));
-  const corrLado = (-206264.8*ladoRatio)/sumaCotan; // en segundos sexagesimales de arco (206264.8"/rad)
-  const corrLadoDeg = corrLado/3600;
+  // Ángulos en GRADOS decimales. Convención: en el vértice i (A, B, C, D en el orden del dibujo), Ai = ángulo entre el lado
+  // hacia el vértice siguiente y la diagonal; Bi = ángulo entre la diagonal y el lado hacia el vértice anterior.
+  //   I: A1+A2+B2+B3 = 180° (triángulo ABC)   J: A2+A3+B3+B4 = 180° (BCD)   K: A3+A4+B4+B1 = 180° (CDA)
+  //   Lado: senB1·senB2·senB3·senB4 = senA1·senA2·senA3·senA4 (ecuación de senos alrededor del cruce de las diagonales)
+  const x0 = [A1,A2,A3,A4,B1,B2,B3,B4].map(toRad);           // orden: A1..A4, B1..B4
+  const idx = [[0,1,5,6],[1,2,6,7],[2,3,4,7]];                // I, J, K
+  const g = x => {                                            // residuos de las condiciones (rad; el de lado en log-senos)
+    const r = idx.map(c=>c.reduce((s,i)=>s+x[i],0)-Math.PI);
+    let ln=0; for(let i=0;i<4;i++) ln += Math.log(Math.sin(x[4+i]))-Math.log(Math.sin(x[i]));
+    return [...r, ln];
+  };
+  const jac = (x,conLado)=>{                                  // jacobiana de las condiciones respecto de los 8 ángulos
+    const J = idx.map(c=>{ const f=new Array(8).fill(0); c.forEach(i=>f[i]=1); return f; });
+    if(conLado) J.push(x.map((v,i)=> (i<4?-1:1)/Math.tan(v)));
+    return J;
+  };
+  // Mínima corrección v con g(x0+v)=0, linealizando alrededor del punto actual (Gauss-Helmert, iterado)
+  const resolver = conLado => {
+    const m = conLado?4:3; let v = new Array(8).fill(0);
+    for(let it=0; it<25; it++){
+      const x = x0.map((a,i)=>a+v[i]), J = jac(x,conLado), gx = g(x).slice(0,m);
+      const Jv = J.map(f=>f.reduce((s,a,i)=>s+a*v[i],0));
+      const JJt = J.map(f=>J.map(h=>f.reduce((s,a,i)=>s+a*h[i],0)));
+      const lam = _resolverSistema(JJt, Jv.map((a,i)=>a-gx[i]));
+      const vn = new Array(8).fill(0).map((_,i)=>J.reduce((s,f,k)=>s+f[i]*lam[k],0));
+      const paso = Math.max(...vn.map((a,i)=>Math.abs(a-v[i]))); v = vn;
+      if(paso<1e-15) break;
+    }
+    return x0.map((a,i)=>toDeg(a+v[i]));
+  };
+  const K8 = ['A1','A2','A3','A4','B1','B2','B3','B4'], aObj = arr => Object.fromEntries(K8.map((k,i)=>[k,arr[i]]));
+  const pre = resolver(false), fin = resolver(true);
+  const c0 = g(x0);
   return {
-    I, J, K, C12, C13, C14, C15,
-    preliminares: {A1:a1,A2:a2,A3:a3,A4:a4,B1:b1,B2:b2,B3:b3,B4:b4},
-    corrLadoDeg,
-    finales: {A1:a1+corrLadoDeg, A2:a2-corrLadoDeg, A3:a3-corrLadoDeg, A4:a4+corrLadoDeg, B1:b1+corrLadoDeg, B2:b2-corrLadoDeg, B3:b3-corrLadoDeg, B4:b4+corrLadoDeg}
+    I: toDeg(c0[0]), J: toDeg(c0[1]), K: toDeg(c0[2]),        // cierres angulares observados (°)
+    preliminares: aObj(pre),                                  // solo con las 3 condiciones de figura
+    corrLadoDeg: Math.max(...fin.map((a,i)=>Math.abs(a-pre[i]))),  // mayor ajuste adicional por la condición de lado (°)
+    finales: aObj(fin)
   };
 }
 
@@ -1671,11 +1691,11 @@ function heronArea(a,b,c){ const s=(a+b+c)/2; const t=s*(s-a)*(s-b)*(s-c); retur
 function trilateracionCuadrilatero(a,b,c,d,e,f){
   const areaBCE = heronArea(b,c,e);
   const areaADE = heronArea(a,d,e);
-  // Ángulos en gon internamente (igual convención que el resto de esta app para cálculos geodésicos clásicos),
-  // convertidos a grados decimales al final para integrarse con angleFieldHTML/fmtAngle.
-  const alpha1Gon = Math.asin(2*areaBCE/(b*e))*(200/Math.PI);
-  const alpha2Gon = Math.asin(2*areaADE/(a*e))*(200/Math.PI);
-  const alpha1 = alpha1Gon*0.9, alpha2 = alpha2Gon*0.9;
+  // Ángulos en el vértice común por LEY DE COSENOS: acos devuelve 0°-180° y por eso sirve también para ángulos obtusos
+  // (el asin anterior nunca pasaba de 90°: un ángulo de 100° se mostraba como 80°).
+  const clamp = x => Math.max(-1, Math.min(1, x));
+  const alpha1 = toDeg(Math.acos(clamp((b*b + e*e - c*c)/(2*b*e))));   // entre b y e (triángulo BCE)
+  const alpha2 = toDeg(Math.acos(clamp((a*a + e*e - d*d)/(2*a*e))));   // entre a y e (triángulo ADE)
   const alphaT = alpha1+alpha2;
   const ladoCalc = Math.sqrt(a*a+b*b-2*a*b*Math.cos(toRad(alphaT)));
   const cierre = f-ladoCalc;
@@ -1746,13 +1766,16 @@ function dayOfYearUTC(year,month,day){
   const d = Date.UTC(year,month-1,day);
   return Math.round((d-start)/86400000)+1;
 }
-function calcDeclinacionSolar(year,month,day){
-  const N = dayOfYearUTC(year,month,day);
-  const gamma = 2*Math.PI/365*(N-1);
-  const decRad = 0.006918 - 0.399912*Math.cos(gamma) + 0.070257*Math.sin(gamma)
-    - 0.006758*Math.cos(2*gamma) + 0.000907*Math.sin(2*gamma)
-    - 0.002697*Math.cos(3*gamma) + 0.00148*Math.sin(3*gamma);
-  return toDeg(decRad);
+function calcDeclinacionSolar(year,month,day,hourUT){
+  // Coordenadas solares de baja precisión del Almanaque Astronómico (error < 0,01° entre 1950 y 2050), evaluadas en el instante
+  // exacto (fecha + hora UT): la declinación cambia hasta 0,39°/día en los equinoccios, así que la hora importa.
+  if(hourUT===undefined || hourUT===null || isNaN(hourUT)) hourUT = 12;
+  const n = Date.UTC(year,month-1,day)/86400000 + 2440587.5 + hourUT/24 - 2451545.0;   // días desde J2000
+  const L = 280.460 + 0.9856474*n;                                                      // longitud media del Sol (°)
+  const g = toRad(357.528 + 0.9856003*n);                                               // anomalía media (rad)
+  const lambda = toRad(L + 1.915*Math.sin(g) + 0.020*Math.sin(2*g));                    // longitud eclíptica
+  const eps = toRad(23.439 - 0.0000004*n);                                              // oblicuidad de la eclíptica
+  return toDeg(Math.asin(Math.sin(eps)*Math.sin(lambda)));
 }
 
 /* ---- Rendimiento de brigada ---- */
@@ -3530,7 +3553,7 @@ function renderConverg(){
     <button class="btn" id="btnC" type="button">Calcular</button>
     <div id="resC"></div>
   </div>`;
-  toolShell('converg','Diferencia angular entre el norte de la cuadrícula UTM y el norte geográfico en un punto dado.', body);
+  toolShell('converg','Diferencia angular entre el norte de la cuadrícula UTM y el norte geográfico en un punto dado (cálculo exacto sobre el elipsoide WGS84, positiva cuando el norte de la cuadrícula queda al este del norte geográfico).', body);
   document.getElementById('btnC').addEventListener('click', ()=>{
     const lat=val('c_lat'), lon=val('c_lon'), zRaw=document.getElementById('c_zona').value;
     const box=document.getElementById('resC');
@@ -7770,6 +7793,8 @@ function renderDatumTransform(){
   const body = `<div class="field-card">
     <div class="field-row"><label for="dt_dir">Sentido</label>
       <select id="dt_dir"><option value="toSirgas" selected>PSAD56 → SIRGAS/WGS84</option><option value="toPsad">SIRGAS/WGS84 → PSAD56</option></select></div>
+    <div class="field-row"><label for="dt_zona">Parámetros de traslación</label>
+      <select id="dt_zona"><option value="auto" selected>Automático según la latitud (EPSG Chile)</option><option value="6949">EPSG:6949 · norte de 26°S</option><option value="6950">EPSG:6950 · 26°S a 36°S</option><option value="6951">EPSG:6951 · 36°S a 43,5°S</option><option value="manual">Manual (los ingreso yo)</option></select></div>
     <div class="field-inline2">
       ${fieldRow('Latitud (°, sur negativo)','dt_lat',-20.2133)}
       ${fieldRow('Longitud (°, oeste negativo)','dt_lon',-69.0989)}
@@ -7784,18 +7809,36 @@ function renderDatumTransform(){
     <button class="btn" id="btnDT" type="button">Transformar</button>
     <div id="resDT"></div>
   </div>`;
-  toolShell('datumTransform','Transformación aproximada de 3 parámetros (traslación geocéntrica) entre PSAD56 e SIRGAS/WGS84. Los valores por defecto son los de Chile al norte de 26°S (EPSG:6949, precisión ~5 m) — en Chile los parámetros varían por zona porque PSAD56 ajusta mal el territorio. Para deslindes, catastro o trabajo legal usa el transformador oficial de SIRGAS-Chile o el programa Transdatum del IGM; esta calculadora es solo para estimación y estudio.', body);
+  toolShell('datumTransform','Transformación aproximada de 3 parámetros (traslación geocéntrica) entre PSAD56 y SIRGAS/WGS84. En Chile los parámetros varían por zona porque PSAD56 ajusta mal el territorio: por defecto se eligen según la latitud entre los tres juegos oficiales de EPSG (6949 al norte de 26°S, 6950 entre 26°S y 36°S, 6951 entre 36°S y 43,5°S; precisión ~5 m). Usar el juego equivocado desplaza el punto decenas de metros. Para deslindes, catastro o trabajo legal usa el transformador oficial de SIRGAS-Chile o el programa Transdatum del IGM; esta calculadora es solo para estimación y estudio.', body);
+  const DATUM_ZONAS = {'6949':[-302,272,-360], '6950':[-328,340,-329], '6951':[-352,403,-287]};   // EPSG: PSAD56 → SIRGAS-Chile 2002
+  const datumZonaPorLat = lat => lat>=-26 ? '6949' : (lat>=-36 ? '6950' : '6951');
+  const zonaSel = document.getElementById('dt_zona'), idsParam = ['dt_dx','dt_dy','dt_dz'];
+  const aplicarZona = ()=>{
+    let z = zonaSel.value; if(z==='manual') return;
+    if(z==='auto'){ const la = val('dt_lat'); if(isNaN(la)) return; z = datumZonaPorLat(la); }
+    idsParam.forEach((id,i)=>{ document.getElementById(id).value = DATUM_ZONAS[z][i]; });
+  };
+  zonaSel.addEventListener('change', aplicarZona);
+  document.getElementById('dt_lat').addEventListener('input', ()=>{ if(zonaSel.value==='auto') aplicarZona(); });
+  idsParam.forEach(id=>document.getElementById(id).addEventListener('input', ()=>{ zonaSel.value='manual'; }));   // editar a mano => modo manual
   document.getElementById('btnDT').addEventListener('click', ()=>{
+    aplicarZona();
     const lat=val('dt_lat'), lon=val('dt_lon'), h=val('dt_h'), dx=val('dt_dx'), dy=val('dt_dy'), dz=val('dt_dz');
     const dir=document.getElementById('dt_dir').value;
     const box=document.getElementById('resDT');
     if([lat,lon,h,dx,dy,dz].some(isNaN)){ box.innerHTML=`<p class="err-msg">Completa todos los campos.</p>`; return; }
     const r = calcDatumTransform(lat,lon,h,dx,dy,dz,dir);
+    const zonaLat = datumZonaPorLat(lat); let aviso = '';
+    if(lat>-17.5 || lat<-43.5) aviso = 'La latitud está fuera de Chile continental (17,5°S a 43,5°S): los parámetros EPSG no aplican, usa parámetros propios.';
+    else if(zonaSel.value==='manual'){ const zm = Object.keys(DATUM_ZONAS).find(k=>DATUM_ZONAS[k][0]===dx && DATUM_ZONAS[k][1]===dy && DATUM_ZONAS[k][2]===dz); if(zm && zm!==zonaLat) aviso = `Ojo: ΔX, ΔY y ΔZ son los de EPSG:${zm}, pero para esta latitud corresponde EPSG:${zonaLat}.`; }
+    const usados = zonaSel.value==='manual' ? 'Manuales' : `EPSG:${zonaSel.value==='auto' ? zonaLat : zonaSel.value}`;
     box.innerHTML = `<div class="results" style="margin-top:14px;">
       <div class="result-row"><span class="k">Latitud transformada</span><span class="v accent big">${fmtDMS(r.lat,'N','S')}</span></div>
       <div class="result-row"><span class="k">Longitud transformada</span><span class="v accent big">${fmtDMS(r.lon,'E','W')}</span></div>
       <div class="result-row"><span class="k">Altura</span><span class="v">${fmtNum(r.h,3)} m</span></div>
       <div class="result-row"><span class="k">Decimal</span><span class="v">${fmtNum(r.lat,7)}, ${fmtNum(r.lon,7)}</span></div>
+      <div class="result-row"><span class="k">Parámetros aplicados</span><span class="v">${usados} (${dx}, ${dy}, ${dz})</span></div>
+      ${aviso ? `<p class="hint" style="margin-top:8px;">${aviso}</p>` : ''}
     </div>`;
   });
 }
@@ -8088,12 +8131,14 @@ function renderDirectoGeodesico(){
     if([lat1,lon1,az1,s].some(isNaN) || s<=0){ box.innerHTML=`<p class="err-msg">Completa todos los campos (distancia mayor a 0).</p>`; return; }
     const {a,f} = readElipsoid('pd_elip');
     const r = vincentyDirect(lat1,lon1,az1,s,a,f);
+    // r.az2 es el azimut de AVANCE en el punto 2 (continuación de la línea 1→2); el de regreso (2→1) es el opuesto (+180°).
+    const azReg = normDeg(r.az2+180);
     box.innerHTML = `<div class="results" style="margin-top:14px;">
       <div class="result-row"><span class="k">Latitud del punto 2</span><span class="v accent big">${fmtDMS(r.lat2,'N','S')}</span></div>
       <div class="result-row"><span class="k">Longitud del punto 2</span><span class="v accent big">${fmtDMS(r.lon2,'E','W')}</span></div>
-      <div class="result-row"><span class="k">Azimut de regreso (2→1)</span><span class="v">${fmtAngle(r.az2)}</span></div>
+      <div class="result-row"><span class="k">Azimut de regreso (2→1)</span><span class="v">${fmtAngle(azReg)}</span></div>
       <div class="result-row"><span class="k">Decimal</span><span class="v">${fmtNum(r.lat2,7)}, ${fmtNum(r.lon2,7)}</span></div>
-      <div class="plot-wrap">${svgGeodesicaEsquema(az1, r.az2, 'Punto 1', 'Punto 2', "geodesia.xlsx · hoja 'problema inverso'")}</div>
+      <div class="plot-wrap">${svgGeodesicaEsquema(az1, azReg, 'Punto 1', 'Punto 2', "geodesia.xlsx · hoja 'problema inverso'")}</div>
     </div>`;
   });
 }
@@ -8296,7 +8341,7 @@ function renderAreaElipsoidal(){
 function renderCuadrilateroTriangulacion(){
   const ang = (id,def)=>`<div class="field-row"><label for="${id}">${angleSimpleLabel()}</label><input type="number" step="any" id="${id}" value="${angleSimpleDefault(def)}"></div>`;
   const body = `<div class="field-card">
-    <p class="tool-blurb" style="margin-top:0;">Cuadrilátero con 2 diagonales (8 ángulos observados: 4 en cada vértice, A1-A4 mirando hacia una diagonal, B1-B4 hacia la otra).</p>
+    <p class="tool-blurb" style="margin-top:0;">Cuadrilátero con sus 2 diagonales (vértices A, B, C, D en el orden del dibujo). En cada vértice i se miden 2 ángulos: <b>Ai</b> = entre el lado hacia el vértice siguiente y la diagonal; <b>Bi</b> = entre la diagonal y el lado hacia el vértice anterior.</p>
     <div class="field-inline2"><div><h3>A1</h3>${ang('qa_a1',45)}</div><div><h3>A2</h3>${ang('qa_a2',45)}</div></div>
     <div class="field-inline2"><div><h3>A3</h3>${ang('qa_a3',45)}</div><div><h3>A4</h3>${ang('qa_a4',45)}</div></div>
     <div class="field-inline2"><div><h3>B1</h3>${ang('qa_b1',45)}</div><div><h3>B2</h3>${ang('qa_b2',45)}</div></div>
@@ -8304,7 +8349,7 @@ function renderCuadrilateroTriangulacion(){
     <button class="btn" id="btnQA" type="button">Compensar</button>
     <div id="resQA"></div>
   </div>`;
-  toolShell('cuadrilateroTriangulacion','Compensación clásica de un cuadrilátero de triangulación con 2 diagonales: corrige los 8 ángulos observados por condición de figura (3 condiciones de cierre angular, repartidas por el método estándar -1/8) y luego por condición de lado (ecuación de senos del cuadrilátero, corrección cotangente-ponderada).', body);
+  toolShell('cuadrilateroTriangulacion','Compensación de un cuadrilátero de triangulación con 2 diagonales por mínimos cuadrados: corrige los 8 ángulos observados con la menor corrección posible para que se cumplan las 3 condiciones de figura (suma 180° en cada triángulo) y la condición de lado (ecuación de senos). Los ángulos compensados cierran exactamente.', body);
   document.getElementById('btnQA').addEventListener('click', ()=>{
     const ids=['qa_a1','qa_a2','qa_a3','qa_a4','qa_b1','qa_b2','qa_b3','qa_b4'];
     const vals = ids.map(readAngleSimple);
@@ -8314,9 +8359,9 @@ function renderCuadrilateroTriangulacion(){
     const r = ajusteCuadrilateroAngulos(A1,A2,A3,A4,B1,B2,B3,B4);
     const fA=(d)=>fmtAngle(d);
     box.innerHTML = `<div class="results" style="margin-top:14px;">
-      <div class="result-row"><span class="k">Cierre condición I</span><span class="v">${fmtAngle(r.I)}</span></div>
-      <div class="result-row"><span class="k">Cierre condición J</span><span class="v">${fmtAngle(r.J)}</span></div>
-      <div class="result-row"><span class="k">Cierre condición K</span><span class="v">${fmtAngle(r.K)}</span></div>
+      <div class="result-row"><span class="k">Cierre I · triángulo ABC</span><span class="v">${fmtAngle(r.I)}</span></div>
+      <div class="result-row"><span class="k">Cierre J · triángulo BCD</span><span class="v">${fmtAngle(r.J)}</span></div>
+      <div class="result-row"><span class="k">Cierre K · triángulo CDA</span><span class="v">${fmtAngle(r.K)}</span></div>
       <div class="table-wrap" style="margin-top:10px;"><table class="data-table"><thead><tr><th>Ángulo</th><th>Observado</th><th>Corregido final</th></tr></thead><tbody>
         <tr><td>A1</td><td>${fA(A1)}</td><td>${fA(r.finales.A1)}</td></tr>
         <tr><td>A2</td><td>${fA(A2)}</td><td>${fA(r.finales.A2)}</td></tr>
@@ -8327,7 +8372,7 @@ function renderCuadrilateroTriangulacion(){
         <tr><td>B3</td><td>${fA(B3)}</td><td>${fA(r.finales.B3)}</td></tr>
         <tr><td>B4</td><td>${fA(B4)}</td><td>${fA(r.finales.B4)}</td></tr>
       </tbody></table></div>
-      <p class="tool-blurb" style="margin-top:8px;">Corrección por condición de lado aplicada: ${fmtNum(r.corrLadoDeg*3600,2)}".</p>
+      <p class="tool-blurb" style="margin-top:8px;">Mayor ajuste adicional por la condición de lado: ${fmtNum(r.corrLadoDeg*3600,2)}".</p>
       <div class="plot-wrap">${svgCuadrilatero('tri', "coordenadas_de_una_curva.xlsx · hoja 'triangulacion'")}</div>
     </div>`;
   });
@@ -8348,6 +8393,8 @@ function renderCuadrilateroTrilateracion(){
     const a=val('qt_a'), b=val('qt_b'), c=val('qt_c'), d=val('qt_d'), e=val('qt_e'), f=val('qt_f');
     const box=document.getElementById('resQT');
     if([a,b,c,d,e,f].some(isNaN) || [a,b,c,d,e].some(v=>v<=0)){ box.innerHTML=`<p class="err-msg">Completa los 6 lados (mayores a 0).</p>`; return; }
+    const triOk = (x,y,z)=> x+y>z && x+z>y && y+z>x;
+    if(!triOk(b,c,e) || !triOk(a,d,e)){ box.innerHTML=`<p class="err-msg">Los lados no forman triángulos válidos: en cada triángulo (b, c, e) y (a, d, e) un lado debe ser menor que la suma de los otros dos.</p>`; return; }
     const r = trilateracionCuadrilatero(a,b,c,d,e,f);
     box.innerHTML = `<div class="results" style="margin-top:14px;">
       <div class="result-row"><span class="k">Ángulo α1</span><span class="v">${fmtAngle(r.alpha1)}</span></div>
@@ -8745,17 +8792,19 @@ function renderReplanteoPunto(){
 function renderDeclinacionSolar(){
   const body = `<div class="field-card">
     <div class="field-row"><label for="ds_fecha">Fecha de la observación</label><input type="date" id="ds_fecha"></div>
+    <div class="field-row"><label for="ds_hora">Hora UT de la observación (Chile continental: hora local + 3 h en verano, + 4 h en invierno)</label><input type="time" id="ds_hora" value="16:45"></div>
     <button class="btn" id="btnDS" type="button">Calcular Declinación</button>
     <div id="resDS"></div>
   </div>`;
-  toolShell('declinacionSolar','Declinación solar aproximada para una fecha dada (fórmula de Spencer, 1971 — precisión de aprox. ±0.03°, suficiente para orientación astronómica en terreno). Usa este valor directamente en la herramienta de Orientación Astronómica.', body);
+  toolShell('declinacionSolar','Declinación solar para una fecha y hora UT dadas (algoritmo de baja precisión del Almanaque Astronómico, error menor a 0,01°). Como la declinación varía hasta 0,39° por día en los equinoccios, indica la hora de la observación: el valor por defecto (16:45 UT) equivale al mediodía local en Chile central. Usa este valor en la herramienta de Orientación Astronómica; ojo: un error de 0,01° en la declinación puede traducirse en hasta ~1 minuto de arco de azimut, así que para orientaciones de mayor precisión usa la declinación de una efeméride oficial.', body);
   try{ document.getElementById('ds_fecha').value = new Date().toISOString().slice(0,10); }catch(e){}
   document.getElementById('btnDS').addEventListener('click', ()=>{
     const fechaVal = document.getElementById('ds_fecha').value;
     const box=document.getElementById('resDS');
     if(!fechaVal){ box.innerHTML=`<p class="err-msg">Selecciona una fecha.</p>`; return; }
     const [y,m,d] = fechaVal.split('-').map(Number);
-    const dec = calcDeclinacionSolar(y,m,d);
+    const horaVal = (document.getElementById('ds_hora').value || '16:45').split(':').map(Number);
+    const dec = calcDeclinacionSolar(y,m,d, horaVal[0] + (horaVal[1]||0)/60);
     box.innerHTML = `<div class="results" style="margin-top:14px;">
       <div class="result-row"><span class="k">Declinación solar (δ)</span><span class="v accent big">${fmtAngle(dec,'N','S')}</span></div>
       <div class="result-row"><span class="k">Decimal</span><span class="v">${fmtNum(dec,4)}°</span></div>
