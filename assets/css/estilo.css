@@ -1259,3 +1259,31 @@
   transform: translateY(-2px);
 }
 .perfil-contacto-boton svg { width: 18px; height: 18px; fill: currentColor; }
+
+/* ─────────────────────────────────────────────
+   BOTÓN FLOTANTE DE WHATSAPP (inyectado por site.js)
+   Por debajo de la cabecera (1000) y del menú móvil (1100).
+   ───────────────────────────────────────────── */
+.wa-flotante {
+  position: fixed;
+  right: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 900;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #25D366;
+  color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: 0 8px 24px rgba(10,34,64,0.30);
+  transition: transform .2s ease, box-shadow .2s ease, opacity .25s ease, visibility .25s ease;
+}
+.wa-flotante svg { width: 32px; height: 32px; fill: currentColor; }
+.wa-flotante:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 12px 30px rgba(10,34,64,0.38); }
+.wa-flotante:focus-visible { outline: 3px solid var(--color-acento); outline-offset: 3px; }
+.wa-flotante.wa-oculto { opacity: 0; visibility: hidden; pointer-events: none; }
+body.menu-abierto .wa-flotante { display: none; }
+@media print { .wa-flotante { display: none; } }
+
