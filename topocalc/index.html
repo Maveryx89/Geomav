@@ -1,6 +1,11 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
 <meta charset="UTF-8">
 <title>Topo de Bolsillo · GeoMav</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Topo de Bolsillo: más de 70 calculadoras de topografía para el terreno y el gabinete (coordenadas UTM, curvas, nivelación, poligonales, geodesia). Funciona sin conexión. Por GeoMav.">
+<meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#F4F3EF">
 <link rel="manifest" href="/topocalc/manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="/topocalc/icons/icon-192.png">
@@ -21,10 +26,11 @@
   --line: rgba(10,34,64,.12);
   --line-strong: rgba(10,34,64,.24);
   --accent: #D49A6A;
-  --accent-ink: #FFFFFF;
+  --accent-text: #94562A;   /* cobre para TEXTO sobre fondo claro (el cobre de marca solo da 2:1) */
+  --accent-ink: #0A2240;   /* texto sobre el cobre: azul marino (contraste 6:1; el blanco daba 2,4:1) */
   --blueprint: #2C6B7E;
   --blueprint-soft: rgba(44,107,126,.1);
-  --success: #2F7D5B;
+  --success: #26694B;
   --success-soft: #E3F1EA;
   --danger: #B23B3B;
   --danger-soft: #F7E7E5;
@@ -35,6 +41,60 @@
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
+
+:root[data-theme="dark"]{
+  --ink: #E8EDF3;
+  --ink-soft: rgba(232,237,243,.68);
+  --paper: #10161D;
+  --paper-raised: #1A222C;
+  --paper-sunken: #0B1015;
+  --line: rgba(232,237,243,.13);
+  --line-strong: rgba(232,237,243,.28);
+  --accent: #D9A272;
+  --accent-text: #D9A272;
+  --accent-ink: #10161D;
+  --blueprint: #5BA8BF;
+  --blueprint-soft: rgba(91,168,191,.16);
+  --success: #4CB88A;
+  --success-soft: rgba(76,184,138,.16);
+  --danger: #EE8F8F;
+  --danger-soft: rgba(226,123,123,.16);
+  --shadow: 0 1px 2px rgba(0,0,0,.45), 0 6px 16px -8px rgba(0,0,0,.65);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink: #E8EDF3;
+    --ink-soft: rgba(232,237,243,.68);
+    --paper: #10161D;
+    --paper-raised: #1A222C;
+    --paper-sunken: #0B1015;
+    --line: rgba(232,237,243,.13);
+    --line-strong: rgba(232,237,243,.28);
+    --accent: #D9A272;
+    --accent-text: #D9A272;
+    --accent-ink: #10161D;
+    --blueprint: #5BA8BF;
+    --blueprint-soft: rgba(91,168,191,.16);
+    --success: #4CB88A;
+    --success-soft: rgba(76,184,138,.16);
+    --danger: #EE8F8F;
+    --danger-soft: rgba(226,123,123,.16);
+    --shadow: 0 1px 2px rgba(0,0,0,.45), 0 6px 16px -8px rgba(0,0,0,.65);
+    color-scheme: dark;
+  }
+}
+/* Mapa (Leaflet) en oscuro: se invierte solo el mapa base; marcadores y controles conservan sus colores */
+:root[data-theme="dark"] .leaflet-tile-pane{ filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.95); }
+:root[data-theme="dark"] .leaflet-container{ background:#1a1f26; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .leaflet-tile-pane{ filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.95); }
+  :root:not([data-theme="light"]) .leaflet-container{ background:#1a1f26; }
+}
+
+/* Rótulos de texto dentro de los dibujos: el cobre de marca y el gris tenue no alcanzan contraste como texto (las líneas y formas no cambian) */
+svg text[fill="var(--accent)"]{ fill:var(--accent-text); }
+svg text[fill="var(--line-strong)"]{ fill:var(--ink-soft); }
 
 /* ===================== BASE ===================== */
 *{box-sizing:border-box;}
@@ -103,7 +163,7 @@ input, select{font-family:var(--font-mono); font-size:16px;}
 .topbar .brand .mark{
   font-family:var(--font-display); font-weight:700; font-size:20px; letter-spacing:.01em; line-height:1;
 }
-.topbar .brand .mark em{font-style:normal; color:var(--accent);}
+.topbar .brand .mark em{font-style:normal; color:var(--accent-text);}
 .topbar .brand .tag{font-size:9.5px; color:var(--ink-soft); font-family:var(--font-mono); letter-spacing:.03em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .topbar .tool-title{font-family:var(--font-display); font-weight:700; font-size:21px; letter-spacing:.01em;}
 body.in-tool .topbar .back-btn{display:inline-flex;}
@@ -187,15 +247,15 @@ main{flex:1; padding:18px 16px 64px;}
 }
 .proximamente[open] summary::before{transform:rotate(90deg);}
 .proximamente summary .count{
-  font-family:var(--font-mono); font-size:11px; color:var(--paper);
-  background:var(--line-strong); border-radius:10px; padding:1px 8px; margin-left:auto;
+  font-family:var(--font-mono); font-size:11px; color:var(--ink); background:var(--paper-sunken);
+  border:1px solid var(--line-strong); border-radius:10px; padding:1px 8px; margin-left:auto;
 }
 .proximamente .card-grid{padding:0 16px 16px;}
 .proximamente .tool-card{opacity:.72;}
 .proximamente .tool-card .badge{
   align-self:flex-start;
   font-family:var(--font-mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.04em;
-  color:var(--accent); background:var(--blueprint-soft); border-radius:3px; padding:1px 7px;
+  color:var(--accent-text); background:var(--blueprint-soft); border-radius:3px; padding:1px 7px;
 }
 
 /* ===================== TOOL VIEW ===================== */
@@ -338,7 +398,7 @@ main{flex:1; padding:18px 16px 64px;}
 .result-row:last-child{border-bottom:none;}
 .result-row .k{color:var(--ink-soft);}
 .result-row .v{font-family:var(--font-mono); font-weight:500; font-variant-numeric:tabular-nums; text-align:right;}
-.result-row .v.accent{color:var(--accent);}
+.result-row .v.accent{color:var(--accent-text);}
 .result-row .v.big{font-size:17px; font-weight:600;}
 
 .pill{
@@ -422,6 +482,7 @@ footer.app-foot .foot-copy{font-size:10px; opacity:.75;}
 #printArea .pr-signoff{ margin-top:18px; padding-top:10px; border-top:1px solid #E2E4E8; display:flex; justify-content:space-between; font-size:10.5px; color:#606F83; }
 #printArea .pr-signoff .box{ border-top:1px solid #0A2240; width:200px; padding-top:4px; text-align:center; margin-top:26px; }
 @media print{
+  html,body{ background:#fff !important; color:#0A2240 !important; }
   body *{ visibility:hidden; }
   #printArea, #printArea *{ visibility:visible; }
   #printArea{ display:block; position:absolute; top:0; left:0; width:100%; }
@@ -445,6 +506,8 @@ footer.app-foot .foot-copy{font-size:10px; opacity:.75;}
   .card-grid{grid-template-columns:repeat(4, 1fr);}
 }
 </style>
+</head>
+<body>
 
 <div id="app">
   <div class="topbar">
@@ -3926,7 +3989,7 @@ function svgTrianguloVertical(anguloDeg, Dh, hi, hm, desnivel){
     <line x1="${dhX}" y1="${arrowUpY.toFixed(1)}" x2="${dhX}" y2="${arrowDnY.toFixed(1)}" stroke="var(--accent)" stroke-width="1.6"/>
     <polygon points="${dhX-3},${(arrowUpY+6).toFixed(1)} ${dhX+3},${(arrowUpY+6).toFixed(1)} ${dhX},${arrowUpY.toFixed(1)}" fill="var(--accent)"/>
     <polygon points="${dhX-3},${(arrowDnY-6).toFixed(1)} ${dhX+3},${(arrowDnY-6).toFixed(1)} ${dhX},${arrowDnY.toFixed(1)}" fill="var(--accent)"/>
-    <text x="${(dhX+7).toFixed(1)}" y="${((arrowUpY+arrowDnY)/2+3).toFixed(1)}" font-size="9.5" font-family="var(--font-mono)" font-weight="700" fill="var(--accent)" text-anchor="start">ΔH</text>
+    <text x="${(dhX+7).toFixed(1)}" y="${((arrowUpY+arrowDnY)/2+3).toFixed(1)}" font-size="9.5" font-family="var(--font-mono)" font-weight="700" fill="var(--accent-text)" text-anchor="start">ΔH</text>
 
     <line x1="${(V.x-3).toFixed(1)}" y1="${(V.y+2).toFixed(1)}" x2="${(V.x-11).toFixed(1)}" y2="${legFootY.toFixed(1)}" stroke="var(--ink)" stroke-width="1.4"/>
     <line x1="${(V.x+3).toFixed(1)}" y1="${(V.y+2).toFixed(1)}" x2="${(V.x+8).toFixed(1)}" y2="${legFootY.toFixed(1)}" stroke="var(--ink)" stroke-width="1.4"/>
@@ -3967,7 +4030,7 @@ function svgRumboAzimut(e1, n1, e2, n2, r, fuente){
     <circle cx="${Ax.toFixed(1)}" cy="${Ay.toFixed(1)}" r="3.4" fill="var(--ink)"/>
     <circle cx="${Bx.toFixed(1)}" cy="${By.toFixed(1)}" r="3.4" fill="var(--accent)"/>
     <text x="${Ax.toFixed(1)}" y="${(Ay+15).toFixed(1)}" font-size="${relFont(w,0.032,8,10)}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">A</text>
-    <text x="${Bx.toFixed(1)}" y="${(By-9).toFixed(1)}" font-size="${relFont(w,0.032,8,10)}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">B</text>
+    <text x="${Bx.toFixed(1)}" y="${(By-9).toFixed(1)}" font-size="${relFont(w,0.032,8,10)}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">B</text>
     ${svgLineLabel(Ax,Ay,Bx,By, fmtNum(r.dist,2)+' m', 'var(--blueprint)', distFont, 1, 1)}
     ${svgLineLabel(Ax,Ay,Bx,By, 'Az='+fmtAngle(r.az), 'var(--accent)', subFont, 1, 2.6)}
     ${svgLineLabel(Ax,Ay,Bx,By, 'Rumbo '+r.rumbo.ns+' '+fmtAngle(r.rumbo.ang)+' '+r.rumbo.ew, 'var(--ink-soft)', subFont, 1, 4.0)}
@@ -4035,7 +4098,7 @@ function svgDistPuntoLinea(e1, n1, e2, n2, ep, np, r, fuente){
     <circle cx="${Fx.toFixed(1)}" cy="${Fy.toFixed(1)}" r="3" fill="var(--blueprint)"/>
     <text x="${aPos.x.toFixed(1)}" y="${aPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">A</text>
     <text x="${bPos.x.toFixed(1)}" y="${bPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">B</text>
-    <text x="${pPos.x.toFixed(1)}" y="${pPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">P</text>
+    <text x="${pPos.x.toFixed(1)}" y="${pPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">P</text>
     <text x="${fPos.x.toFixed(1)}" y="${fPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">F</text>
     ${svgLineLabel(abLblA.x,abLblA.y,abLblB.x,abLblB.y, 'AB', 'var(--blueprint)', font, abSide, abOffset, 700)}
     ${svgLineLabel(Px,Py,Fx,Fy, 'D', 'var(--line-strong)', font, -1, dOffset, 700)}
@@ -4321,9 +4384,9 @@ function svgNivelDosEstacas(a1,b1,a2,b2,D,d,r){
     <line x1="${xPos2.toFixed(1)}" y1="${instr2Y}" x2="${xB}" y2="${y2b.toFixed(1)}" stroke="var(--accent)" stroke-width="1.3"/>
     <circle cx="${xA}" cy="${y2a.toFixed(1)}" r="2.6" fill="var(--accent)"/>
     <circle cx="${xB}" cy="${y2b.toFixed(1)}" r="2.6" fill="var(--accent)"/>
-    <text x="${labelX2.toFixed(1)}" y="${(instr2Y+15).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">${pos2Text}</text>
-    <text x="${(xA-9).toFixed(1)}" y="${y2a.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="end">a2</text>
-    <text x="${(xB+9).toFixed(1)}" y="${y2b.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="start">b2</text>
+    <text x="${labelX2.toFixed(1)}" y="${(instr2Y+15).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">${pos2Text}</text>
+    <text x="${(xA-9).toFixed(1)}" y="${y2a.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="end">a2</text>
+    <text x="${(xB+9).toFixed(1)}" y="${y2b.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="start">b2</text>
     <text x="${(xA-16).toFixed(1)}" y="${(h-8).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Terreno</text>
     <text x="${(xB+16).toFixed(1)}" y="${(h-8).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="end">D</text>
   </svg>`;
@@ -4528,8 +4591,8 @@ function svgTeodolitoDosCaras(hzFL,hzFR,zFL,zFR,r){
     <line x1="${cx1}" y1="${cy}" x2="${p2.x.toFixed(1)}" y2="${p2.y.toFixed(1)}" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="3 2"/>
     <text x="${cx1}" y="14" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Colimación horizontal</text>
     <text x="${p1t.x.toFixed(1)}" y="${p1t.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">CI</text>
-    <text x="${p2t.x.toFixed(1)}" y="${p2t.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">CD</text>
-    <text x="${cx1}" y="${(cy+arm+16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">C</text>
+    <text x="${p2t.x.toFixed(1)}" y="${p2t.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">CD</text>
+    <text x="${cx1}" y="${(cy+arm+16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">C</text>
     <circle cx="${cx2}" cy="${cy}" r="3" fill="var(--ink)"/>
     <line x1="${cx2}" y1="${cy-arm}" x2="${cx2}" y2="${cy+8}" stroke="var(--line)" stroke-width="0.8" stroke-dasharray="2 2"/>
     <text x="${cx2}" y="${(cy-arm-5).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Cenit</text>
@@ -4537,8 +4600,8 @@ function svgTeodolitoDosCaras(hzFL,hzFR,zFL,zFR,r){
     <line x1="${cx2}" y1="${cy}" x2="${q2.x.toFixed(1)}" y2="${q2.y.toFixed(1)}" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="3 2"/>
     <text x="${cx2}" y="14" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Índice vertical</text>
     <text x="${q1t.x.toFixed(1)}" y="${q1t.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">ZI</text>
-    <text x="${q2t.x.toFixed(1)}" y="${q2t.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">ZD</text>
-    <text x="${cx2}" y="${(cy+arm+16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">i</text>
+    <text x="${q2t.x.toFixed(1)}" y="${q2t.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">ZD</text>
+    <text x="${cx2}" y="${(cy+arm+16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">i</text>
     <text x="${w/2}" y="${(cy+arm+28).toFixed(1)}" font-size="${relFont(w,0.024,6,7.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(separación dibujada esquemática, no a escala)</text>
     <line x1="150" y1="20" x2="150" y2="${h-20}" stroke="var(--line)" stroke-width="0.8"/>
   </svg>`;
@@ -4613,7 +4676,7 @@ function svgCotaProgresiva(Kini,Cini,S,Keval,r){
     <circle cx="${x1}" cy="${y1.toFixed(1)}" r="3.4" fill="var(--ink)"/>
     <circle cx="${x2}" cy="${y2.toFixed(1)}" r="3.4" fill="var(--accent)"/>
     <text x="${originLabel.x.toFixed(1)}" y="${(originLabel.y-3).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">Origen</text>
-    <text x="${evalLabel.x.toFixed(1)}" y="${(evalLabel.y-3).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Eval</text>
+    <text x="${evalLabel.x.toFixed(1)}" y="${(evalLabel.y-3).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Eval</text>
     ${svgLineLabel(x1,y1,x2,y2, 'S', 'var(--blueprint)', font, -1)}
     <text x="${(x1+x2)/2}" y="${(h-8).toFixed(1)}" font-size="${relFont(w,0.026,6.5,8)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(escala vertical exagerada, no a escala real)</text>
   </svg>`;
@@ -4686,9 +4749,9 @@ function svgPlantillaZanja(K1,Cp1,S,Kx,hcama,HI,r){
     <line x1="${x2}" y1="${yRadier.toFixed(1)}" x2="${x2}" y2="${yExc.toFixed(1)}" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="2 2"/>
     <text x="${hcamaX.toFixed(1)}" y="${((yRadier+yExc)/2).toFixed(1)}" font-size="${hcamaFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">hcama</text>
     <circle cx="${x2}" cy="${yExc.toFixed(1)}" r="3.4" fill="var(--accent)"/>
-    <text x="${x2}" y="${(yExc+14).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="end">Fondo</text>
+    <text x="${x2}" y="${(yExc+14).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="end">Fondo</text>
     <line x1="${miraLineX.toFixed(1)}" y1="${yHI.toFixed(1)}" x2="${miraLineX.toFixed(1)}" y2="${yExc.toFixed(1)}" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="2 2"/>
-    <text x="${(miraLineX+4).toFixed(1)}" y="${((yHI+yExc)/2).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="start">Mira</text>
+    <text x="${(miraLineX+4).toFixed(1)}" y="${((yHI+yExc)/2).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="start">Mira</text>
     <text x="${(x1+x2)/2}" y="${(h-6).toFixed(1)}" font-size="${relFont(w,0.024,6,7.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(escala vertical esquemática)</text>
   </svg>`;
 }
@@ -4743,7 +4806,7 @@ function svgCapasPavimento(Cras,i,d,e1,e2,e3,capa,r){
     <text x="${lblX}" y="${(yE3-3).toFixed(1)}" font-size="${smallFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Subbase</text>
     <line x1="${xEje}" y1="20" x2="${xEje}" y2="${capaY}" stroke="var(--accent)" stroke-width="0.8" stroke-dasharray="2 2"/>
     <circle cx="${xEje}" cy="${capaY}" r="3.4" fill="var(--accent)"/>
-    <text x="${xEje}" y="14" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Eje — ${capaLabel}</text>
+    <text x="${xEje}" y="14" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Eje — ${capaLabel}</text>
     <line x1="${xEje}" y1="${capaY}" x2="${xL}" y2="${borderY.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.8"/>
     <line x1="${xEje}" y1="${capaY}" x2="${xR}" y2="${borderY.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.8"/>
     <circle cx="${xL}" cy="${borderY.toFixed(1)}" r="3" fill="var(--blueprint)"/>
@@ -4803,7 +4866,7 @@ function svgProgresivaOffset(n1,e1,k1,n2,e2,np,ep,r){
     <circle cx="${Fx.toFixed(1)}" cy="${Fy.toFixed(1)}" r="3" fill="var(--blueprint)"/>
     <text x="${p1Label.x.toFixed(1)}" y="${(p1Label.y-4).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">P1</text>
     <text x="${p2Label.x.toFixed(1)}" y="${(p2Label.y-4).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">P2</text>
-    <text x="${Px.toFixed(1)}" y="${(Py-9).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">P3</text>
+    <text x="${Px.toFixed(1)}" y="${(Py-9).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">P3</text>
     <text x="${kLabel.x.toFixed(1)}" y="${(kLabel.y-6).toFixed(1)}" font-size="${relFont(w,0.026,6.5,8)}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">K</text>
     ${(function(){
       // Etiqueta del offset: ubicada en la dirección PERPENDICULAR real del eje (mismo lado que P3,
@@ -4880,7 +4943,7 @@ function svgNivelacionDiferencial(cotas, filas){
     out += `<line x1="${ptX[idx].toFixed(1)}" y1="${(ptY[idx]+3).toFixed(1)}" x2="${ptX[idx].toFixed(1)}" y2="${staffTopY[idx].toFixed(1)}" stroke="var(--ink)" stroke-width="1.6"/>\n`;
     out += `<circle cx="${ptX[idx].toFixed(1)}" cy="${(ptY[idx]+3).toFixed(1)}" r="2.6" fill="var(--accent)"/>\n`;
     const lbl = idx===0 ? 'BM' : (idx===nPts-1 ? 'PF' : 'PC'+idx);
-    out += `<text x="${ptX[idx].toFixed(1)}" y="${(ptY[idx]+3+11).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--accent)" text-anchor="middle">${lbl}</text>\n`;
+    out += `<text x="${ptX[idx].toFixed(1)}" y="${(ptY[idx]+3+11).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--accent-text)" text-anchor="middle">${lbl}</text>\n`;
   }
 
   stations.forEach(s=>{
@@ -5106,7 +5169,7 @@ function svgCurvaVertical(p1,p2,L,fracs){
       const by = mt*mt*y0 + 2*mt*t*curveMid + t*t*y1;
       ticks += `<circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="2.2" fill="var(--accent)"/>`;
       if(i%step===0 && i!==0 && i!==fracs.length-1 && Math.abs(bx-xPIV)>14){
-        ticks += `<text x="${bx.toFixed(1)}" y="${(by-6).toFixed(1)}" font-size="${tickFont}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">${i+1}</text>`;
+        ticks += `<text x="${bx.toFixed(1)}" y="${(by-6).toFixed(1)}" font-size="${tickFont}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">${i+1}</text>`;
       }
     });
   }
@@ -5219,7 +5282,7 @@ function svgSectorCircular(deltaDeg, Rval){
     <circle cx="${p2.x.toFixed(1)}" cy="${p2.y.toFixed(1)}" r="2.4" fill="var(--ink)"/>
     <text x="${cx}" y="${(cy+15).toFixed(1)}" font-size="${relFont(w,0.037,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">O</text>
     ${svgLineLabel(cx,cy,p1.x,p1.y, Rval!==undefined?'R='+fmtNum(Rval,2):'R', 'var(--blueprint)', relFont(w,0.037,7.5,9.5), -1)}
-    <text x="${mid.x.toFixed(1)}" y="${(mid.y-6).toFixed(1)}" font-size="${relFont(w,0.037,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Δ=${fmtNum(d,2)}°</text>
+    <text x="${mid.x.toFixed(1)}" y="${(mid.y-6).toFixed(1)}" font-size="${relFont(w,0.037,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Δ=${fmtNum(d,2)}°</text>
     <text x="${p1.x.toFixed(1)}" y="${(p1.y+14).toFixed(1)}" font-size="${relFont(w,0.037,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">A</text>
     <text x="${p2.x.toFixed(1)}" y="${(p2.y+14).toFixed(1)}" font-size="${relFont(w,0.037,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">B</text>
   </svg>`;
@@ -5282,7 +5345,7 @@ function svgInterseccion(e1,n1,az1,e2,n2,az2,eI,nI){
     <circle cx="${px(e2).toFixed(1)}" cy="${py(n2).toFixed(1)}" r="3" fill="var(--accent)"/>
     <circle cx="${px(eI).toFixed(1)}" cy="${py(nI).toFixed(1)}" r="4" fill="var(--ink)"/>
     <text x="${es1Pos.x.toFixed(1)}" y="${es1Pos.y.toFixed(1)}" font-size="${relFont(w,0.03,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">Es1</text>
-    <text x="${es2Pos.x.toFixed(1)}" y="${es2Pos.y.toFixed(1)}" font-size="${relFont(w,0.03,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Es2</text>
+    <text x="${es2Pos.x.toFixed(1)}" y="${es2Pos.y.toFixed(1)}" font-size="${relFont(w,0.03,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Es2</text>
     ${svgLineLabel(px(nearA0.e),py(nearA0.n),px(nearA.e),py(nearA.n), 'Az1: '+fmtNum(az1,2)+'°', 'var(--blueprint)', azFont, azSide1, azOffset1, 700)}
     ${svgLineLabel(px(nearB0.e),py(nearB0.n),px(nearB.e),py(nearB.n), 'Az2: '+fmtNum(az2,2)+'°', 'var(--accent)', azFont, azSide2, azOffset2, 700)}
     <text x="${px(eI).toFixed(1)}" y="${(py(nI)-9).toFixed(1)}" font-size="${relFont(w,0.033,8,10)}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">I</text>
@@ -5375,7 +5438,7 @@ function svgAstronomica(azSolDeg, rDeg, chDeg){
     <circle cx="${pSol.x.toFixed(1)}" cy="${pSol.y.toFixed(1)}" r="6" fill="var(--accent)"/>
     <line x1="${cx}" y1="${cy}" x2="${pRef.x.toFixed(1)}" y2="${pRef.y.toFixed(1)}" stroke="var(--blueprint)" stroke-width="2"/>
     <circle cx="${cx}" cy="${cy}" r="2.6" fill="var(--ink)"/>
-    <text x="${pSol.x.toFixed(1)}" y="${(pSol.y-10).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Sol (Az=${fmtNum(azSolDeg,2)}°)</text>
+    <text x="${pSol.x.toFixed(1)}" y="${(pSol.y-10).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Sol (Az=${fmtNum(azSolDeg,2)}°)</text>
     <text x="${pRef.x.toFixed(1)}" y="${(pRef.y-8).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">Ref. (Az=${fmtNum(rDeg,2)}°)</text>
   </svg>`;
 }
@@ -5416,7 +5479,7 @@ function svgBoletaBarra(liquido, retencion){
     <rect x="${pad}" y="14" width="${liqW.toFixed(1)}" height="22" fill="var(--blueprint)" rx="2"/>
     <rect x="${(pad+liqW).toFixed(1)}" y="14" width="${retW.toFixed(1)}" height="22" fill="var(--accent)" rx="2"/>
     <text x="${pad}" y="50" font-size="9" font-family="var(--font-mono)" fill="var(--blueprint)">■ Líquido ${fmtNum(liquido/total*100,1)}%</text>
-    <text x="${(pad+barW).toFixed(1)}" y="50" font-size="9" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="end">Retención ${fmtNum(retencion/total*100,1)}% ■</text>
+    <text x="${(pad+barW).toFixed(1)}" y="50" font-size="9" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="end">Retención ${fmtNum(retencion/total*100,1)}% ■</text>
   </svg>`;
 }
 
@@ -5442,7 +5505,7 @@ function svgReplanteoOrdenadas(R, deltaDeg, rows, xMax, yMax){
     const top=toXY(r.x,r.y), base=toXY(r.x,0);
     ticks += `<line x1="${base.sx.toFixed(1)}" y1="${base.sy.toFixed(1)}" x2="${top.sx.toFixed(1)}" y2="${top.sy.toFixed(1)}" stroke="var(--accent)" stroke-width="1.1" stroke-dasharray="${r.esPT?'0':'2 2'}"/>`;
     ticks += `<circle cx="${top.sx.toFixed(1)}" cy="${top.sy.toFixed(1)}" r="2.2" fill="var(--accent)"/>`;
-    if(!r.esPT && i%tickStep1===0) ticks += `<text x="${top.sx.toFixed(1)}" y="${(top.sy-6).toFixed(1)}" font-size="${tickFont1}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">P${i+1}</text>`;
+    if(!r.esPT && i%tickStep1===0) ticks += `<text x="${top.sx.toFixed(1)}" y="${(top.sy-6).toFixed(1)}" font-size="${tickFont1}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">P${i+1}</text>`;
   });
   const pcP=toXY(0,0), ptP=toXY(xMax,yMax);
   const lblFont1=relFont(w,0.033,8,10);
@@ -5483,7 +5546,7 @@ function svgReplanteoCuerda(R, deltaDeg, rows, Lchord, M){
     const top=toXY(r.x,r.y), base=toXY(r.x,0);
     ticks += `<line x1="${base.sx.toFixed(1)}" y1="${base.sy.toFixed(1)}" x2="${top.sx.toFixed(1)}" y2="${top.sy.toFixed(1)}" stroke="var(--accent)" stroke-width="1.1" stroke-dasharray="${(r.esPC||r.esPT)?'0':'2 2'}"/>`;
     ticks += `<circle cx="${top.sx.toFixed(1)}" cy="${top.sy.toFixed(1)}" r="2.2" fill="var(--accent)"/>`;
-    if(!r.esPC && !r.esPT && i%tickStep2===0) ticks += `<text x="${top.sx.toFixed(1)}" y="${(top.sy-6).toFixed(1)}" font-size="${tickFont2}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">P${i+1}</text>`;
+    if(!r.esPC && !r.esPT && i%tickStep2===0) ticks += `<text x="${top.sx.toFixed(1)}" y="${(top.sy-6).toFixed(1)}" font-size="${tickFont2}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">P${i+1}</text>`;
   });
   const pcP=toXY(0,0), ptP=toXY(Lchord,0);
   const lblFont2=relFont(w,0.033,8,10);
@@ -5542,7 +5605,7 @@ function svgClotoide(R, Ls, lEstaca, estLabel, fuente){
     const nearFrac = Ls>0 ? lClamped/Ls : 0.5;
     const anchor = nearFrac>0.85 ? 'end' : (nearFrac<0.15 ? 'start' : 'middle');
     estMark = `<circle cx="${pe.sx.toFixed(1)}" cy="${pe.sy.toFixed(1)}" r="3.4" fill="var(--accent)" stroke="var(--ink)" stroke-width="0.6"/>
-      <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="${anchor}" transform="rotate(${angDeg.toFixed(1)} ${lx.toFixed(1)} ${ly.toFixed(1)})">${estLabel||'Estaca'}</text>`;
+      <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="${anchor}" transform="rotate(${angDeg.toFixed(1)} ${lx.toFixed(1)} ${ly.toFixed(1)})">${estLabel||'Estaca'}</text>`;
   }
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <line x1="${ox}" y1="${oy}" x2="${(ox+maxX*scaleX+10).toFixed(1)}" y2="${oy}" stroke="var(--line-strong)" stroke-width="1.4" stroke-dasharray="2 2"/>
@@ -5668,7 +5731,7 @@ function svgFootprintVuelo(alturaVuelo, footAncho){
     <line x1="${cx}" y1="${droneY}" x2="${gx2.toFixed(1)}" y2="${groundY}" stroke="var(--blueprint)" stroke-width="1.6"/>
     <line x1="${gx1.toFixed(1)}" y1="${groundY}" x2="${gx2.toFixed(1)}" y2="${groundY}" stroke="var(--accent)" stroke-width="2.4"/>
     <text x="${cx}" y="${(droneY-8).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">h = ${fmtNum(alturaVuelo,0)} m</text>
-    <text x="${cx}" y="${(groundY+18).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Huella = ${fmtNum(footAncho,1)} m</text>
+    <text x="${cx}" y="${(groundY+18).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Huella = ${fmtNum(footAncho,1)} m</text>
   </svg>`;
 }
 
@@ -5684,7 +5747,7 @@ function svgTraslape(footAncho, footAlto, baseVuelo){
     <rect x="${x0.toFixed(1)}" y="${y1.toFixed(1)}" width="${rectW.toFixed(1)}" height="${rectH.toFixed(1)}" fill="var(--blueprint)" fill-opacity=".2" stroke="var(--blueprint)" stroke-width="1.4"/>
     <rect x="${x0.toFixed(1)}" y="${y2.toFixed(1)}" width="${rectW.toFixed(1)}" height="${rectH.toFixed(1)}" fill="var(--accent)" fill-opacity=".2" stroke="var(--accent)" stroke-width="1.4"/>
     <text x="${(x0+8).toFixed(1)}" y="${(y1+13).toFixed(1)}" font-size="${relFont(w,0.036,7.5,9)}" font-family="var(--font-mono)" fill="var(--blueprint)">Foto 1</text>
-    <text x="${(x0+8).toFixed(1)}" y="${(y2+rectH-6).toFixed(1)}" font-size="${relFont(w,0.036,7.5,9)}" font-family="var(--font-mono)" fill="var(--accent)">Foto 2</text>
+    <text x="${(x0+8).toFixed(1)}" y="${(y2+rectH-6).toFixed(1)}" font-size="${relFont(w,0.036,7.5,9)}" font-family="var(--font-mono)" fill="var(--accent-text)">Foto 2</text>
     <text x="${(w/2).toFixed(1)}" y="${(y2+(y1+rectH-y2)/2).toFixed(1)}" font-size="${relFont(w,0.036,7.5,9)}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">traslape</text>
     <line x1="${arrowX.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${arrowX.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2"/>
     ${svgLineLabel(arrowX,y1,arrowX,y2, 'B='+fmtNum(baseVuelo,1), 'var(--ink-soft)', relFont(w,0.032,6.5,8), -1)}
@@ -5707,7 +5770,7 @@ function svgAreaOrdenadas(hInterval, ys){
   pts.forEach((p,i)=>{
     ticks += `<line x1="${p.x.toFixed(1)}" y1="${baseY}" x2="${p.x.toFixed(1)}" y2="${p.y.toFixed(1)}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2 2"/><circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.2" fill="var(--accent)"/>`;
     if(i%step===0 || i===pts.length-1){
-      ticks += `<text x="${p.x.toFixed(1)}" y="${(p.y-6).toFixed(1)}" font-size="${yFont}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">y${i}=${fmtNum(ys[i],2)}</text>`;
+      ticks += `<text x="${p.x.toFixed(1)}" y="${(p.y-6).toFixed(1)}" font-size="${yFont}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">y${i}=${fmtNum(ys[i],2)}</text>`;
     }
   });
   const midFirst=(pts[0].x+(pts[1]?pts[1].x:pts[0].x+20))/2;
@@ -5733,7 +5796,7 @@ function svgDeclinacionSol(decDeg){
     <text x="${w-pad}" y="${(cy-6).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="end">Ecuador celeste</text>
     <line x1="${cx}" y1="${cy}" x2="${sunX.toFixed(1)}" y2="${sunY.toFixed(1)}" stroke="var(--accent)" stroke-width="2"/>
     <circle cx="${sunX.toFixed(1)}" cy="${sunY.toFixed(1)}" r="6" fill="var(--accent)"/>
-    <text x="${sunX.toFixed(1)}" y="${(sunY-10).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">δ = ${fmtNum(decDeg,2)}°</text>
+    <text x="${sunX.toFixed(1)}" y="${(sunY-10).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">δ = ${fmtNum(decDeg,2)}°</text>
     <circle cx="${cx}" cy="${cy}" r="2.4" fill="var(--ink)"/>
   </svg>`;
 }
@@ -6517,7 +6580,7 @@ function svgDisenoEscalera(r, P, fondoDescanso){
     dimTicks += `<line x1="${seg.x0.toFixed(1)}" y1="${(dimY-3).toFixed(1)}" x2="${seg.x0.toFixed(1)}" y2="${(dimY+3).toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>`;
     dimTicks += `<text x="${mid.toFixed(1)}" y="${(dimY+11).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">${label}</text>`;
     if(seg.isLanding){
-      dimTicks += `<text x="${mid.toFixed(1)}" y="${(seg.y-6).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Descanso</text>`;
+      dimTicks += `<text x="${mid.toFixed(1)}" y="${(seg.y-6).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Descanso</text>`;
     }
   });
   dimTicks += `<line x1="${topX.toFixed(1)}" y1="${(dimY-3).toFixed(1)}" x2="${topX.toFixed(1)}" y2="${(dimY+3).toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>`;
@@ -7312,7 +7375,7 @@ function svgCorteTerraplen(Sc, St, fuente){
     <rect x="${w/2-40}" y="${(baseY-hc).toFixed(1)}" width="80" height="${hc.toFixed(1)}" fill="var(--blueprint-soft)" stroke="var(--blueprint)" stroke-width="1.4"/>
     <rect x="${w/2-40}" y="${baseY.toFixed(1)}" width="80" height="${ht.toFixed(1)}" fill="var(--accent)" fill-opacity="0.18" stroke="var(--accent)" stroke-width="1.4"/>
     <text x="${w/2}" y="${(baseY-hc-8).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">Sc (corte) = ${fmtNum(Sc,2)} m²</text>
-    <text x="${w/2}" y="${(baseY+ht+14).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">St (terraplén) = ${fmtNum(St,2)} m²</text>
+    <text x="${w/2}" y="${(baseY+ht+14).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">St (terraplén) = ${fmtNum(St,2)} m²</text>
     ${fuente?svgFuente(fuente,w,h):''}
   </svg>`;
 }
@@ -7653,7 +7716,7 @@ function svgEjePolilinea(verts, estaca, fuente){
   let est='';
   if(estaca){
     est = `<circle cx="${px(estaca.X).toFixed(1)}" cy="${py(estaca.Y).toFixed(1)}" r="3.6" fill="var(--accent)" stroke="var(--ink)" stroke-width="0.6"/>
-      <text x="${px(estaca.X).toFixed(1)}" y="${(py(estaca.Y)+15).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Estaca</text>`;
+      <text x="${px(estaca.X).toFixed(1)}" y="${(py(estaca.Y)+15).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Estaca</text>`;
   }
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <path d="${path}" stroke="var(--blueprint)" stroke-width="2" fill="none"/>
@@ -7924,7 +7987,7 @@ function svgGeocentricas(latDeg, fuente){
     <text x="${(cx-6).toFixed(1)}" y="${(cy-ry-20).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--ink-soft)">Z</text>
     <text x="${(cx-rx*0.55-10).toFixed(1)}" y="${(cy+ry*0.5+12).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--ink-soft)">Y</text>
     <text x="${cx.toFixed(1)}" y="${(cy+13).toFixed(1)}" font-size="8.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">O</text>
-    <text x="${px.toFixed(1)}" y="${(py-8).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">P (φ=${fmtNum(latDeg,2)}°)</text>
+    <text x="${px.toFixed(1)}" y="${(py-8).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">P (φ=${fmtNum(latDeg,2)}°)</text>
     ${fuente?svgFuente(fuente,w,h):''}
   </svg>`;
 }
@@ -7972,7 +8035,7 @@ function svgVectorENU(azDeg, zenithDeg, fuente){
     <circle cx="${cx}" cy="${cy}" r="3" fill="var(--ink)"/>
     <circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="3.4" fill="var(--accent)"/>
     <text x="${cx.toFixed(1)}" y="${(cy+16).toFixed(1)}" font-size="${relFont(w,0.03,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Estación</text>
-    <text x="${ex.toFixed(1)}" y="${(ey-9).toFixed(1)}" font-size="${relFont(w,0.032,8,10)}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Vector</text>
+    <text x="${ex.toFixed(1)}" y="${(ey-9).toFixed(1)}" font-size="${relFont(w,0.032,8,10)}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Vector</text>
     <text x="${(cx+14).toFixed(1)}" y="${(cy-14).toFixed(1)}" font-size="${relFont(w,0.028,7,8.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)">Z=${fmtNum(zenithDeg,1)}°</text>
     ${svgLineLabel(cx,cy,ex,ey, 'Az='+fmtNum(azDeg,2)+'°', 'var(--accent)', relFont(w,0.028,7,8.5), -1)}
     ${fuente?svgFuente(fuente,w,h):''}
@@ -7992,7 +8055,7 @@ function svgNivelTrig(Z_deg, fuente){
     <line x1="${instX}" y1="${instY}" x2="${targX}" y2="${targY.toFixed(1)}" stroke="var(--blueprint)" stroke-width="2"/>
     <circle cx="${targX}" cy="${targY.toFixed(1)}" r="3.5" fill="var(--accent)"/>
     <text x="${instX}" y="${instY+16}" font-size="9" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Estación</text>
-    <text x="${targX}" y="${(targY-10).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Punto visado</text>
+    <text x="${targX}" y="${(targY-10).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Punto visado</text>
     <text x="${(instX+14).toFixed(1)}" y="${(instY-16).toFixed(1)}" font-size="8" font-family="var(--font-mono)" fill="var(--ink-soft)">Z=${fmtNum(Z_deg,2)}°</text>
     ${fuente?svgFuente(fuente,w,h):''}
   </svg>`;
@@ -8012,7 +8075,7 @@ function svgFactorEscala(este, k, fuente){
     <line x1="${cmX}" y1="${(h-pad).toFixed(1)}" x2="${px.toFixed(1)}" y2="${(h-pad).toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2"/>
     <text x="${cmX}" y="${pad-10}" font-size="${relFont(w,0.03,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Meridiano central</text>
     ${svgLineLabel(cmX,h-pad,px,h-pad, fmtNum(Math.abs(xp),0)+' m', 'var(--ink-soft)', relFont(w,0.026,6.5,8), -1)}
-    <text x="${px.toFixed(1)}" y="${(h-pad-10).toFixed(1)}" font-size="${relFont(w,0.032,8,10)}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">k=${fmtNum(k,6)}</text>
+    <text x="${px.toFixed(1)}" y="${(h-pad-10).toFixed(1)}" font-size="${relFont(w,0.032,8,10)}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">k=${fmtNum(k,6)}</text>
     ${fuente?svgFuente(fuente,w,h):''}
   </svg>`;
 }
@@ -8032,7 +8095,7 @@ function svgPTLEsquema(esteLocal, norteLocal, falseE, falseN, fuente){
     <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3.6" fill="var(--accent)"/>
     <line x1="${ox}" y1="${oy}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2"/>
     <text x="${ox}" y="${oy+16}" font-size="${relFont(w,0.03,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Origen PTL</text>
-    <text x="${px.toFixed(1)}" y="${(py-9).toFixed(1)}" font-size="${relFont(w,0.032,8,10)}" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">Punto</text>
+    <text x="${px.toFixed(1)}" y="${(py-9).toFixed(1)}" font-size="${relFont(w,0.032,8,10)}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Punto</text>
     ${svgLineLabel(ox,oy,px,py, fmtNum(Math.hypot(dx,dn),2)+' m', 'var(--ink-soft)', relFont(w,0.026,6.5,8), 1)}
     ${fuente?svgFuente(fuente,w,h):''}
   </svg>`;
@@ -8064,14 +8127,14 @@ function svgCuadrilatero(mode, fuente){
     pts.forEach((p,i)=>{
       const dx=p.x-161, dy=p.y-105, len=Math.hypot(dx,dy)||1;
       const lx=p.x+dx/len*20, ly=p.y+dy/len*20;
-      labels += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="8.5" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">${names[i]}</text>`;
+      labels += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="8.5" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">${names[i]}</text>`;
     });
   } else {
     const sideNames=['a','b','c','d'];
     for(let i=0;i<4;i++){
       const p1=pts[i], p2=pts[(i+1)%4];
       const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
-      labels += `<text x="${mx.toFixed(1)}" y="${(my-6).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent)" text-anchor="middle">${sideNames[i]}</text>`;
+      labels += `<text x="${mx.toFixed(1)}" y="${(my-6).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">${sideNames[i]}</text>`;
     }
     labels += `<text x="${((A.x+C.x)/2).toFixed(1)}" y="${((A.y+C.y)/2-6).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">e</text>`;
     labels += `<text x="${((B.x+D.x)/2+12).toFixed(1)}" y="${((B.y+D.y)/2).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">f</text>`;
@@ -8911,6 +8974,29 @@ const RENDERERS = {
   progresivaOffset: renderProgresivaOffset, disenoEscalera: renderDisenoEscalera
 };
 
+/* ===================== ACCESIBILIDAD ===================== */
+let _idAuto = 0;
+function mejorarAccesibilidad(){
+  const main = document.getElementById('main'); if(!main) return;
+  main.querySelectorAll('label:not([for])').forEach(l => {
+    if(l.querySelector('input,select,textarea')) return;
+    const c = l.parentElement && l.parentElement.querySelector('input:not([type=hidden]),select,textarea');
+    if(!c) return;
+    if(!c.id) c.id = 'a11y-' + (++_idAuto);
+    l.setAttribute('for', c.id);
+  });
+  const sufijo = {d:'grados', m:'minutos', s:'segundos'};
+  main.querySelectorAll('input:not([type=hidden]),select,textarea').forEach(c => {
+    if(c.getAttribute('aria-label') || c.getAttribute('aria-labelledby') || c.title || c.closest('label')) return;
+    if(c.id && main.querySelector('label[for="'+c.id+'"]')) return;
+    const fila = c.closest('.field-row') || c.parentElement, et = fila && fila.querySelector('label');
+    const suf = c.id && sufijo[(c.id.match(/_([dms])$/)||[])[1]];
+    if(et && suf) c.setAttribute('aria-label', et.textContent.trim() + ' — ' + suf);
+    else if(et) c.setAttribute('aria-label', et.textContent.trim());
+  });
+}
+try{ new MutationObserver(()=>mejorarAccesibilidad()).observe(document.getElementById('main'), {childList:true, subtree:true}); }catch(e){}
+
 function render(){
   const route = currentRoute();
   const goingHome = (route === 'home' || !RENDERERS[route]);
@@ -8926,9 +9012,11 @@ function render(){
     renderHome();
     // Restaura el scroll donde estaba antes de entrar a la herramienta, en vez de volver arriba del todo.
     requestAnimationFrame(()=> window.scrollTo(0, homeScrollY));
+    mejorarAccesibilidad();
     return;
   }
   RENDERERS[route]();
+  mejorarAccesibilidad();
 }
 
 document.getElementById('backBtn').addEventListener('click', ()=> go('home'));
@@ -8967,13 +9055,19 @@ function saveTheme(mode){
   try{ localStorage.setItem('topocalc-theme', mode); }catch(e){}
 }
 let themeMode = loadTheme();
+function aplicarColorBarra(){       // color de la barra del navegador según el tema que realmente se ve
+  const oscuro = themeMode==='dark' || (themeMode!=='light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const m = document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content', oscuro ? '#10161D' : '#F4F3EF');
+}
 function setTheme(mode){
   themeMode = mode;
   if(mode==='auto'){ document.documentElement.removeAttribute('data-theme'); }
   else { document.documentElement.setAttribute('data-theme', mode); }
   applyThemeIcon(mode);
+  aplicarColorBarra();
   saveTheme(mode);
 }
+try{ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', aplicarColorBarra); }catch(e){}
 document.getElementById('themeToggle').addEventListener('click', ()=>{
   const order = ['auto','light','dark'];
   const next = order[(order.indexOf(themeMode)+1) % order.length];
@@ -9014,3 +9108,5 @@ comprobarCompraSinAnuncios();
     });
   }
 </script>
+</body>
+</html>
