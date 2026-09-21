@@ -100,3 +100,33 @@ function animarContador(el) {
   };
   actualizar();
 }
+
+// 6. Botón flotante de WhatsApp (se inyecta en todas las páginas que cargan este script).
+// El mensaje prellenado incluye el título de la página, para saber desde qué
+// artículo o sección llegó el contacto. Se oculta mientras la sección de
+// contacto de la portada está a la vista (ahí ya hay botones de WhatsApp).
+(function botonWhatsApp() {
+  if (document.querySelector('.wa-flotante')) return;
+  const titulo = (document.title || '').split('|')[0].split('—')[0].trim();
+  const esGenerica = !titulo || /^geomav$/i.test(titulo);
+  const texto = esGenerica
+    ? 'Hola GEOMAV, necesito ayuda con un proyecto.'
+    : 'Hola GEOMAV, vengo de la página «' + titulo + '» y necesito ayuda con un proyecto.';
+
+  const enlace = document.createElement('a');
+  enlace.className = 'wa-flotante';
+  enlace.href = 'https://wa.me/56984867813?text=' + encodeURIComponent(texto);
+  enlace.target = '_blank';
+  enlace.rel = 'noopener noreferrer';
+  enlace.setAttribute('aria-label', 'Escribir a GEOMAV por WhatsApp');
+  enlace.title = 'Escríbenos por WhatsApp';
+  enlace.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.2 4.79 1.2h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m5.98 14.02c-.25.71-1.45 1.36-2 1.44-.51.08-1.15.11-1.86-.12-.43-.14-.98-.32-1.69-.63-2.97-1.28-4.91-4.27-5.06-4.47-.15-.2-1.21-1.61-1.21-3.07s.76-2.18 1.03-2.48c.27-.29.59-.36.79-.36l.56.01c.18.01.42-.07.66.5.25.6.84 2.07.91 2.22.07.15.12.33.02.53-.09.2-.14.32-.28.5-.14.17-.29.38-.42.51-.14.14-.28.29-.12.57.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.22 1.37.28.14.44.12.6-.07.16-.19.68-.79.87-1.06.18-.27.36-.22.6-.13.25.09 1.57.74 1.84.87.27.13.45.2.51.31.07.11.07.65-.18 1.36Z"/></svg>';
+  document.body.appendChild(enlace);
+
+  const contacto = document.getElementById('contacto');
+  if (contacto && 'IntersectionObserver' in window) {
+    new IntersectionObserver((entradas) => {
+      entradas.forEach(e => enlace.classList.toggle('wa-oculto', e.isIntersecting));
+    }, { threshold: 0.25 }).observe(contacto);
+  }
+})();
