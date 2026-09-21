@@ -684,7 +684,11 @@ function decToDMS(dec){
 }
 function dmsToDec(sign, d, m, s){ return sign * (Number(d||0) + Number(m||0)/60 + Number(s||0)/3600); }
 function fmtDMS(dec, suffixPos, suffixNeg){
-  const {sign,d,m,s} = decToDMS(dec);
+  // Se redondea a 0,1" ANTES de descomponer: así 59,96" acarrea a +1' (antes decToDMS redondeaba a milésimas
+  // y toFixed(1) volvía a redondear sin acarreo, mostrando "60.0"). Un ángulo que queda en cero no lleva signo.
+  const rDec = Math.round(Math.abs(dec) * 36000) / 36000;
+  const {d,m,s} = decToDMS(rDec);
+  const sign = (dec < 0 && rDec !== 0) ? -1 : 1;
   const suf = suffixPos ? (sign<0 ? (suffixNeg||'') : (suffixPos||'')) : '';
   const sgn = suffixPos ? '' : (sign<0 ? '-' : '');
   return `${sgn}${d}° ${String(m).padStart(2,'0')}' ${s.toFixed(1).padStart(4,'0')}" ${suf}`.trim();
@@ -737,7 +741,7 @@ function readAngleField(idPrefix){
   }
   const d=val(`${idPrefix}_d`), m=val(`${idPrefix}_m`), s=val(`${idPrefix}_s`);
   if(isNaN(d)||isNaN(m)||isNaN(s)) return NaN;
-  return dmsToDec(d<0?-1:1, Math.abs(d), m, s);
+  return dmsToDec((d<0||Object.is(d,-0))?-1:1, Math.abs(d), m, s);
 }
 /* Input simple de ángulo (ej. ángulo vertical de estación total): grados decimales o gon según sistema */
 function angleSimpleLabel(){ return angleSystem === 'cent' ? '(gon)' : '(°)'; }
@@ -3486,7 +3490,7 @@ function renderAngulo(){
     const d=val('au_d'), m=val('au_m'), s=val('au_s');
     if([d,m,s].some(isNaN)) return;
     updating=true;
-    const dec = dmsToDec(d<0?-1:1, Math.abs(d), m, s);
+    const dec = dmsToDec((d<0||Object.is(d,-0))?-1:1, Math.abs(d), m, s);
     decEl.value = roundNum(dec,6);
     gonEl.value = roundNum(degToGon(dec),6);
     updating=false;
@@ -3497,7 +3501,7 @@ function renderAngulo(){
     if(isNaN(dec)) return;
     updating=true;
     const {sign,d,m,s} = decToDMS(dec);
-    dEl.value = sign<0?-d:d; mEl.value=m; sEl.value=roundNum(s,3);
+    dEl.value = (sign<0 && (d||m||s)) ? '-'+d : d; mEl.value=m; sEl.value=roundNum(s,3);
     gonEl.value = roundNum(degToGon(dec),6);
     updating=false;
   }
@@ -3508,7 +3512,7 @@ function renderAngulo(){
     updating=true;
     const dec = gonToDeg(g);
     const {sign,d,m,s} = decToDMS(dec);
-    dEl.value = sign<0?-d:d; mEl.value=m; sEl.value=roundNum(s,3);
+    dEl.value = (sign<0 && (d||m||s)) ? '-'+d : d; mEl.value=m; sEl.value=roundNum(s,3);
     decEl.value = roundNum(dec,6);
     updating=false;
   }
