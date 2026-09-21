@@ -130,3 +130,23 @@ function animarContador(el) {
     }, { threshold: 0.25 }).observe(contacto);
   }
 })();
+
+// 7. Carga diferida del visor 3D (<model-viewer>, ~1 MB desde unpkg).
+// Antes se descargaba en cada visita desde el <head>; ahora solo se pide cuando
+// se abre un proyecto con `modelo3d: true`. El elemento <model-viewer> del HTML
+// se "activa" solo al definirse el componente, así que basta con inyectar el script.
+let _promesaModelViewer = null;
+function cargarModelViewer() {
+  if (window.customElements && customElements.get('model-viewer')) return Promise.resolve();
+  if (_promesaModelViewer) return _promesaModelViewer;
+  _promesaModelViewer = new Promise((resolver, rechazar) => {
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.src = 'https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js';
+    script.onload = resolver;
+    script.onerror = () => { _promesaModelViewer = null; rechazar(new Error('No se pudo cargar el visor 3D')); };
+    document.head.appendChild(script);
+  });
+  return _promesaModelViewer;
+}
+
