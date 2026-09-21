@@ -1287,3 +1287,18 @@
 body.menu-abierto .wa-flotante { display: none; }
 @media print { .wa-flotante { display: none; } }
 
+/* Credencial de perito en el hero (fondo oscuro: texto claro) */
+.hero-credencial {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 540px;
+  margin: -16px 0 36px;
+  color: var(--color-blanco);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.hero-credencial svg { width: 26px; height: 26px; flex-shrink: 0; fill: var(--color-acento); margin-top: 1px; }
+.hero-credencial strong { font-weight: 800; }
+.hero-credencial span { color: rgba(255,255,255,0.85); }
+
