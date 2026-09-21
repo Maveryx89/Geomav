@@ -80,7 +80,7 @@ document.querySelectorAll('.revelar').forEach(el => observadorRevelar.observe(el
 
 // 5. Animación de Contadores Numéricos (usa data-objetivo / data-prefijo / data-sufijo)
 function animarContador(el) {
-  if (el.dataset.animado === 'true') return;
+  if (el.dataset.animado === 'true' || !el.dataset.objetivo) return;
   const objetivo = parseInt(el.dataset.objetivo, 10);
   const prefijo = el.dataset.prefijo || '';
   const sufijo = el.dataset.sufijo || '';
