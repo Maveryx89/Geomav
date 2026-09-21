@@ -1302,3 +1302,7 @@ body.menu-abierto .wa-flotante { display: none; }
 .hero-credencial strong { font-weight: 800; }
 .hero-credencial span { color: rgba(255,255,255,0.85); }
 
+/* Aviso de privacidad bajo el formulario de contacto */
+.formulario-privacidad { margin: 0 0 16px; font-size: 0.82rem; color: rgba(255,255,255,0.6); }
+.formulario-privacidad a { color: var(--color-acento); text-decoration: underline; }
+
