@@ -2116,15 +2116,23 @@ function renderHome(){
     visibles.forEach(tid => { html += toolCardHTML(tid, false); });
     html += `</div></section>`;
   });
-  const externalCardHTML = (href, badge, glyph, name, desc) => `<a class="tool-card" href="${href}" target="_blank" rel="noopener" style="text-decoration:none; color:inherit;">
-        <span class="badge">${badge}</span>
+  const externalCardHTML = (href, badge, glyph, name, desc) => `<a class="tool-card" href="${href}" style="text-decoration:none; color:inherit;">
+        ${badge?`<span class="badge">${badge}</span>`:''}
         <span class="glyph">${glyph}</span>
         <span class="name">${name}</span>
         <span class="desc">${desc}</span>
       </a>`;
-  const EXTERNAL_TOOLS = [
-    externalCardHTML('https://geomav.me/pizarra/', 'Próximamente', ICONS.pizarra, 'Pizarra de Planificación', 'Tablero de post-its por semana para planificar obra — se abre en una pestaña nueva')
+  // Herramientas visibles que viven en su propia página dentro de /topocalc/ (no en TOOLS/RENDERERS)
+  const PAGE_TOOLS = [
+    {href:'./pizarra/', icon:ICONS.pizarra, name:'Pizarra de Planificación', desc:'Tablero de post-its por semana para planificar obra (Last Planner)', cat:'Gestión de Obra'}
   ];
+  const pageCats = [...new Set(PAGE_TOOLS.map(p => p.cat))];
+  pageCats.forEach((cn, k) => {
+    html += `<section class="category">
+      <div class="category-head"><span class="idx">${String(CATEGORIES.length+k+1).padStart(2,'0')}</span><h2>${cn}</h2></div>
+      <div class="card-grid">${PAGE_TOOLS.filter(p => p.cat === cn).map(p => externalCardHTML(p.href, '', p.icon, p.name, p.desc)).join('')}</div></section>`;
+  });
+  const EXTERNAL_TOOLS = [];
   if(HIDDEN_TOOLS.length || EXTERNAL_TOOLS.length){
     html += `<details class="proximamente">
       <summary>Próximamente <span class="count">${HIDDEN_TOOLS.length + EXTERNAL_TOOLS.length}</span></summary>
@@ -2132,7 +2140,7 @@ function renderHome(){
     </details>`;
   }
   main.innerHTML = html;
-  main.querySelectorAll('.tool-card').forEach(btn=>{
+  main.querySelectorAll('.tool-card[data-tool]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ homeScrollY = window.scrollY; go(btn.dataset.tool); });
   });
   // ---- Buscador de herramientas: ignora tildes y mayúsculas; todas las palabras deben aparecer en el nombre, la descripción o la categoría.
@@ -2148,11 +2156,13 @@ function renderHome(){
     if(!q){ resBox.style.display = 'none'; resBox.innerHTML = ''; resto.forEach(s => { s.style.display = ''; }); return; }
     const terminos = q.split(/\s+/), enNombre = id => terminos.every(x => corpus[id].nombre.includes(x));
     const hallados = Object.keys(TOOLS).filter(id => !hiddenSet.has(id) && terminos.every(x => corpus[id].todo.includes(x))).sort((a,b) => enNombre(b) - enNombre(a));
+    const paginas = PAGE_TOOLS.filter(p => terminos.every(x => norm(p.name+' '+p.desc+' '+p.cat).includes(x)));
     resto.forEach(s => { s.style.display = 'none'; });
-    resBox.innerHTML = `<p class="res-info">${hallados.length ? hallados.length+' resultado'+(hallados.length===1?'':'s') : 'Sin resultados para «'+esc(inp.value.trim())+'». Prueba con otra palabra: curva, área, nivel, UTM, GPS…'}</p>` +
-      (hallados.length ? `<div class="card-grid">${hallados.map(id => toolCardHTML(id, false)).join('')}</div>` : '');
+    const nRes = hallados.length + paginas.length;
+    resBox.innerHTML = `<p class="res-info">${nRes ? nRes+' resultado'+(nRes===1?'':'s') : 'Sin resultados para «'+esc(inp.value.trim())+'». Prueba con otra palabra: curva, área, nivel, UTM, GPS…'}</p>` +
+      (nRes ? `<div class="card-grid">${hallados.map(id => toolCardHTML(id, false)).join('')}${paginas.map(p => externalCardHTML(p.href, '', p.icon, p.name, p.desc)).join('')}</div>` : '');
     resBox.style.display = '';
-    resBox.querySelectorAll('.tool-card').forEach(btn => { btn.addEventListener('click', () => { homeScrollY = window.scrollY; go(btn.dataset.tool); }); });
+    resBox.querySelectorAll('.tool-card[data-tool]').forEach(btn => { btn.addEventListener('click', () => { homeScrollY = window.scrollY; go(btn.dataset.tool); }); });
   };
   inp.addEventListener('input', filtrar);
   inp.addEventListener('keydown', e => { if(e.key === 'Enter') inp.blur(); });
