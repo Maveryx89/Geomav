@@ -177,9 +177,12 @@ button{font-family:inherit;}
 .row-tools button{ border:none; background:transparent; color:var(--ink-soft); font-size:12px; cursor:pointer; padding:2px 4px; }
 .row-tools button:hover{ color:var(--blueprint); }
 
-.note-cell{ padding:6px; display:grid; grid-template-columns:1fr 1fr; align-content:start; gap:6px; min-height:60px; min-width:0; box-sizing:border-box; }
+.note-cell{ padding:6px; display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-height:60px; min-width:0; box-sizing:border-box; }
+.note-cell.wide{ display:grid; grid-template-columns:1fr 1fr; align-content:start; align-items:start; }
+.note-cell:not(.wide) .note{ width:148px; max-width:148px; flex:none; }
+.note-cell:not(.wide) .add-note{ width:148px; flex:none; }
+.note-cell.wide .add-note{ grid-column:1 / -1; }
 .add-note{
-  grid-column: 1 / -1;
   border:1.5px dashed var(--line-strong); background:transparent; color:var(--ink-soft);
   border-radius:var(--radius-sm); font-size:16px; line-height:1; padding:5px 0; cursor:pointer; opacity:.6;
 }
@@ -824,7 +827,13 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     function render(){
       var board = root.querySelector(".board");
       var nWeeks = state.weeks.length, nCats = state.categories.length;
-      board.style.gridTemplateColumns = "150px repeat(" + nWeeks + ", minmax(302px,1fr))";
+      var wideCol = state.weeks.map(function(w){
+        return state.categories.some(function(cat){ return notesIn(cat.id, w.id).length >= 3; });
+      });
+      var colTemplate = "150px " + state.weeks.map(function(w,i){ return wideCol[i] ? "minmax(302px,1fr)" : "minmax(148px,1fr)"; }).join(" ");
+      board.style.gridTemplateColumns = colTemplate;
+      var totalMin = 150 + wideCol.reduce(function(s,w2){ return s + (w2?302:148); }, 0);
+      board.style.minWidth = totalMin + "px";
       board.style.setProperty("--cols", nWeeks);
       board.style.gridTemplateRows = "auto auto repeat(" + nCats + ", minmax(60px,auto))";
       var html = '<div class="cell corner" style="grid-row:1 / span 2; grid-column:1;"></div>';
@@ -850,9 +859,23 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           + '</div></div>';
         state.weeks.forEach(function(w, wi){
           var col = 2+wi;
-          html += '<div class="cell note-cell" style="grid-row:'+row+'; grid-column:'+col+';">';
-          notesIn(cat.id, w.id).forEach(function(note){ html += renderNote(note); });
-          html += '<button class="add-note" data-action="add-note" data-cat="'+cat.id+'" data-week="'+w.id+'" title="Agregar nota">+</button></div>';
+          var notesHere = notesIn(cat.id, w.id);
+          var wide = notesHere.length >= 3;
+          html += '<div class="cell note-cell'+(wide?' wide':'')+'" style="grid-row:'+row+'; grid-column:'+col+';">';
+          if(wide){
+            var perCol = Math.ceil(notesHere.length/2);
+            notesHere.forEach(function(note, ni){
+              var c2 = ni < perCol ? 1 : 2;
+              var r2 = ni < perCol ? (ni+1) : (ni-perCol+1);
+              html += renderNote(note, 'grid-column:'+c2+'; grid-row:'+r2+';');
+            });
+            var lastRow = Math.max(perCol, notesHere.length-perCol) + 1;
+            html += '<button class="add-note" data-action="add-note" data-cat="'+cat.id+'" data-week="'+w.id+'" title="Agregar nota" style="grid-column:1 / -1; grid-row:'+lastRow+';">+</button>';
+          } else {
+            notesHere.forEach(function(note){ html += renderNote(note); });
+            html += '<button class="add-note" data-action="add-note" data-cat="'+cat.id+'" data-week="'+w.id+'" title="Agregar nota">+</button>';
+          }
+          html += '</div>';
         });
       });
       board.innerHTML = html;
@@ -931,7 +954,8 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       panel.innerHTML = '<ol class="checklist-list">'+items+'</ol>';
     }
 
-    function renderNote(note){
+    function renderNote(note, extraStyle){
+      extraStyle = extraStyle || "";
       var editing = state.editingNoteId === note.id;
       if(!editing){
         var metaBits = [];
@@ -948,7 +972,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           }
           if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%");
         }
-        return '<div class="note note-'+note.tone+'" data-action="open-note" data-note="'+note.id+'">'
+        return '<div class="note note-'+note.tone+'" style="'+extraStyle+'" data-action="open-note" data-note="'+note.id+'">'
           + '<div class="txt">'+badge+escapeHtml(note.text || "Nueva tarea")+'</div>'
           + (metaBits.length ? '<div class="meta"><span>'+metaBits.join(" \u00b7 ")+'</span></div>' : "")
           + '</div>';
