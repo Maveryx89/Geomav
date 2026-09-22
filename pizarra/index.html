@@ -405,7 +405,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     <div class="toolbar">
       <button class="btn-sm" data-action="add-week">+ Día</button>
       <button class="btn-sm" data-action="add-category">+ Categoría</button>
-      <button class="btn-sm" data-action="load-porticos">Cargar Gantt Pórticos (semana 21–25 sep)</button>
+      <button class="btn-sm" data-action="load-porticos">Cargar Gantt Pórticos (con atraso)</button>
       <button class="btn-sm" data-action="print">Imprimir</button>
       <button class="btn-sm danger" data-action="reset">Reiniciar</button>
     </div>
@@ -660,50 +660,61 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   var PORTICOS_CAT_LABELS = {"Logistica":"Log\u00edstica","Excavacion":"Excavaci\u00f3n y Emplantillado","Instalacion":"Instalaci\u00f3n de Fundaci\u00f3n","Hormigon":"Hormig\u00f3n y Calidad"};
   var PORTICOS_CAT_ORDER = ["Logistica","Excavacion","Instalacion","Hormigon"];
   var PORTICOS_TONE = {"Logistica":"neutral","Excavacion":"copper","Instalacion":"blueprint","Hormigon":"success"};
-  var PORTICOS_DIAFECHA = {"Lun":21,"Mar":22,"Mie":23,"Jue":24,"Vie":25};
+  var PORTICOS_DIAS = [
+    {k:"D1", label:"Lun 21", month:"Septiembre"},
+    {k:"D2", label:"Mar 22", month:"Septiembre"},
+    {k:"D3", label:"Mi\u00e9 23", month:"Septiembre"},
+    {k:"D4", label:"Jue 24", month:"Septiembre"},
+    {k:"D5", label:"Vie 25", month:"Septiembre"},
+    {k:"D6", label:"Lun 28", month:"Septiembre"},
+    {k:"D7", label:"Mar 29", month:"Septiembre"}
+  ];
   var PORTICOS_RAW = [
-    ["Instalacion","Lun","Descimbrado de fundaciones (segunda tanda)",""],
-    ["Logistica","Lun","Traslado para ir a buscar a Inspector Vialidad para que aprueba la ubicaci\u00f3n de los puntos de Colchagua 1 de 2. Vehiculo Kangoo","Pedro"],
-    ["Logistica","Lun","Traslado de profesionales a ubicaci\u00f3n del primer punto P157-b (San Fernando). Vehiculo Nissan Blanca","Jose (conductor); Erika, Mario, Carlos"],
-    ["Logistica","Mar","Traslado de profesionales a ubicaci\u00f3n del primer punto P157-b (San Fernando). Vehiculo Nissan Blanca","Jose (conductor); Erika, Mario, Carlos"],
-    ["Logistica","Mie","Traslado de profesionales a ubicaci\u00f3n del primer punto P157-b (San Fernando). Vehiculo Nissan Blanca","Jose (conductor); Erika, Mario, Carlos"],
-    ["Logistica","Jue","Traslado de profesionales a ubicaci\u00f3n del primer punto P157-b (San Fernando). Vehiculo Nissan Blanca","Jose (conductor); Erika, Mario, Carlos"],
-    ["Logistica","Vie","Traslado de profesionales a ubicaci\u00f3n del primer punto P157-b (San Fernando). Vehiculo Nissan Blanca","Jose (conductor); Erika, Mario, Carlos"],
-    ["Logistica","Lun","Traslado de material, trabajadores, ba\u00f1o quimicio a puntos de trabajo. Vehiculo Cami\u00f3n Foton","Alain (conductor); Trabajadores"],
-    ["Logistica","Mar","Traslado de material, trabajadores, ba\u00f1o quimicio a puntos de trabajo. Vehiculo Cami\u00f3n Foton","Alain (conductor); Trabajadores"],
-    ["Logistica","Mie","Traslado de material, trabajadores, ba\u00f1o quimicio a puntos de trabajo. Vehiculo Cami\u00f3n Foton","Alain (conductor); Trabajadores"],
-    ["Logistica","Jue","Traslado de material, trabajadores, ba\u00f1o quimicio a puntos de trabajo. Vehiculo Cami\u00f3n Foton","Alain (conductor); Trabajadores"],
-    ["Logistica","Vie","Traslado de material, trabajadores, ba\u00f1o quimicio a puntos de trabajo. Vehiculo Cami\u00f3n Foton","Alain (conductor); Trabajadores"],
-    ["Logistica","Lun","Traslado de Miniexcavadora Bullrock a puntos de trabajo","Juan Plaza (ver si esta disponible)"],
-    ["Logistica","Mar","Traslado de Miniexcavadora Bullrock a puntos de trabajo","Juan Plaza (ver si esta disponible)"],
-    ["Logistica","Mie","Traslado de Miniexcavadora Bullrock a puntos de trabajo","Juan Plaza (ver si esta disponible)"],
-    ["Excavacion","Lun","Excavaci\u00f3n punto P157-b (San Fernando)","1. Joel Castillo / 2. Paulo Godoy / 3. Julio Godoy"],
-    ["Excavacion","Lun","Emplantillado o cama de arena en excavaci\u00f3n P157-b (San Fernando)","1. Joel Castillo / 2. Paulo Godoy / 3. Julio Godoy"],
-    ["Excavacion","Lun","Excavaci\u00f3n punto P143-a (San Fernando)","4. Gustavo Moncada / 5. Francisco Gaete"],
-    ["Excavacion","Lun","Emplantillado o cama de arena en excavaci\u00f3n P143-a (San Fernando)","4. Gustavo Moncada / 5. Francisco Gaete"],
-    ["Excavacion","Lun","Excavaci\u00f3n punto P147d (Chepica)","1. Joel Castillo / 2. Paulo Godoy / 3. Julio Godoy"],
-    ["Excavacion","Lun","Emplantillado o cama de arena en excavaci\u00f3n P147d (Chepica)","1. Joel Castillo / 2. Paulo Godoy / 3. Julio Godoy"],
-    ["Instalacion","Mar","Instalaci\u00f3n de fundaci\u00f3n en excavaci\u00f3n punto P157-b (San Fernando)","4. Gustavo Moncada / 5. Francisco Gaete"],
-    ["Instalacion","Mar","Instalaci\u00f3n de fundaci\u00f3n en excavaci\u00f3n punto P143-a (San Fernando)","1. Joel Castillo / 2. Paulo Godoy / 3. Julio Godoy"],
-    ["Instalacion","Mar","Instalaci\u00f3n de fundaci\u00f3n en excavaci\u00f3n punto P147d (Chepica)","4. Gustavo Moncada / 5. Francisco Gaete"],
-    ["Instalacion","Mar","Llegada de los pernos del canastillo faltantes a obra","Claudio Ramirez"],
-    ["Instalacion","Mar","Colocaci\u00f3n de canastillos y pernos en moldajes para fundaci\u00f3n (Tercera tanda)",""],
-    ["Instalacion","Mie","Colocaci\u00f3n de canastillos y pernos en moldajes para fundaci\u00f3n (Tercera tanda)",""],
-    ["Instalacion","Jue","Colocaci\u00f3n de canastillos y pernos en moldajes para fundaci\u00f3n (Tercera tanda)",""],
-    ["Hormigon","Vie","Hormigonado de fundaciones (tercera tanda)",""],
-    ["Hormigon","Vie","Segunda toma de muestras de ensayo resistencia de hormig\u00f3n","Carlos Ch\u00e1vez"],
-    ["Excavacion","Mie","Excavaci\u00f3n punto P83 (Santa Cruz)",""],
-    ["Excavacion","Mie","Emplantillado o cama de arena en excavaci\u00f3n P83 (Santa Cruz)",""],
-    ["Instalacion","Jue","Instalaci\u00f3n de fundaci\u00f3n en excavaci\u00f3n punto P83 (Santa Cruz)",""],
-    ["Excavacion","Mie","Excavaci\u00f3n punto P154-a (San Fernando)",""],
-    ["Excavacion","Mie","Emplantillado o cama de arena en excavaci\u00f3n P154-a (San Fernando)",""],
-    ["Instalacion","Jue","Instalaci\u00f3n de fundaci\u00f3n en excavaci\u00f3n punto P154-a (San Fernando)",""],
-    ["Excavacion","Mie","Excavaci\u00f3n punto P154-b (San Fernando)",""],
-    ["Excavacion","Mie","Emplantillado o cama de arena en excavaci\u00f3n P154-b (San Fernando)",""],
-    ["Instalacion","Jue","Instalaci\u00f3n de fundaci\u00f3n en excavaci\u00f3n punto P154-b (San Fernando)",""],
-    ["Excavacion","Vie","Excavaci\u00f3n punto P143-b (San Fernando)",""],
-    ["Excavacion","Vie","Emplantillado o cama de arena en excavaci\u00f3n P143-b (San Fernando)",""],
-    ["Instalacion","Vie","Instalaci\u00f3n de fundaci\u00f3n en excavaci\u00f3n punto P143-b (San Fernando)",""],
+    ["Excavacion","D1","Trazado en terreno de los puntos entregados a Vialidad (Colchagua 1 de 2) y los puntos 157-b; P143-a, que son municipales en la comuna de San Fernando","Mario y Jose"],
+    ["Instalacion","D1","Colocaci\u00f3n de canastillos y pernos en moldajes para fundaci\u00f3n (segunda tanda)",""],
+    ["Hormigon","D2","Hormigonado de fundaciones (segunda tanda)",""],
+    ["Instalacion","D3","Descimbrado de fundaciones (segunda tanda)",""],
+    ["Logistica","D3","Traslado para ir a buscar a Inspector Vialidad para que aprueba la ubicaci\u00f3n de los puntos de Colchagua 1 de 2. Vehiculo Kangoo","Pedro"],
+    ["Logistica","D3","Traslado de profesionales a ubicaci\u00f3n del primer punto P157-b (San Fernando). Vehiculo Nissan Blanca","Jose (conductor); Erika, Mario, Carlos"],
+    ["Logistica","D4","Traslado de profesionales a ubicaci\u00f3n del primer punto P157-b (San Fernando). Vehiculo Nissan Blanca","Jose (conductor); Erika, Mario, Carlos"],
+    ["Logistica","D5","Traslado de profesionales a ubicaci\u00f3n del primer punto P157-b (San Fernando). Vehiculo Nissan Blanca","Jose (conductor); Erika, Mario, Carlos"],
+    ["Logistica","D6","Traslado de profesionales a ubicaci\u00f3n del primer punto P157-b (San Fernando). Vehiculo Nissan Blanca","Jose (conductor); Erika, Mario, Carlos"],
+    ["Logistica","D7","Traslado de profesionales a ubicaci\u00f3n del primer punto P157-b (San Fernando). Vehiculo Nissan Blanca","Jose (conductor); Erika, Mario, Carlos"],
+    ["Logistica","D3","Traslado de material, trabajadores, ba\u00f1o quimicio a puntos de trabajo. Vehiculo Cami\u00f3n Foton","Alain (conductor); Trabajadores"],
+    ["Logistica","D4","Traslado de material, trabajadores, ba\u00f1o quimicio a puntos de trabajo. Vehiculo Cami\u00f3n Foton","Alain (conductor); Trabajadores"],
+    ["Logistica","D5","Traslado de material, trabajadores, ba\u00f1o quimicio a puntos de trabajo. Vehiculo Cami\u00f3n Foton","Alain (conductor); Trabajadores"],
+    ["Logistica","D6","Traslado de material, trabajadores, ba\u00f1o quimicio a puntos de trabajo. Vehiculo Cami\u00f3n Foton","Alain (conductor); Trabajadores"],
+    ["Logistica","D7","Traslado de material, trabajadores, ba\u00f1o quimicio a puntos de trabajo. Vehiculo Cami\u00f3n Foton","Alain (conductor); Trabajadores"],
+    ["Logistica","D3","Traslado de Miniexcavadora Bullrock a puntos de trabajo","Juan Plaza (ver si esta disponible)"],
+    ["Logistica","D4","Traslado de Miniexcavadora Bullrock a puntos de trabajo","Juan Plaza (ver si esta disponible)"],
+    ["Logistica","D5","Traslado de Miniexcavadora Bullrock a puntos de trabajo","Juan Plaza (ver si esta disponible)"],
+    ["Excavacion","D3","Excavaci\u00f3n punto P157-b (San Fernando)","1. Joel Castillo / 2. Paulo Godoy / 3. Julio Godoy"],
+    ["Excavacion","D3","Emplantillado o cama de arena en excavaci\u00f3n P157-b (San Fernando)","1. Joel Castillo / 2. Paulo Godoy / 3. Julio Godoy"],
+    ["Excavacion","D3","Excavaci\u00f3n punto P143-a (San Fernando)","4. Gustavo Moncada / 5. Francisco Gaete"],
+    ["Excavacion","D3","Emplantillado o cama de arena en excavaci\u00f3n P143-a (San Fernando)","4. Gustavo Moncada / 5. Francisco Gaete"],
+    ["Excavacion","D3","Excavaci\u00f3n punto P147d (Chepica)","1. Joel Castillo / 2. Paulo Godoy / 3. Julio Godoy"],
+    ["Excavacion","D3","Emplantillado o cama de arena en excavaci\u00f3n P147d (Chepica)","1. Joel Castillo / 2. Paulo Godoy / 3. Julio Godoy"],
+    ["Instalacion","D4","Instalaci\u00f3n de fundaci\u00f3n en excavaci\u00f3n punto P157-b (San Fernando)","4. Gustavo Moncada / 5. Francisco Gaete"],
+    ["Instalacion","D4","Instalaci\u00f3n de fundaci\u00f3n en excavaci\u00f3n punto P143-a (San Fernando)","1. Joel Castillo / 2. Paulo Godoy / 3. Julio Godoy"],
+    ["Instalacion","D4","Instalaci\u00f3n de fundaci\u00f3n en excavaci\u00f3n punto P147d (Chepica)","4. Gustavo Moncada / 5. Francisco Gaete"],
+    ["Instalacion","D4","Llegada de los pernos del canastillo faltantes a obra","Claudio Ramirez"],
+    ["Instalacion","D4","Colocaci\u00f3n de canastillos y pernos en moldajes para fundaci\u00f3n (Tercera tanda)",""],
+    ["Instalacion","D5","Colocaci\u00f3n de canastillos y pernos en moldajes para fundaci\u00f3n (Tercera tanda)",""],
+    ["Instalacion","D6","Colocaci\u00f3n de canastillos y pernos en moldajes para fundaci\u00f3n (Tercera tanda)",""],
+    ["Hormigon","D7","Hormigonado de fundaciones (tercera tanda)",""],
+    ["Hormigon","D7","Segunda toma de muestras de ensayo resistencia de hormig\u00f3n","Carlos Ch\u00e1vez"],
+    ["Excavacion","D5","Excavaci\u00f3n punto P83 (Santa Cruz)",""],
+    ["Excavacion","D5","Emplantillado o cama de arena en excavaci\u00f3n P83 (Santa Cruz)",""],
+    ["Instalacion","D6","Instalaci\u00f3n de fundaci\u00f3n en excavaci\u00f3n punto P83 (Santa Cruz)",""],
+    ["Excavacion","D5","Excavaci\u00f3n punto P154-a (San Fernando)",""],
+    ["Excavacion","D5","Emplantillado o cama de arena en excavaci\u00f3n P154-a (San Fernando)",""],
+    ["Instalacion","D6","Instalaci\u00f3n de fundaci\u00f3n en excavaci\u00f3n punto P154-a (San Fernando)",""],
+    ["Excavacion","D5","Excavaci\u00f3n punto P154-b (San Fernando)",""],
+    ["Excavacion","D5","Emplantillado o cama de arena en excavaci\u00f3n P154-b (San Fernando)",""],
+    ["Instalacion","D6","Instalaci\u00f3n de fundaci\u00f3n en excavaci\u00f3n punto P154-b (San Fernando)",""],
+    ["Excavacion","D7","Excavaci\u00f3n punto P143-b (San Fernando)",""],
+    ["Excavacion","D7","Emplantillado o cama de arena en excavaci\u00f3n P143-b (San Fernando)",""],
+    ["Instalacion","D7","Instalaci\u00f3n de fundaci\u00f3n en excavaci\u00f3n punto P143-b (San Fernando)",""],
   ];
   var MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
   var DIAS = ["Lun","Mar","Mi\u00e9","Jue","Vie"];
@@ -761,11 +772,9 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       };
     }
     function porticosSeed(){
-      var weeks = ["Lun","Mar","Mie","Jue","Vie"].map(function(d){
-        return {id:uid(), label:d+" "+PORTICOS_DIAFECHA[d], month:"Septiembre"};
-      });
+      var weeks = PORTICOS_DIAS.map(function(d){ return {id:uid(), label:d.label, month:d.month}; });
       var categories = PORTICOS_CAT_ORDER.map(function(k){ return {id:uid(), name:PORTICOS_CAT_LABELS[k], _key:k}; });
-      var wById = {}; weeks.forEach(function(w,i){ wById[["Lun","Mar","Mie","Jue","Vie"][i]] = w.id; });
+      var wById = {}; weeks.forEach(function(w,i){ wById[PORTICOS_DIAS[i].k] = w.id; });
       var cById = {}; categories.forEach(function(c){ cById[c._key] = c.id; });
       var notes = PORTICOS_RAW.map(function(r){
         var catKey = r[0], dia = r[1], texto = r[2], resp = r[3];
@@ -777,12 +786,13 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       }).filter(Boolean);
       categories.forEach(function(c){ delete c._key; });
       return {
-        title: "Gantt P\u00f3rticos \u2014 avance proyectado",
-        subtitle: "Semana del 21 al 25 de septiembre 2026",
+        title: "Gantt P\u00f3rticos \u2014 avance proyectado (con atraso segunda tanda)",
+        subtitle: "Semana del 21 al 29 de septiembre 2026 \u2014 tareas atrasadas movidas al inicio",
         weeks: weeks, categories: categories, notes: notes,
         editingNoteId: null, ppcHistory: [], causas: {}, checklist: MEETING_ITEMS.map(function(){return false;})
       };
     }
+
 
     function loadState(){
       try{
@@ -1173,7 +1183,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         }
       }
       else if(action === "load-porticos"){
-        if(confirm("Esto reemplaza este tablero por el avance proyectado del Gantt P\u00f3rticos (semana del 21 al 25 de septiembre). \u00bfContinuar?")){
+        if(confirm("Esto reemplaza este tablero por el avance proyectado del Gantt P\u00f3rticos, con las tareas atrasadas de la semana anterior movidas al inicio y el resto de la semana corrido en consecuencia (7 d\u00edas: 21 al 29 de septiembre). \u00bfContinuar?")){
           state = porticosSeed(); saveState(); render(); syncHeader();
         }
       }
