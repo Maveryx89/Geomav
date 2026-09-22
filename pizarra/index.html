@@ -231,6 +231,21 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   .board-scroll{ overflow:visible; padding:0; }
 }
 
+.viewtabs{ display:flex; gap:6px; padding:10px 16px 0; }
+.viewtab{ font-family:var(--font-mono); font-size:11px; font-weight:600; padding:5px 10px; border-radius:var(--radius-sm); border:1px solid var(--line); color:var(--ink-soft); text-decoration:none; }
+.viewtab.active{ background:var(--blueprint); border-color:var(--blueprint); color:#fff; }
+.viewtab:hover:not(.active){ border-color:var(--line-strong); color:var(--ink); }
+
+.dategen{ display:flex; align-items:flex-end; gap:10px; flex-wrap:wrap; padding:12px 16px 0; }
+.dategen .fld{ display:flex; flex-direction:column; gap:3px; }
+.dategen label{ font-family:var(--font-mono); font-size:10px; color:var(--ink-soft); }
+.dategen input{
+  font-family:var(--font-mono); font-size:13px; padding:7px 8px; border:1px solid var(--line);
+  border-radius:var(--radius-sm); background:var(--paper-raised); color:var(--ink);
+}
+.dategen input[type=number]{ width:72px; }
+.dategen .btn-sm{ padding:8px 12px; }
+
 </style>
 </head>
 
@@ -250,9 +265,20 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     </button>
   </div>
 
+  <div class="viewtabs">
+    <a href="/pizarra/" class="viewtab active">Intermedio (2 meses)</a>
+    <a href="/pizarra/semanal/" class="viewtab">Semanal (lun–vie)</a>
+  </div>
+
   <div class="title-wrap">
     <div class="title-input" contenteditable="true" data-bind="title" data-placeholder="Nombre del proyecto"></div>
     <div class="subtitle-input" contenteditable="true" data-bind="subtitle" data-placeholder="Subtítulo / obra / cliente"></div>
+  </div>
+
+  <div class="dategen">
+    <div class="fld"><label>Fecha de inicio (lunes)</label><input type="date" id="fechaInicio"></div>
+    <div class="fld"><label>Duración (semanas)</label><input type="number" id="duracionSemanas" min="1" max="52" value="9"></div>
+    <button class="btn-sm" data-action="generar-fechas">Generar fechas</button>
   </div>
 
   <div class="toolbar">
@@ -262,7 +288,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     <button class="btn-sm" data-action="print">Imprimir</button>
     <button class="btn-sm danger" data-action="reset">Reiniciar</button>
   </div>
-  <div class="hint">Toca “+” en una celda para agregar una nota &middot; toca una nota para editarla, moverla o cambiar su color</div>
+  <div class="hint">Ingresa la fecha de inicio y toca "Generar fechas" para crear las columnas · toca “+” en una celda para agregar una nota</div>
 
   <div class="board-scroll">
     <div class="board" id="board"></div>
@@ -284,10 +310,19 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 
   function uid(){ return Math.random().toString(36).slice(2,10); }
 
-  function defaultState(){
+  var MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  function parseInputDate(str){ var p = str.split("-"); return new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10)); }
+  function mondayOf(d){ var day = d.getDay(); var diff = (day===0? -6 : 1-day); var m = new Date(d); m.setDate(d.getDate()+diff); return m; }
+  function addDays(d,n){ var r = new Date(d); r.setDate(d.getDate()+n); return r; }
+  function generarSemanasIntermedio(start, count){
     var weeks = [];
-    var months = ["Mes 1","Mes 1","Mes 1","Mes 1","Mes 2","Mes 2","Mes 2","Mes 2"];
-    for(var i=0;i<8;i++){ weeks.push({id:uid(), label:"Sem "+(i+1), month: months[i]}); }
+    for(var i=0;i<count;i++){ var dt = addDays(start, i*7); weeks.push({id:uid(), label:String(dt.getDate()), month:MESES[dt.getMonth()]}); }
+    return weeks;
+  }
+
+  function defaultState(){
+    var start = mondayOf(new Date());
+    var weeks = generarSemanasIntermedio(start, 9);
     var catNames = ["Obra Gruesa","Terminaci\u00f3n Gruesa","Fachada","Instalaciones","Terminaci\u00f3n Fina","Obras Exteriores","Entrega"];
     var categories = catNames.map(function(n){ return {id:uid(), name:n}; });
     return { title:"Planificaci\u00f3n de Obra", subtitle:"", weeks: weeks, categories: categories, notes: [], editingNoteId: null };
@@ -717,11 +752,28 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       }
     }
     else if(action === "print") window.print();
+    else if(action === "generar-fechas"){
+      var fi = document.getElementById("fechaInicio").value;
+      if(!fi){ alert("Ingresa la fecha de inicio (un lunes)."); return; }
+      if(state.notes.length>0 && !confirm("Esto reemplaza las columnas de semana actuales por las nuevas fechas y borra las notas ya cargadas (las categor\u00edas se mantienen). \u00bfContinuar?")) return;
+      var start = mondayOf(parseInputDate(fi));
+      var count = parseInt(document.getElementById("duracionSemanas").value,10) || 9;
+      state.weeks = generarSemanasIntermedio(start, count);
+      state.notes = [];
+      saveState(); render();
+    }
     else if(action === "reset"){
       if(confirm("Esto borrar\u00e1 toda la pizarra actual. \u00bfContinuar?")){
         state = defaultState(); saveState(); render(); syncHeader();
       }
     }
+  });
+  document.getElementById("fechaInicio").addEventListener("change", function(){
+    if(!this.value) return;
+    var start = mondayOf(parseInputDate(this.value));
+    var end = new Date(start); end.setMonth(end.getMonth()+2);
+    var count = Math.max(1, Math.round((end-start)/(7*24*3600*1000)));
+    document.getElementById("duracionSemanas").value = count;
   });
   document.getElementById("themeToggle").addEventListener("click", function(){
     var order = ["auto","light","dark"];
