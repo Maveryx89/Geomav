@@ -1932,7 +1932,8 @@ const ICONS = {
   plantillaZanja: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 14 L34 14" stroke-dasharray="2 2" stroke-width="1"/><path d="M6 20 L34 26" stroke-width="1.8"/><path d="M34 26 L34 34 L26 34 L26 26 Z"/><path d="M34 14 L34 20" stroke-dasharray="1.5 1.5" stroke-width="1"/></svg>`,
   capasPavimento: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 14 L36 14M4 21 L36 21M4 28 L36 28" stroke-width="1.3"/><path d="M20 8v6M8 21l-4 7M32 21l4 7" stroke-width="1.1"/></svg>`,
   progresivaOffset: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 34 L36 6" stroke-width="2"/><circle cx="30" cy="24" r="2" fill="currentColor" stroke="none"/><path d="M30 24 L20.5 20" stroke-dasharray="2 2" stroke-width="1.1"/><circle cx="20.5" cy="20" r="1.6" fill="currentColor" stroke="none"/></svg>`,
-  disenoEscalera: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 34 H10 V27 H16 V20 H22 V13 H28 V6 H34" fill="currentColor" fill-opacity=".08"/></svg>`
+  disenoEscalera: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 34 H10 V27 H16 V20 H22 V13 H28 V6 H34" fill="currentColor" fill-opacity=".08"/></svg>`,
+  pizarra: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="7" width="32" height="23" rx="1.5"/><rect x="9" y="12" width="9" height="9" fill="currentColor" fill-opacity=".15" stroke-width="1.2"/><path d="M23 14h9M23 18.5h9M23 23h6"/><path d="M14 30v4M20 34h-8" stroke-width="1.2"/></svg>`
 };
 
 /* ===================== TOOL DEFINITIONS ===================== */
@@ -2115,10 +2116,19 @@ function renderHome(){
     visibles.forEach(tid => { html += toolCardHTML(tid, false); });
     html += `</div></section>`;
   });
-  if(HIDDEN_TOOLS.length){
+  const externalCardHTML = (href, badge, glyph, name, desc) => `<a class="tool-card" href="${href}" target="_blank" rel="noopener" style="text-decoration:none; color:inherit;">
+        <span class="badge">${badge}</span>
+        <span class="glyph">${glyph}</span>
+        <span class="name">${name}</span>
+        <span class="desc">${desc}</span>
+      </a>`;
+  const EXTERNAL_TOOLS = [
+    externalCardHTML('https://claude.ai/artifact/AgkZq9h7r9EY8YUnzPPcTY', 'Próximamente', ICONS.pizarra, 'Pizarra de Planificación', 'Tablero de post-its por semana para planificar obra — se abre en una pestaña nueva')
+  ];
+  if(HIDDEN_TOOLS.length || EXTERNAL_TOOLS.length){
     html += `<details class="proximamente">
-      <summary>Próximamente <span class="count">${HIDDEN_TOOLS.length}</span></summary>
-      <div class="card-grid">${HIDDEN_TOOLS.map(tid => toolCardHTML(tid, true)).join('')}</div>
+      <summary>Próximamente <span class="count">${HIDDEN_TOOLS.length + EXTERNAL_TOOLS.length}</span></summary>
+      <div class="card-grid">${HIDDEN_TOOLS.map(tid => toolCardHTML(tid, true)).join('')}${EXTERNAL_TOOLS.join('')}</div>
     </details>`;
   }
   main.innerHTML = html;
