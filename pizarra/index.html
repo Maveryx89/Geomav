@@ -1045,6 +1045,9 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     root.addEventListener("click", function(e){
       var el = e.target.closest("[data-action]"); if(!el) return;
       var action = el.dataset.action;
+      if(action !== "print" && (root.style.zoom || root.style.width)){
+        root.style.zoom = ""; root.style.width = "";
+      }
       if(action === "add-week") addWeek();
       else if(action === "del-week") delWeek(el.dataset.week);
       else if(action === "add-category") addCategory();
@@ -1168,10 +1171,15 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       var s = root.querySelector('[data-bind="subtitle"]'); if(s) s.textContent = state.subtitle || "";
     }
 
-    window.addEventListener("afterprint", function(){
-      document.body.removeAttribute("data-print-board");
+    function limpiarZoomImpresion(){
       root.style.zoom = "";
       root.style.width = "";
+      if(document.body.getAttribute("data-print-board")) document.body.removeAttribute("data-print-board");
+    }
+    window.addEventListener("afterprint", limpiarZoomImpresion);
+    window.addEventListener("focus", limpiarZoomImpresion);
+    document.addEventListener("visibilitychange", function(){
+      if(document.visibilityState === "visible") limpiarZoomImpresion();
     });
 
     render();
