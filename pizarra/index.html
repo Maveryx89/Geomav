@@ -225,15 +225,14 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .app-foot a{ color:var(--blueprint); text-decoration:underline; text-underline-offset:2px; }
 .app-foot .foot-cta{ max-width:34ch; line-height:1.5; }
 
-@page semanal-page{ size: letter landscape; margin: 9mm; }
-@page intermedio-page{ size: A3 landscape; margin: 9mm; }
-
 @media print{
   .topbar, .toolbar, .dategen, .hint, .add-note, .row-tools, .week-x, footer.app-foot{ display:none !important; }
   body{ background:#fff; }
-  .pizarra-block{ break-inside: avoid-page; }
-  .pizarra-block[data-board="semanal"]{ page: semanal-page; break-after: page; }
-  .pizarra-block[data-board="intermedio"]{ page: intermedio-page; }
+  /* Solo se imprime el tablero que disparo el boton "Imprimir" (data-print-board en <body>);
+     el tamano de hoja (Carta u A3, siempre horizontal) se inyecta por JS justo antes de imprimir. */
+  .pizarra-block{ display:none !important; }
+  body[data-print-board="semanal"] .pizarra-block[data-board="semanal"]{ display:block !important; }
+  body[data-print-board="intermedio"] .pizarra-block[data-board="intermedio"]{ display:block !important; }
   .board-scroll{ overflow:visible !important; padding:0 !important; }
   .board{
     width:100% !important;
@@ -251,6 +250,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   .month-head{ padding:5px 6px 3px; }
   .section-head{ padding:10px 4px 4px; }
 }
+
 
 .viewtabs{ display:flex; gap:6px; padding:10px 16px 0; }
 .viewtab{ font-family:var(--font-mono); font-size:11px; font-weight:600; padding:5px 10px; border-radius:var(--radius-sm); border:1px solid var(--line); color:var(--ink-soft); text-decoration:none; }
@@ -795,7 +795,14 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         state.notes = [];
         saveState(); render();
       }
-      else if(action === "print") window.print();
+      else if(action === "print"){
+        var boardKey = cfg.weekly ? "semanal" : "intermedio";
+        document.body.setAttribute("data-print-board", boardKey);
+        var pageCss = document.getElementById("dynamicPageSize");
+        if(!pageCss){ pageCss = document.createElement("style"); pageCss.id = "dynamicPageSize"; document.head.appendChild(pageCss); }
+        pageCss.textContent = "@page{ size: " + (cfg.weekly ? "letter landscape" : "A3 landscape") + "; margin: 9mm; }";
+        window.print();
+      }
       else if(action === "reset"){
         if(confirm("Esto borrar\u00e1 este tablero. \u00bfContinuar?")){
           state = defaultState(); saveState(); render(); syncHeader();
@@ -853,6 +860,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   });
   setTheme(themeMode);
 
+  window.addEventListener("afterprint", function(){ document.body.removeAttribute("data-print-board"); });
   var fy = document.getElementById("footYear"); if(fy) fy.textContent = new Date().getFullYear();
 })();
 </script>
