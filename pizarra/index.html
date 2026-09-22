@@ -246,6 +246,15 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .dategen input[type=number]{ width:72px; }
 .dategen .btn-sm{ padding:8px 12px; }
 
+.section-head{ display:flex; align-items:center; gap:10px; padding:22px 16px 4px; }
+.section-head .idx{
+  font-family:var(--font-mono); font-size:11px; color:var(--paper); background:var(--blueprint);
+  width:20px; height:20px; border-radius:3px; display:flex; align-items:center; justify-content:center; flex:none;
+}
+.section-head h2{ font-size:15px; letter-spacing:.04em; text-transform:uppercase; font-family:var(--font-display); font-weight:700; }
+.section-note{ padding:0 16px; font-size:12px; color:var(--ink-soft); font-family:var(--font-mono); }
+.pizarra-block + .pizarra-block{ border-top:1px solid var(--line); margin-top:8px; }
+
 </style>
 </head>
 
@@ -256,7 +265,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       <img class="brand-logo" src="data:image/png;base64,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" alt="GeoMav">
       <div class="brand-text">
         <span class="mark">Pizarra</span>
-        <span class="tag">DE PLANIFICACIÓN &middot; POR GEOMAV</span>
+        <span class="tag">DE PLANIFICACIÓN · POR GEOMAV</span>
       </div>
     </div>
     <span class="spacer"></span>
@@ -265,38 +274,58 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     </button>
   </div>
 
-  <div class="viewtabs">
-    <a href="/pizarra/" class="viewtab active">Intermedio (2 meses)</a>
-    <a href="/pizarra/semanal/" class="viewtab">Semanal (lun–vie)</a>
-  </div>
+  <section class="pizarra-block" data-board="semanal">
+    <div class="section-head"><span class="idx">1</span><h2>Semanal &middot; lunes a viernes</h2></div>
 
-  <div class="title-wrap">
-    <div class="title-input" contenteditable="true" data-bind="title" data-placeholder="Nombre del proyecto"></div>
-    <div class="subtitle-input" contenteditable="true" data-bind="subtitle" data-placeholder="Subtítulo / obra / cliente"></div>
-  </div>
+    <div class="title-wrap">
+      <div class="title-input" contenteditable="true" data-bind="title" data-placeholder="Nombre del proyecto"></div>
+      <div class="subtitle-input" contenteditable="true" data-bind="subtitle" data-placeholder="Subtítulo / obra / cliente"></div>
+    </div>
 
-  <div class="dategen">
-    <div class="fld"><label>Fecha de inicio (lunes)</label><input type="date" id="fechaInicio"></div>
-    <div class="fld"><label>Duración (semanas)</label><input type="number" id="duracionSemanas" min="1" max="52" value="9"></div>
-    <button class="btn-sm" data-action="generar-fechas">Generar fechas</button>
-  </div>
+    <div class="dategen">
+      <div class="fld"><label>Fecha de inicio (lunes)</label><input type="date" class="fecha-inicio"></div>
+      <button class="btn-sm" data-action="generar-fechas">Generar fechas</button>
+    </div>
 
-  <div class="toolbar">
-    <button class="btn-sm" data-action="add-week">+ Semana</button>
-    <button class="btn-sm" data-action="add-category">+ Categoría</button>
+    <div class="toolbar">
+      <button class="btn-sm" data-action="add-week">+ Día</button>
+      <button class="btn-sm" data-action="add-category">+ Categoría</button>
+      <button class="btn-sm" data-action="print">Imprimir</button>
+      <button class="btn-sm danger" data-action="reset">Reiniciar</button>
+    </div>
+    <div class="hint">Ingresa la fecha de inicio (lunes) y toca "Generar fechas" para crear los 5 días &middot; toca “+” en una celda para agregar una nota &middot; toca una nota para editarla, moverla o cambiar su color</div>
+
+    <div class="board-scroll"><div class="board"></div></div>
+  </section>
+
+  <section class="pizarra-block" data-board="intermedio">
+    <div class="section-head"><span class="idx">2</span><h2>Intermedio &middot; 2 meses</h2></div>
+
+    <div class="title-wrap">
+      <div class="title-input" contenteditable="true" data-bind="title" data-placeholder="Nombre del proyecto"></div>
+      <div class="subtitle-input" contenteditable="true" data-bind="subtitle" data-placeholder="Subtítulo / obra / cliente"></div>
+    </div>
+
+    <div class="dategen">
+      <div class="fld"><label>Fecha de inicio (lunes)</label><input type="date" class="fecha-inicio"></div>
+    <div class="fld"><label>Duración (semanas)</label><input type="number" class="duracion-semanas" min="1" max="52" value="9"></div>
+      <button class="btn-sm" data-action="generar-fechas">Generar fechas</button>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn-sm" data-action="add-week">+ Semana</button>
+      <button class="btn-sm" data-action="add-category">+ Categoría</button>
     <button class="btn-sm" data-action="load-curanipe">Cargar plan Curanipe (Oct–Ene)</button>
-    <button class="btn-sm" data-action="print">Imprimir</button>
-    <button class="btn-sm danger" data-action="reset">Reiniciar</button>
-  </div>
-  <div class="hint">Ingresa la fecha de inicio y toca "Generar fechas" para crear las columnas · toca “+” en una celda para agregar una nota</div>
+      <button class="btn-sm" data-action="print">Imprimir</button>
+      <button class="btn-sm danger" data-action="reset">Reiniciar</button>
+    </div>
+    <div class="hint">Ingresa la fecha de inicio y toca "Generar fechas" para crear las columnas &middot; toca “+” en una celda para agregar una nota &middot; toca una nota para editarla, moverla o cambiar su color</div>
 
-  <div class="board-scroll">
-    <div class="board" id="board"></div>
-  </div>
-
+    <div class="board-scroll"><div class="board"></div></div>
+  </section>
   <footer class="app-foot">
     <img class="foot-logo" src="data:image/png;base64,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" alt="GeoMav">
-    <span>Pizarra de Planificación &middot; por GeoMav</span>
+    <span>Pizarra de Planificación · por GeoMav</span>
     <span class="foot-cta">¿Necesitas un levantamiento topográfico, dron o recorrido 360°? <a href="https://geomav.me/?utm_source=pizarra&amp;utm_medium=app&amp;utm_campaign=pie" target="_blank" rel="noopener">Cotiza en geomav.me</a></span>
     <span class="foot-copy">&copy; <span id="footYear"></span> GeoMav. Todos los derechos reservados.</span>
   </footer>
@@ -305,12 +334,174 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 <script>
 (function(){
   "use strict";
-  var LS_KEY = "pizarra-planificacion-v2";
-  var TONES = ["copper","blueprint","success","danger","neutral"];
+
+  var CURANIPE_WEEKDEFS = [
+    ["6","Octubre"],["13","Octubre"],["20","Octubre"],["27","Octubre"],
+    ["3","Noviembre"],["10","Noviembre"],["17","Noviembre"],["24","Noviembre"],
+    ["1","Diciembre"],["8","Diciembre"],["15","Diciembre"],["22","Diciembre"],["29","Diciembre"],
+    ["5","Enero"],["12","Enero"],["19","Enero"],["26","Enero"]
+  ];
+  var CURANIPE_CATS = ["Obra Gruesa","Terminaci\u00f3n Gruesa","Cubierta","Fachada","Terminaci\u00f3n Fina","Instalaciones","Obras Exteriores / Paisajismo","Entrega"];
+  var CURANIPE_TONE = {
+    "Obra Gruesa":"copper","Terminaci\u00f3n Gruesa":"danger","Cubierta":"neutral",
+    "Fachada":"success","Terminaci\u00f3n Fina":"copper","Instalaciones":"blueprint",
+    "Obras Exteriores / Paisajismo":"neutral","Entrega":"success"
+  };
+  var CURANIPE_RAW = [
+    ["Cubierta","Octubre","6","Hojalater\u00eda Z1","",100],
+    ["Cubierta","Octubre","6","Aplicaci\u00f3n Setipol Z7","",100],
+    ["Cubierta","Octubre","13","Hojalater\u00eda Z2","",100],
+    ["Cubierta","Octubre","20","Hojalater\u00eda Z3 y Z4","",100],
+    ["Cubierta","Octubre","27","Hojalater\u00eda Z5 y Z6","",100],
+    ["Fachada","Octubre","6","Ventanas V04 Z6","",100],
+    ["Fachada","Octubre","6","Vidrio termopanel MC acceso principal","",100],
+    ["Fachada","Octubre","13","Tabique vidriado Z6","",100],
+    ["Fachada","Octubre","20","Puertas vaiv\u00e9n zona 3","",100],
+    ["Fachada","Octubre","27","Puertas vaiv\u00e9n zona 4","",100],
+    ["Terminaci\u00f3n Gruesa","Octubre","6","Huincha y pasta en tabiques Z5","",100],
+    ["Terminaci\u00f3n Gruesa","Octubre","6","Pasta muro en MHA Z5","",100],
+    ["Terminaci\u00f3n Gruesa","Octubre","6","Aparejo pintura Z24","",100],
+    ["Terminaci\u00f3n Gruesa","Octubre","13","Huincha y pasta en tabiques Z6","",100],
+    ["Terminaci\u00f3n Gruesa","Octubre","13","Pasta muro en MHA Z6","",100],
+    ["Terminaci\u00f3n Gruesa","Octubre","13","Aparejo pintura Z25","",100],
+    ["Terminaci\u00f3n Gruesa","Octubre","20","Pasta muro en MHA Z7","",100],
+    ["Terminaci\u00f3n Gruesa","Octubre","20","Aparejo pintura Z26","",100],
+    ["Terminaci\u00f3n Gruesa","Octubre","20","1\u00b0 mano esmalte muros Z1","",100],
+    ["Terminaci\u00f3n Gruesa","Octubre","27","Aparejo pintura Z27","",100],
+    ["Terminaci\u00f3n Gruesa","Octubre","27","1\u00b0 mano esmalte muros Z2","",100],
+    ["Terminaci\u00f3n Gruesa","Octubre","27","2\u00b0 mano esmalte muros Z1","",100],
+    ["Terminaci\u00f3n Gruesa","Noviembre","3","1\u00b0 mano esmalte muros Z3","",100],
+    ["Terminaci\u00f3n Gruesa","Noviembre","3","2\u00b0 mano esmalte muros Z1","",100],
+    ["Terminaci\u00f3n Gruesa","Noviembre","10","1\u00b0 mano esmalte muros Z4","",100],
+    ["Terminaci\u00f3n Gruesa","Noviembre","10","2\u00b0 mano esmalte muros Z2","",100],
+    ["Terminaci\u00f3n Gruesa","Noviembre","10","Huincha y pasta en cielos Z1","",100],
+    ["Terminaci\u00f3n Gruesa","Noviembre","17","1\u00b0 mano esmalte muros Z5","",100],
+    ["Terminaci\u00f3n Gruesa","Noviembre","17","2\u00b0 mano esmalte muros Z3","",100],
+    ["Terminaci\u00f3n Gruesa","Noviembre","17","Huincha y pasta en cielos Z2","",100],
+    ["Terminaci\u00f3n Gruesa","Noviembre","17","Aparejo pintura Z1","",100],
+    ["Terminaci\u00f3n Gruesa","Noviembre","24","2\u00b0 mano esmalte muros Z4","",100],
+    ["Terminaci\u00f3n Gruesa","Noviembre","24","1\u00b0 mano esmalte en cielos Z1","",100],
+    ["Terminaci\u00f3n Gruesa","Noviembre","24","Huincha y pasta en cielos Z3","",100],
+    ["Terminaci\u00f3n Gruesa","Noviembre","24","Aparejo pintura Z2","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","1","1\u00b0 mano esmalte muros doble altura","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","1","2\u00b0 mano esmalte muros Z5","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","1","Huincha y pasta en cielos doble altura","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","1","Aparejo pintura Z3","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","1","1\u00b0 mano esmalte en cielos Z2","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","8","2\u00b0 mano esmalte muros Z6","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","8","1\u00b0 mano esmalte en cielos Z3","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","8","Huincha y pasta en cielos Z4","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","8","Aparejo pintura Z4","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","15","2\u00b0 mano esmalte muros Z7","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","15","Huincha y pasta en cielos Z5","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","15","Aparejo pintura Z5","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","15","1\u00b0 mano esmalte en cielos Z4","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","22","Huincha y pasta en cielos Z6","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","22","Aparejo pintura Z6","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","22","1\u00b0 mano esmalte en cielos Z5","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","29","Huincha y pasta en cielos Z7","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","29","Aparejo pintura Z7","",100],
+    ["Terminaci\u00f3n Gruesa","Diciembre","29","1\u00b0 mano esmalte en cielos Z6","",100],
+    ["Terminaci\u00f3n Gruesa","Enero","5","1\u00b0 mano esmalte en cielos doble altura","",100],
+    ["Terminaci\u00f3n Gruesa","Enero","5","2\u00b0 mano esmalte en cielos Z3","",100],
+    ["Terminaci\u00f3n Gruesa","Enero","12","1\u00b0 mano esmalte en cielos Z7","",100],
+    ["Terminaci\u00f3n Gruesa","Enero","12","2\u00b0 mano esmalte en cielos Z4","",100],
+    ["Terminaci\u00f3n Gruesa","Enero","19","2\u00b0 mano esmalte en cielos Z5","",100],
+    ["Terminaci\u00f3n Gruesa","Enero","19","2\u00b0 mano esmalte en cielos doble altura","",100],
+    ["Terminaci\u00f3n Gruesa","Enero","26","2\u00b0 mano esmalte en cielos Z6","",100],
+    ["Terminaci\u00f3n Gruesa","Enero","26","2\u00b0 mano esmalte en cielos Z7","",100],
+    ["Terminaci\u00f3n Fina","Octubre","6","2\u00b0 mano enlucido EIFS Z3","",100],
+    ["Terminaci\u00f3n Fina","Octubre","6","Aplicaci\u00f3n pintura de fondo patio 2","",100],
+    ["Terminaci\u00f3n Fina","Octubre","6","Aplicaci\u00f3n grano patio 1","",100],
+    ["Terminaci\u00f3n Fina","Octubre","13","2\u00b0 mano enlucido EIFS Z6","",100],
+    ["Terminaci\u00f3n Fina","Octubre","13","Aplicaci\u00f3n pintura de fondo Z3","",100],
+    ["Terminaci\u00f3n Fina","Octubre","13","Aplicaci\u00f3n grano patio 2","",100],
+    ["Terminaci\u00f3n Fina","Octubre","20","2\u00b0 mano enlucido EIFS Z5","",100],
+    ["Terminaci\u00f3n Fina","Octubre","20","Aplicaci\u00f3n pintura de fondo Z6","",100],
+    ["Terminaci\u00f3n Fina","Octubre","20","Aplicaci\u00f3n grano Z1","",100],
+    ["Terminaci\u00f3n Fina","Octubre","27","HPL en front\u00f3n y aleros doble altura","",30],
+    ["Terminaci\u00f3n Fina","Octubre","27","Instalaci\u00f3n PPR doble altura","",60],
+    ["Terminaci\u00f3n Fina","Octubre","27","Instalaci\u00f3n equipos fancoil bajo losa Z5","",100],
+    ["Terminaci\u00f3n Fina","Noviembre","3","HPL en front\u00f3n y aleros doble altura","",60],
+    ["Terminaci\u00f3n Fina","Noviembre","3","Instalaci\u00f3n PPR doble altura","",100],
+    ["Terminaci\u00f3n Fina","Noviembre","3","Instalaci\u00f3n ductos de clima doble altura","",100],
+    ["Terminaci\u00f3n Fina","Noviembre","3","Instalaci\u00f3n equipos fancoil bajo losa Z4","",100],
+    ["Terminaci\u00f3n Fina","Noviembre","3","Montaje Chiller","",null],
+    ["Terminaci\u00f3n Fina","Noviembre","10","Instalaci\u00f3n equipos fancoil bajo losa Z3","",50],
+    ["Terminaci\u00f3n Fina","Noviembre","10","Montaje UMAs","",null],
+    ["Terminaci\u00f3n Fina","Noviembre","17","Instalaci\u00f3n ductos de clima Z7","",100],
+    ["Terminaci\u00f3n Fina","Noviembre","17","Montaje VIN y VEX","",null],
+    ["Terminaci\u00f3n Fina","Diciembre","1","Revestimiento radiolog\u00eda","",100],
+    ["Terminaci\u00f3n Fina","Diciembre","8","Conexi\u00f3n sistema de presurizaci\u00f3n","",50],
+    ["Terminaci\u00f3n Fina","Diciembre","15","Conexi\u00f3n sistema de presurizaci\u00f3n","",100],
+    ["Instalaciones","Octubre","20","Instalaci\u00f3n placa yeso cart\u00f3n cielo Z1","",100],
+    ["Instalaciones","Noviembre","3","Instalaci\u00f3n placa yeso cart\u00f3n cielo Z2","",100],
+    ["Instalaciones","Noviembre","10","Instalaci\u00f3n placa yeso cart\u00f3n cielo Z3","",100],
+    ["Instalaciones","Noviembre","17","Instalaci\u00f3n placa yeso cart\u00f3n cielo Z4","",100],
+    ["Instalaciones","Noviembre","24","Instalaci\u00f3n placa yeso cart\u00f3n cielo Z5","",100],
+    ["Instalaciones","Diciembre","1","Instalaci\u00f3n placa yeso cart\u00f3n cielo Z6","",100],
+    ["Instalaciones","Octubre","27","Alimentadores y subalimentadores","",null],
+    ["Instalaciones","Noviembre","3","Instalaci\u00f3n artefactos el\u00e9ctricos Z1","",100],
+    ["Instalaciones","Noviembre","10","Instalaci\u00f3n artefactos el\u00e9ctricos Z2","",100],
+    ["Instalaciones","Noviembre","17","Instalaci\u00f3n artefactos el\u00e9ctricos Z3","",100],
+    ["Instalaciones","Noviembre","24","Instalaci\u00f3n iluminarias Z1 / doble altura","",100],
+    ["Instalaciones","Diciembre","1","Instalaci\u00f3n artefactos el\u00e9ctricos doble altura","",100],
+    ["Instalaciones","Diciembre","8","Instalaci\u00f3n artefactos el\u00e9ctricos Z4","",100],
+    ["Instalaciones","Diciembre","15","Instalaci\u00f3n artefactos el\u00e9ctricos Z5","",100],
+    ["Instalaciones","Diciembre","22","Instalaci\u00f3n artefactos el\u00e9ctricos Z6","",100],
+    ["Instalaciones","Diciembre","29","Instalaci\u00f3n artefactos el\u00e9ctricos Z7","",100],
+    ["Instalaciones","Diciembre","8","Instalaci\u00f3n iluminarias Z2","",100],
+    ["Instalaciones","Diciembre","15","Instalaci\u00f3n iluminarias Z3","",100],
+    ["Instalaciones","Diciembre","22","Instalaci\u00f3n iluminarias Z4","",100],
+    ["Instalaciones","Enero","5","Instalaci\u00f3n iluminarias Z5","",100],
+    ["Instalaciones","Enero","12","Instalaci\u00f3n iluminarias Z6","",100],
+    ["Instalaciones","Enero","19","Instalaci\u00f3n iluminarias Z7","",100],
+    ["Instalaciones","Octubre","6","C\u00e1maras alcantarillado acceso","",100],
+    ["Instalaciones","Octubre","13","Conexi\u00f3n sistema de presurizaci\u00f3n","",50],
+    ["Instalaciones","Octubre","20","Conexi\u00f3n sistema de presurizaci\u00f3n","",100],
+    ["Instalaciones","Octubre","6","Instalaci\u00f3n canalizaci\u00f3n redes h\u00famedas doble altura","",100],
+    ["Instalaciones","Octubre","6","Instalaci\u00f3n redes de petr\u00f3leo","",100],
+    ["Instalaciones","Octubre","13","Revestimiento radiolog\u00eda","",100],
+    ["Instalaciones","Noviembre","3","Instalaci\u00f3n artefactos sanitarios Z1","",100],
+    ["Instalaciones","Noviembre","10","Instalaci\u00f3n artefactos sanitarios Z2","",100],
+    ["Instalaciones","Noviembre","17","Instalaci\u00f3n artefactos sanitarios Z3","",100],
+    ["Instalaciones","Noviembre","24","Instalaci\u00f3n artefactos sanitarios Z4","",100],
+    ["Instalaciones","Diciembre","1","Instalaci\u00f3n artefactos sanitarios Z5","",100],
+    ["Instalaciones","Diciembre","8","Instalaci\u00f3n artefactos sanitarios Z6","",100],
+    ["Instalaciones","Diciembre","15","Instalaci\u00f3n artefactos sanitarios Z7","",100],
+    ["Instalaciones","Octubre","20","Instalaci\u00f3n equipos fancoil bajo losa Z1","",100],
+    ["Instalaciones","Octubre","27","Instalaci\u00f3n equipos fancoil bajo losa Z2","",100],
+    ["Instalaciones","Diciembre","1","Instalaci\u00f3n equipos fancoil bajo losa Z6","",100],
+    ["Instalaciones","Diciembre","15","Instalaci\u00f3n equipos fancoil bajo losa Z7","",100],
+    ["Instalaciones","Diciembre","22","Instalaci\u00f3n pasamanos y cantoneras Z1-Z2-Z3","",100],
+    ["Instalaciones","Diciembre","29","Instalaci\u00f3n pasamanos y cantoneras Z4-Z5-Z6","",100],
+    ["Instalaciones","Diciembre","22","Instalaci\u00f3n puertas fen\u00f3licas Z4","",100],
+    ["Instalaciones","Diciembre","29","Instalaci\u00f3n puertas fen\u00f3licas Z5","",100],
+    ["Instalaciones","Enero","5","Instalaci\u00f3n puertas fen\u00f3licas Z6","",100],
+    ["Instalaciones","Enero","12","Instalaci\u00f3n puertas fen\u00f3licas Z7","",100],
+    ["Obras Exteriores / Paisajismo","Octubre","6","Instalaci\u00f3n soleras zonas t\u00e9cnica","",50],
+    ["Obras Exteriores / Paisajismo","Octubre","13","Instalaci\u00f3n soleras zonas t\u00e9cnica","",100],
+    ["Obras Exteriores / Paisajismo","Octubre","13","Instalaci\u00f3n sumideros zona t\u00e9cnica","",100],
+    ["Obras Exteriores / Paisajismo","Octubre","13","Pavimentos zona t\u00e9cnica","",100],
+    ["Obras Exteriores / Paisajismo","Octubre","20","Pavimentos zona estacionamientos","",100],
+    ["Obras Exteriores / Paisajismo","Noviembre","3","Pavimentos zona t\u00e9cnica","",50],
+    ["Obras Exteriores / Paisajismo","Noviembre","10","Pavimentos zona t\u00e9cnica","",100],
+    ["Obras Exteriores / Paisajismo","Noviembre","10","Instalaci\u00f3n reja galvanizada","",50],
+    ["Obras Exteriores / Paisajismo","Noviembre","17","Instalaci\u00f3n reja galvanizada","",100],
+    ["Obras Exteriores / Paisajismo","Noviembre","17","Instalaci\u00f3n baldosa podot\u00e1ctil zona acceso","",100],
+    ["Obras Exteriores / Paisajismo","Noviembre","17","Hormig\u00f3n lavado zona acceso","",50],
+    ["Obras Exteriores / Paisajismo","Noviembre","24","Hormig\u00f3n lavado zona acceso","",100],
+    ["Obras Exteriores / Paisajismo","Noviembre","24","Instalaci\u00f3n baldosas patio Z7","",50],
+    ["Obras Exteriores / Paisajismo","Diciembre","1","Instalaci\u00f3n baldosas patio Z7","",100],
+    ["Obras Exteriores / Paisajismo","Noviembre","3","Moviliario exterior","",null],
+    ["Obras Exteriores / Paisajismo","Diciembre","29","\u00c1rboles, arbustos, trepadoras y cubresuelos","",null],
+    ["Entrega","Enero","12","Entrega de obra","",null]
+  ];
 
   function uid(){ return Math.random().toString(36).slice(2,10); }
-
   var MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  var DIAS = ["Lun","Mar","Mi\u00e9","Jue","Vie"];
+  var TONES = ["copper","blueprint","success","danger","neutral"];
   function parseInputDate(str){ var p = str.split("-"); return new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10)); }
   function mondayOf(d){ var day = d.getDay(); var diff = (day===0? -6 : 1-day); var m = new Date(d); m.setDate(d.getDate()+diff); return m; }
   function addDays(d,n){ var r = new Date(d); r.setDate(d.getDate()+n); return r; }
@@ -319,213 +510,301 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     for(var i=0;i<count;i++){ var dt = addDays(start, i*7); weeks.push({id:uid(), label:String(dt.getDate()), month:MESES[dt.getMonth()]}); }
     return weeks;
   }
-
-  function defaultState(){
-    var start = mondayOf(new Date());
-    var weeks = generarSemanasIntermedio(start, 9);
-    var catNames = ["Obra Gruesa","Terminaci\u00f3n Gruesa","Fachada","Instalaciones","Terminaci\u00f3n Fina","Obras Exteriores","Entrega"];
-    var categories = catNames.map(function(n){ return {id:uid(), name:n}; });
-    return { title:"Planificaci\u00f3n de Obra", subtitle:"", weeks: weeks, categories: categories, notes: [], editingNoteId: null };
+  function generarDiasSemana(start){
+    var weeks = [];
+    for(var i=0;i<5;i++){ var dt = addDays(start,i); weeks.push({id:uid(), label:DIAS[i]+" "+dt.getDate(), month:MESES[dt.getMonth()]}); }
+    return weeks;
+  }
+  function escapeHtml(s){
+    return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+      return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c];
+    });
   }
 
-  function curanipeSeed(){
-    var weekDefs = [
-      ["6","Octubre"],["13","Octubre"],["20","Octubre"],["27","Octubre"],
-      ["3","Noviembre"],["10","Noviembre"],["17","Noviembre"],["24","Noviembre"],
-      ["1","Diciembre"],["8","Diciembre"],["15","Diciembre"],["22","Diciembre"],["29","Diciembre"],
-      ["5","Enero"],["12","Enero"],["19","Enero"],["26","Enero"]
-    ];
-    var catDefs = ["Obra Gruesa","Terminaci\u00f3n Gruesa","Cubierta","Fachada","Terminaci\u00f3n Fina","Instalaciones","Obras Exteriores / Paisajismo","Entrega"];
-    var catTone = {
-      "Obra Gruesa":"copper","Terminaci\u00f3n Gruesa":"danger","Cubierta":"neutral",
-      "Fachada":"success","Terminaci\u00f3n Fina":"copper","Instalaciones":"blueprint",
-      "Obras Exteriores / Paisajismo":"neutral","Entrega":"success"
-    };
-    var weeks = weekDefs.map(function(d){ return {id:uid(), label:d[0], month:d[1]}; });
-    var categories = catDefs.map(function(n){ return {id:uid(), name:n}; });
-    var wById = {}; weeks.forEach(function(w){ wById[w.month+":"+w.label] = w.id; });
-    var cById = {}; categories.forEach(function(c){ cById[c.name] = c.id; });
+  function initPizarra(cfg){
+    var root = document.querySelector(cfg.sel);
+    var LS_KEY = cfg.storageKey;
 
-    var raw = [
-      ["Cubierta","Octubre","6","Hojalater\u00eda Z1","",100],
-      ["Cubierta","Octubre","6","Aplicaci\u00f3n Setipol Z7","",100],
-      ["Cubierta","Octubre","13","Hojalater\u00eda Z2","",100],
-      ["Cubierta","Octubre","20","Hojalater\u00eda Z3 y Z4","",100],
-      ["Cubierta","Octubre","27","Hojalater\u00eda Z5 y Z6","",100],
-      ["Fachada","Octubre","6","Ventanas V04 Z6","",100],
-      ["Fachada","Octubre","6","Vidrio termopanel MC acceso principal","",100],
-      ["Fachada","Octubre","13","Tabique vidriado Z6","",100],
-      ["Fachada","Octubre","20","Puertas vaiv\u00e9n zona 3","",100],
-      ["Fachada","Octubre","27","Puertas vaiv\u00e9n zona 4","",100],
-      ["Terminaci\u00f3n Gruesa","Octubre","6","Huincha y pasta en tabiques Z5","",100],
-      ["Terminaci\u00f3n Gruesa","Octubre","6","Pasta muro en MHA Z5","",100],
-      ["Terminaci\u00f3n Gruesa","Octubre","6","Aparejo pintura Z24","",100],
-      ["Terminaci\u00f3n Gruesa","Octubre","13","Huincha y pasta en tabiques Z6","",100],
-      ["Terminaci\u00f3n Gruesa","Octubre","13","Pasta muro en MHA Z6","",100],
-      ["Terminaci\u00f3n Gruesa","Octubre","13","Aparejo pintura Z25","",100],
-      ["Terminaci\u00f3n Gruesa","Octubre","20","Pasta muro en MHA Z7","",100],
-      ["Terminaci\u00f3n Gruesa","Octubre","20","Aparejo pintura Z26","",100],
-      ["Terminaci\u00f3n Gruesa","Octubre","20","1\u00b0 mano esmalte muros Z1","",100],
-      ["Terminaci\u00f3n Gruesa","Octubre","27","Aparejo pintura Z27","",100],
-      ["Terminaci\u00f3n Gruesa","Octubre","27","1\u00b0 mano esmalte muros Z2","",100],
-      ["Terminaci\u00f3n Gruesa","Octubre","27","2\u00b0 mano esmalte muros Z1","",100],
-      ["Terminaci\u00f3n Gruesa","Noviembre","3","1\u00b0 mano esmalte muros Z3","",100],
-      ["Terminaci\u00f3n Gruesa","Noviembre","3","2\u00b0 mano esmalte muros Z1","",100],
-      ["Terminaci\u00f3n Gruesa","Noviembre","10","1\u00b0 mano esmalte muros Z4","",100],
-      ["Terminaci\u00f3n Gruesa","Noviembre","10","2\u00b0 mano esmalte muros Z2","",100],
-      ["Terminaci\u00f3n Gruesa","Noviembre","10","Huincha y pasta en cielos Z1","",100],
-      ["Terminaci\u00f3n Gruesa","Noviembre","17","1\u00b0 mano esmalte muros Z5","",100],
-      ["Terminaci\u00f3n Gruesa","Noviembre","17","2\u00b0 mano esmalte muros Z3","",100],
-      ["Terminaci\u00f3n Gruesa","Noviembre","17","Huincha y pasta en cielos Z2","",100],
-      ["Terminaci\u00f3n Gruesa","Noviembre","17","Aparejo pintura Z1","",100],
-      ["Terminaci\u00f3n Gruesa","Noviembre","24","2\u00b0 mano esmalte muros Z4","",100],
-      ["Terminaci\u00f3n Gruesa","Noviembre","24","1\u00b0 mano esmalte en cielos Z1","",100],
-      ["Terminaci\u00f3n Gruesa","Noviembre","24","Huincha y pasta en cielos Z3","",100],
-      ["Terminaci\u00f3n Gruesa","Noviembre","24","Aparejo pintura Z2","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","1","1\u00b0 mano esmalte muros doble altura","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","1","2\u00b0 mano esmalte muros Z5","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","1","Huincha y pasta en cielos doble altura","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","1","Aparejo pintura Z3","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","1","1\u00b0 mano esmalte en cielos Z2","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","8","2\u00b0 mano esmalte muros Z6","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","8","1\u00b0 mano esmalte en cielos Z3","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","8","Huincha y pasta en cielos Z4","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","8","Aparejo pintura Z4","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","15","2\u00b0 mano esmalte muros Z7","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","15","Huincha y pasta en cielos Z5","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","15","Aparejo pintura Z5","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","15","1\u00b0 mano esmalte en cielos Z4","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","22","Huincha y pasta en cielos Z6","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","22","Aparejo pintura Z6","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","22","1\u00b0 mano esmalte en cielos Z5","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","29","Huincha y pasta en cielos Z7","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","29","Aparejo pintura Z7","",100],
-      ["Terminaci\u00f3n Gruesa","Diciembre","29","1\u00b0 mano esmalte en cielos Z6","",100],
-      ["Terminaci\u00f3n Gruesa","Enero","5","1\u00b0 mano esmalte en cielos doble altura","",100],
-      ["Terminaci\u00f3n Gruesa","Enero","5","2\u00b0 mano esmalte en cielos Z3","",100],
-      ["Terminaci\u00f3n Gruesa","Enero","12","1\u00b0 mano esmalte en cielos Z7","",100],
-      ["Terminaci\u00f3n Gruesa","Enero","12","2\u00b0 mano esmalte en cielos Z4","",100],
-      ["Terminaci\u00f3n Gruesa","Enero","19","2\u00b0 mano esmalte en cielos Z5","",100],
-      ["Terminaci\u00f3n Gruesa","Enero","19","2\u00b0 mano esmalte en cielos doble altura","",100],
-      ["Terminaci\u00f3n Gruesa","Enero","26","2\u00b0 mano esmalte en cielos Z6","",100],
-      ["Terminaci\u00f3n Gruesa","Enero","26","2\u00b0 mano esmalte en cielos Z7","",100],
-      ["Terminaci\u00f3n Fina","Octubre","6","2\u00b0 mano enlucido EIFS Z3","",100],
-      ["Terminaci\u00f3n Fina","Octubre","6","Aplicaci\u00f3n pintura de fondo patio 2","",100],
-      ["Terminaci\u00f3n Fina","Octubre","6","Aplicaci\u00f3n grano patio 1","",100],
-      ["Terminaci\u00f3n Fina","Octubre","13","2\u00b0 mano enlucido EIFS Z6","",100],
-      ["Terminaci\u00f3n Fina","Octubre","13","Aplicaci\u00f3n pintura de fondo Z3","",100],
-      ["Terminaci\u00f3n Fina","Octubre","13","Aplicaci\u00f3n grano patio 2","",100],
-      ["Terminaci\u00f3n Fina","Octubre","20","2\u00b0 mano enlucido EIFS Z5","",100],
-      ["Terminaci\u00f3n Fina","Octubre","20","Aplicaci\u00f3n pintura de fondo Z6","",100],
-      ["Terminaci\u00f3n Fina","Octubre","20","Aplicaci\u00f3n grano Z1","",100],
-      ["Terminaci\u00f3n Fina","Octubre","27","HPL en front\u00f3n y aleros doble altura","",30],
-      ["Terminaci\u00f3n Fina","Octubre","27","Instalaci\u00f3n PPR doble altura","",60],
-      ["Terminaci\u00f3n Fina","Octubre","27","Instalaci\u00f3n equipos fancoil bajo losa Z5","",100],
-      ["Terminaci\u00f3n Fina","Noviembre","3","HPL en front\u00f3n y aleros doble altura","",60],
-      ["Terminaci\u00f3n Fina","Noviembre","3","Instalaci\u00f3n PPR doble altura","",100],
-      ["Terminaci\u00f3n Fina","Noviembre","3","Instalaci\u00f3n ductos de clima doble altura","",100],
-      ["Terminaci\u00f3n Fina","Noviembre","3","Instalaci\u00f3n equipos fancoil bajo losa Z4","",100],
-      ["Terminaci\u00f3n Fina","Noviembre","3","Montaje Chiller","",null],
-      ["Terminaci\u00f3n Fina","Noviembre","10","Instalaci\u00f3n equipos fancoil bajo losa Z3","",50],
-      ["Terminaci\u00f3n Fina","Noviembre","10","Montaje UMAs","",null],
-      ["Terminaci\u00f3n Fina","Noviembre","17","Instalaci\u00f3n ductos de clima Z7","",100],
-      ["Terminaci\u00f3n Fina","Noviembre","17","Montaje VIN y VEX","",null],
-      ["Terminaci\u00f3n Fina","Diciembre","1","Revestimiento radiolog\u00eda","",100],
-      ["Terminaci\u00f3n Fina","Diciembre","8","Conexi\u00f3n sistema de presurizaci\u00f3n","",50],
-      ["Terminaci\u00f3n Fina","Diciembre","15","Conexi\u00f3n sistema de presurizaci\u00f3n","",100],
-      ["Instalaciones","Octubre","20","Instalaci\u00f3n placa yeso cart\u00f3n cielo Z1","",100],
-      ["Instalaciones","Noviembre","3","Instalaci\u00f3n placa yeso cart\u00f3n cielo Z2","",100],
-      ["Instalaciones","Noviembre","10","Instalaci\u00f3n placa yeso cart\u00f3n cielo Z3","",100],
-      ["Instalaciones","Noviembre","17","Instalaci\u00f3n placa yeso cart\u00f3n cielo Z4","",100],
-      ["Instalaciones","Noviembre","24","Instalaci\u00f3n placa yeso cart\u00f3n cielo Z5","",100],
-      ["Instalaciones","Diciembre","1","Instalaci\u00f3n placa yeso cart\u00f3n cielo Z6","",100],
-      ["Instalaciones","Octubre","27","Alimentadores y subalimentadores","",null],
-      ["Instalaciones","Noviembre","3","Instalaci\u00f3n artefactos el\u00e9ctricos Z1","",100],
-      ["Instalaciones","Noviembre","10","Instalaci\u00f3n artefactos el\u00e9ctricos Z2","",100],
-      ["Instalaciones","Noviembre","17","Instalaci\u00f3n artefactos el\u00e9ctricos Z3","",100],
-      ["Instalaciones","Noviembre","24","Instalaci\u00f3n iluminarias Z1 / doble altura","",100],
-      ["Instalaciones","Diciembre","1","Instalaci\u00f3n artefactos el\u00e9ctricos doble altura","",100],
-      ["Instalaciones","Diciembre","8","Instalaci\u00f3n artefactos el\u00e9ctricos Z4","",100],
-      ["Instalaciones","Diciembre","15","Instalaci\u00f3n artefactos el\u00e9ctricos Z5","",100],
-      ["Instalaciones","Diciembre","22","Instalaci\u00f3n artefactos el\u00e9ctricos Z6","",100],
-      ["Instalaciones","Diciembre","29","Instalaci\u00f3n artefactos el\u00e9ctricos Z7","",100],
-      ["Instalaciones","Diciembre","8","Instalaci\u00f3n iluminarias Z2","",100],
-      ["Instalaciones","Diciembre","15","Instalaci\u00f3n iluminarias Z3","",100],
-      ["Instalaciones","Diciembre","22","Instalaci\u00f3n iluminarias Z4","",100],
-      ["Instalaciones","Enero","5","Instalaci\u00f3n iluminarias Z5","",100],
-      ["Instalaciones","Enero","12","Instalaci\u00f3n iluminarias Z6","",100],
-      ["Instalaciones","Enero","19","Instalaci\u00f3n iluminarias Z7","",100],
-      ["Instalaciones","Octubre","6","C\u00e1maras alcantarillado acceso","",100],
-      ["Instalaciones","Octubre","13","Conexi\u00f3n sistema de presurizaci\u00f3n","",50],
-      ["Instalaciones","Octubre","20","Conexi\u00f3n sistema de presurizaci\u00f3n","",100],
-      ["Instalaciones","Octubre","6","Instalaci\u00f3n canalizaci\u00f3n redes h\u00famedas doble altura","",100],
-      ["Instalaciones","Octubre","6","Instalaci\u00f3n redes de petr\u00f3leo","",100],
-      ["Instalaciones","Octubre","13","Revestimiento radiolog\u00eda","",100],
-      ["Instalaciones","Noviembre","3","Instalaci\u00f3n artefactos sanitarios Z1","",100],
-      ["Instalaciones","Noviembre","10","Instalaci\u00f3n artefactos sanitarios Z2","",100],
-      ["Instalaciones","Noviembre","17","Instalaci\u00f3n artefactos sanitarios Z3","",100],
-      ["Instalaciones","Noviembre","24","Instalaci\u00f3n artefactos sanitarios Z4","",100],
-      ["Instalaciones","Diciembre","1","Instalaci\u00f3n artefactos sanitarios Z5","",100],
-      ["Instalaciones","Diciembre","8","Instalaci\u00f3n artefactos sanitarios Z6","",100],
-      ["Instalaciones","Diciembre","15","Instalaci\u00f3n artefactos sanitarios Z7","",100],
-      ["Instalaciones","Octubre","20","Instalaci\u00f3n equipos fancoil bajo losa Z1","",100],
-      ["Instalaciones","Octubre","27","Instalaci\u00f3n equipos fancoil bajo losa Z2","",100],
-      ["Instalaciones","Diciembre","1","Instalaci\u00f3n equipos fancoil bajo losa Z6","",100],
-      ["Instalaciones","Diciembre","15","Instalaci\u00f3n equipos fancoil bajo losa Z7","",100],
-      ["Instalaciones","Diciembre","22","Instalaci\u00f3n pasamanos y cantoneras Z1-Z2-Z3","",100],
-      ["Instalaciones","Diciembre","29","Instalaci\u00f3n pasamanos y cantoneras Z4-Z5-Z6","",100],
-      ["Instalaciones","Diciembre","22","Instalaci\u00f3n puertas fen\u00f3licas Z4","",100],
-      ["Instalaciones","Diciembre","29","Instalaci\u00f3n puertas fen\u00f3licas Z5","",100],
-      ["Instalaciones","Enero","5","Instalaci\u00f3n puertas fen\u00f3licas Z6","",100],
-      ["Instalaciones","Enero","12","Instalaci\u00f3n puertas fen\u00f3licas Z7","",100],
-      ["Obras Exteriores / Paisajismo","Octubre","6","Instalaci\u00f3n soleras zonas t\u00e9cnica","",50],
-      ["Obras Exteriores / Paisajismo","Octubre","13","Instalaci\u00f3n soleras zonas t\u00e9cnica","",100],
-      ["Obras Exteriores / Paisajismo","Octubre","13","Instalaci\u00f3n sumideros zona t\u00e9cnica","",100],
-      ["Obras Exteriores / Paisajismo","Octubre","13","Pavimentos zona t\u00e9cnica","",100],
-      ["Obras Exteriores / Paisajismo","Octubre","20","Pavimentos zona estacionamientos","",100],
-      ["Obras Exteriores / Paisajismo","Noviembre","3","Pavimentos zona t\u00e9cnica","",50],
-      ["Obras Exteriores / Paisajismo","Noviembre","10","Pavimentos zona t\u00e9cnica","",100],
-      ["Obras Exteriores / Paisajismo","Noviembre","10","Instalaci\u00f3n reja galvanizada","",50],
-      ["Obras Exteriores / Paisajismo","Noviembre","17","Instalaci\u00f3n reja galvanizada","",100],
-      ["Obras Exteriores / Paisajismo","Noviembre","17","Instalaci\u00f3n baldosa podot\u00e1ctil zona acceso","",100],
-      ["Obras Exteriores / Paisajismo","Noviembre","17","Hormig\u00f3n lavado zona acceso","",50],
-      ["Obras Exteriores / Paisajismo","Noviembre","24","Hormig\u00f3n lavado zona acceso","",100],
-      ["Obras Exteriores / Paisajismo","Noviembre","24","Instalaci\u00f3n baldosas patio Z7","",50],
-      ["Obras Exteriores / Paisajismo","Diciembre","1","Instalaci\u00f3n baldosas patio Z7","",100],
-      ["Obras Exteriores / Paisajismo","Noviembre","3","Moviliario exterior","",null],
-      ["Obras Exteriores / Paisajismo","Diciembre","29","\u00c1rboles, arbustos, trepadoras y cubresuelos","",null],
-      ["Entrega","Enero","12","Entrega de obra","",null]
-    ];
+    function defaultCategories(){
+      return ["Obra Gruesa","Terminaci\u00f3n Gruesa","Fachada","Instalaciones","Terminaci\u00f3n Fina","Obras Exteriores","Entrega"]
+        .map(function(n){ return {id:uid(), name:n}; });
+    }
+    function defaultState(){
+      var start = mondayOf(new Date());
+      var weeks = cfg.weekly ? generarDiasSemana(start) : generarSemanasIntermedio(start, 9);
+      return { title:cfg.defaultTitle, subtitle:"", weeks:weeks, categories:defaultCategories(), notes:[], editingNoteId:null };
+    }
+    function curanipeSeed(){
+      var weeks = CURANIPE_WEEKDEFS.map(function(d){ return {id:uid(), label:d[0], month:d[1]}; });
+      var categories = CURANIPE_CATS.map(function(n){ return {id:uid(), name:n}; });
+      var wById = {}; weeks.forEach(function(w){ wById[w.month+":"+w.label] = w.id; });
+      var cById = {}; categories.forEach(function(c){ cById[c.name] = c.id; });
+      var notes = CURANIPE_RAW.map(function(r){
+        var catId = cById[r[0]], weekId = wById[r[1]+":"+r[2]];
+        if(!catId || !weekId) return null;
+        return { id: uid(), catId: catId, weekId: weekId, text: r[3], day: r[4]||"",
+          percent: (r[5]===null||r[5]===undefined) ? "" : r[5], tone: CURANIPE_TONE[r[0]] || "neutral" };
+      }).filter(Boolean);
+      return {
+        title: "Planificaci\u00f3n Reposici\u00f3n Consultorio General Rural Curanipe",
+        subtitle: "Comuna de Pelluhue \u2014 Octubre a Enero",
+        weeks: weeks, categories: categories, notes: notes, editingNoteId: null
+      };
+    }
+    function loadState(){
+      try{
+        var raw = localStorage.getItem(LS_KEY);
+        if(!raw) return defaultState();
+        var parsed = JSON.parse(raw);
+        if(!parsed || !parsed.weeks || !parsed.categories) return defaultState();
+        parsed.editingNoteId = null;
+        return parsed;
+      }catch(e){ return defaultState(); }
+    }
+    function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+    var state = loadState();
 
-    var notes = raw.map(function(r){
-      var catId = cById[r[0]];
-      var weekId = wById[r[1]+":"+r[2]];
-      if(!catId || !weekId) return null;
-      return { id: uid(), catId: catId, weekId: weekId, text: r[3], day: r[4]||"",
-        percent: (r[5]===null||r[5]===undefined) ? "" : r[5], tone: catTone[r[0]] || "neutral" };
-    }).filter(Boolean);
+    function findCat(id){ return state.categories.find(function(c){return c.id===id;}); }
+    function findWeek(id){ return state.weeks.find(function(w){return w.id===id;}); }
+    function notesIn(catId, weekId){ return state.notes.filter(function(n){ return n.catId===catId && n.weekId===weekId; }); }
+    function monthGroups(){
+      var groups = [];
+      state.weeks.forEach(function(w, i){
+        var last = groups[groups.length-1];
+        if(last && last.month === w.month){ last.span++; } else { groups.push({month:w.month, span:1, startIndex:i}); }
+      });
+      return groups;
+    }
 
-    return {
-      title: "Planificaci\u00f3n Reposici\u00f3n Consultorio General Rural Curanipe",
-      subtitle: "Comuna de Pelluhue \u2014 Octubre a Enero",
-      weeks: weeks, categories: categories, notes: notes, editingNoteId: null
-    };
+    function render(){
+      var board = root.querySelector(".board");
+      var nWeeks = state.weeks.length, nCats = state.categories.length;
+      board.style.gridTemplateColumns = "150px repeat(" + nWeeks + ", minmax(148px,1fr))";
+      board.style.gridTemplateRows = "auto auto repeat(" + nCats + ", minmax(60px,auto))";
+      var html = '<div class="cell corner" style="grid-row:1 / span 2; grid-column:1;"></div>';
+      monthGroups().forEach(function(g){
+        var col = 2 + g.startIndex;
+        html += '<div class="cell month-head" style="grid-row:1; grid-column:'+col+' / span '+g.span+';">'
+          + '<span contenteditable="true" data-bind="month:'+g.startIndex+'" data-placeholder="Mes">'+escapeHtml(g.month)+'</span></div>';
+      });
+      state.weeks.forEach(function(w, i){
+        var col = 2+i;
+        html += '<div class="cell week-head" style="grid-row:2; grid-column:'+col+';">'
+          + '<span class="lbl" contenteditable="true" data-bind="week:'+w.id+':label" data-placeholder="Semana">'+escapeHtml(w.label)+'</span>'
+          + '<button class="week-x" data-action="del-week" data-week="'+w.id+'" title="Eliminar">\u2715</button></div>';
+      });
+      state.categories.forEach(function(cat, ci){
+        var row = 3+ci;
+        html += '<div class="cell row-label" style="grid-row:'+row+'; grid-column:1;">'
+          + '<div class="name" contenteditable="true" data-bind="cat:'+cat.id+':name">'+escapeHtml(cat.name)+'</div>'
+          + '<div class="row-tools">'
+            + '<button data-action="move-cat-up" data-cat="'+cat.id+'" title="Subir">\u2191</button>'
+            + '<button data-action="move-cat-down" data-cat="'+cat.id+'" title="Bajar">\u2193</button>'
+            + '<button data-action="del-category" data-cat="'+cat.id+'" title="Eliminar">\u2715</button>'
+          + '</div></div>';
+        state.weeks.forEach(function(w, wi){
+          var col = 2+wi;
+          html += '<div class="cell note-cell" style="grid-row:'+row+'; grid-column:'+col+';">';
+          notesIn(cat.id, w.id).forEach(function(note){ html += renderNote(note); });
+          html += '<button class="add-note" data-action="add-note" data-cat="'+cat.id+'" data-week="'+w.id+'" title="Agregar nota">+</button></div>';
+        });
+      });
+      board.innerHTML = html;
+    }
+
+    function renderNote(note){
+      var editing = state.editingNoteId === note.id;
+      if(!editing){
+        var metaBits = [];
+        if(note.day) metaBits.push(escapeHtml(note.day));
+        if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%");
+        return '<div class="note note-'+note.tone+'" data-action="open-note" data-note="'+note.id+'">'
+          + '<div class="txt">'+escapeHtml(note.text || "Nueva tarea")+'</div>'
+          + (metaBits.length ? '<div class="meta"><span>'+metaBits.join(" \u00b7 ")+'</span></div>' : "")
+          + '</div>';
+      }
+      var catOptions = state.categories.map(function(c){
+        return '<option value="'+c.id+'"'+(c.id===note.catId?' selected':"")+'>'+escapeHtml(c.name)+'</option>';
+      }).join("");
+      var weekOptions = state.weeks.map(function(w){
+        return '<option value="'+w.id+'"'+(w.id===note.weekId?' selected':"")+'>'+escapeHtml(w.month)+' \u00b7 '+escapeHtml(w.label)+'</option>';
+      }).join("");
+      var swatches = TONES.map(function(tone){
+        return '<button class="swatch note-'+tone+(tone===note.tone?' active':"")+'" data-action="set-tone" data-note="'+note.id+'" data-tone="'+tone+'" aria-label="Color"></button>';
+      }).join("");
+      return '<div class="note editing" data-note="'+note.id+'">'
+        + '<textarea data-bind="note:'+note.id+':text" placeholder="Descripci\u00f3n de la tarea">'+escapeHtml(note.text)+'</textarea>'
+        + '<div class="field-row">'
+          + '<div class="field-col"><label>D\u00eda / fecha</label><input type="text" data-bind="note:'+note.id+':day" value="'+escapeHtml(note.day)+'" placeholder="ej. 26"></div>'
+          + '<div class="field-col"><label>Avance %</label><input type="number" min="0" max="100" step="5" data-bind="note:'+note.id+':percent" value="'+escapeHtml(note.percent)+'"></div>'
+        + '</div>'
+        + '<div class="field-row">'
+          + '<div class="field-col"><label>Categor\u00eda</label><select data-bind-select="note:'+note.id+':catId">'+catOptions+'</select></div>'
+          + '<div class="field-col"><label>Semana</label><select data-bind-select="note:'+note.id+':weekId">'+weekOptions+'</select></div>'
+        + '</div>'
+        + '<div class="swatches">'+swatches+'</div>'
+        + '<div class="note-actions">'
+          + '<button data-action="dup-note" data-note="'+note.id+'">Duplicar en sig.</button>'
+          + '<button data-action="close-note" data-note="'+note.id+'">Cerrar</button>'
+          + '<button class="del" data-action="del-note" data-note="'+note.id+'">Eliminar</button>'
+        + '</div></div>';
+    }
+
+    function addWeek(){
+      var last = state.weeks[state.weeks.length-1];
+      state.weeks.push({id:uid(), label:"Nueva", month: last?last.month:"Mes 1"});
+      saveState(); render();
+    }
+    function delWeek(id){
+      var has = state.notes.some(function(n){return n.weekId===id;});
+      if(has && !confirm("Esta columna tiene notas. \u00bfEliminarla junto con sus notas?")) return;
+      state.weeks = state.weeks.filter(function(w){return w.id!==id;});
+      state.notes = state.notes.filter(function(n){return n.weekId!==id;});
+      saveState(); render();
+    }
+    function addCategory(){ state.categories.push({id:uid(), name:"Nueva categor\u00eda"}); saveState(); render(); }
+    function delCategory(id){
+      var has = state.notes.some(function(n){return n.catId===id;});
+      if(has && !confirm("Esta categor\u00eda tiene notas. \u00bfEliminarla junto con sus notas?")) return;
+      state.categories = state.categories.filter(function(c){return c.id!==id;});
+      state.notes = state.notes.filter(function(n){return n.catId!==id;});
+      saveState(); render();
+    }
+    function moveCat(id, dir){
+      var idx = state.categories.findIndex(function(c){return c.id===id;});
+      var j = idx+dir; if(j<0 || j>=state.categories.length) return;
+      var tmp = state.categories[idx]; state.categories[idx] = state.categories[j]; state.categories[j] = tmp;
+      saveState(); render();
+    }
+    function addNote(catId, weekId){
+      var note = {id:uid(), catId:catId, weekId:weekId, text:"", day:"", percent:"", tone: TONES[state.notes.length % TONES.length]};
+      state.notes.push(note); state.editingNoteId = note.id; saveState(); render();
+      setTimeout(function(){
+        var ta = root.querySelector('textarea[data-bind="note:'+note.id+':text"]');
+        if(ta) ta.focus();
+      }, 0);
+    }
+    function delNote(id){
+      state.notes = state.notes.filter(function(n){return n.id!==id;});
+      if(state.editingNoteId===id) state.editingNoteId=null;
+      saveState(); render();
+    }
+    function dupNote(id){
+      var note = state.notes.find(function(n){return n.id===id;}); if(!note) return;
+      var idx = state.weeks.findIndex(function(w){return w.id===note.weekId;});
+      var targetWeek = state.weeks[idx+1] ? state.weeks[idx+1].id : note.weekId;
+      var copy = {id:uid(), catId:note.catId, weekId:targetWeek, text:note.text, day:note.day, percent:note.percent, tone:note.tone};
+      state.notes.push(copy); state.editingNoteId = copy.id; saveState(); render();
+    }
+
+    function applyBind(bind, value){
+      var parts = bind.split(":");
+      if(parts[0] === "title"){ state.title = value; return; }
+      if(parts[0] === "subtitle"){ state.subtitle = value; return; }
+      if(parts[0] === "cat"){ var c = findCat(parts[1]); if(c) c.name = value; return; }
+      if(parts[0] === "week"){ var w = findWeek(parts[1]); if(w){ if(parts[2]==="label") w.label = value; } return; }
+      if(parts[0] === "month"){
+        var startIndex = parseInt(parts[1],10);
+        var g = monthGroups().find(function(gr){return gr.startIndex===startIndex;});
+        if(g){ for(var i=g.startIndex;i<g.startIndex+g.span;i++){ if(state.weeks[i]) state.weeks[i].month = value; } }
+        return;
+      }
+      if(parts[0] === "note"){
+        var n = state.notes.find(function(x){return x.id===parts[1];}); if(!n) return;
+        var field = parts[2];
+        if(field==="percent"){
+          if(value==="") n.percent = "";
+          else { var num = Math.max(0, Math.min(100, parseInt(value,10)||0)); n.percent = num; }
+        } else { n[field] = value; }
+        return;
+      }
+    }
+
+    root.addEventListener("input", function(e){
+      var t = e.target;
+      if(t.dataset && t.dataset.bind){
+        var value = t.isContentEditable ? t.textContent : t.value;
+        applyBind(t.dataset.bind, value); saveState();
+      }
+    });
+    root.addEventListener("change", function(e){
+      var t = e.target;
+      if(t.dataset && t.dataset.bindSelect){
+        var parts = t.dataset.bindSelect.split(":");
+        var n = state.notes.find(function(x){return x.id===parts[1];});
+        if(n){ if(parts[2]==="catId") n.catId = t.value; if(parts[2]==="weekId") n.weekId = t.value; }
+        saveState(); render();
+      }
+    });
+    root.addEventListener("click", function(e){
+      var el = e.target.closest("[data-action]"); if(!el) return;
+      var action = el.dataset.action;
+      if(action === "add-week") addWeek();
+      else if(action === "del-week") delWeek(el.dataset.week);
+      else if(action === "add-category") addCategory();
+      else if(action === "del-category") delCategory(el.dataset.cat);
+      else if(action === "move-cat-up") moveCat(el.dataset.cat, -1);
+      else if(action === "move-cat-down") moveCat(el.dataset.cat, 1);
+      else if(action === "add-note") addNote(el.dataset.cat, el.dataset.week);
+      else if(action === "open-note"){ state.editingNoteId = el.dataset.note; render(); }
+      else if(action === "close-note"){ state.editingNoteId = null; render(); }
+      else if(action === "del-note") delNote(el.dataset.note);
+      else if(action === "dup-note") dupNote(el.dataset.note);
+      else if(action === "set-tone"){
+        var n = state.notes.find(function(x){return x.id===el.dataset.note;});
+        if(n){ n.tone = el.dataset.tone; saveState(); render(); }
+      }
+      else if(action === "load-curanipe"){
+        if(confirm("Esto reemplaza este tablero por el plan Curanipe (Octubre a Enero) transcrito del PDF. \u00bfContinuar?")){
+          state = curanipeSeed(); saveState(); render(); syncHeader();
+        }
+      }
+      else if(action === "generar-fechas"){
+        var fi = root.querySelector(".fecha-inicio").value;
+        if(!fi){ alert("Ingresa la fecha de inicio."); return; }
+        if(state.notes.length>0 && !confirm("Esto reemplaza las columnas actuales por las nuevas fechas y borra las notas ya cargadas en este tablero (las categor\u00edas se mantienen). \u00bfContinuar?")) return;
+        var start = mondayOf(parseInputDate(fi));
+        if(cfg.weekly){ state.weeks = generarDiasSemana(start); }
+        else {
+          var durEl = root.querySelector(".duracion-semanas");
+          var count = parseInt(durEl.value,10) || 9;
+          state.weeks = generarSemanasIntermedio(start, count);
+        }
+        state.notes = [];
+        saveState(); render();
+      }
+      else if(action === "print") window.print();
+      else if(action === "reset"){
+        if(confirm("Esto borrar\u00e1 este tablero. \u00bfContinuar?")){
+          state = defaultState(); saveState(); render(); syncHeader();
+        }
+      }
+    });
+
+    if(!cfg.weekly){
+      var durInput = root.querySelector(".duracion-semanas");
+      root.querySelector(".fecha-inicio").addEventListener("change", function(){
+        if(!this.value) return;
+        var start = mondayOf(parseInputDate(this.value));
+        var end = new Date(start); end.setMonth(end.getMonth()+2);
+        var count = Math.max(1, Math.round((end-start)/(7*24*3600*1000)));
+        durInput.value = count;
+      });
+    }
+
+    function syncHeader(){
+      var t = root.querySelector('[data-bind="title"]'); if(t) t.textContent = state.title || "";
+      var s = root.querySelector('[data-bind="subtitle"]'); if(s) s.textContent = state.subtitle || "";
+    }
+
+    render();
+    syncHeader();
   }
 
-  function loadState(){
-    try{
-      var raw = localStorage.getItem(LS_KEY);
-      if(!raw) return defaultState();
-      var parsed = JSON.parse(raw);
-      if(!parsed || !parsed.weeks || !parsed.categories) return defaultState();
-      parsed.editingNoteId = null;
-      return parsed;
-    }catch(e){ return defaultState(); }
-  }
-  function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
-  var state = loadState();
+  initPizarra({ sel:'[data-board="semanal"]', storageKey:"pizarra-semanal-v1", weekly:true, defaultTitle:"Planificaci\u00f3n Semanal" });
+  initPizarra({ sel:'[data-board="intermedio"]', storageKey:"pizarra-planificacion-v2", weekly:false, defaultTitle:"Planificaci\u00f3n de Obra" });
 
-  /* ---------- theme (misma mecanica que topocalc/index.html) ---------- */
+  /* ---------- theme (global, una sola vez) ---------- */
   function applyThemeIcon(mode){
     var icon = document.getElementById("themeIcon");
     if(mode==="dark"){ icon.innerHTML = '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/>'; }
@@ -546,249 +825,13 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     applyThemeIcon(mode); aplicarColorBarra(); saveTheme(mode);
   }
   try{ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", aplicarColorBarra); }catch(e){}
-
-  /* ---------- helpers ---------- */
-  function findCat(id){ return state.categories.find(function(c){return c.id===id;}); }
-  function findWeek(id){ return state.weeks.find(function(w){return w.id===id;}); }
-  function notesIn(catId, weekId){ return state.notes.filter(function(n){ return n.catId===catId && n.weekId===weekId; }); }
-  function escapeHtml(s){
-    return String(s==null?"":s).replace(/[&<>"']/g, function(c){
-      return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c];
-    });
-  }
-  function monthGroups(){
-    var groups = [];
-    state.weeks.forEach(function(w, i){
-      var last = groups[groups.length-1];
-      if(last && last.month === w.month){ last.span++; } else { groups.push({month:w.month, span:1, startIndex:i}); }
-    });
-    return groups;
-  }
-
-  /* ---------- render ---------- */
-  function render(){
-    var board = document.getElementById("board");
-    var nWeeks = state.weeks.length, nCats = state.categories.length;
-    board.style.gridTemplateColumns = "150px repeat(" + nWeeks + ", minmax(148px,1fr))";
-    board.style.gridTemplateRows = "auto auto repeat(" + nCats + ", minmax(60px,auto))";
-    var html = '<div class="cell corner" style="grid-row:1 / span 2; grid-column:1;"></div>';
-    var groups = monthGroups();
-    groups.forEach(function(g){
-      var col = 2 + g.startIndex;
-      html += '<div class="cell month-head" style="grid-row:1; grid-column:'+col+' / span '+g.span+';">'
-        + '<span contenteditable="true" data-bind="month:'+g.startIndex+'" data-placeholder="Mes">'+escapeHtml(g.month)+'</span></div>';
-    });
-    state.weeks.forEach(function(w, i){
-      var col = 2+i;
-      html += '<div class="cell week-head" style="grid-row:2; grid-column:'+col+';">'
-        + '<span class="lbl" contenteditable="true" data-bind="week:'+w.id+':label" data-placeholder="Semana">'+escapeHtml(w.label)+'</span>'
-        + '<button class="week-x" data-action="del-week" data-week="'+w.id+'" title="Eliminar semana">\u2715</button></div>';
-    });
-    state.categories.forEach(function(cat, ci){
-      var row = 3+ci;
-      html += '<div class="cell row-label" style="grid-row:'+row+'; grid-column:1;">'
-        + '<div class="name" contenteditable="true" data-bind="cat:'+cat.id+':name">'+escapeHtml(cat.name)+'</div>'
-        + '<div class="row-tools">'
-          + '<button data-action="move-cat-up" data-cat="'+cat.id+'" title="Subir">\u2191</button>'
-          + '<button data-action="move-cat-down" data-cat="'+cat.id+'" title="Bajar">\u2193</button>'
-          + '<button data-action="del-category" data-cat="'+cat.id+'" title="Eliminar">\u2715</button>'
-        + '</div></div>';
-      state.weeks.forEach(function(w, wi){
-        var col = 2+wi;
-        html += '<div class="cell note-cell" style="grid-row:'+row+'; grid-column:'+col+';">';
-        notesIn(cat.id, w.id).forEach(function(note){ html += renderNote(note); });
-        html += '<button class="add-note" data-action="add-note" data-cat="'+cat.id+'" data-week="'+w.id+'" title="Agregar nota">+</button></div>';
-      });
-    });
-    board.innerHTML = html;
-  }
-
-  function renderNote(note){
-    var editing = state.editingNoteId === note.id;
-    if(!editing){
-      var metaBits = [];
-      if(note.day) metaBits.push(escapeHtml(note.day));
-      if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%");
-      return '<div class="note note-'+note.tone+'" data-action="open-note" data-note="'+note.id+'">'
-        + '<div class="txt">'+escapeHtml(note.text || "Nueva tarea")+'</div>'
-        + (metaBits.length ? '<div class="meta"><span>'+metaBits.join(" \u00b7 ")+'</span></div>' : '')
-        + '</div>';
-    }
-    var catOptions = state.categories.map(function(c){
-      return '<option value="'+c.id+'"'+(c.id===note.catId?' selected':'')+'>'+escapeHtml(c.name)+'</option>';
-    }).join("");
-    var weekOptions = state.weeks.map(function(w){
-      return '<option value="'+w.id+'"'+(w.id===note.weekId?' selected':'')+'>'+escapeHtml(w.month)+' \u00b7 '+escapeHtml(w.label)+'</option>';
-    }).join("");
-    var swatches = TONES.map(function(tone){
-      return '<button class="swatch note-'+tone+(tone===note.tone?' active':'')+'" data-action="set-tone" data-note="'+note.id+'" data-tone="'+tone+'" aria-label="Color"></button>';
-    }).join("");
-    return '<div class="note editing" data-note="'+note.id+'">'
-      + '<textarea data-bind="note:'+note.id+':text" placeholder="Descripci\u00f3n de la tarea">'+escapeHtml(note.text)+'</textarea>'
-      + '<div class="field-row">'
-        + '<div class="field-col"><label>D\u00eda / fecha</label><input type="text" data-bind="note:'+note.id+':day" value="'+escapeHtml(note.day)+'" placeholder="ej. 26"></div>'
-        + '<div class="field-col"><label>Avance %</label><input type="number" min="0" max="100" step="5" data-bind="note:'+note.id+':percent" value="'+escapeHtml(note.percent)+'"></div>'
-      + '</div>'
-      + '<div class="field-row">'
-        + '<div class="field-col"><label>Categor\u00eda</label><select data-bind-select="note:'+note.id+':catId">'+catOptions+'</select></div>'
-        + '<div class="field-col"><label>Semana</label><select data-bind-select="note:'+note.id+':weekId">'+weekOptions+'</select></div>'
-      + '</div>'
-      + '<div class="swatches">'+swatches+'</div>'
-      + '<div class="note-actions">'
-        + '<button data-action="dup-note" data-note="'+note.id+'">Duplicar en sig. semana</button>'
-        + '<button data-action="close-note" data-note="'+note.id+'">Cerrar</button>'
-        + '<button class="del" data-action="del-note" data-note="'+note.id+'">Eliminar</button>'
-      + '</div></div>';
-  }
-
-  /* ---------- mutations ---------- */
-  function addWeek(){
-    var last = state.weeks[state.weeks.length-1];
-    state.weeks.push({id:uid(), label:"Sem "+(state.weeks.length+1), month: last?last.month:"Mes 1"});
-    saveState(); render();
-  }
-  function delWeek(id){
-    var has = state.notes.some(function(n){return n.weekId===id;});
-    if(has && !confirm("Esta semana tiene notas. \u00bfEliminar la semana y sus notas?")) return;
-    state.weeks = state.weeks.filter(function(w){return w.id!==id;});
-    state.notes = state.notes.filter(function(n){return n.weekId!==id;});
-    saveState(); render();
-  }
-  function addCategory(){ state.categories.push({id:uid(), name:"Nueva categor\u00eda"}); saveState(); render(); }
-  function delCategory(id){
-    var has = state.notes.some(function(n){return n.catId===id;});
-    if(has && !confirm("Esta categor\u00eda tiene notas. \u00bfEliminar la categor\u00eda y sus notas?")) return;
-    state.categories = state.categories.filter(function(c){return c.id!==id;});
-    state.notes = state.notes.filter(function(n){return n.catId!==id;});
-    saveState(); render();
-  }
-  function moveCat(id, dir){
-    var idx = state.categories.findIndex(function(c){return c.id===id;});
-    var j = idx+dir; if(j<0 || j>=state.categories.length) return;
-    var tmp = state.categories[idx]; state.categories[idx] = state.categories[j]; state.categories[j] = tmp;
-    saveState(); render();
-  }
-  function addNote(catId, weekId){
-    var note = {id:uid(), catId:catId, weekId:weekId, text:"", day:"", percent:"", tone: TONES[state.notes.length % TONES.length]};
-    state.notes.push(note); state.editingNoteId = note.id; saveState(); render();
-    setTimeout(function(){
-      var ta = document.querySelector('textarea[data-bind="note:'+note.id+':text"]');
-      if(ta) ta.focus();
-    }, 0);
-  }
-  function delNote(id){
-    state.notes = state.notes.filter(function(n){return n.id!==id;});
-    if(state.editingNoteId===id) state.editingNoteId=null;
-    saveState(); render();
-  }
-  function dupNote(id){
-    var note = state.notes.find(function(n){return n.id===id;}); if(!note) return;
-    var idx = state.weeks.findIndex(function(w){return w.id===note.weekId;});
-    var targetWeek = state.weeks[idx+1] ? state.weeks[idx+1].id : note.weekId;
-    var copy = {id:uid(), catId:note.catId, weekId:targetWeek, text:note.text, day:note.day, percent:note.percent, tone:note.tone};
-    state.notes.push(copy); state.editingNoteId = copy.id; saveState(); render();
-  }
-
-  function applyBind(bind, value){
-    var parts = bind.split(":");
-    if(parts[0] === "title"){ state.title = value; return; }
-    if(parts[0] === "subtitle"){ state.subtitle = value; return; }
-    if(parts[0] === "cat"){ var c = findCat(parts[1]); if(c) c.name = value; return; }
-    if(parts[0] === "week"){ var w = findWeek(parts[1]); if(w){ if(parts[2]==="label") w.label = value; } return; }
-    if(parts[0] === "month"){
-      var startIndex = parseInt(parts[1],10);
-      var g = monthGroups().find(function(gr){return gr.startIndex===startIndex;});
-      if(g){ for(var i=g.startIndex;i<g.startIndex+g.span;i++){ if(state.weeks[i]) state.weeks[i].month = value; } }
-      return;
-    }
-    if(parts[0] === "note"){
-      var n = state.notes.find(function(x){return x.id===parts[1];}); if(!n) return;
-      var field = parts[2];
-      if(field==="percent"){
-        if(value==="") n.percent = "";
-        else { var num = Math.max(0, Math.min(100, parseInt(value,10)||0)); n.percent = num; }
-      } else { n[field] = value; }
-      return;
-    }
-  }
-
-  document.addEventListener("input", function(e){
-    var t = e.target;
-    if(t.dataset && t.dataset.bind){
-      var value = t.isContentEditable ? t.textContent : t.value;
-      applyBind(t.dataset.bind, value); saveState();
-    }
-  });
-  document.addEventListener("change", function(e){
-    var t = e.target;
-    if(t.dataset && t.dataset.bindSelect){
-      var parts = t.dataset.bindSelect.split(":");
-      var n = state.notes.find(function(x){return x.id===parts[1];});
-      if(n){ if(parts[2]==="catId") n.catId = t.value; if(parts[2]==="weekId") n.weekId = t.value; }
-      saveState(); render();
-    }
-  });
-  document.addEventListener("click", function(e){
-    var el = e.target.closest("[data-action]"); if(!el) return;
-    var action = el.dataset.action;
-    if(action === "add-week") addWeek();
-    else if(action === "del-week") delWeek(el.dataset.week);
-    else if(action === "add-category") addCategory();
-    else if(action === "del-category") delCategory(el.dataset.cat);
-    else if(action === "move-cat-up") moveCat(el.dataset.cat, -1);
-    else if(action === "move-cat-down") moveCat(el.dataset.cat, 1);
-    else if(action === "add-note") addNote(el.dataset.cat, el.dataset.week);
-    else if(action === "open-note"){ state.editingNoteId = el.dataset.note; render(); }
-    else if(action === "close-note"){ state.editingNoteId = null; render(); }
-    else if(action === "del-note") delNote(el.dataset.note);
-    else if(action === "dup-note") dupNote(el.dataset.note);
-    else if(action === "set-tone"){
-      var n = state.notes.find(function(x){return x.id===el.dataset.note;});
-      if(n){ n.tone = el.dataset.tone; saveState(); render(); }
-    }
-    else if(action === "load-curanipe"){
-      if(confirm("Esto reemplaza la pizarra actual por el plan Curanipe (Octubre a Enero) transcrito del PDF. \u00bfContinuar?")){
-        state = curanipeSeed(); saveState(); render(); syncHeader();
-      }
-    }
-    else if(action === "print") window.print();
-    else if(action === "generar-fechas"){
-      var fi = document.getElementById("fechaInicio").value;
-      if(!fi){ alert("Ingresa la fecha de inicio (un lunes)."); return; }
-      if(state.notes.length>0 && !confirm("Esto reemplaza las columnas de semana actuales por las nuevas fechas y borra las notas ya cargadas (las categor\u00edas se mantienen). \u00bfContinuar?")) return;
-      var start = mondayOf(parseInputDate(fi));
-      var count = parseInt(document.getElementById("duracionSemanas").value,10) || 9;
-      state.weeks = generarSemanasIntermedio(start, count);
-      state.notes = [];
-      saveState(); render();
-    }
-    else if(action === "reset"){
-      if(confirm("Esto borrar\u00e1 toda la pizarra actual. \u00bfContinuar?")){
-        state = defaultState(); saveState(); render(); syncHeader();
-      }
-    }
-  });
-  document.getElementById("fechaInicio").addEventListener("change", function(){
-    if(!this.value) return;
-    var start = mondayOf(parseInputDate(this.value));
-    var end = new Date(start); end.setMonth(end.getMonth()+2);
-    var count = Math.max(1, Math.round((end-start)/(7*24*3600*1000)));
-    document.getElementById("duracionSemanas").value = count;
-  });
   document.getElementById("themeToggle").addEventListener("click", function(){
     var order = ["auto","light","dark"];
     setTheme(order[(order.indexOf(themeMode)+1) % order.length]);
   });
-
-  function syncHeader(){
-    var t = document.querySelector('[data-bind="title"]'); if(t) t.textContent = state.title || "";
-    var s = document.querySelector('[data-bind="subtitle"]'); if(s) s.textContent = state.subtitle || "";
-  }
-
   setTheme(themeMode);
+
   var fy = document.getElementById("footYear"); if(fy) fy.textContent = new Date().getFullYear();
-  render();
-  syncHeader();
 })();
 </script>
 </body>
