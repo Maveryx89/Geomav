@@ -225,10 +225,31 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .app-foot a{ color:var(--blueprint); text-decoration:underline; text-underline-offset:2px; }
 .app-foot .foot-cta{ max-width:34ch; line-height:1.5; }
 
+@page semanal-page{ size: letter landscape; margin: 9mm; }
+@page intermedio-page{ size: A3 landscape; margin: 9mm; }
+
 @media print{
-  .topbar, .toolbar, .hint, .add-note, .row-tools, .week-x, footer.app-foot{ display:none !important; }
+  .topbar, .toolbar, .dategen, .hint, .add-note, .row-tools, .week-x, footer.app-foot{ display:none !important; }
   body{ background:#fff; }
-  .board-scroll{ overflow:visible; padding:0; }
+  .pizarra-block{ break-inside: avoid-page; }
+  .pizarra-block[data-board="semanal"]{ page: semanal-page; break-after: page; }
+  .pizarra-block[data-board="intermedio"]{ page: intermedio-page; }
+  .board-scroll{ overflow:visible !important; padding:0 !important; }
+  .board{
+    width:100% !important;
+    min-width:0 !important;
+    grid-template-columns: 70px repeat(var(--cols), 1fr) !important;
+  }
+  .note-cell{ padding:3px; gap:3px; min-height:38px; }
+  .note{ padding:5px 6px 4px; }
+  .note .txt{ font-size:10px; line-height:1.2; }
+  .note .meta{ font-size:9px; }
+  .row-label{ padding:6px; min-width:0; }
+  .row-label .name{ font-size:12px; }
+  .week-head{ padding:4px 6px 6px; min-width:0; }
+  .week-head .lbl{ font-size:12px; }
+  .month-head{ padding:5px 6px 3px; }
+  .section-head{ padding:10px 4px 4px; }
 }
 
 .viewtabs{ display:flex; gap:6px; padding:10px 16px 0; }
@@ -580,6 +601,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       var board = root.querySelector(".board");
       var nWeeks = state.weeks.length, nCats = state.categories.length;
       board.style.gridTemplateColumns = "150px repeat(" + nWeeks + ", minmax(148px,1fr))";
+      board.style.setProperty("--cols", nWeeks);
       board.style.gridTemplateRows = "auto auto repeat(" + nCats + ", minmax(60px,auto))";
       var html = '<div class="cell corner" style="grid-row:1 / span 2; grid-column:1;"></div>';
       monthGroups().forEach(function(g){
