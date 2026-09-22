@@ -1,7 +1,7 @@
 // Service Worker — Topo de Bolsillo (GeoMav)
 // v2: además de la app, guarda para uso SIN INTERNET las librerías externas (mapa, Excel, capturas), las tipografías
 //     y los mosaicos del mapa que ya se hayan visto (hasta MAX_TILES, para no llenar el teléfono).
-const CACHE_VERSION = 'topocalc-v2';
+const CACHE_VERSION = 'topocalc-v3';
 const TILES_CACHE = 'topocalc-tiles-v1';
 const MAX_TILES = 300;
 const SCOPE = '/topocalc/';
@@ -11,6 +11,8 @@ const APP_SHELL = [
   SCOPE + 'index.html',
   SCOPE + 'manifest.json',
   SCOPE + 'privacidad.html',
+  SCOPE + 'pizarra/',
+  SCOPE + 'pizarra/index.html',
   SCOPE + 'icons/icon-192.png',
   SCOPE + 'icons/icon-512.png',
   SCOPE + 'icons/icon-maskable-512.png'
