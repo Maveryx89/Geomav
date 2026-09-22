@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pizarra de Planificación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#eef0ee;
+    --board:#fafaf8;
+    --line:#d7d9d4;
+    --line-strong:#c23b3b;
+    --ink:#26281f;
+    --ink-soft:#6b6e63;
+    --panel:#ffffff;
+    --panel-line:#dcded8;
+    --accent:#c23b3b;
+    --shadow: 0 2px 6px rgba(30,30,20,.12);
+    --radius:10px;
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html{ scroll-padding-top: env(safe-area-inset-top, 0px); }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#17181a;
+      --board:#1f2022;
+      --line:#33352f;
+      --line-strong:#e05a5a;
+      --ink:#eceae2;
+      --ink-soft:#9a9c92;
+      --panel:#26282a;
+      --panel-line:#3a3c37;
+      --shadow: 0 2px 10px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#17181a;
+    --board:#1f2022;
+    --line:#33352f;
+    --line-strong:#e05a5a;
+    --ink:#eceae2;
+    --ink-soft:#9a9c92;
+    --panel:#26282a;
+    --panel-line:#3a3c37;
+    --shadow: 0 2px 10px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{ min-height:100dvh; display:flex; flex-direction:column; }
+
+  /* ---------- topbar ---------- */
+  .topbar{
+    padding:14px 16px 10px;
+    border-bottom:1px solid var(--line);
+    background:var(--bg);
+  }
+  .title-row{ display:flex; align-items:flex-start; gap:10px; justify-content:space-between; flex-wrap:wrap; }
+  .title-wrap{ min-width:0; flex:1 1 240px; }
+  [contenteditable]{ outline:none; }
+  .title-input{
+    font-family:'Caveat',cursive;
+    font-weight:700;
+    font-size:clamp(28px,6vw,38px);
+    line-height:1.05;
+    color:var(--ink);
+    word-break:break-word;
+  }
+  .title-input:empty::before{ content:attr(data-placeholder); color:var(--ink-soft); }
+  .subtitle-input{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-top:2px;
+    word-break:break-word;
+  }
+  .subtitle-input:empty::before{ content:attr(data-placeholder); color:var(--ink-soft); }
+  .actions{ display:flex; gap:6px; flex-wrap:wrap; align-items:flex-start; }
+  .btn{
+    border:1px solid var(--panel-line);
+    background:var(--panel);
+    color:var(--ink);
+    font:inherit;
+    font-size:13px;
+    font-weight:600;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .btn:active{ transform:translateY(1px); }
+  .btn.ghost{ background:transparent; }
+  .btn.danger{ color:var(--accent); border-color:var(--accent); }
+  .btn.icon{ padding:8px 10px; }
+  .hint{ font-size:12px; color:var(--ink-soft); margin-top:8px; }
+
+  /* ---------- board ---------- */
+  .board-scroll{
+    flex:1;
+    overflow:auto;
+    background:var(--board);
+    -webkit-overflow-scrolling:touch;
+  }
+  .board{
+    display:grid;
+    align-items:stretch;
+    background:var(--line);
+    gap:1px;
+    min-width:max-content;
+  }
+  .cell{ background:var(--board); }
+
+  .corner{
+    position:sticky; top:0; left:0; z-index:5;
+    background:var(--board);
+    border-right:2px solid var(--line-strong);
+    border-bottom:2px solid var(--line-strong);
+  }
+  .month-head{
+    position:sticky; top:0; z-index:3;
+    background:var(--board);
+    padding:8px 10px 4px;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.02em;
+    color:var(--ink-soft);
+    border-bottom:1px solid var(--line);
+    display:flex; align-items:center;
+  }
+  .month-head [contenteditable]{ min-width:20px; }
+  .week-head{
+    position:sticky; top:0; z-index:3;
+    background:var(--board);
+    padding:6px 10px 8px;
+    border-bottom:2px solid var(--line-strong);
+    display:flex; align-items:center; justify-content:space-between;
+    gap:4px;
+    min-width:150px;
+  }
+  .week-head .lbl{ font-weight:700; font-size:15px; }
+  .week-x{
+    border:none; background:transparent; color:var(--ink-soft);
+    font-size:13px; cursor:pointer; padding:2px 4px; line-height:1;
+  }
+  .week-x:hover{ color:var(--accent); }
+
+  .row-label{
+    position:sticky; left:0; z-index:2;
+    background:var(--board);
+    border-right:2px solid var(--line-strong);
+    padding:10px 10px;
+    display:flex; flex-direction:column; gap:6px;
+    min-width:170px;
+  }
+  .row-label .name{
+    font-family:'Caveat',cursive;
+    font-weight:700;
+    font-size:20px;
+    line-height:1.1;
+  }
+  .row-label .name:empty::before{ content:'Categoría'; color:var(--ink-soft); }
+  .row-tools{ display:flex; gap:4px; }
+  .row-tools button{
+    border:none; background:transparent; color:var(--ink-soft);
+    font-size:12px; cursor:pointer; padding:2px 4px;
+  }
+  .row-tools button:hover{ color:var(--accent); }
+
+  .note-cell{
+    padding:6px;
+    display:flex; flex-direction:column; gap:6px;
+    min-height:64px;
+    min-width:150px;
+  }
+  .add-note{
+    border:1.5px dashed var(--panel-line);
+    background:transparent;
+    color:var(--ink-soft);
+    border-radius:8px;
+    font-size:18px;
+    line-height:1;
+    padding:6px 0;
+    cursor:pointer;
+    opacity:.55;
+  }
+  .add-note:hover{ opacity:1; border-color:var(--accent); color:var(--accent); }
+
+  /* ---------- post-it note ---------- */
+  .note{
+    border-radius:4px 4px 8px 8px;
+    padding:8px 9px 7px;
+    box-shadow:var(--shadow);
+    cursor:pointer;
+    transform:rotate(var(--tilt,-0.6deg));
+    position:relative;
+  }
+  .note .txt{
+    font-family:'Caveat',cursive;
+    font-weight:600;
+    font-size:17px;
+    line-height:1.15;
+    color:#2b2b22;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+  .note .meta{
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-top:4px; font-size:11px; font-weight:700; color:#4a4a3c;
+    font-family:'Inter',sans-serif;
+  }
+
+  .note.editing{
+    cursor:default;
+    transform:none;
+    background:var(--panel) !important;
+    border:1px solid var(--panel-line);
+    box-shadow:none;
+  }
+  .note.editing textarea{
+    width:100%;
+    font-family:'Caveat',cursive;
+    font-size:17px;
+    font-weight:600;
+    border:1px solid var(--panel-line);
+    border-radius:6px;
+    padding:6px 7px;
+    resize:vertical;
+    min-height:44px;
+    background:var(--board);
+    color:var(--ink);
+  }
+  .field-row{ display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+  .field-row label{ font-size:10px; color:var(--ink-soft); display:block; margin-bottom:2px; }
+  .field-row input[type=text], .field-row input[type=number], .field-row select{
+    font:inherit; font-size:12px;
+    border:1px solid var(--panel-line);
+    border-radius:6px;
+    padding:5px 6px;
+    background:var(--board);
+    color:var(--ink);
+    width:100%;
+  }
+  .field-col{ flex:1 1 70px; min-width:70px; }
+  .swatches{ display:flex; gap:5px; margin-top:6px; flex-wrap:wrap; }
+  .swatch{
+    width:20px; height:20px; border-radius:50%;
+    border:2px solid transparent; cursor:pointer;
+  }
+  .swatch.active{ border-color:var(--ink); }
+  .note-actions{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .note-actions button{
+    font-size:11px; font-weight:600;
+    border:1px solid var(--panel-line);
+    background:var(--board);
+    color:var(--ink);
+    border-radius:6px;
+    padding:4px 8px;
+    cursor:pointer;
+  }
+  .note-actions button.del{ color:var(--accent); border-color:var(--accent); }
+
+  @media print{
+    .topbar .actions, .add-note, .row-tools, .week-x{ display:none !important; }
+    body{ background:#fff; }
+    .board-scroll{ overflow:visible; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="title-row">
+      <div class="title-wrap">
+        <div class="title-input" contenteditable="true" data-bind="title" data-placeholder="Nombre del proyecto"></div>
+        <div class="subtitle-input" contenteditable="true" data-bind="subtitle" data-placeholder="Subtítulo / obra / cliente"></div>
+      </div>
+      <div class="actions">
+        <button class="btn" data-action="add-week">+ Semana</button>
+        <button class="btn" data-action="add-category">+ Categoría</button>
+        <button class="btn ghost" data-action="load-curanipe" title="Reemplaza la pizarra actual con el plan Curanipe Oct-Ene">Cargar plan Curanipe (Oct-Ene)</button>
+        <button class="btn ghost icon" data-action="theme" title="Cambiar tema">🌓</button>
+        <button class="btn ghost" data-action="print">Imprimir</button>
+        <button class="btn danger ghost" data-action="reset">Reiniciar</button>
+      </div>
+    </div>
+    <div class="hint">Toca “+” en una celda para agregar una nota. Toca una nota para editarla, mover de semana/categoría o cambiar el color.</div>
+  </div>
+
+  <div class="board-scroll">
+    <div class="board" id="board"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var LS_KEY = "pizarra-planificacion-v1";
+  var THEME_KEY = "pizarra-theme-v1";
+  var PALETTE = ["#f5a65b","#ff7fab","#4fc1c1","#a78bfa","#ff9e80","#ffd866","#7ec8e3","#c9cfc4"];
+
+  function uid(){ return Math.random().toString(36).slice(2,10); }
+
+  function defaultState(){
+    var weeks = [];
+    var months = ["Mes 1","Mes 1","Mes 1","Mes 1","Mes 2","Mes 2","Mes 2","Mes 2"];
+    for(var i=0;i<8;i++){
+      weeks.push({id:uid(), label:"Sem "+(i+1), month: months[i]});
+    }
+    var catNames = ["Obra Gruesa","Terminación Gruesa","Fachada","Instalaciones","Terminación Fina","Obras Exteriores","Entrega"];
+    var categories = catNames.map(function(n){ return {id:uid(), name:n}; });
+    return {
+      title:"Planificación de Obra",
+      subtitle:"",
+      weeks: weeks,
+      categories: categories,
+      notes: [],
+      editingNoteId: null
+    };
+  }
+
+  function curanipeSeed(){
+    var weekDefs = [
+      ["6","Octubre"],["13","Octubre"],["20","Octubre"],["27","Octubre"],
+      ["3","Noviembre"],["10","Noviembre"],["17","Noviembre"],["24","Noviembre"],
+      ["1","Diciembre"],["8","Diciembre"],["15","Diciembre"],["22","Diciembre"],["29","Diciembre"],
+      ["5","Enero"],["12","Enero"],["19","Enero"],["26","Enero"]
+    ];
+    var catDefs = ["Obra Gruesa","Terminación Gruesa","Cubierta","Fachada","Terminación Fina","Instalaciones","Obras Exteriores / Paisajismo","Entrega"];
+    var catColor = {
+      "Obra Gruesa":"#f5a65b","Terminación Gruesa":"#ff7fab","Cubierta":"#c9a06a",
+      "Fachada":"#8fd0a0","Terminación Fina":"#ff9e80","Instalaciones":"#7ec8e3",
+      "Obras Exteriores / Paisajismo":"#ffd866","Entrega":"#ffe066"
+    };
+    var weeks = weekDefs.map(function(d){ return {id:uid(), label:d[0], month:d[1]}; });
+    var categories = catDefs.map(function(n){ return {id:uid(), name:n}; });
+    var wById = {}; weeks.forEach(function(w){ wById[w.month+":"+w.label] = w.id; });
+    var cById = {}; categories.forEach(function(c){ cById[c.name] = c.id; });
+
+    // [categoria, mes, semana, texto, dia/zona, porcentaje]
+    var raw = [
+      // Cubierta
+      ["Cubierta","Octubre","6","Hojalatería Z1","",100],
+      ["Cubierta","Octubre","6","Aplicación Setipol Z7","",100],
+      ["Cubierta","Octubre","13","Hojalatería Z2","",100],
+      ["Cubierta","Octubre","20","Hojalatería Z3 y Z4","",100],
+      ["Cubierta","Octubre","27","Hojalatería Z5 y Z6","",100],
+      // Fachada
+      ["Fachada","Octubre","6","Ventanas V04 Z6","",100],
+      ["Fachada","Octubre","6","Vidrio termopanel MC acceso principal","",100],
+      ["Fachada","Octubre","13","Tabique vidriado Z6","",100],
+      ["Fachada","Octubre","20","Puertas vaivén zona 3","",100],
+      ["Fachada","Octubre","27","Puertas vaivén zona 4","",100],
+      // Terminación Gruesa (yesos/pinturas interiores)
+      ["Terminación Gruesa","Octubre","6","Huincha y pasta en tabiques Z5","",100],
+      ["Terminación Gruesa","Octubre","6","Pasta muro en MHA Z5","",100],
+      ["Terminación Gruesa","Octubre","6","Aparejo pintura Z24","",100],
+      ["Terminación Gruesa","Octubre","13","Huincha y pasta en tabiques Z6","",100],
+      ["Terminación Gruesa","Octubre","13","Pasta muro en MHA Z6","",100],
+      ["Terminación Gruesa","Octubre","13","Aparejo pintura Z25","",100],
+      ["Terminación Gruesa","Octubre","20","Pasta muro en MHA Z7","",100],
+      ["Terminación Gruesa","Octubre","20","Aparejo pintura Z26","",100],
+      ["Terminación Gruesa","Octubre","20","1° mano esmalte muros Z1","",100],
+      ["Terminación Gruesa","Octubre","27","Aparejo pintura Z27","",100],
+      ["Terminación Gruesa","Octubre","27","1° mano esmalte muros Z2","",100],
+      ["Terminación Gruesa","Octubre","27","2° mano esmalte muros Z1","",100],
+      ["Terminación Gruesa","Noviembre","3","1° mano esmalte muros Z3","",100],
+      ["Terminación Gruesa","Noviembre","3","2° mano esmalte muros Z1","",100],
+      ["Terminación Gruesa","Noviembre","10","1° mano esmalte muros Z4","",100],
+      ["Terminación Gruesa","Noviembre","10","2° mano esmalte muros Z2","",100],
+      ["Terminación Gruesa","Noviembre","10","Huincha y pasta en cielos Z1","",100],
+      ["Terminación Gruesa","Noviembre","17","1° mano esmalte muros Z5","",100],
+      ["Terminación Gruesa","Noviembre","17","2° mano esmalte muros Z3","",100],
+      ["Terminación Gruesa","Noviembre","17","Huincha y pasta en cielos Z2","",100],
+      ["Terminación Gruesa","Noviembre","17","Aparejo pintura Z1","",100],
+      ["Terminación Gruesa","Noviembre","24","2° mano esmalte muros Z4","",100],
+      ["Terminación Gruesa","Noviembre","24","1° mano esmalte en cielos Z1","",100],
+      ["Terminación Gruesa","Noviembre","24","Huincha y pasta en cielos Z3","",100],
+      ["Terminación Gruesa","Noviembre","24","Aparejo pintura Z2","",100],
+      ["Terminación Gruesa","Diciembre","1","1° mano esmalte muros doble altura","",100],
+      ["Terminación Gruesa","Diciembre","1","2° mano esmalte muros Z5","",100],
+      ["Terminación Gruesa","Diciembre","1","Huincha y pasta en cielos doble altura","",100],
+      ["Terminación Gruesa","Diciembre","1","Aparejo pintura Z3","",100],
+      ["Terminación Gruesa","Diciembre","1","1° mano esmalte en cielos Z2","",100],
+      ["Terminación Gruesa","Diciembre","8","2° mano esmalte muros Z6","",100],
+      ["Terminación Gruesa","Diciembre","8","1° mano esmalte en cielos Z3","",100],
+      ["Terminación Gruesa","Diciembre","8","Huincha y pasta en cielos Z4","",100],
+      ["Terminación Gruesa","Diciembre","8","Aparejo pintura Z4","",100],
+      ["Terminación Gruesa","Diciembre","15","2° mano esmalte muros Z7","",100],
+      ["Terminación Gruesa","Diciembre","15","Huincha y pasta en cielos Z5","",100],
+      ["Terminación Gruesa","Diciembre","15","Aparejo pintura Z5","",100],
+      ["Terminación Gruesa","Diciembre","15","1° mano esmalte en cielos Z4","",100],
+      ["Terminación Gruesa","Diciembre","22","Huincha y pasta en cielos Z6","",100],
+      ["Terminación Gruesa","Diciembre","22","Aparejo pintura Z6","",100],
+      ["Terminación Gruesa","Diciembre","22","1° mano esmalte en cielos Z5","",100],
+      ["Terminación Gruesa","Diciembre","29","Huincha y pasta en cielos Z7","",100],
+      ["Terminación Gruesa","Diciembre","29","Aparejo pintura Z7","",100],
+      ["Terminación Gruesa","Diciembre","29","1° mano esmalte en cielos Z6","",100],
+      ["Terminación Gruesa","Enero","5","1° mano esmalte en cielos doble altura","",100],
+      ["Terminación Gruesa","Enero","5","2° mano esmalte en cielos Z3","",100],
+      ["Terminación Gruesa","Enero","12","1° mano esmalte en cielos Z7","",100],
+      ["Terminación Gruesa","Enero","12","2° mano esmalte en cielos Z4","",100],
+      ["Terminación Gruesa","Enero","19","2° mano esmalte en cielos Z5","",100],
+      ["Terminación Gruesa","Enero","19","2° mano esmalte en cielos doble altura","",100],
+      ["Terminación Gruesa","Enero","26","2° mano esmalte en cielos Z6","",100],
+      ["Terminación Gruesa","Enero","26","2° mano esmalte en cielos Z7","",100],
+      // Terminación Fina
+      ["Terminación Fina","Octubre","6","2° mano enlucido EIFS Z3","",100],
+      ["Terminación Fina","Octubre","6","Aplicación pintura de fondo patio 2","",100],
+      ["Terminación Fina","Octubre","6","Aplicación grano patio 1","",100],
+      ["Terminación Fina","Octubre","13","2° mano enlucido EIFS Z6","",100],
+      ["Terminación Fina","Octubre","13","Aplicación pintura de fondo Z3","",100],
+      ["Terminación Fina","Octubre","13","Aplicación grano patio 2","",100],
+      ["Terminación Fina","Octubre","20","2° mano enlucido EIFS Z5","",100],
+      ["Terminación Fina","Octubre","20","Aplicación pintura de fondo Z6","",100],
+      ["Terminación Fina","Octubre","20","Aplicación grano Z1","",100],
+      ["Terminación Fina","Octubre","27","HPL en frontón y aleros doble altura","",30],
+      ["Terminación Fina","Octubre","27","Instalación PPR doble altura","",60],
+      ["Terminación Fina","Octubre","27","Instalación equipos fancoil bajo losa Z5","",100],
+      ["Terminación Fina","Noviembre","3","HPL en frontón y aleros doble altura","",60],
+      ["Terminación Fina","Noviembre","3","Instalación PPR doble altura","",100],
+      ["Terminación Fina","Noviembre","3","Instalación ductos de clima doble altura","",100],
+      ["Terminación Fina","Noviembre","3","Instalación equipos fancoil bajo losa Z4","",100],
+      ["Terminación Fina","Noviembre","3","Montaje Chiller","",null],
+      ["Terminación Fina","Noviembre","10","Instalación equipos fancoil bajo losa Z3","",50],
+      ["Terminación Fina","Noviembre","10","Montaje UMAs","",null],
+      ["Terminación Fina","Noviembre","17","Instalación ductos de clima Z7","",100],
+      ["Terminación Fina","Noviembre","17","Montaje VIN y VEX","",null],
+      ["Terminación Fina","Diciembre","1","Revestimiento radiología","",100],
+      ["Terminación Fina","Diciembre","8","Conexión sistema de presurización","",50],
+      ["Terminación Fina","Diciembre","15","Conexión sistema de presurización","",100],
+      // Instalaciones
+      ["Instalaciones","Octubre","20","Instalación placa yeso cartón cielo Z1","",100],
+      ["Instalaciones","Noviembre","3","Instalación placa yeso cartón cielo Z2","",100],
+      ["Instalaciones","Noviembre","10","Instalación placa yeso cartón cielo Z3","",100],
+      ["Instalaciones","Noviembre","17","Instalación placa yeso cartón cielo Z4","",100],
+      ["Instalaciones","Noviembre","24","Instalación placa yeso cartón cielo Z5","",100],
+      ["Instalaciones","Diciembre","1","Instalación placa yeso cartón cielo Z6","",100],
+      ["Instalaciones","Octubre","27","Alimentadores y subalimentadores","",null],
+      ["Instalaciones","Noviembre","3","Instalación artefactos eléctricos Z1","",100],
+      ["Instalaciones","Noviembre","10","Instalación artefactos eléctricos Z2","",100],
+      ["Instalaciones","Noviembre","17","Instalación artefactos eléctricos Z3","",100],
+      ["Instalaciones","Noviembre","24","Instalación iluminarias Z1 / doble altura","",100],
+      ["Instalaciones","Diciembre","1","Instalación artefactos eléctricos doble altura","",100],
+      ["Instalaciones","Diciembre","8","Instalación artefactos eléctricos Z4","",100],
+      ["Instalaciones","Diciembre","15","Instalación artefactos eléctricos Z5","",100],
+      ["Instalaciones","Diciembre","22","Instalación artefactos eléctricos Z6","",100],
+      ["Instalaciones","Diciembre","29","Instalación artefactos eléctricos Z7","",100],
+      ["Instalaciones","Diciembre","8","Instalación iluminarias Z2","",100],
+      ["Instalaciones","Diciembre","15","Instalación iluminarias Z3","",100],
+      ["Instalaciones","Diciembre","22","Instalación iluminarias Z4","",100],
+      ["Instalaciones","Enero","5","Instalación iluminarias Z5","",100],
+      ["Instalaciones","Enero","12","Instalación iluminarias Z6","",100],
+      ["Instalaciones","Enero","19","Instalación iluminarias Z7","",100],
+      ["Instalaciones","Octubre","6","Cámaras alcantarillado acceso","",100],
+      ["Instalaciones","Octubre","13","Conexión sistema de presurización","",50],
+      ["Instalaciones","Octubre","20","Conexión sistema de presurización","",100],
+      ["Instalaciones","Octubre","6","Instalación canalización redes húmedas doble altura","",100],
+      ["Instalaciones","Octubre","6","Instalación redes de petróleo","",100],
+      ["Instalaciones","Octubre","13","Revestimiento radiología","",100],
+      ["Instalaciones","Noviembre","3","Instalación artefactos sanitarios Z1","",100],
+      ["Instalaciones","Noviembre","10","Instalación artefactos sanitarios Z2","",100],
+      ["Instalaciones","Noviembre","17","Instalación artefactos sanitarios Z3","",100],
+      ["Instalaciones","Noviembre","24","Instalación artefactos sanitarios Z4","",100],
+      ["Instalaciones","Diciembre","1","Instalación artefactos sanitarios Z5","",100],
+      ["Instalaciones","Diciembre","8","Instalación artefactos sanitarios Z6","",100],
+      ["Instalaciones","Diciembre","15","Instalación artefactos sanitarios Z7","",100],
+      ["Instalaciones","Octubre","20","Instalación equipos fancoil bajo losa Z1","",100],
+      ["Instalaciones","Octubre","27","Instalación equipos fancoil bajo losa Z2","",100],
+      ["Instalaciones","Diciembre","1","Instalación equipos fancoil bajo losa Z6","",100],
+      ["Instalaciones","Diciembre","15","Instalación equipos fancoil bajo losa Z7","",100],
+      ["Instalaciones","Diciembre","22","Instalación pasamanos y cantoneras Z1-Z2-Z3","",100],
+      ["Instalaciones","Diciembre","29","Instalación pasamanos y cantoneras Z4-Z5-Z6","",100],
+      ["Instalaciones","Diciembre","22","Instalación puertas fenólicas Z4","",100],
+      ["Instalaciones","Diciembre","29","Instalación puertas fenólicas Z5","",100],
+      ["Instalaciones","Enero","5","Instalación puertas fenólicas Z6","",100],
+      ["Instalaciones","Enero","12","Instalación puertas fenólicas Z7","",100],
+      // Obras Exteriores / Paisajismo
+      ["Obras Exteriores / Paisajismo","Octubre","6","Instalación soleras zonas técnica","",50],
+      ["Obras Exteriores / Paisajismo","Octubre","13","Instalación soleras zonas técnica","",100],
+      ["Obras Exteriores / Paisajismo","Octubre","13","Instalación sumideros zona técnica","",100],
+      ["Obras Exteriores / Paisajismo","Octubre","13","Pavimentos zona técnica","",100],
+      ["Obras Exteriores / Paisajismo","Octubre","20","Pavimentos zona estacionamientos","",100],
+      ["Obras Exteriores / Paisajismo","Noviembre","3","Pavimentos zona técnica","",50],
+      ["Obras Exteriores / Paisajismo","Noviembre","10","Pavimentos zona técnica","",100],
+      ["Obras Exteriores / Paisajismo","Noviembre","10","Instalación reja galvanizada","",50],
+      ["Obras Exteriores / Paisajismo","Noviembre","17","Instalación reja galvanizada","",100],
+      ["Obras Exteriores / Paisajismo","Noviembre","17","Instalación baldosa podotáctil zona acceso","",100],
+      ["Obras Exteriores / Paisajismo","Noviembre","17","Hormigón lavado zona acceso","",50],
+      ["Obras Exteriores / Paisajismo","Noviembre","24","Hormigón lavado zona acceso","",100],
+      ["Obras Exteriores / Paisajismo","Noviembre","24","Instalación baldosas patio Z7","",50],
+      ["Obras Exteriores / Paisajismo","Diciembre","1","Instalación baldosas patio Z7","",100],
+      ["Obras Exteriores / Paisajismo","Noviembre","3","Moviliario exterior","",null],
+      ["Obras Exteriores / Paisajismo","Diciembre","29","Árboles, arbustos, trepadoras y cubresuelos","",null],
+      // Entrega
+      ["Entrega","Enero","12","Entrega de obra","",null]
+    ];
+
+    var notes = raw.map(function(r){
+      var catId = cById[r[0]];
+      var weekId = wById[r[1]+":"+r[2]];
+      if(!catId || !weekId) return null;
+      return {
+        id: uid(), catId: catId, weekId: weekId,
+        text: r[3], day: r[4]||"",
+        percent: (r[5]===null||r[5]===undefined) ? "" : r[5],
+        color: catColor[r[0]] || PALETTE[0]
+      };
+    }).filter(Boolean);
+
+    return {
+      title: "Planificación Reposición Consultorio General Rural Curanipe",
+      subtitle: "Comuna de Pelluhue — Octubre a Enero",
+      weeks: weeks,
+      categories: categories,
+      notes: notes,
+      editingNoteId: null
+    };
+  }
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(LS_KEY);
+      if(!raw) return defaultState();
+      var parsed = JSON.parse(raw);
+      if(!parsed || !parsed.weeks || !parsed.categories) return defaultState();
+      parsed.editingNoteId = null;
+      return parsed;
+    }catch(e){ return defaultState(); }
+  }
+
+  function saveState(){
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+  }
+
+  var state = loadState();
+
+  // ---------- theme ----------
+  function loadTheme(){
+    try{ return localStorage.getItem(THEME_KEY) || "auto"; }catch(e){ return "auto"; }
+  }
+  function applyTheme(t){
+    if(t === "auto"){ document.documentElement.removeAttribute("data-theme"); }
+    else { document.documentElement.setAttribute("data-theme", t); }
+  }
+  var currentTheme = loadTheme();
+  applyTheme(currentTheme);
+
+  function toggleTheme(){
+    var order = ["auto","light","dark"];
+    var idx = order.indexOf(currentTheme);
+    currentTheme = order[(idx+1) % order.length];
+    try{ localStorage.setItem(THEME_KEY, currentTheme); }catch(e){}
+    applyTheme(currentTheme);
+  }
+
+  // ---------- helpers ----------
+  function findCat(id){ return state.categories.find(function(c){return c.id===id;}); }
+  function findWeek(id){ return state.weeks.find(function(w){return w.id===id;}); }
+  function notesIn(catId, weekId){
+    return state.notes.filter(function(n){ return n.catId===catId && n.weekId===weekId; });
+  }
+  function escapeHtml(s){
+    return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+      return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c];
+    });
+  }
+
+  function monthGroups(){
+    var groups = [];
+    state.weeks.forEach(function(w, i){
+      var last = groups[groups.length-1];
+      if(last && last.month === w.month){ last.span++; }
+      else { groups.push({month:w.month, span:1, startIndex:i}); }
+    });
+    return groups;
+  }
+
+  // ---------- render ----------
+  function render(){
+    var board = document.getElementById("board");
+    var nWeeks = state.weeks.length;
+    var nCats = state.categories.length;
+    var totalCols = 1 + nWeeks;
+    var totalRows = 2 + nCats;
+
+    board.style.gridTemplateColumns = "170px repeat(" + nWeeks + ", minmax(150px,1fr))";
+    board.style.gridTemplateRows = "auto auto " + "repeat(" + nCats + ", minmax(64px,auto))";
+
+    var html = "";
+
+    // corner
+    html += '<div class="cell corner" style="grid-row:1 / span 2; grid-column:1;"></div>';
+
+    // month header
+    var groups = monthGroups();
+    groups.forEach(function(g){
+      var col = 2 + g.startIndex;
+      html += '<div class="cell month-head" style="grid-row:1; grid-column:'+col+' / span '+g.span+';">'
+        + '<span contenteditable="true" data-bind="month:'+g.startIndex+'" data-placeholder="Mes">'+escapeHtml(g.month)+'</span>'
+        + '</div>';
+    });
+
+    // week header row
+    state.weeks.forEach(function(w, i){
+      var col = 2+i;
+      html += '<div class="cell week-head" style="grid-row:2; grid-column:'+col+';">'
+        + '<span class="lbl" contenteditable="true" data-bind="week:'+w.id+':label" data-placeholder="Semana">'+escapeHtml(w.label)+'</span>'
+        + '<button class="week-x" data-action="del-week" data-week="'+w.id+'" title="Eliminar semana">✕</button>'
+        + '</div>';
+    });
+
+    // category rows
+    state.categories.forEach(function(cat, ci){
+      var row = 3+ci;
+      html += '<div class="cell row-label" style="grid-row:'+row+'; grid-column:1;">'
+        + '<div class="name" contenteditable="true" data-bind="cat:'+cat.id+':name">'+escapeHtml(cat.name)+'</div>'
+        + '<div class="row-tools">'
+          + '<button data-action="move-cat-up" data-cat="'+cat.id+'" title="Subir">↑</button>'
+          + '<button data-action="move-cat-down" data-cat="'+cat.id+'" title="Bajar">↓</button>'
+          + '<button data-action="del-category" data-cat="'+cat.id+'" title="Eliminar">✕</button>'
+        + '</div>'
+        + '</div>';
+
+      state.weeks.forEach(function(w, wi){
+        var col = 2+wi;
+        html += '<div class="cell note-cell" style="grid-row:'+row+'; grid-column:'+col+';">';
+        var notes = notesIn(cat.id, w.id);
+        notes.forEach(function(note){
+          html += renderNote(note);
+        });
+        html += '<button class="add-note" data-action="add-note" data-cat="'+cat.id+'" data-week="'+w.id+'" title="Agregar nota">+</button>';
+        html += '</div>';
+      });
+    });
+
+    board.innerHTML = html;
+  }
+
+  function renderNote(note){
+    var editing = state.editingNoteId === note.id;
+    var tilt = ((note.id.charCodeAt(0)%5)-2) * 0.6;
+    var style = 'background:'+note.color+'; --tilt:'+tilt+'deg;';
+    if(!editing){
+      var metaBits = [];
+      if(note.day) metaBits.push(escapeHtml(note.day));
+      if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%");
+      return '<div class="note" style="'+style+'" data-action="open-note" data-note="'+note.id+'">'
+        + '<div class="txt">'+escapeHtml(note.text || "Nueva tarea")+'</div>'
+        + (metaBits.length ? '<div class="meta"><span>'+metaBits.join(" · ")+'</span></div>' : '')
+        + '</div>';
+    }
+
+    // editing mode
+    var catOptions = state.categories.map(function(c){
+      return '<option value="'+c.id+'"'+(c.id===note.catId?' selected':'')+'>'+escapeHtml(c.name)+'</option>';
+    }).join("");
+    var weekOptions = state.weeks.map(function(w){
+      return '<option value="'+w.id+'"'+(w.id===note.weekId?' selected':'')+'>'+escapeHtml(w.month)+' · '+escapeHtml(w.label)+'</option>';
+    }).join("");
+    var swatches = PALETTE.map(function(c){
+      return '<button class="swatch'+(c===note.color?' active':'')+'" style="background:'+c+';" data-action="set-color" data-note="'+note.id+'" data-color="'+c+'" aria-label="Color"></button>';
+    }).join("");
+
+    return '<div class="note editing" style="background:'+note.color+';" data-note="'+note.id+'">'
+      + '<textarea data-bind="note:'+note.id+':text" placeholder="Descripción de la tarea">'+escapeHtml(note.text)+'</textarea>'
+      + '<div class="field-row">'
+        + '<div class="field-col"><label>Día / fecha</label><input type="text" data-bind="note:'+note.id+':day" value="'+escapeHtml(note.day)+'" placeholder="ej. 26"></div>'
+        + '<div class="field-col"><label>Avance %</label><input type="number" min="0" max="100" step="5" data-bind="note:'+note.id+':percent" value="'+escapeHtml(note.percent)+'"></div>'
+      + '</div>'
+      + '<div class="field-row">'
+        + '<div class="field-col"><label>Categoría</label><select data-bind-select="note:'+note.id+':catId">'+catOptions+'</select></div>'
+        + '<div class="field-col"><label>Semana</label><select data-bind-select="note:'+note.id+':weekId">'+weekOptions+'</select></div>'
+      + '</div>'
+      + '<div class="swatches">'+swatches+'</div>'
+      + '<div class="note-actions">'
+        + '<button data-action="dup-note" data-note="'+note.id+'">Duplicar en sig. semana</button>'
+        + '<button data-action="close-note" data-note="'+note.id+'">Cerrar</button>'
+        + '<button class="del" data-action="del-note" data-note="'+note.id+'">Eliminar</button>'
+      + '</div>'
+      + '</div>';
+  }
+
+  // ---------- mutation helpers ----------
+  function addWeek(){
+    var last = state.weeks[state.weeks.length-1];
+    state.weeks.push({id:uid(), label:"Sem "+(state.weeks.length+1), month: last?last.month:"Mes 1"});
+    saveState(); render();
+  }
+  function delWeek(id){
+    var has = state.notes.some(function(n){return n.weekId===id;});
+    if(has && !confirm("Esta semana tiene notas. ¿Eliminar la semana y sus notas?")) return;
+    state.weeks = state.weeks.filter(function(w){return w.id!==id;});
+    state.notes = state.notes.filter(function(n){return n.weekId!==id;});
+    saveState(); render();
+  }
+  function addCategory(){
+    state.categories.push({id:uid(), name:"Nueva categoría"});
+    saveState(); render();
+  }
+  function delCategory(id){
+    var has = state.notes.some(function(n){return n.catId===id;});
+    if(has && !confirm("Esta categoría tiene notas. ¿Eliminar la categoría y sus notas?")) return;
+    state.categories = state.categories.filter(function(c){return c.id!==id;});
+    state.notes = state.notes.filter(function(n){return n.catId!==id;});
+    saveState(); render();
+  }
+  function moveCat(id, dir){
+    var idx = state.categories.findIndex(function(c){return c.id===id;});
+    var j = idx+dir;
+    if(j<0 || j>=state.categories.length) return;
+    var tmp = state.categories[idx];
+    state.categories[idx] = state.categories[j];
+    state.categories[j] = tmp;
+    saveState(); render();
+  }
+  function addNote(catId, weekId){
+    var note = {id:uid(), catId:catId, weekId:weekId, text:"", day:"", percent:"", color: PALETTE[state.notes.length % PALETTE.length]};
+    state.notes.push(note);
+    state.editingNoteId = note.id;
+    saveState(); render();
+    setTimeout(function(){
+      var ta = document.querySelector('textarea[data-bind="note:'+note.id+':text"]');
+      if(ta) ta.focus();
+    }, 0);
+  }
+  function delNote(id){
+    state.notes = state.notes.filter(function(n){return n.id!==id;});
+    if(state.editingNoteId===id) state.editingNoteId=null;
+    saveState(); render();
+  }
+  function dupNote(id){
+    var note = state.notes.find(function(n){return n.id===id;});
+    if(!note) return;
+    var idx = state.weeks.findIndex(function(w){return w.id===note.weekId;});
+    var targetWeek = state.weeks[idx+1] ? state.weeks[idx+1].id : note.weekId;
+    var copy = {id:uid(), catId:note.catId, weekId:targetWeek, text:note.text, day:note.day, percent:note.percent, color:note.color};
+    state.notes.push(copy);
+    state.editingNoteId = copy.id;
+    saveState(); render();
+  }
+
+  // ---------- generic bind parsing ----------
+  function applyBind(bind, value){
+    var parts = bind.split(":");
+    if(parts[0] === "title"){ state.title = value; return; }
+    if(parts[0] === "subtitle"){ state.subtitle = value; return; }
+    if(parts[0] === "cat"){ var c = findCat(parts[1]); if(c) c.name = value; return; }
+    if(parts[0] === "week"){
+      var w = findWeek(parts[1]);
+      if(w){ if(parts[2]==="label") w.label = value; }
+      return;
+    }
+    if(parts[0] === "month"){
+      var startIndex = parseInt(parts[1],10);
+      var g = monthGroups().find(function(gr){return gr.startIndex===startIndex;});
+      if(g){
+        for(var i=g.startIndex;i<g.startIndex+g.span;i++){
+          if(state.weeks[i]) state.weeks[i].month = value;
+        }
+      }
+      return;
+    }
+    if(parts[0] === "note"){
+      var n = state.notes.find(function(x){return x.id===parts[1];});
+      if(!n) return;
+      var field = parts[2];
+      if(field==="percent"){
+        if(value==="") n.percent = "";
+        else { var num = Math.max(0, Math.min(100, parseInt(value,10)||0)); n.percent = num; }
+      } else {
+        n[field] = value;
+      }
+      return;
+    }
+  }
+
+  // ---------- events ----------
+  document.addEventListener("input", function(e){
+    var t = e.target;
+    if(t.dataset && t.dataset.bind){
+      var value = t.isContentEditable ? t.textContent : t.value;
+      applyBind(t.dataset.bind, value);
+      saveState();
+    }
+  });
+
+  document.addEventListener("change", function(e){
+    var t = e.target;
+    if(t.dataset && t.dataset.bindSelect){
+      var parts = t.dataset.bindSelect.split(":");
+      var n = state.notes.find(function(x){return x.id===parts[1];});
+      if(n){
+        if(parts[2]==="catId") n.catId = t.value;
+        if(parts[2]==="weekId") n.weekId = t.value;
+      }
+      saveState(); render();
+    }
+  });
+
+  document.addEventListener("click", function(e){
+    var el = e.target.closest("[data-action]");
+    if(!el) return;
+    var action = el.dataset.action;
+    if(action === "add-week") addWeek();
+    else if(action === "del-week") delWeek(el.dataset.week);
+    else if(action === "add-category") addCategory();
+    else if(action === "del-category") delCategory(el.dataset.cat);
+    else if(action === "move-cat-up") moveCat(el.dataset.cat, -1);
+    else if(action === "move-cat-down") moveCat(el.dataset.cat, 1);
+    else if(action === "add-note") addNote(el.dataset.cat, el.dataset.week);
+    else if(action === "open-note"){ state.editingNoteId = el.dataset.note; render(); }
+    else if(action === "close-note"){ state.editingNoteId = null; render(); }
+    else if(action === "del-note") delNote(el.dataset.note);
+    else if(action === "dup-note") dupNote(el.dataset.note);
+    else if(action === "set-color"){
+      var n = state.notes.find(function(x){return x.id===el.dataset.note;});
+      if(n){ n.color = el.dataset.color; saveState(); render(); }
+    }
+    else if(action === "load-curanipe"){
+      if(confirm("Esto reemplaza la pizarra actual por el plan Curanipe (Octubre a Enero) transcrito del PDF. ¿Continuar?")){
+        state = curanipeSeed();
+        saveState(); render(); syncHeader();
+      }
+    }
+    else if(action === "theme") toggleTheme();
+    else if(action === "print") window.print();
+    else if(action === "reset"){
+      if(confirm("Esto borrará toda la pizarra actual. ¿Continuar?")){
+        state = defaultState();
+        saveState(); render(); syncHeader();
+      }
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", function(){});
+
+  function syncHeader(){
+    var t = document.querySelector('[data-bind="title"]');
+    if(t) t.textContent = state.title || "";
+    var s = document.querySelector('[data-bind="subtitle"]');
+    if(s) s.textContent = state.subtitle || "";
+  }
+
+  render();
+  syncHeader();
+})();
+</script>
+</body>
+</html>
