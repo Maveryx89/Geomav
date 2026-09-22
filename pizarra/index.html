@@ -800,8 +800,26 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         document.body.setAttribute("data-print-board", boardKey);
         var pageCss = document.getElementById("dynamicPageSize");
         if(!pageCss){ pageCss = document.createElement("style"); pageCss.id = "dynamicPageSize"; document.head.appendChild(pageCss); }
-        pageCss.textContent = "@page{ size: " + (cfg.weekly ? "letter landscape" : "A3 landscape") + "; margin: 9mm; }";
-        window.print();
+        var marginMm = 9;
+        pageCss.textContent = "@page{ size: " + (cfg.weekly ? "letter landscape" : "A3 landscape") + "; margin: " + marginMm + "mm; }";
+
+        root.style.zoom = "";
+        root.style.width = "";
+
+        var PXPERMM = 96/25.4;
+        var pageWmm = cfg.weekly ? 279.4 : 420;
+        var pageHmm = cfg.weekly ? 215.9 : 297;
+        var availH = (pageHmm - marginMm*2) * PXPERMM;
+
+        requestAnimationFrame(function(){
+          var naturalH = root.scrollHeight;
+          var s = Math.min(1, availH / naturalH);
+          if(s < 1){
+            root.style.width = (100/s) + "%";
+            root.style.zoom = String(s);
+          }
+          window.print();
+        });
       }
       else if(action === "reset"){
         if(confirm("Esto borrar\u00e1 este tablero. \u00bfContinuar?")){
@@ -825,6 +843,12 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       var t = root.querySelector('[data-bind="title"]'); if(t) t.textContent = state.title || "";
       var s = root.querySelector('[data-bind="subtitle"]'); if(s) s.textContent = state.subtitle || "";
     }
+
+    window.addEventListener("afterprint", function(){
+      document.body.removeAttribute("data-print-board");
+      root.style.zoom = "";
+      root.style.width = "";
+    });
 
     render();
     syncHeader();
@@ -860,7 +884,6 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   });
   setTheme(themeMode);
 
-  window.addEventListener("afterprint", function(){ document.body.removeAttribute("data-print-board"); });
   var fy = document.getElementById("footYear"); if(fy) fy.textContent = new Date().getFullYear();
 })();
 </script>
