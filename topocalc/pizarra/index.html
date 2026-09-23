@@ -380,6 +380,20 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .section-note{ padding:0 16px; font-size:12px; color:var(--ink-soft); font-family:var(--font-mono); }
 .pizarra-block + .pizarra-block{ border-top:1px solid var(--line); margin-top:8px; }
 
+/* ---------- impresion Semanal: tablero angosto (estilo web) en tandas de 2 dias ---------- */
+.print-semanal-chunks{ display:none; }
+.chunk-board{
+  display:grid; align-items:stretch; background:var(--line); gap:1px;
+  border:1px solid var(--line); border-radius:var(--radius-md); overflow:hidden;
+  margin:0 16px 14px; page-break-inside:avoid;
+}
+@media print{
+  body[data-print-board="semanal"] .board-scroll{ display:none !important; }
+  body[data-print-board="semanal"] .print-semanal-chunks{ display:block !important; }
+  .chunk-board{ margin:0 0 10px; }
+  .corner, .month-head, .week-head, .row-label{ position:static !important; }
+}
+
 </style>
 </head>
 
@@ -439,6 +453,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     </details>
 
     <div class="board-scroll"><div class="board"></div></div>
+    <div class="print-semanal-chunks"></div>
   </section>
 
   <section class="pizarra-block" data-board="intermedio">
@@ -830,6 +845,61 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     function findCat(id){ return state.categories.find(function(c){return c.id===id;}); }
     function findWeek(id){ return state.weeks.find(function(w){return w.id===id;}); }
     function notesIn(catId, weekId){ return state.notes.filter(function(n){ return n.catId===catId && n.weekId===weekId; }); }
+    function buildSemanalPrintable(){
+      var wrap = root.querySelector(".print-semanal-chunks");
+      if(!wrap) return;
+      var weeks = state.weeks;
+      var chunks = [];
+      for(var i=0;i<weeks.length;i+=2){ chunks.push(weeks.slice(i,i+2)); }
+      var nCats = state.categories.length;
+      var html = "";
+      chunks.forEach(function(chunkWeeks){
+        var mg = [];
+        chunkWeeks.forEach(function(w,ci){
+          var last = mg[mg.length-1];
+          if(last && last.month===w.month){ last.span++; } else { mg.push({month:w.month, span:1, startIndex:ci}); }
+        });
+        var wideCol = chunkWeeks.map(function(w){
+          return state.categories.some(function(cat){ return notesIn(cat.id, w.id).length >= 3; });
+        });
+        var colTemplate = "150px " + chunkWeeks.map(function(w,ci){ return wideCol[ci] ? "302px" : "148px"; }).join(" ");
+        var bh = '<div class="chunk-board" style="grid-template-columns:'+colTemplate+'; grid-template-rows: auto auto repeat('+nCats+', minmax(34px,auto)); --cols:'+chunkWeeks.length+';">';
+        bh += '<div class="cell corner" style="grid-row:1 / span 2; grid-column:1;"></div>';
+        mg.forEach(function(g){
+          var col = 2+g.startIndex;
+          bh += '<div class="cell month-head" style="grid-row:1; grid-column:'+col+' / span '+g.span+';">'+escapeHtml(g.month)+'</div>';
+        });
+        chunkWeeks.forEach(function(w, ci){
+          var col = 2+ci;
+          bh += '<div class="cell week-head" style="grid-row:2; grid-column:'+col+';"><span class="lbl">'+escapeHtml(w.label)+'</span></div>';
+        });
+        state.categories.forEach(function(cat, catI){
+          var row = 3+catI;
+          bh += '<div class="cell row-label" style="grid-row:'+row+'; grid-column:1;"><div class="name">'+escapeHtml(cat.name)+'</div></div>';
+          chunkWeeks.forEach(function(w, ci){
+            var col = 2+ci;
+            var notesHere = notesIn(cat.id, w.id);
+            var wide = notesHere.length >= 3;
+            bh += '<div class="cell note-cell'+(wide?' wide':'')+'" style="grid-row:'+row+'; grid-column:'+col+';">';
+            if(wide){
+              var perCol = Math.ceil(notesHere.length/2);
+              notesHere.forEach(function(note, ni){
+                var c2 = ni < perCol ? 1 : 2;
+                var r2 = ni < perCol ? (ni+1) : (ni-perCol+1);
+                bh += renderNote(note, 'grid-column:'+c2+'; grid-row:'+r2+';');
+              });
+            } else {
+              notesHere.forEach(function(note){ bh += renderNote(note); });
+            }
+            bh += '</div>';
+          });
+        });
+        bh += '</div>';
+        html += bh;
+      });
+      wrap.innerHTML = html;
+    }
+
     function monthGroups(){
       var groups = [];
       state.weeks.forEach(function(w, i){
@@ -1258,32 +1328,47 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         var pageCss = document.getElementById("dynamicPageSize");
         if(!pageCss){ pageCss = document.createElement("style"); pageCss.id = "dynamicPageSize"; document.head.appendChild(pageCss); }
         var marginMm = 9;
-        pageCss.textContent = "@page{ size: " + (cfg.weekly ? "letter landscape" : "A3 landscape") + "; margin: " + marginMm + "mm; }";
+        pageCss.textContent = "@page{ size: " + (cfg.weekly ? "letter portrait" : "A3 landscape") + "; margin: " + marginMm + "mm; }";
 
         root.style.zoom = ""; root.style.transform = ""; root.style.transformOrigin = ""; root.style.width = "";
 
-        /* Fuerza YA (antes de medir) el mismo layout de columnas parejas que usa @media print,
-           para que la altura natural se mida sobre el ancho real de impresion y no sobre el
-           layout de pantalla (columnas angostas fijas), que es mas angosto/alto y da una
-           escala equivocada -> columnas gigantes o cortadas en el PDF. */
+        var boardScrollEl = root.querySelector(".board-scroll");
+        var chunkWrapEl = root.querySelector(".print-semanal-chunks");
         var boardEl = root.querySelector(".board");
-        boardEl.style.gridTemplateColumns = "70px repeat(" + state.weeks.length + ", 1fr)";
-        boardEl.style.width = "100%"; boardEl.style.minWidth = "0";
 
-        var PXPERMM = 96/25.4;
-        var pageHmm = cfg.weekly ? 215.9 : 297;
-        var availH = (pageHmm - marginMm*2) * PXPERMM;
+        if(cfg.weekly){
+          /* Semanal impresa: mismo estilo angosto de la pantalla (148/302px), en tandas de
+             maximo 2 dias por fila, apiladas en vertical - no el ancho parejo a toda la hoja.
+             Aqui NO se achica a la fuerza para caber en una sola hoja: con columnas angostas
+             es normal y legible que fluya en varias paginas verticales, como cualquier
+             documento. Ademas, combinar el achicado (transform) con varios bloques apilados
+             fuerza en Chromium que cada tanda caiga en su propia hoja dejando el resto en
+             blanco - por eso el achicado queda solo para el Intermedio (un unico tablero). */
+          buildSemanalPrintable();
+          boardScrollEl.style.display = "none";
+          chunkWrapEl.style.display = "block";
+          requestAnimationFrame(function(){ window.print(); });
+        } else {
+          /* Intermedio: columnas parejas a todo el ancho de la hoja (A3 apaisado).
+             Se fuerza YA (antes de medir) el mismo layout que usa @media print, para que la
+             altura natural se mida sobre el layout real de impresion y no sobre el de pantalla. */
+          boardEl.style.gridTemplateColumns = "70px repeat(" + state.weeks.length + ", 1fr)";
+          boardEl.style.width = "100%"; boardEl.style.minWidth = "0";
 
-        requestAnimationFrame(function(){
-          var naturalH = root.scrollHeight;
-          var s = Math.min(1, availH / naturalH);
-          if(s < 1){
-            root.style.width = (100/s) + "%";
-            root.style.transformOrigin = "top left";
-            root.style.transform = "scale(" + s + ")";
-          }
-          window.print();
-        });
+          var PXPERMM = 96/25.4;
+          var availH = (297 - marginMm*2) * PXPERMM;
+
+          requestAnimationFrame(function(){
+            var naturalH = root.scrollHeight;
+            var s = Math.min(1, availH / naturalH);
+            if(s < 1){
+              root.style.width = (100/s) + "%";
+              root.style.transformOrigin = "top left";
+              root.style.transform = "scale(" + s + ")";
+            }
+            window.print();
+          });
+        }
       }
       else if(action === "reset"){
         if(confirm("Esto borrar\u00e1 este tablero. \u00bfContinuar?")){
@@ -1314,6 +1399,10 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       root.style.transform = "";
       root.style.transformOrigin = "";
       root.style.width = "";
+      var boardScrollEl = root.querySelector(".board-scroll");
+      var chunkWrapEl = root.querySelector(".print-semanal-chunks");
+      if(boardScrollEl) boardScrollEl.style.display = "";
+      if(chunkWrapEl) chunkWrapEl.style.display = "";
       if(document.body.getAttribute("data-print-board")){
         document.body.removeAttribute("data-print-board");
         render();
