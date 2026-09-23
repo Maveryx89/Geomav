@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 /* ===================== DESIGN TOKENS (alineados a index.html / geomav.me) ===================== */
 :root{
@@ -440,6 +441,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       <button class="btn-sm" data-action="add-week">+ Día</button>
       <button class="btn-sm" data-action="add-category">+ Categoría</button>
       <button class="btn-sm" data-action="load-porticos">Cargar Gantt Pórticos (con atraso)</button>
+      <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
       <button class="btn-sm" data-action="print">Imprimir</button>
       <button class="btn-sm danger" data-action="reset">Reiniciar</button>
     </div>
@@ -474,6 +476,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       <button class="btn-sm" data-action="add-week">+ Semana</button>
       <button class="btn-sm" data-action="add-category">+ Categoría</button>
     <button class="btn-sm" data-action="load-curanipe">Cargar plan Curanipe (Oct–Ene)</button>
+      <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
       <button class="btn-sm" data-action="print">Imprimir</button>
       <button class="btn-sm danger" data-action="reset">Reiniciar</button>
     </div>
@@ -845,6 +848,53 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     function findCat(id){ return state.categories.find(function(c){return c.id===id;}); }
     function findWeek(id){ return state.weeks.find(function(w){return w.id===id;}); }
     function notesIn(catId, weekId){ return state.notes.filter(function(n){ return n.catId===catId && n.weekId===weekId; }); }
+    function exportExcel(){
+      if(typeof XLSX === "undefined"){
+        alert("No se pudo cargar el motor de Excel (revisa tu conexi\u00f3n a internet) e intenta de nuevo.");
+        return;
+      }
+      var header = ["Categor\u00eda"].concat(state.weeks.map(function(w){ return w.month + " " + w.label; }));
+      var rows = [header];
+      state.categories.forEach(function(cat){
+        var row = [cat.name];
+        state.weeks.forEach(function(w){
+          var notesHere = notesIn(cat.id, w.id);
+          var cellLines = notesHere.map(function(n){
+            var line = n.text || "";
+            if(n.responsable) line += " \u2014 " + n.responsable;
+            if(cfg.weekly){
+              if(n.percent !== "" && n.percent !== null && n.percent !== undefined) line += " (" + n.percent + "%)";
+              if(n.cumplido === true) line = "\u2713 " + line;
+              else if(n.cumplido === false) line = "\u2717 " + line;
+            } else if(n.tipoRestriccion){
+              line += " [" + n.tipoRestriccion + (n.liberada ? ", liberada" : ", abierta") + "]";
+            }
+            return line;
+          });
+          row.push(cellLines.join("\n"));
+        });
+        rows.push(row);
+      });
+      var ws = XLSX.utils.aoa_to_sheet(rows);
+      ws["!cols"] = [{ wch: 24 }].concat(state.weeks.map(function(){ return { wch: 32 }; }));
+      var range = XLSX.utils.decode_range(ws["!ref"]);
+      for(var R = range.s.r; R <= range.e.r; R++){
+        for(var C = range.s.c; C <= range.e.c; C++){
+          var addr = XLSX.utils.encode_cell({ r: R, c: C });
+          if(ws[addr]){
+            ws[addr].s = { alignment: { wrapText: true, vertical: "top" } };
+            if(R === 0) ws[addr].s.font = { bold: true };
+          }
+        }
+      }
+      var wb = XLSX.utils.book_new();
+      var sheetName = (cfg.weekly ? "Semanal" : "Intermedio").slice(0, 31);
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      var base = (state.title || (cfg.weekly ? "Planificacion Semanal" : "Planificacion Intermedio"));
+      var nombre = base.replace(/[\\/:*?"<>|]/g, "").trim() + " - " + sheetName + ".xlsx";
+      XLSX.writeFile(wb, nombre, { cellStyles: true });
+    }
+
     function buildSemanalPrintable(){
       var wrap = root.querySelector(".print-semanal-chunks");
       if(!wrap) return;
@@ -1322,6 +1372,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         state.notes = [];
         saveState(); render();
       }
+      else if(action === "export-excel"){ exportExcel(); }
       else if(action === "print"){
         var boardKey = cfg.weekly ? "semanal" : "intermedio";
         document.body.setAttribute("data-print-board", boardKey);
