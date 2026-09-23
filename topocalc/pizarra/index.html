@@ -139,6 +139,8 @@ button{font-family:inherit;}
 @media print{ .sync-bar{ display:none !important; } }
 .btn-sm:hover{ border-color:var(--blueprint); color:var(--blueprint); }
 .btn-sm.danger{ border-color:var(--danger); color:var(--danger); }
+.send-row{ align-items:flex-end; }
+.sent-tag{ font-size:11.5px; color:var(--blueprint); font-weight:600; align-self:center; white-space:nowrap; }
 
 .hint{ font-size:11.5px; color:var(--ink-soft); padding:8px 16px 2px; font-family:var(--font-mono); }
 
@@ -1037,13 +1039,12 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
                   + '<button class="tri'+(!note.liberada?' active-no':'')+'" data-action="set-liberada" data-note="'+note.id+'" data-value="0">No</button>'
                 + '</div></div>'
             + '</div>'
-            + (note.liberada ? (
-              '<div class="field-row"><div class="field-col"><label>Enviar a Plan Semanal</label>'
-                + '<select class="send-target-select" data-note="'+note.id+'">'+(BOARDS.semanal ? BOARDS.semanal.getWeeksOptionsHtml() : '')+'</select></div>'
-                + '<button data-action="send-to-semanal" data-note="'+note.id+'" style="align-self:flex-end;">Enviar \u2192</button>'
-              + '</div>'
             ) : '')
-          ) : '');
+          + '<div class="field-row send-row"><div class="field-col"><label>Enviar a Plan Semanal</label>'
+            + '<select class="send-target-select" data-note="'+note.id+'">'+(BOARDS.semanal ? BOARDS.semanal.getWeeksOptionsHtml() : '')+'</select></div>'
+            + '<button data-action="send-to-semanal" data-note="'+note.id+'" style="align-self:flex-end;">'+(note.enviadoSemanal ? '\u21bb Reenviar' : 'Enviar \u2192')+'</button>'
+            + (note.enviadoSemanal ? '<span class="sent-tag">\u2713 Enviada</span>' : '')
+          + '</div>';
       }
 
       return '<div class="note editing" data-note="'+note.id+'">'
@@ -1206,10 +1207,12 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         var n4 = state.notes.find(function(x){return x.id===el.dataset.note;});
         var sel = el.parentElement.querySelector(".send-target-select");
         if(n4 && sel && sel.value && BOARDS.semanal){
+          var catN = findCat(n4.catId);
           BOARDS.semanal.addExternalNote(sel.value, {
-            text: n4.text, responsable: n4.respLiberacion || n4.responsable || "", tone: "blueprint"
+            text: n4.text, day: n4.day, responsable: n4.respLiberacion || n4.responsable || "",
+            tone: "blueprint", categoryName: catN ? catN.name : ""
           });
-          alert("Enviada al Plan Semanal. Revisa la columna del d\u00eda elegido.");
+          n4.enviadoSemanal = true; saveState(); render();
         }
       }
       else if(action === "toggle-check"){
@@ -1318,8 +1321,15 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         return state.weeks.map(function(w){ return '<option value="'+w.id+'">'+escapeHtml(w.month)+' \u00b7 '+escapeHtml(w.label)+'</option>'; }).join("");
       },
       addExternalNote: function(weekId, data){
-        var catId = state.categories[0] ? state.categories[0].id : null;
-        if(!catId || !findWeek(weekId)) return;
+        if(!findWeek(weekId)) return;
+        var catId = null;
+        if(data.categoryName){
+          var match = state.categories.find(function(c){ return c.name.trim().toLowerCase() === data.categoryName.trim().toLowerCase(); });
+          if(match) catId = match.id;
+          else { var nc = {id:uid(), name:data.categoryName}; state.categories.push(nc); catId = nc.id; }
+        }
+        if(!catId) catId = state.categories[0] ? state.categories[0].id : null;
+        if(!catId) return;
         var note = {id:uid(), catId:catId, weekId:weekId, text:data.text||"", day:data.day||"", percent:"",
           tone: data.tone || TONES[state.notes.length % TONES.length],
           responsable:data.responsable||"", cumplido:null, causa:"", liberada:false, tipoRestriccion:"", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:""};
