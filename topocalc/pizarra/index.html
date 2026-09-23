@@ -1260,11 +1260,17 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         var marginMm = 9;
         pageCss.textContent = "@page{ size: " + (cfg.weekly ? "letter landscape" : "A3 landscape") + "; margin: " + marginMm + "mm; }";
 
-        root.style.zoom = "";
-        root.style.width = "";
+        root.style.zoom = ""; root.style.transform = ""; root.style.transformOrigin = ""; root.style.width = "";
+
+        /* Fuerza YA (antes de medir) el mismo layout de columnas parejas que usa @media print,
+           para que la altura natural se mida sobre el ancho real de impresion y no sobre el
+           layout de pantalla (columnas angostas fijas), que es mas angosto/alto y da una
+           escala equivocada -> columnas gigantes o cortadas en el PDF. */
+        var boardEl = root.querySelector(".board");
+        boardEl.style.gridTemplateColumns = "70px repeat(" + state.weeks.length + ", 1fr)";
+        boardEl.style.width = "100%"; boardEl.style.minWidth = "0";
 
         var PXPERMM = 96/25.4;
-        var pageWmm = cfg.weekly ? 279.4 : 420;
         var pageHmm = cfg.weekly ? 215.9 : 297;
         var availH = (pageHmm - marginMm*2) * PXPERMM;
 
@@ -1273,7 +1279,8 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           var s = Math.min(1, availH / naturalH);
           if(s < 1){
             root.style.width = (100/s) + "%";
-            root.style.zoom = String(s);
+            root.style.transformOrigin = "top left";
+            root.style.transform = "scale(" + s + ")";
           }
           window.print();
         });
@@ -1304,8 +1311,13 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 
     function limpiarZoomImpresion(){
       root.style.zoom = "";
+      root.style.transform = "";
+      root.style.transformOrigin = "";
       root.style.width = "";
-      if(document.body.getAttribute("data-print-board")) document.body.removeAttribute("data-print-board");
+      if(document.body.getAttribute("data-print-board")){
+        document.body.removeAttribute("data-print-board");
+        render();
+      }
     }
     window.addEventListener("afterprint", limpiarZoomImpresion);
     window.addEventListener("focus", limpiarZoomImpresion);
