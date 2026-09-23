@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
 /* ===================== DESIGN TOKENS (alineados a index.html / geomav.me) ===================== */
 :root{
@@ -849,14 +849,24 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     function findWeek(id){ return state.weeks.find(function(w){return w.id===id;}); }
     function notesIn(catId, weekId){ return state.notes.filter(function(n){ return n.catId===catId && n.weekId===weekId; }); }
     function exportExcel(){
-      if(typeof XLSX === "undefined"){
+      if(typeof ExcelJS === "undefined"){
         alert("No se pudo cargar el motor de Excel (revisa tu conexi\u00f3n a internet) e intenta de nuevo.");
         return;
       }
+      /* Mismos colores que la pizarra en pantalla: tonos de las notas + fondo de encabezados/categor\u00edas */
+      var TONE_ARGB = { copper: "FFF6E8DE", blueprint: "FFEAF0F2", success: "FFE3F1EA", danger: "FFF7E7E5", neutral: "FFEDEBE4" };
+      var HEAD_ARGB = "FFEDEBE4";
+      var INK_ARGB = "FF0A2240";
+      var BORDER_ARGB = "FFE2E4E8";
+      var thin = { style: "thin", color: { argb: BORDER_ARGB } };
+      var allBorders = { top: thin, bottom: thin, left: thin, right: thin };
+
       var header = ["Categor\u00eda"].concat(state.weeks.map(function(w){ return w.month + " " + w.label; }));
-      var rows = [header];
+      var dataRows = [];
+      var toneGrid = [];
       state.categories.forEach(function(cat){
         var row = [cat.name];
+        var toneRow = [null];
         state.weeks.forEach(function(w){
           var notesHere = notesIn(cat.id, w.id);
           var cellLines = notesHere.map(function(n){
@@ -872,27 +882,52 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
             return line;
           });
           row.push(cellLines.join("\n"));
+          toneRow.push(notesHere.length ? (TONE_ARGB[notesHere[0].tone] || null) : null);
         });
-        rows.push(row);
+        dataRows.push(row);
+        toneGrid.push(toneRow);
       });
-      var ws = XLSX.utils.aoa_to_sheet(rows);
-      ws["!cols"] = [{ wch: 24 }].concat(state.weeks.map(function(){ return { wch: 32 }; }));
-      var range = XLSX.utils.decode_range(ws["!ref"]);
-      for(var R = range.s.r; R <= range.e.r; R++){
-        for(var C = range.s.c; C <= range.e.c; C++){
-          var addr = XLSX.utils.encode_cell({ r: R, c: C });
-          if(ws[addr]){
-            ws[addr].s = { alignment: { wrapText: true, vertical: "top" } };
-            if(R === 0) ws[addr].s.font = { bold: true };
-          }
-        }
-      }
-      var wb = XLSX.utils.book_new();
+
+      var wb = new ExcelJS.Workbook();
       var sheetName = (cfg.weekly ? "Semanal" : "Intermedio").slice(0, 31);
-      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      var ws = wb.addWorksheet(sheetName);
+      ws.columns = [{ width: 26 }].concat(state.weeks.map(function(){ return { width: 34 }; }));
+
+      var headRow = ws.addRow(header);
+      headRow.height = 26;
+      headRow.eachCell(function(cell){
+        cell.font = { bold: true, color: { argb: INK_ARGB } };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEAD_ARGB } };
+        cell.border = allBorders;
+        cell.alignment = { wrapText: true, vertical: "middle", horizontal: "center" };
+      });
+
+      dataRows.forEach(function(row, ri){
+        var r = ws.addRow(row);
+        r.height = 70;
+        r.eachCell({ includeEmpty: true }, function(cell, colNumber){
+          var isCat = (colNumber === 1);
+          cell.border = allBorders;
+          cell.alignment = { wrapText: true, vertical: "top", horizontal: "left" };
+          cell.font = { bold: isCat, color: { argb: INK_ARGB } };
+          var fillColor = isCat ? HEAD_ARGB : toneGrid[ri][colNumber - 1];
+          if(fillColor) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: fillColor } };
+        });
+      });
+
+      ws.views = [{ state: "frozen", xSplit: 1, ySplit: 1 }];
+
       var base = (state.title || (cfg.weekly ? "Planificacion Semanal" : "Planificacion Intermedio"));
       var nombre = base.replace(/[\\/:*?"<>|]/g, "").trim() + " - " + sheetName + ".xlsx";
-      XLSX.writeFile(wb, nombre, { cellStyles: true });
+      wb.xlsx.writeBuffer().then(function(buf){
+        var blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob); a.download = nombre;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+      }).catch(function(err){
+        alert("No se pudo generar el Excel: " + (err && err.message ? err.message : err));
+      });
     }
 
     function buildSemanalPrintable(){
