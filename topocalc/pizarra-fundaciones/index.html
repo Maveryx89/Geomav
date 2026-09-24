@@ -414,7 +414,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 /* ---------- Listado de pórticos (junto al tablero Semanal) ---------- */
 .semanal-layout{ display:flex; align-items:stretch; min-width:0; }
 .semanal-layout > .board-scroll{ flex:0 1 auto; min-width:0; }
-.porticos-panel{ position:relative; flex:0 0 400px; margin:14px 16px 40px 0; }
+.porticos-panel{ position:relative; flex:0 0 500px; margin:14px 16px 40px 0; }
 .porticos-inner{ position:absolute; inset:0; display:flex; flex-direction:column; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); overflow:hidden; }
 .porticos-head{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; padding:10px 12px; border-bottom:1px solid var(--line); background:var(--paper-sunken); }
 .porticos-head strong{ font-family:var(--font-display); font-size:.92rem; color:var(--ink); }
@@ -430,6 +430,13 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .porticos-table .ubic-link{ color:var(--blueprint); font-weight:600; text-decoration:none; }
 .porticos-table .ubic-link:hover{ text-decoration:underline; }
 .porticos-table .ubic-pend{ opacity:.75; }
+.porticos-table td.estado{ white-space:nowrap; }
+.estado-chip{ display:inline-flex; align-items:center; gap:5px; font-size:.72rem; font-weight:700; color:var(--ink); border-radius:999px; padding:2px 8px 2px 6px; }
+.estado-chip .dot{ width:8px; height:8px; border-radius:50%; flex:none; }
+.estado-sub{ display:block; font-size:.66rem; color:var(--ink-soft); margin:2px 0 0 4px; }
+.estado-none{ font-size:.72rem; color:var(--ink-soft); opacity:.7; }
+.dot-copper{ background:var(--accent); } .dot-neutral{ background:#8C949E; } .dot-blueprint{ background:var(--blueprint); }
+.dot-amber{ background:#D6A828; } .dot-success{ background:var(--success); } .dot-violet{ background:var(--stripe-violet); } .dot-danger{ background:var(--danger); }
 .note .portico-tag{ display:inline-block; font-size:.66rem; font-weight:700; letter-spacing:.02em; color:var(--blueprint); background:var(--blueprint-soft); border-radius:999px; padding:1px 7px; margin-bottom:4px; }
 .porticos-table tbody tr:hover td{ background:var(--blueprint-soft); }
 @media (max-width:860px){
@@ -507,7 +514,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           <div class="porticos-head"><div><strong>Listado de pórticos</strong><span class="porticos-sub">Región de O&#39;Higgins</span></div><span class="porticos-count" id="porticosCount"></span></div>
           <div class="porticos-scroll">
             <table class="porticos-table">
-              <thead><tr><th>#</th><th>Nombre pórtico</th><th>Comuna</th><th>Ubicación</th></tr></thead>
+              <thead><tr><th>#</th><th>Nombre pórtico</th><th>Comuna</th><th>Ubicación</th><th>Estado</th></tr></thead>
               <tbody id="porticosBody"></tbody>
             </table>
           </div>
@@ -828,6 +835,7 @@ window.PORTICOS_LISTA = (function(){
     "Excavaci\u00f3n":"copper", "Emplantillado":"neutral", "Inst. de Fundaci\u00f3n":"blueprint",
     "Inst. Malla":"amber", "Relleno":"success", "Inst. P\u00f3rtico":"violet", "Inst. C\u00e1mara":"danger"
   };
+  window.PARTIDA_TONE = PARTIDA_TONE;
   function parseInputDate(str){ var p = str.split("-"); return new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10)); }
   function mondayOf(d){ var day = d.getDay(); var diff = (day===0? -6 : 1-day); var m = new Date(d); m.setDate(d.getDate()+diff); return m; }
   function addDays(d,n){ var r = new Date(d); r.setDate(d.getDate()+n); return r; }
@@ -913,7 +921,7 @@ window.PORTICOS_LISTA = (function(){
         return parsed;
       }catch(e){ return defaultState(); }
     }
-    function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+    function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} if(window.renderPorticos) window.renderPorticos(); }
     function toneForCat(catId){
       var c = state && state.categories ? state.categories.find(function(x){return x.id===catId;}) : null;
       return c ? (PARTIDA_TONE[String(c.name||"").trim()] || null) : null;
@@ -1587,6 +1595,9 @@ window.PORTICOS_LISTA = (function(){
     syncHeader();
 
     return {
+      getNotes: function(){
+        return state.notes.map(function(n){ var c = findCat(n.catId); return { portico: n.portico || "", cat: c ? c.name : "", cumplido: n.cumplido, percent: n.percent }; });
+      },
       getWeeksOptionsHtml: function(){
         return state.weeks.map(function(w){ return '<option value="'+w.id+'">'+escapeHtml(w.month)+' \u00b7 '+escapeHtml(w.label)+'</option>'; }).join("");
       },
@@ -1629,6 +1640,7 @@ window.PORTICOS_LISTA = (function(){
 
   BOARDS.semanal = initPizarra({ sel:'[data-board="semanal"]', storageKey:"pizarra-fund-semanal-v1", weekly:true, defaultTitle:"P\u00f3rticos de Vigilancia \u00b7 Semanal" });
   BOARDS.intermedio = initPizarra({ sel:'[data-board="intermedio"]', storageKey:"pizarra-fund-intermedio-v1", weekly:false, defaultTitle:"P\u00f3rticos de Vigilancia \u00b7 Plan Intermedio" });
+  window.PIZARRA_BOARDS = BOARDS;
 
   /* ---------- theme (global, una sola vez) ---------- */
   function applyThemeIcon(mode){
@@ -1733,7 +1745,7 @@ window.PORTICOS_LISTA = (function(){
 /* ===== Respaldo: exportar / importar la pizarra completa (Semanal + Intermedio) ===== */
 (function(){
   "use strict";
-  var CLAVES = ["pizarra-fund-semanal-v1", "pizarra-fund-intermedio-v1"];
+  var CLAVES = ["pizarra-fund-semanal-v1", "pizarra-fund-intermedio-v1", "pizarra-fund-porticos-estado-v1"];
   var hoy = function(){ var d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
   var esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
@@ -1788,11 +1800,46 @@ window.PORTICOS_LISTA = (function(){
     var url = "https://www.google.com/maps/search/?api=1&query=" + p.lat + "," + p.lng;
     return '<a class="ubic-link" href="'+url+'" target="_blank" rel="noopener">\ud83d\udccd '+esc(p.ubicacion)+'</a>';
   }
+  /* Estado de avance: partida mas avanzada con nota para ese portico.
+     "terminado" = nota marcada Si cumplio o 100% (queda registrado aunque se reinicie la semana);
+     "en curso" = nota en el tablero Semanal aun sin cumplir. */
+  var LS_EST = "pizarra-fund-porticos-estado-v1";
+  function loadEst(){ try{ return JSON.parse(localStorage.getItem(LS_EST) || "{}") || {}; }catch(e){ return {}; } }
+  function saveEst(o){ try{ localStorage.setItem(LS_EST, JSON.stringify(o)); }catch(e){} }
+  function calcular(){
+    var orden = Object.keys(window.PARTIDA_TONE || {});
+    var est = loadEst(), vivo = {}, cambio = false;
+    ["semanal","intermedio"].forEach(function(k){
+      var b = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS[k];
+      if(!b || !b.getNotes) return;
+      b.getNotes().forEach(function(n){
+        if(!n.portico) return;
+        var idx = orden.indexOf(String(n.cat || "").trim()); if(idx < 0) return;
+        var done = n.cumplido === true || Number(n.percent) === 100;
+        if(done){ if(est[n.portico] === undefined || idx > est[n.portico]){ est[n.portico] = idx; cambio = true; } }
+        else if(k === "semanal"){ if(vivo[n.portico] === undefined || idx > vivo[n.portico]) vivo[n.portico] = idx; }
+      });
+    });
+    if(cambio) saveEst(est);
+    return { orden: orden, est: est, vivo: vivo };
+  }
+  function estadoHtml(num, d){
+    var e = d.est[num], v = d.vivo[num], idx, sub;
+    if(v !== undefined && (e === undefined || v > e)){ idx = v; sub = "en curso"; }
+    else if(e !== undefined){ idx = e; sub = "terminado \u2713"; }
+    else return '<span class="estado-none">Sin iniciar</span>';
+    var name = d.orden[idx], tone = window.PARTIDA_TONE[name];
+    return '<span class="estado-chip note-'+tone+'"><i class="dot dot-'+tone+'"></i>'+esc(name)+'</span><span class="estado-sub">'+sub+'</span>';
+  }
   var tb = document.getElementById("porticosBody");
   if(!tb) return;
+  window.renderPorticos = function(){
+  var data = calcular();
   tb.innerHTML = PORTICOS_LISTA.map(function(p,k){
-    return '<tr><td class="n">'+(k+1)+'</td><td>'+esc(p.nombre)+'</td><td class="comuna">'+esc(p.comuna)+'</td><td class="ubic">'+ubicHtml(p)+'</td></tr>';
+    return '<tr><td class="n">'+(k+1)+'</td><td>'+esc(p.nombre)+'</td><td class="comuna">'+esc(p.comuna)+'</td><td class="ubic">'+ubicHtml(p)+'</td><td class="estado">'+estadoHtml(String(k+1), data)+'</td></tr>';
   }).join("");
+  };
+  window.renderPorticos();
   document.getElementById("porticosCount").textContent = PORTICOS_LISTA.length + " p\u00f3rticos";
 })();
 </script>
