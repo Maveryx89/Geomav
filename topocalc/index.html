@@ -2124,7 +2124,8 @@ function renderHome(){
       </a>`;
   // Herramientas visibles que viven en su propia página dentro de /topocalc/ (no en TOOLS/RENDERERS)
   const PAGE_TOOLS = [
-    {href:'./pizarra/', icon:ICONS.pizarra, name:'Pizarra de Planificación', desc:'Tablero de post-its por semana para planificar obra (Last Planner)', cat:'Gestión de Obra'}
+    {href:'./pizarra/', icon:ICONS.pizarra, name:'Pizarra de Planificación', desc:'Tablero de post-its por semana para planificar obra (Last Planner)', cat:'Gestión de Obra'},
+    {href:'./pizarra-fundaciones/', icon:ICONS.pizarra, name:'Pizarra de Fundaciones', desc:'Planificación de excavación, emplantillado, fundación, malla, relleno, pórtico y cámara', cat:'Gestión de Obra'}
   ];
   const pageCats = [...new Set(PAGE_TOOLS.map(p => p.cat))];
   pageCats.forEach((cn, k) => {
