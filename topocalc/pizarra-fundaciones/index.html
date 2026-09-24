@@ -226,6 +226,21 @@ button{font-family:inherit;}
 .note-success{ background:var(--success-soft); }
 .note-danger{ background:var(--danger-soft); }
 .note-neutral{ background:var(--paper-sunken); }
+/* 7 partidas = 7 colores fijos */
+:root{ --note-amber: rgba(214,168,40,.24); --note-violet: rgba(122,82,170,.16); --stripe-violet:#7A52AA; }
+:root[data-theme="dark"]{ --note-amber: rgba(230,190,80,.18); --note-violet: rgba(169,139,214,.20); --stripe-violet:#A98BD6; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --note-amber: rgba(230,190,80,.18); --note-violet: rgba(169,139,214,.20); --stripe-violet:#A98BD6; } }
+.note-amber{ background:var(--note-amber); }
+.note-violet{ background:var(--note-violet); }
+.row-label.stripe-copper{ box-shadow:inset 5px 0 0 var(--accent); }
+.row-label.stripe-neutral{ box-shadow:inset 5px 0 0 #8C949E; }
+.row-label.stripe-blueprint{ box-shadow:inset 5px 0 0 var(--blueprint); }
+.row-label.stripe-amber{ box-shadow:inset 5px 0 0 #D6A828; }
+.row-label.stripe-success{ box-shadow:inset 5px 0 0 var(--success); }
+.row-label.stripe-violet{ box-shadow:inset 5px 0 0 var(--stripe-violet); }
+.row-label.stripe-danger{ box-shadow:inset 5px 0 0 var(--danger); }
+.row-label[class*="stripe-"]{ padding-left:15px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.tone-fijo{ font-size:11px; color:var(--ink-soft); margin-top:6px; }
 
 footer.app-foot{
   display:flex; flex-direction:column; align-items:center; gap:6px;
@@ -807,7 +822,12 @@ window.PORTICOS_LISTA = (function(){
   ];
   var MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
   var DIAS = ["Lun","Mar","Mi\u00e9","Jue","Vie"];
-  var TONES = ["copper","blueprint","success","danger","neutral"];
+  var TONES = ["copper","blueprint","success","danger","neutral","amber","violet"];
+  /* Color fijo por partida: al elegir la partida, la nota toma su color automaticamente */
+  var PARTIDA_TONE = {
+    "Excavaci\u00f3n":"copper", "Emplantillado":"neutral", "Inst. de Fundaci\u00f3n":"blueprint",
+    "Inst. Malla":"amber", "Relleno":"success", "Inst. P\u00f3rtico":"violet", "Inst. C\u00e1mara":"danger"
+  };
   function parseInputDate(str){ var p = str.split("-"); return new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10)); }
   function mondayOf(d){ var day = d.getDay(); var diff = (day===0? -6 : 1-day); var m = new Date(d); m.setDate(d.getDate()+diff); return m; }
   function addDays(d,n){ var r = new Date(d); r.setDate(d.getDate()+n); return r; }
@@ -894,7 +914,12 @@ window.PORTICOS_LISTA = (function(){
       }catch(e){ return defaultState(); }
     }
     function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+    function toneForCat(catId){
+      var c = state && state.categories ? state.categories.find(function(x){return x.id===catId;}) : null;
+      return c ? (PARTIDA_TONE[String(c.name||"").trim()] || null) : null;
+    }
     var state = loadState();
+    state.notes.forEach(function(n){ var tt = toneForCat(n.catId); if(tt) n.tone = tt; });
 
     function findCat(id){ return state.categories.find(function(c){return c.id===id;}); }
     function findWeek(id){ return state.weeks.find(function(w){return w.id===id;}); }
@@ -905,7 +930,7 @@ window.PORTICOS_LISTA = (function(){
         return;
       }
       /* Mismos colores que la pizarra en pantalla: tonos de las notas + fondo de encabezados/categor\u00edas */
-      var TONE_ARGB = { copper: "FFF6E8DE", blueprint: "FFEAF0F2", success: "FFE3F1EA", danger: "FFF7E7E5", neutral: "FFEDEBE4" };
+      var TONE_ARGB = { copper: "FFF6E8DE", blueprint: "FFEAF0F2", success: "FFE3F1EA", danger: "FFF7E7E5", neutral: "FFEDEBE4", amber: "FFF8EDC6", violet: "FFEDE6F4" };
       var HEAD_ARGB = "FFEDEBE4";
       var INK_ARGB = "FF0A2240";
       var BORDER_ARGB = "FFE2E4E8";
@@ -1011,7 +1036,7 @@ window.PORTICOS_LISTA = (function(){
         });
         state.categories.forEach(function(cat, catI){
           var row = 3+catI;
-          bh += '<div class="cell row-label" style="grid-row:'+row+'; grid-column:1;"><div class="name">'+escapeHtml(cat.name)+'</div></div>';
+          bh += '<div class="cell row-label'+(toneForCat(cat.id)?' stripe-'+toneForCat(cat.id):'')+'" style="grid-row:'+row+'; grid-column:1;"><div class="name">'+escapeHtml(cat.name)+'</div></div>';
           chunkWeeks.forEach(function(w, ci){
             var col = 2+ci;
             var notesHere = notesIn(cat.id, w.id);
@@ -1072,7 +1097,7 @@ window.PORTICOS_LISTA = (function(){
       });
       state.categories.forEach(function(cat, ci){
         var row = 3+ci;
-        html += '<div class="cell row-label" style="grid-row:'+row+'; grid-column:1;">'
+        html += '<div class="cell row-label'+(toneForCat(cat.id)?' stripe-'+toneForCat(cat.id):'')+'" style="grid-row:'+row+'; grid-column:1;">'
           + '<div class="name" contenteditable="true" data-bind="cat:'+cat.id+':name">'+escapeHtml(cat.name)+'</div>'
           + '<div class="row-tools">'
             + '<button data-action="move-cat-up" data-cat="'+cat.id+'" title="Subir">\u2191</button>'
@@ -1209,7 +1234,7 @@ window.PORTICOS_LISTA = (function(){
         var num = String(k+1);
         return '<option value="'+num+'"'+(String(note.portico||"")===num?' selected':"")+'>'+num+' \u00b7 '+escapeHtml(pt.nombre)+'</option>';
       }).join("");
-      var swatches = TONES.map(function(tone){
+      var swatches = toneForCat(note.catId) ? '<span class="tone-fijo">Color fijo de la partida</span>' : TONES.map(function(tone){
         return '<button class="swatch note-'+tone+(tone===note.tone?' active':"")+'" data-action="set-tone" data-note="'+note.id+'" data-tone="'+tone+'" aria-label="Color"></button>';
       }).join("");
 
@@ -1305,7 +1330,7 @@ window.PORTICOS_LISTA = (function(){
       saveState(); render();
     }
     function addNote(catId, weekId){
-      var note = {id:uid(), catId:catId, weekId:weekId, text:"", day:"", percent:"", tone: TONES[state.notes.length % TONES.length],
+      var note = {id:uid(), catId:catId, weekId:weekId, text:"", day:"", percent:"", tone: toneForCat(catId) || TONES[state.notes.length % TONES.length],
         responsable:"", cumplido:null, causa:"", liberada:false, tipoRestriccion:"", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:""};
       state.notes.push(note); state.editingNoteId = note.id; saveState(); render();
       setTimeout(function(){
@@ -1370,6 +1395,7 @@ window.PORTICOS_LISTA = (function(){
             if(n.causa) state.causas[n.causa] = (state.causas[n.causa]||0) + 1;
           } else {
             n[field] = t.value;
+            if(field === "catId"){ var tt = toneForCat(n.catId); if(tt) n.tone = tt; }
           }
         }
         saveState(); render();
@@ -1575,7 +1601,7 @@ window.PORTICOS_LISTA = (function(){
         if(!catId) catId = state.categories[0] ? state.categories[0].id : null;
         if(!catId) return;
         var note = {id:uid(), catId:catId, weekId:weekId, text:data.text||"", day:data.day||"", portico:data.portico||"", percent:"",
-          tone: data.tone || TONES[state.notes.length % TONES.length],
+          tone: toneForCat(catId) || data.tone || TONES[state.notes.length % TONES.length],
           responsable:data.responsable||"", cumplido:null, causa:"", liberada:false, tipoRestriccion:"", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:""};
         state.notes.push(note); saveState(); render();
       },
