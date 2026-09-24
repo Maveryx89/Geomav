@@ -447,7 +447,9 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .estado-chip{ display:inline-flex; align-items:center; gap:5px; font-size:.72rem; font-weight:700; color:var(--ink); border-radius:999px; padding:2px 8px 2px 6px; }
 .estado-chip .dot{ width:8px; height:8px; border-radius:50%; flex:none; }
 .estado-sub{ display:block; font-size:.66rem; color:var(--ink-soft); margin:2px 0 0 4px; }
-.estado-none{ font-size:.72rem; color:var(--ink-soft); opacity:.7; }
+.estado-none{ display:inline-flex; align-items:center; gap:5px; font-size:.72rem; color:var(--ink-soft); }
+.estado-none .dot{ width:8px; height:8px; border-radius:50%; flex:none; }
+.dot-blanco{ background:#fff; border:1.5px solid #0A2240; box-sizing:border-box; }
 .dot-copper{ background:var(--accent); } .dot-neutral{ background:#8C949E; } .dot-blueprint{ background:var(--blueprint); }
 .dot-amber{ background:#D6A828; } .dot-success{ background:var(--success); } .dot-violet{ background:var(--stripe-violet); } .dot-danger{ background:var(--danger); }
 .note .portico-tag{ display:inline-block; font-size:.66rem; font-weight:700; letter-spacing:.02em; color:var(--blueprint); background:var(--blueprint-soft); border-radius:999px; padding:1px 7px; margin-bottom:4px; }
@@ -1850,7 +1852,7 @@ window.PORTICOS_LISTA = (function(){
     var e = d.est[num], v = d.vivo[num], idx, sub;
     if(v !== undefined && (e === undefined || v > e)){ idx = v; sub = "en curso"; }
     else if(e !== undefined){ idx = e; sub = "terminado \u2713"; }
-    else return '<span class="estado-none">Sin iniciar</span>';
+    else return '<span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar</span>';
     var name = d.orden[idx], tone = window.PARTIDA_TONE[name];
     return '<span class="estado-chip note-'+tone+'"><i class="dot dot-'+tone+'"></i>'+esc(name)+'</span><span class="estado-sub">'+sub+'</span>';
   }
@@ -1866,7 +1868,7 @@ window.PORTICOS_LISTA = (function(){
 
   /* ===== Mapa de pórticos (Leaflet, se carga solo al abrirlo) ===== */
   var TONE_HEX = { copper:"#D49A6A", neutral:"#8C949E", blueprint:"#2C6B7E", amber:"#D6A828", success:"#26694B", violet:"#7A52AA", danger:"#B23B3B" };
-  var SIN_INICIAR_HEX = "#0A2240";
+  var SIN_INICIAR_HEX = "#FFFFFF"; /* todos parten en blanco y avanzan con el color de su partida */
   var OHIGGINS = [[-35.02,-72.06],[-33.83,-69.98]];
   var mapa = null, capa = null, ultimoData = null;
   function tieneCoords(p){ return typeof p.lat === "number" && typeof p.lng === "number" && isFinite(p.lat) && isFinite(p.lng); }
@@ -1886,7 +1888,7 @@ window.PORTICOS_LISTA = (function(){
       var num = String(k+1), st = estadoDe(num, ultimoData);
       var tone = st ? window.PARTIDA_TONE[st.name] : null;
       var url = "https://www.google.com/maps/search/?api=1&query=" + p.lat + "," + p.lng;
-      L.circleMarker([p.lat, p.lng], { radius:8, color:"#fff", weight:2, fillColor: tone ? TONE_HEX[tone] : SIN_INICIAR_HEX, fillOpacity:.95 })
+      L.circleMarker([p.lat, p.lng], { radius:8, color: tone ? "#fff" : "#0A2240", weight:2, fillColor: tone ? TONE_HEX[tone] : SIN_INICIAR_HEX, fillOpacity: tone ? .95 : 1 })
         .bindTooltip("N\u00b0 " + num, { direction:"top", offset:[0,-6] })
         .bindPopup('<strong>N\u00b0 '+num+' \u00b7 '+esc(p.nombre)+'</strong><br>'+esc(p.comuna)
           +'<br>'+(st ? esc(st.name)+' \u00b7 '+st.sub : 'Sin iniciar')
@@ -1901,7 +1903,7 @@ window.PORTICOS_LISTA = (function(){
     var html = Object.keys(window.PARTIDA_TONE || {}).map(function(n){
       return '<span><i style="background:'+TONE_HEX[window.PARTIDA_TONE[n]]+'"></i>'+esc(n)+'</span>';
     }).join("");
-    el.innerHTML = html + '<span><i style="background:'+SIN_INICIAR_HEX+'"></i>Sin iniciar</span>';
+    el.innerHTML = '<span><i style="background:'+SIN_INICIAR_HEX+';border-color:#0A2240;box-shadow:none"></i>Sin iniciar</span>' + html;
   }
   function cargarLeaflet(cb){
     if(window.L) return cb();
