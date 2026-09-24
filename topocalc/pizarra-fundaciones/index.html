@@ -399,7 +399,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 /* ---------- Listado de pórticos (junto al tablero Semanal) ---------- */
 .semanal-layout{ display:flex; align-items:stretch; min-width:0; }
 .semanal-layout > .board-scroll{ flex:0 1 auto; min-width:0; }
-.porticos-panel{ position:relative; flex:0 0 300px; margin:14px 16px 40px 0; }
+.porticos-panel{ position:relative; flex:0 0 400px; margin:14px 16px 40px 0; }
 .porticos-inner{ position:absolute; inset:0; display:flex; flex-direction:column; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); overflow:hidden; }
 .porticos-head{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; padding:10px 12px; border-bottom:1px solid var(--line); background:var(--paper-sunken); }
 .porticos-head strong{ font-family:var(--font-display); font-size:.92rem; color:var(--ink); }
@@ -410,7 +410,9 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .porticos-table th{ position:sticky; top:0; z-index:1; background:var(--paper-raised); text-align:left; font-size:.68rem; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); padding:8px 10px; border-bottom:1px solid var(--line-strong); }
 .porticos-table td{ padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
 .porticos-table td.n{ width:30px; color:var(--ink-soft); font-family:var(--font-mono); font-size:.72rem; }
-.porticos-table td.comuna{ color:var(--ink-soft); }
+.porticos-table td.comuna, .porticos-table td.ubic{ color:var(--ink-soft); }
+.porticos-table td.ubic{ font-size:.74rem; }
+.note .portico-tag{ display:inline-block; font-size:.66rem; font-weight:700; letter-spacing:.02em; color:var(--blueprint); background:var(--blueprint-soft); border-radius:999px; padding:1px 7px; margin-bottom:4px; }
 .porticos-table tbody tr:hover td{ background:var(--blueprint-soft); }
 @media (max-width:860px){
   .semanal-layout{ flex-direction:column; }
@@ -487,7 +489,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           <div class="porticos-head"><div><strong>Listado de pórticos</strong><span class="porticos-sub">Región de O&#39;Higgins</span></div><span class="porticos-count" id="porticosCount"></span></div>
           <div class="porticos-scroll">
             <table class="porticos-table">
-              <thead><tr><th>#</th><th>Nombre pórtico</th><th>Comuna</th></tr></thead>
+              <thead><tr><th>#</th><th>Nombre pórtico</th><th>Comuna</th><th>Ubicación</th></tr></thead>
               <tbody id="porticosBody"></tbody>
             </table>
           </div>
@@ -535,6 +537,14 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   </footer>
 </div>
 
+<script>
+/* ===== Listado de pórticos (Región de O'Higgins) — reemplazar nombres, comunas y ubicaciones reales aquí ===== */
+window.PORTICOS_LISTA = (function(){
+  var l = [];
+  for(var i=1;i<=63;i++){ l.push({ nombre:"P\u00f3rtico " + i, comuna:"Por definir", ubicacion:"Ubicaci\u00f3n P\u00f3rtico " + i }); }
+  return l;
+})();
+</script>
 <script>
 (function(){
   "use strict";
@@ -1182,6 +1192,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%");
         }
         return '<div class="note note-'+note.tone+'" style="'+extraStyle+'" data-action="open-note" data-note="'+note.id+'">'
+          + (note.portico ? '<div class="portico-tag">P\u00f3rtico N\u00b0 '+escapeHtml(note.portico)+'</div>' : "")
           + '<div class="txt">'+badge+escapeHtml(note.text || "Nueva tarea")+'</div>'
           + (metaBits.length ? '<div class="meta"><span>'+metaBits.join(" \u00b7 ")+'</span></div>' : "")
           + '</div>';
@@ -1191,6 +1202,10 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       }).join("");
       var weekOptions = state.weeks.map(function(w){
         return '<option value="'+w.id+'"'+(w.id===note.weekId?' selected':"")+'>'+escapeHtml(w.month)+' \u00b7 '+escapeHtml(w.label)+'</option>';
+      }).join("");
+      var porticoOptions = '<option value="">\u2013</option>' + (window.PORTICOS_LISTA || []).map(function(pt, k){
+        var num = String(k+1);
+        return '<option value="'+num+'"'+(String(note.portico||"")===num?' selected':"")+'>'+num+' \u00b7 '+escapeHtml(pt.nombre)+'</option>';
       }).join("");
       var swatches = TONES.map(function(tone){
         return '<button class="swatch note-'+tone+(tone===note.tone?' active':"")+'" data-action="set-tone" data-note="'+note.id+'" data-tone="'+tone+'" aria-label="Color"></button>';
@@ -1243,14 +1258,14 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       return '<div class="note editing" data-note="'+note.id+'">'
         + '<textarea data-bind="note:'+note.id+':text" placeholder="Descripci\u00f3n de la tarea">'+escapeHtml(note.text)+'</textarea>'
         + '<div class="field-row">'
-          + '<div class="field-col"><label>D\u00eda / fecha</label><input type="text" data-bind="note:'+note.id+':day" value="'+escapeHtml(note.day)+'" placeholder="ej. 26"></div>'
+          + '<div class="field-col"><label>Categor\u00eda</label><select data-bind-select="note:'+note.id+':catId">'+catOptions+'</select></div>'
+          + '<div class="field-col"><label>'+(cfg.weekly ? 'D\u00eda' : 'Semana')+'</label><select data-bind-select="note:'+note.id+':weekId">'+weekOptions+'</select></div>'
+        + '</div>'
+        + '<div class="field-row">'
+          + '<div class="field-col"><label>N\u00b0 de p\u00f3rtico</label><select data-bind-select="note:'+note.id+':portico">'+porticoOptions+'</select></div>'
           + '<div class="field-col"><label>Avance %</label><input type="number" min="0" max="100" step="5" data-bind="note:'+note.id+':percent" value="'+escapeHtml(note.percent)+'"></div>'
         + '</div>'
         + lpsFields
-        + '<div class="field-row">'
-          + '<div class="field-col"><label>Categor\u00eda</label><select data-bind-select="note:'+note.id+':catId">'+catOptions+'</select></div>'
-          + '<div class="field-col"><label>Semana</label><select data-bind-select="note:'+note.id+':weekId">'+weekOptions+'</select></div>'
-        + '</div>'
         + '<div class="swatches">'+swatches+'</div>'
         + '<div class="note-actions">'
           + '<button data-action="dup-note" data-note="'+note.id+'">Duplicar en sig.</button>'
@@ -1303,7 +1318,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       var note = state.notes.find(function(n){return n.id===id;}); if(!note) return;
       var idx = state.weeks.findIndex(function(w){return w.id===note.weekId;});
       var targetWeek = state.weeks[idx+1] ? state.weeks[idx+1].id : note.weekId;
-      var copy = {id:uid(), catId:note.catId, weekId:targetWeek, text:note.text, day:note.day, percent:note.percent, tone:note.tone,
+      var copy = {id:uid(), catId:note.catId, weekId:targetWeek, text:note.text, day:note.day, portico:note.portico||"", percent:note.percent, tone:note.tone,
         responsable:note.responsable, cumplido:null, causa:"", liberada:false, tipoRestriccion:note.tipoRestriccion, respLiberacion:note.respLiberacion, fechaCompromiso:note.fechaCompromiso, fechaLiberacion:""};
       state.notes.push(copy); state.editingNoteId = copy.id; saveState(); render();
     }
@@ -1402,7 +1417,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         if(n4 && sel && sel.value && BOARDS.semanal){
           var catN = findCat(n4.catId);
           BOARDS.semanal.addExternalNote(sel.value, {
-            text: n4.text, day: n4.day, responsable: n4.respLiberacion || n4.responsable || "",
+            text: n4.text, day: n4.day, portico: n4.portico || "", responsable: n4.respLiberacion || n4.responsable || "",
             tone: "blueprint", categoryName: catN ? catN.name : ""
           });
           n4.enviadoSemanal = true; saveState(); render();
@@ -1555,7 +1570,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         }
         if(!catId) catId = state.categories[0] ? state.categories[0].id : null;
         if(!catId) return;
-        var note = {id:uid(), catId:catId, weekId:weekId, text:data.text||"", day:data.day||"", percent:"",
+        var note = {id:uid(), catId:catId, weekId:weekId, text:data.text||"", day:data.day||"", portico:data.portico||"", percent:"",
           tone: data.tone || TONES[state.notes.length % TONES.length],
           responsable:data.responsable||"", cumplido:null, causa:"", liberada:false, tipoRestriccion:"", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:""};
         state.notes.push(note); saveState(); render();
@@ -1734,13 +1749,12 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 /* ===== Listado de pórticos (Región de O'Higgins) — reemplazar nombres/comunas reales aquí ===== */
 (function(){
   "use strict";
-  var PORTICOS_LISTA = [];
-  for(var i=1;i<=63;i++){ PORTICOS_LISTA.push({ nombre:"P\u00f3rtico " + i, comuna:"Por definir" }); }
+  var PORTICOS_LISTA = window.PORTICOS_LISTA;
   function esc(s){ return String(s).replace(/[&<>"']/g,function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]; }); }
   var tb = document.getElementById("porticosBody");
   if(!tb) return;
   tb.innerHTML = PORTICOS_LISTA.map(function(p,k){
-    return '<tr><td class="n">'+(k+1)+'</td><td>'+esc(p.nombre)+'</td><td class="comuna">'+esc(p.comuna)+'</td></tr>';
+    return '<tr><td class="n">'+(k+1)+'</td><td>'+esc(p.nombre)+'</td><td class="comuna">'+esc(p.comuna)+'</td><td class="ubic">'+esc(p.ubicacion)+'</td></tr>';
   }).join("");
   document.getElementById("porticosCount").textContent = PORTICOS_LISTA.length + " p\u00f3rticos";
 })();
