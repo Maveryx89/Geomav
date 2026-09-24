@@ -416,6 +416,15 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .semanal-layout > .board-scroll{ grid-column:1; grid-row:1; }
 .semanal-layout > .porticos-panel{ grid-column:2; grid-row:1; }
 .porticos-mapa{ grid-column:2; grid-row:2; margin:-24px 16px 30px 0; min-width:0; }
+@media (min-width:861px){
+  .semanal-layout{ grid-template-columns:minmax(0,1fr) 500px; }
+  .porticos-mapa{ grid-column:1 / -1; display:grid; grid-template-columns:minmax(0,1fr) 484px; column-gap:16px; align-items:start; margin:-24px 16px 30px 16px; }
+  .porticos-mapa > #mapaToggle, .porticos-mapa > #avanceToggle{ display:none; }
+  .porticos-mapa > #mapaWrap{ grid-column:1; grid-row:1 / span 2; margin-top:0; }
+  .porticos-mapa > #editBar{ grid-column:2; grid-row:1; }
+  .porticos-mapa > #avanceWrap{ grid-column:2; grid-row:2; margin-top:0; max-height:560px; }
+  .porticos-mapa .mapa-canvas{ height:560px; }
+}
 .mapa-toggle{ width:100%; justify-content:center; }
 .mapa-wrap{ margin-top:10px; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); overflow:hidden; }
 .mapa-info{ font-size:.74rem; color:var(--ink-soft); padding:8px 12px; border-bottom:1px solid var(--line); background:var(--paper-sunken); }
@@ -487,6 +496,16 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .dot-blanco{ background:#fff; border:1.5px solid #0A2240; box-sizing:border-box; }
 .dot-copper{ background:var(--accent); } .dot-neutral{ background:#8C949E; } .dot-blueprint{ background:var(--blueprint); }
 .dot-amber{ background:#D6A828; } .dot-success{ background:var(--success); } .dot-violet{ background:var(--stripe-violet); } .dot-danger{ background:var(--danger); }
+.note .portico-tag.tag-copper{ background:var(--accent); color:#fff; } .note .portico-tag.tag-neutral{ background:#8C949E; color:#fff; }
+.note .portico-tag.tag-blueprint{ background:var(--blueprint); color:#fff; } .note .portico-tag.tag-amber{ background:#D6A828; color:#fff; }
+.note .portico-tag.tag-success{ background:var(--success); color:#fff; } .note .portico-tag.tag-violet{ background:var(--stripe-violet); color:#fff; }
+.note .portico-tag.tag-danger{ background:var(--danger); color:#fff; }
+.note.editing.note-copper{ background:var(--note-copper); } .note.editing.note-neutral{ background:var(--paper-sunken); }
+.note.editing.note-blueprint{ background:var(--note-blueprint); } .note.editing.note-amber{ background:var(--note-amber); }
+.note.editing.note-success{ background:var(--note-success); } .note.editing.note-violet{ background:var(--note-violet); }
+.note.editing.note-danger{ background:var(--note-danger); }
+/* ocultos a pedido: rutina de reunión y panel de confiabilidad */
+.checklist-details, section[data-board="semanal"] .reliability-panel{ display:none !important; }
 .note .portico-tag{ display:inline-block; font-size:.66rem; font-weight:700; letter-spacing:.02em; color:var(--blueprint); background:var(--blueprint-soft); border-radius:999px; padding:1px 7px; margin-bottom:4px; }
 .porticos-table tbody tr:hover td{ background:var(--blueprint-soft); }
 @media (max-width:860px){
@@ -546,6 +565,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     <div class="toolbar">
       <button class="btn-sm" data-action="add-week">+ Día</button>
       <button class="btn-sm" data-action="add-category">+ Categoría</button>
+      <button class="btn-sm" data-action="cargar-planilla">&#x27F3; Cargar desde planilla</button>
       <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
       <button class="btn-sm" data-action="print">Imprimir</button>
       <button class="btn-sm danger" data-action="reset">Reiniciar</button>
@@ -566,7 +586,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           <div class="porticos-head"><div><strong>Listado de pórticos</strong><span class="porticos-sub">Región de O&#39;Higgins · <span class="porticos-sync" id="porticosSync">Conectando…</span></span></div><span class="porticos-count" id="porticosCount"></span></div>
           <div class="porticos-scroll">
             <table class="porticos-table">
-              <thead><tr><th>#</th><th>Nombre pórtico</th><th>Comuna</th><th>Ubicación</th><th>Estado</th></tr></thead>
+              <thead><tr><th>Nombre pórtico</th><th>Comuna</th><th>Ubicación</th><th>Estado</th></tr></thead>
               <tbody id="porticosBody"></tbody>
             </table>
           </div>
@@ -604,6 +624,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     <div class="toolbar">
       <button class="btn-sm" data-action="add-week">+ Semana</button>
       <button class="btn-sm" data-action="add-category">+ Categoría</button>
+      <button class="btn-sm" data-action="cargar-planilla">&#x27F3; Cargar desde planilla</button>
       <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
       <button class="btn-sm" data-action="print">Imprimir</button>
       <button class="btn-sm danger" data-action="reset">Reiniciar</button>
@@ -899,6 +920,15 @@ window.PORTICOS_LISTA = (function(){
     "Inst. Malla":"amber", "Relleno":"success", "Inst. P\u00f3rtico":"violet", "Inst. C\u00e1mara":"danger"
   };
   window.PARTIDA_TONE = PARTIDA_TONE;
+  var RESPONSABLES = [
+    ["Jos\u00e9 Ramirez \u00b7 Jefe de Obra", "JR \u00b7 Jefe de Obra"],
+    ["Pedro Garcia \u00b7 Administrador", "PG \u00b7 Administrador"],
+    ["Mario Verdugo \u00b7 Top\u00f3grafo", "MV \u00b7 Top\u00f3grafo"],
+    ["Erika \u00b7 Prevenci\u00f3n", "E \u00b7 Prevenci\u00f3n"],
+    ["Luis Vazquez \u00b7 Bodega", "LV \u00b7 Bodega"],
+    ["Carlos Chavez \u00b7 PAC", "CC \u00b7 PAC"],
+    ["Gerencia", "Gerencia"]
+  ];
   function parseInputDate(str){ var p = str.split("-"); return new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10)); }
   function mondayOf(d){ var day = d.getDay(); var diff = (day===0? -6 : 1-day); var m = new Date(d); m.setDate(d.getDate()+diff); return m; }
   function addDays(d,n){ var r = new Date(d); r.setDate(d.getDate()+n); return r; }
@@ -988,6 +1018,45 @@ window.PORTICOS_LISTA = (function(){
     function toneForCat(catId){
       var c = state && state.categories ? state.categories.find(function(x){return x.id===catId;}) : null;
       return c ? (PARTIDA_TONE[String(c.name||"").trim()] || null) : null;
+    }
+    function inicioSemana(d){ var m = mondayOf(new Date(d.getFullYear(), d.getMonth(), d.getDate())); return new Date(m.getFullYear(), m.getMonth(), m.getDate()); }
+    function fmtDMY(d){ return String(d.getDate()).padStart(2,"0")+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+d.getFullYear(); }
+    /* Arma el tablero desde la hoja "Programaci\u00f3n" de la planilla compartida */
+    function cargarProgramacion(prog, desde){
+      var start = inicioSemana(desde || new Date());
+      var weeks = cfg.weekly ? generarDiasSemana(start) : generarSemanasIntermedio(start, 9);
+      var categories = defaultCategories();
+      var catId = {}; categories.forEach(function(c){ catId[c.name] = c.id; });
+      var notes = [];
+      prog.slice().sort(function(a,b){ return String(a.fecha).localeCompare(String(b.fecha)) || (a.portico - b.portico); }).forEach(function(r){
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(r.fecha || "")) return;
+        var cid = catId[r.partida]; if(!cid) return;
+        var dias = Math.round((parseInputDate(r.fecha) - start) / 86400000);
+        var hecho = /^ejecutado/i.test(r.estado || ""), fallo = /^no ejecutado/i.test(r.estado || "");
+        var col;
+        if(cfg.weekly){ if(dias < 0 || dias > 4) return; col = weeks[dias]; }
+        else { if(dias < 0 || dias >= 63 || fallo) return; col = weeks[Math.floor(dias / 7)]; }
+        var n = { id:uid(), catId:cid, weekId:col.id, text:"", day:"", portico:String(r.portico || ""), percent:"", tone: PARTIDA_TONE[r.partida] || "neutral",
+          responsable:"", cumplido:null, causa:"", liberada:false, tipoRestriccion:"", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:"" };
+        var txt = r.comuna;
+        if(cfg.weekly){
+          if(hecho){ n.cumplido = true; n.percent = "100"; }
+          else if(fallo){ n.cumplido = false; txt += " (no ejecutado, reprogramado)"; }
+        } else {
+          txt += " \u00b7 " + r.fecha.slice(8,10) + "-" + r.fecha.slice(5,7);
+          if(hecho){ n.percent = "100"; txt += " \u2713"; }
+          if(/^pendiente/i.test(r.autorizacion || "") && r.partida === "Excavaci\u00f3n"){
+            var ent = String(r.autorizacion).replace(/^pendiente:?\s*/i, "");
+            n.tipoRestriccion = "Administrativos"; n.respLiberacion = ent; txt += " \u00b7 falta autorizaci\u00f3n " + ent;
+          }
+        }
+        n.text = txt; notes.push(n);
+      });
+      state = { title: (state && state.title) || cfg.defaultTitle,
+        subtitle: "Programaci\u00f3n de la planilla \u00b7 semana del " + fmtDMY(start) + (cfg.weekly ? "" : " + 8 semanas"),
+        weeks: weeks, categories: categories, notes: notes, editingNoteId: null,
+        ppcHistory: (state && state.ppcHistory) || [], causas: {}, checklist: (state && state.checklist) || MEETING_ITEMS.map(function(){ return false; }) };
+      saveState(); render(); syncHeader();
     }
     var state = loadState();
     state.notes.forEach(function(n){ var tt = toneForCat(n.catId); if(tt) n.tone = tt; });
@@ -1272,6 +1341,11 @@ window.PORTICOS_LISTA = (function(){
       panel.innerHTML = '<ol class="checklist-list">'+items+'</ol>';
     }
 
+    function nombrePortico(num){
+      var l = window.PORTICOS_LISTA || [], s = String(num);
+      for(var i=0;i<l.length;i++){ if(String(l[i].num || (i+1)) === s) return l[i].nombre; }
+      return "P\u00f3rtico " + s;
+    }
     function renderNote(note, extraStyle){
       extraStyle = extraStyle || "";
       var editing = state.editingNoteId === note.id;
@@ -1283,6 +1357,7 @@ window.PORTICOS_LISTA = (function(){
           if(note.cumplido === true) badge = '<span class="badge-ok" title="Cumplido">\u2713</span>';
           else if(note.cumplido === false) badge = '<span class="badge-no" title="No cumplido">\u2715</span>';
           if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%");
+          if(note.tipoRestriccion) metaBits.push("\u26a0 " + escapeHtml(note.tipoRestriccion));
         } else {
           if(note.tipoRestriccion){
             badge = note.liberada ? '<span class="badge-ok" title="Restricci\u00f3n liberada">\u2713</span>' : '<span class="badge-warn" title="Restricci\u00f3n abierta">!</span>';
@@ -1290,7 +1365,7 @@ window.PORTICOS_LISTA = (function(){
           if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%");
         }
         return '<div class="note note-'+note.tone+'" style="'+extraStyle+'" data-action="open-note" data-note="'+note.id+'">'
-          + (note.portico ? '<div class="portico-tag">P\u00f3rtico N\u00b0 '+escapeHtml(note.portico)+'</div>' : "")
+          + (note.portico ? '<div class="portico-tag tag-'+note.tone+'">'+escapeHtml(nombrePortico(note.portico))+'</div>' : "")
           + '<div class="txt">'+badge+escapeHtml(note.text || "Nueva tarea")+'</div>'
           + (metaBits.length ? '<div class="meta"><span>'+metaBits.join(" \u00b7 ")+'</span></div>' : "")
           + '</div>';
@@ -1303,20 +1378,32 @@ window.PORTICOS_LISTA = (function(){
       }).join("");
       var porticoOptions = '<option value="">\u2013</option>' + (window.PORTICOS_LISTA || []).map(function(pt, k){
         var num = String(pt.num || (k+1));
-        return '<option value="'+num+'"'+(String(note.portico||"")===num?' selected':"")+'>'+num+' \u00b7 '+escapeHtml(pt.nombre)+'</option>';
+        return '<option value="'+num+'"'+(String(note.portico||"")===num?' selected':"")+'>'+escapeHtml(pt.nombre)+'</option>';
       }).join("");
       var swatches = toneForCat(note.catId) ? '<span class="tone-fijo">Color fijo de la partida</span>' : TONES.map(function(tone){
         return '<button class="swatch note-'+tone+(tone===note.tone?' active':"")+'" data-action="set-tone" data-note="'+note.id+'" data-tone="'+tone+'" aria-label="Color"></button>';
       }).join("");
 
       var lpsFields = "";
+      var pctOptions = '<option value="">\u2013</option>' + ["0","25","50","75","100"].map(function(v){
+        return '<option value="'+v+'"'+(String(note.percent)===v?' selected':"")+'>'+v+'%</option>';
+      }).join("");
+      var respActual = String(note.responsable || "");
+      var respOptions = '<option value="">\u2013</option>' + RESPONSABLES.map(function(r){
+        var sel = respActual === r[1];
+        return '<option value="'+escapeHtml(r[1])+'"'+(sel?' selected':"")+'>'+escapeHtml(sel ? r[1] : r[0])+'</option>';
+      }).join("") + (respActual && !RESPONSABLES.some(function(r){ return r[1] === respActual; }) ? '<option value="'+escapeHtml(respActual)+'" selected>'+escapeHtml(respActual)+'</option>' : "");
+      var tipoOptionsW = '<option value="">\u2013</option>' + RESTRICCION_TIPOS.map(function(t){
+        return '<option value="'+t+'"'+(t===note.tipoRestriccion?' selected':"")+'>'+t+'</option>';
+      }).join("");
       if(cfg.weekly){
         var causaOptions = '<option value="">\u2013</option>' + CAUSAS.map(function(c){
           return '<option value="'+c[0]+'"'+(c[0]===note.causa?' selected':"")+'>'+c[0]+'. '+escapeHtml(c[1])+'</option>';
         }).join("");
         lpsFields = '<div class="field-row">'
-          + '<div class="field-col"><label>Responsable</label><input type="text" data-bind="note:'+note.id+':responsable" value="'+escapeHtml(note.responsable)+'" placeholder="Nombre / cuadrilla"></div>'
+          + '<div class="field-col"><label>Responsable</label><select data-bind-select="note:'+note.id+':responsable">'+respOptions+'</select></div>'
           + '</div>'
+          + '<div class="field-row"><div class="field-col"><label>Tipo de restricci\u00f3n</label><select data-bind-select="note:'+note.id+':tipoRestriccion">'+tipoOptionsW+'</select></div></div>'
           + '<div class="field-row"><div class="field-col"><label>Cumplimiento (PPC)</label>'
             + '<div class="tri-btns">'
               + '<button class="tri'+(note.cumplido===true?' active-ok':'')+'" data-action="set-cumplido" data-note="'+note.id+'" data-value="1">S\u00ed cumpli\u00f3</button>'
@@ -1329,7 +1416,7 @@ window.PORTICOS_LISTA = (function(){
           return '<option value="'+t+'"'+(t===note.tipoRestriccion?' selected':"")+'>'+t+'</option>';
         }).join("");
         lpsFields = '<div class="field-row">'
-          + '<div class="field-col"><label>Responsable</label><input type="text" data-bind="note:'+note.id+':responsable" value="'+escapeHtml(note.responsable)+'" placeholder="Nombre / subcontrato"></div>'
+          + '<div class="field-col"><label>Responsable</label><select data-bind-select="note:'+note.id+':responsable">'+respOptions+'</select></div>'
           + '<div class="field-col"><label>Tipo de restricci\u00f3n</label><select data-bind-select="note:'+note.id+':tipoRestriccion">'+tipoOptions+'</select></div>'
           + '</div>'
           + (note.tipoRestriccion ? (
@@ -1353,9 +1440,9 @@ window.PORTICOS_LISTA = (function(){
           + '</div>';
       }
 
-      return '<div class="note editing" data-note="'+note.id+'">'
+      return '<div class="note editing note-'+note.tone+'" data-note="'+note.id+'">'
         + '<div class="field-row">'
-          + '<div class="field-col"><label>N\u00b0 de p\u00f3rtico</label><select data-bind-select="note:'+note.id+':portico">'+porticoOptions+'</select></div>'
+          + '<div class="field-col"><label>P\u00f3rtico</label><select data-bind-select="note:'+note.id+':portico">'+porticoOptions+'</select></div>'
         + '</div>'
         + '<div class="field-row">'
           + '<div class="field-col"><label>Categor\u00eda</label><select data-bind-select="note:'+note.id+':catId">'+catOptions+'</select></div>'
@@ -1363,7 +1450,7 @@ window.PORTICOS_LISTA = (function(){
         + '</div>'
         + '<textarea data-bind="note:'+note.id+':text" placeholder="Descripci\u00f3n de la tarea">'+escapeHtml(note.text)+'</textarea>'
         + '<div class="field-row">'
-          + '<div class="field-col"><label>Avance %</label><input type="number" min="0" max="100" step="5" data-bind="note:'+note.id+':percent" value="'+escapeHtml(note.percent)+'"></div>'
+          + '<div class="field-col"><label>Avance %</label><select data-bind-select="note:'+note.id+':percent">'+pctOptions+'</select></div>'
         + '</div>'
         + lpsFields
         + '<div class="swatches">'+swatches+'</div>'
@@ -1539,6 +1626,14 @@ window.PORTICOS_LISTA = (function(){
           state = porticosSeed(); saveState(); render(); syncHeader();
         }
       }
+      else if(action === "cargar-planilla"){
+        var prog = window.PROGRAMACION;
+        if(!prog || !prog.length){ alert("La planilla todav\u00eda no entrega programaci\u00f3n (revisa la hoja \u201cProgramaci\u00f3n\u201d o espera la sincronizaci\u00f3n)."); return; }
+        var fiP = root.querySelector(".fecha-inicio").value;
+        var stP = fiP ? parseInputDate(fiP) : new Date();
+        if(state.notes.length>0 && !confirm("Esto reemplaza este tablero con la programaci\u00f3n de la planilla (desde la semana del " + fmtDMY(inicioSemana(stP)) + "). \u00bfContinuar?")) return;
+        cargarProgramacion(prog, stP);
+      }
       else if(action === "generar-fechas"){
         var fi = root.querySelector(".fecha-inicio").value;
         if(!fi){ alert("Ingresa la fecha de inicio."); return; }
@@ -1658,6 +1753,8 @@ window.PORTICOS_LISTA = (function(){
     syncHeader();
 
     return {
+      vacio: function(){ return state.notes.length === 0; },
+      cargarProgramacion: function(prog){ cargarProgramacion(prog, new Date()); },
       getNotes: function(){
         return state.notes.map(function(n){ var c = findCat(n.catId); return { portico: n.portico || "", cat: c ? c.name : "", cumplido: n.cumplido, percent: n.percent }; });
       },
@@ -1875,6 +1972,7 @@ window.PORTICOS_LISTA = (function(){
       });
     }
     REMOTO.avance = Array.isArray(j.avance) ? j.avance : [];
+    if(Array.isArray(j.programacion)) window.PROGRAMACION = j.programacion;
   }
   function sync(txt, cls){ var el = document.getElementById("porticosSync"); if(el){ el.textContent = txt; el.className = "porticos-sync " + (cls||""); } }
   function horaAhora(){ var d = new Date(); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
@@ -1886,6 +1984,13 @@ window.PORTICOS_LISTA = (function(){
       try{ localStorage.setItem(LS_CACHE, JSON.stringify(j)); }catch(e){}
       sync("\u2713 Datos compartidos \u00b7 " + horaAhora(), "ok");
       window.renderPorticos();
+      /* Tableros vac\u00edos en este equipo: se arman solos con la programaci\u00f3n de la planilla */
+      if(window.PROGRAMACION && window.PROGRAMACION.length){
+        ["semanal","intermedio"].forEach(function(k){
+          var b = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS[k];
+          if(b && b.vacio && b.vacio()) b.cargarProgramacion(window.PROGRAMACION);
+        });
+      }
     }).catch(function(){
       sync("Sin conexi\u00f3n \u00b7 mostrando \u00faltima copia", "warn");
     });
@@ -1900,15 +2005,15 @@ window.PORTICOS_LISTA = (function(){
   function calcular(){
     var o = orden(), est = {}, hist = {};
     REMOTO.avance.forEach(function(a){
-      var idx = o.indexOf(String(a.partida).trim()); if(idx < 0) return;
       var n = String(a.portico);
       (hist[n] = hist[n] || []).push(a);
+      var idx = o.indexOf(String(a.partida).trim()); if(idx < 0) return;
       if(!est[n] || idx > est[n].idx || (idx === est[n].idx && a.fecha > est[n].fecha)) est[n] = { idx: idx, fecha: a.fecha };
     });
     return { orden: o, est: est, hist: hist };
   }
   function estadoDe(num, d){ var e = d.est[num]; return e ? { name: d.orden[e.idx], idx: e.idx, fecha: e.fecha } : null; }
-  function chip(name){ var t = window.PARTIDA_TONE[name]; return '<span class="estado-chip note-'+t+'"><i class="dot dot-'+t+'"></i>'+esc(name)+'</span>'; }
+  function chip(name){ if(name === "Comentarios") return '<span class="estado-chip note-neutral">\ud83d\udcac Comentario</span>'; var t = window.PARTIDA_TONE[name]; return '<span class="estado-chip note-'+t+'"><i class="dot dot-'+t+'"></i>'+esc(name)+'</span>'; }
   function estadoHtml(num, d){
     var st = estadoDe(num, d);
     var inner = st ? chip(st.name) + '<span class="estado-sub">ejecutado ' + fmt(st.fecha) + '</span>'
@@ -1928,7 +2033,7 @@ window.PORTICOS_LISTA = (function(){
     var data = calcular(); ultimoData = data;
     tb.innerHTML = lista().map(function(p,k){
       var num = numDe(p,k);
-      return '<tr><td class="n">'+num+'</td><td>'+esc(p.nombre)+'</td><td class="comuna">'+esc(p.comuna)+'</td><td class="ubic">'+ubicHtml(p)+'</td><td class="estado">'+estadoHtml(num, data)+'</td></tr>';
+      return '<tr><td>'+esc(p.nombre)+'</td><td class="comuna">'+esc(p.comuna)+'</td><td class="ubic">'+ubicHtml(p)+'</td><td class="estado">'+estadoHtml(num, data)+'</td></tr>';
     }).join("");
     var cnt = document.getElementById("porticosCount"); if(cnt) cnt.textContent = lista().length + " p\u00f3rticos";
     pintarMapa(); pintarAvance(); pintarEditBar();
@@ -1958,17 +2063,17 @@ window.PORTICOS_LISTA = (function(){
     var d = ultimoData || calcular(), st = estadoDe(num, d);
     var sig = st ? Math.min(st.idx + 1, d.orden.length - 1) : 0;
     var hist = (d.hist[num] || []).slice().sort(function(a,b){ return (b.fecha+b.registrado).localeCompare(a.fecha+a.registrado); });
-    var opts = d.orden.map(function(n,i){ return '<option value="'+esc(n)+'"'+(i===sig?' selected':'')+'>'+(i+1)+'. '+esc(n)+'</option>'; }).join("");
+    var opts = '<option value="Comentarios">0. Comentarios</option>' + d.orden.map(function(n,i){ return '<option value="'+esc(n)+'"'+(i===sig?' selected':'')+'>'+(i+1)+'. '+esc(n)+'</option>'; }).join("");
     var histHtml = hist.length ? hist.map(function(a){
         return '<li>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.obs?'<span class="pm-obs">'+esc(a.obs)+'</span>':'')
           +'<button type="button" class="btn-link danger" data-anular="'+esc(a.id)+'">Anular</button></li>';
       }).join("") : '<li class="pm-vacio">Sin registros todav\u00eda</li>';
     modal.innerHTML = '<div class="pm-card" role="dialog" aria-modal="true">'
-      + '<div class="pm-head"><div><strong>N\u00b0 '+esc(num)+' \u00b7 '+esc(p.nombre)+'</strong><span>'+esc(p.comuna)+'</span></div>'
+      + '<div class="pm-head"><div><strong>'+esc(p.nombre)+'</strong><span>'+esc(p.comuna)+'</span></div>'
       + '<button type="button" class="pm-x" aria-label="Cerrar">\u2715</button></div>'
       + '<div class="pm-body">'
       + '<div class="pm-label">Estado actual</div><div>'+(st ? chip(st.name)+' <span class="pm-f">ejecutado '+fmt(st.fecha)+'</span>' : '<span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar</span>')+'</div>'
-      + '<div class="pm-label">Registrar partida ejecutada</div>'
+      + '<div class="pm-label">Registrar partida ejecutada o comentario</div>'
       + '<div class="pm-grid"><label>Partida<select id="pmPartida">'+opts+'</select></label>'
       + '<label>Fecha de ejecuci\u00f3n<input type="date" id="pmFecha" value="'+hoyISO()+'"></label></div>'
       + '<label class="pm-full">Observaci\u00f3n (opcional)<input type="text" id="pmObs" maxlength="300" placeholder="ej. hormigonado OK, falta curado"></label>'
@@ -1980,6 +2085,9 @@ window.PORTICOS_LISTA = (function(){
     modal.hidden = false;
     modal.querySelector(".pm-x").onclick = cerrarModal;
     modal.querySelector("#pmGuardar").onclick = function(){
+      if(modal.querySelector("#pmPartida").value === "Comentarios" && !modal.querySelector("#pmObs").value.trim()){
+        var mm = modal.querySelector("#pmMsg"); mm.textContent = "Escribe el comentario en Observaci\u00f3n."; mm.className = "pm-msg err"; modal.querySelector("#pmObs").focus(); return;
+      }
       guardar({ accion:"registrar", portico:Number(num), partida: modal.querySelector("#pmPartida").value,
                 fecha: modal.querySelector("#pmFecha").value, obs: modal.querySelector("#pmObs").value }, num, this);
     };
@@ -2031,7 +2139,7 @@ window.PORTICOS_LISTA = (function(){
       var regs = sem[s].slice().sort(function(a,b){ return a.portico - b.portico || a.fecha.localeCompare(b.fecha); });
       var ports = {}; regs.forEach(function(a){ ports[a.portico] = 1; });
       return '<details class="av-sem"'+(i===0?' open':'')+'><summary>'+lunesTxt(s)+' <span>'+regs.length+' registro'+(regs.length===1?'':'s')+' \u00b7 '+Object.keys(ports).length+' p\u00f3rtico'+(Object.keys(ports).length===1?'':'s')+'</span></summary><ul>'
-        + regs.map(function(a){ return '<li><button type="button" class="btn-link" data-ver="'+a.portico+'">N\u00b0 '+a.portico+' \u00b7 '+esc(nombres[String(a.portico)] || "")+'</button>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span></li>'; }).join("")
+        + regs.map(function(a){ return '<li><button type="button" class="btn-link" data-ver="'+a.portico+'">'+esc(nombres[String(a.portico)] || ("P\u00f3rtico " + a.portico))+'</button>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span></li>'; }).join("")
         + '</ul></details>';
     }).join("") : '<p class="pm-vacio">A\u00fan no hay avances guardados.</p>';
     wrap.innerHTML = resumen + semHtml;
@@ -2064,8 +2172,8 @@ window.PORTICOS_LISTA = (function(){
       var tone = st ? window.PARTIDA_TONE[st.name] : null;
       var url = "https://www.google.com/maps/search/?api=1&query=" + p.lat + "," + p.lng;
       L.circleMarker([p.lat, p.lng], { radius:8, color: tone ? "#fff" : "#0A2240", weight:2, fillColor: tone ? TONE_HEX[tone] : SIN_INICIAR_HEX, fillOpacity: tone ? .95 : 1 })
-        .bindTooltip("N\u00b0 " + num, { direction:"top", offset:[0,-6] })
-        .bindPopup('<strong>N\u00b0 '+num+' \u00b7 '+esc(p.nombre)+'</strong><br>'+esc(p.comuna)
+        .bindTooltip(esc(p.nombre), { direction:"top", offset:[0,-6] })
+        .bindPopup('<strong>'+esc(p.nombre)+'</strong><br>'+esc(p.comuna)
           +'<br>'+(st ? esc(st.name)+' \u00b7 ejecutado '+fmt(st.fecha) : 'Sin iniciar')
           +'<br><a href="'+url+'" target="_blank" rel="noopener">Abrir en Google Maps</a>'
           +' \u00b7 <a href="#" onclick="window.abrirPortico('+num+');return false;">Registrar avance</a>')
@@ -2110,6 +2218,10 @@ window.PORTICOS_LISTA = (function(){
     });
   }
 
+  if(window.matchMedia && window.matchMedia("(min-width:861px)").matches){
+    if(btnAv && wrapAv && wrapAv.hidden) btnAv.click();
+    if(btnMapa && wrapMapa && wrapMapa.hidden) btnMapa.click();
+  }
   window.renderPorticos();
   cargar();
   document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") cargar(); });
