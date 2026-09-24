@@ -412,7 +412,20 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 
 
 /* ---------- Listado de pórticos (junto al tablero Semanal) ---------- */
-.semanal-layout{ display:flex; align-items:stretch; min-width:0; }
+.semanal-layout{ display:grid; grid-template-columns:minmax(0,max-content) 500px; align-items:stretch; min-width:0; }
+.semanal-layout > .board-scroll{ grid-column:1; grid-row:1; }
+.semanal-layout > .porticos-panel{ grid-column:2; grid-row:1; }
+.porticos-mapa{ grid-column:2; grid-row:2; margin:-24px 16px 30px 0; min-width:0; }
+.mapa-toggle{ width:100%; justify-content:center; }
+.mapa-wrap{ margin-top:10px; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); overflow:hidden; }
+.mapa-info{ font-size:.74rem; color:var(--ink-soft); padding:8px 12px; border-bottom:1px solid var(--line); background:var(--paper-sunken); }
+.mapa-canvas{ height:440px; width:100%; background:var(--paper-sunken); }
+.mapa-leyenda{ display:flex; flex-wrap:wrap; gap:6px 12px; padding:8px 12px; font-size:.7rem; color:var(--ink-soft); border-top:1px solid var(--line); }
+.mapa-leyenda span{ display:inline-flex; align-items:center; gap:5px; }
+.mapa-leyenda i{ width:10px; height:10px; border-radius:50%; border:1.5px solid #fff; box-shadow:0 0 0 1px rgba(10,34,64,.3); }
+.mapa-canvas .leaflet-popup-content{ font-family:var(--font-body); font-size:12px; line-height:1.4; margin:10px 12px; }
+:root[data-theme="dark"] .mapa-canvas .leaflet-tile-pane{ filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.95); }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .mapa-canvas .leaflet-tile-pane{ filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.95); } }
 .semanal-layout > .board-scroll{ flex:0 1 auto; min-width:0; }
 .porticos-panel{ position:relative; flex:0 0 500px; margin:14px 16px 40px 0; }
 .porticos-inner{ position:absolute; inset:0; display:flex; flex-direction:column; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); overflow:hidden; }
@@ -440,15 +453,17 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .note .portico-tag{ display:inline-block; font-size:.66rem; font-weight:700; letter-spacing:.02em; color:var(--blueprint); background:var(--blueprint-soft); border-radius:999px; padding:1px 7px; margin-bottom:4px; }
 .porticos-table tbody tr:hover td{ background:var(--blueprint-soft); }
 @media (max-width:860px){
-  .semanal-layout{ flex-direction:column; }
-  .porticos-panel{ flex:none; height:360px; margin:0 16px 30px; }
+  .semanal-layout{ grid-template-columns:minmax(0,1fr); }
+  .semanal-layout > .porticos-panel{ grid-column:1; grid-row:2; height:360px; margin:0 16px 16px; }
+  .porticos-mapa{ grid-column:1; grid-row:3; margin:0 16px 30px; }
+  .mapa-canvas{ height:360px; }
 }
 @media (max-width:480px){
   .topbar .brand .brand-logo{ display:none; }
   .topbar .brand .mark{ font-size:13px; }
   .topbar .brand .tag{ font-size:7.5px; white-space:normal; line-height:1.15; }
 }
-@media print{ .porticos-panel{ display:none !important; } .semanal-layout{ display:block !important; } }
+@media print{ .porticos-mapa{ display:none !important; } .porticos-panel{ display:none !important; } .semanal-layout{ display:block !important; } }
 </style>
 </head>
 
@@ -520,6 +535,14 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           </div>
         </div>
       </aside>
+      <div class="porticos-mapa">
+        <button class="btn-sm mapa-toggle" type="button" id="mapaToggle" aria-expanded="false">&#x1F5FA;&#xFE0F; Ver mapa de pórticos</button>
+        <div class="mapa-wrap" id="mapaWrap" hidden>
+          <div class="mapa-info" id="mapaInfo">Región de O&#39;Higgins</div>
+          <div class="mapa-canvas" id="mapaPorticos"></div>
+          <div class="mapa-leyenda" id="mapaLeyenda"></div>
+        </div>
+      </div>
     </div>
     <div class="print-semanal-chunks"></div>
   </section>
@@ -1834,11 +1857,80 @@ window.PORTICOS_LISTA = (function(){
   var tb = document.getElementById("porticosBody");
   if(!tb) return;
   window.renderPorticos = function(){
-  var data = calcular();
+  var data = calcular(); ultimoData = data;
   tb.innerHTML = PORTICOS_LISTA.map(function(p,k){
     return '<tr><td class="n">'+(k+1)+'</td><td>'+esc(p.nombre)+'</td><td class="comuna">'+esc(p.comuna)+'</td><td class="ubic">'+ubicHtml(p)+'</td><td class="estado">'+estadoHtml(String(k+1), data)+'</td></tr>';
   }).join("");
+  pintarMapa();
   };
+
+  /* ===== Mapa de pórticos (Leaflet, se carga solo al abrirlo) ===== */
+  var TONE_HEX = { copper:"#D49A6A", neutral:"#8C949E", blueprint:"#2C6B7E", amber:"#D6A828", success:"#26694B", violet:"#7A52AA", danger:"#B23B3B" };
+  var SIN_INICIAR_HEX = "#0A2240";
+  var OHIGGINS = [[-35.02,-72.06],[-33.83,-69.98]];
+  var mapa = null, capa = null, ultimoData = null;
+  function tieneCoords(p){ return typeof p.lat === "number" && typeof p.lng === "number" && isFinite(p.lat) && isFinite(p.lng); }
+  function estadoDe(num, d){
+    var e = d.est[num], v = d.vivo[num];
+    if(v !== undefined && (e === undefined || v > e)) return { name:d.orden[v], sub:"en curso" };
+    if(e !== undefined) return { name:d.orden[e], sub:"terminado" };
+    return null;
+  }
+  function pintarMapa(){
+    if(!mapa || !capa || !ultimoData) return;
+    capa.clearLayers();
+    var con = 0;
+    PORTICOS_LISTA.forEach(function(p, k){
+      if(!tieneCoords(p)) return;
+      con++;
+      var num = String(k+1), st = estadoDe(num, ultimoData);
+      var tone = st ? window.PARTIDA_TONE[st.name] : null;
+      var url = "https://www.google.com/maps/search/?api=1&query=" + p.lat + "," + p.lng;
+      L.circleMarker([p.lat, p.lng], { radius:8, color:"#fff", weight:2, fillColor: tone ? TONE_HEX[tone] : SIN_INICIAR_HEX, fillOpacity:.95 })
+        .bindTooltip("N\u00b0 " + num, { direction:"top", offset:[0,-6] })
+        .bindPopup('<strong>N\u00b0 '+num+' \u00b7 '+esc(p.nombre)+'</strong><br>'+esc(p.comuna)
+          +'<br>'+(st ? esc(st.name)+' \u00b7 '+st.sub : 'Sin iniciar')
+          +'<br><a href="'+url+'" target="_blank" rel="noopener">Abrir en Google Maps</a>')
+        .addTo(capa);
+    });
+    var info = document.getElementById("mapaInfo");
+    if(info) info.textContent = "Regi\u00f3n de O'Higgins \u00b7 " + con + " de " + PORTICOS_LISTA.length + " p\u00f3rticos con coordenadas";
+  }
+  function pintarLeyenda(){
+    var el = document.getElementById("mapaLeyenda"); if(!el) return;
+    var html = Object.keys(window.PARTIDA_TONE || {}).map(function(n){
+      return '<span><i style="background:'+TONE_HEX[window.PARTIDA_TONE[n]]+'"></i>'+esc(n)+'</span>';
+    }).join("");
+    el.innerHTML = html + '<span><i style="background:'+SIN_INICIAR_HEX+'"></i>Sin iniciar</span>';
+  }
+  function cargarLeaflet(cb){
+    if(window.L) return cb();
+    var css = document.createElement("link"); css.rel = "stylesheet";
+    css.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"; document.head.appendChild(css);
+    var s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    s.onload = cb;
+    s.onerror = function(){ var info = document.getElementById("mapaInfo"); if(info) info.textContent = "No se pudo cargar el mapa (revisa la conexi\u00f3n)."; };
+    document.head.appendChild(s);
+  }
+  var btnMapa = document.getElementById("mapaToggle"), wrapMapa = document.getElementById("mapaWrap");
+  if(btnMapa && wrapMapa){
+    btnMapa.addEventListener("click", function(){
+      var abrir = wrapMapa.hidden;
+      wrapMapa.hidden = !abrir;
+      btnMapa.setAttribute("aria-expanded", abrir ? "true" : "false");
+      btnMapa.innerHTML = abrir ? "\u2715 Ocultar mapa" : "\ud83d\uddfa\ufe0f Ver mapa de p\u00f3rticos";
+      if(!abrir) return;
+      if(mapa){ setTimeout(function(){ mapa.invalidateSize(); }, 50); return; }
+      cargarLeaflet(function(){
+        mapa = L.map("mapaPorticos", { scrollWheelZoom:false });
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom:19, attribution:"&copy; OpenStreetMap" }).addTo(mapa);
+        mapa.fitBounds(OHIGGINS);
+        capa = L.layerGroup().addTo(mapa);
+        pintarLeyenda(); pintarMapa();
+      });
+    });
+  }
   window.renderPorticos();
   document.getElementById("porticosCount").textContent = PORTICOS_LISTA.length + " p\u00f3rticos";
 })();
