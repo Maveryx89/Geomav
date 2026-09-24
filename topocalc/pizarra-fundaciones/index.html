@@ -412,6 +412,9 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .porticos-table td.n{ width:30px; color:var(--ink-soft); font-family:var(--font-mono); font-size:.72rem; }
 .porticos-table td.comuna, .porticos-table td.ubic{ color:var(--ink-soft); }
 .porticos-table td.ubic{ font-size:.74rem; }
+.porticos-table .ubic-link{ color:var(--blueprint); font-weight:600; text-decoration:none; }
+.porticos-table .ubic-link:hover{ text-decoration:underline; }
+.porticos-table .ubic-pend{ opacity:.75; }
 .note .portico-tag{ display:inline-block; font-size:.66rem; font-weight:700; letter-spacing:.02em; color:var(--blueprint); background:var(--blueprint-soft); border-radius:999px; padding:1px 7px; margin-bottom:4px; }
 .porticos-table tbody tr:hover td{ background:var(--blueprint-soft); }
 @media (max-width:860px){
@@ -541,7 +544,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 /* ===== Listado de pórticos (Región de O'Higgins) — reemplazar nombres, comunas y ubicaciones reales aquí ===== */
 window.PORTICOS_LISTA = (function(){
   var l = [];
-  for(var i=1;i<=63;i++){ l.push({ nombre:"P\u00f3rtico " + i, comuna:"Por definir", ubicacion:"Ubicaci\u00f3n P\u00f3rtico " + i }); }
+  for(var i=1;i<=63;i++){ l.push({ nombre:"P\u00f3rtico " + i, comuna:"Por definir", ubicacion:"Ubicaci\u00f3n P\u00f3rtico " + i, lat:null, lng:null }); }
   return l;
 })();
 </script>
@@ -1179,7 +1182,6 @@ window.PORTICOS_LISTA = (function(){
       if(!editing){
         var metaBits = [];
         if(note.responsable) metaBits.push(escapeHtml(note.responsable));
-        if(note.day) metaBits.push(escapeHtml(note.day));
         var badge = "";
         if(cfg.weekly){
           if(note.cumplido === true) badge = '<span class="badge-ok" title="Cumplido">\u2713</span>';
@@ -1256,13 +1258,15 @@ window.PORTICOS_LISTA = (function(){
       }
 
       return '<div class="note editing" data-note="'+note.id+'">'
-        + '<textarea data-bind="note:'+note.id+':text" placeholder="Descripci\u00f3n de la tarea">'+escapeHtml(note.text)+'</textarea>'
+        + '<div class="field-row">'
+          + '<div class="field-col"><label>N\u00b0 de p\u00f3rtico</label><select data-bind-select="note:'+note.id+':portico">'+porticoOptions+'</select></div>'
+        + '</div>'
         + '<div class="field-row">'
           + '<div class="field-col"><label>Categor\u00eda</label><select data-bind-select="note:'+note.id+':catId">'+catOptions+'</select></div>'
           + '<div class="field-col"><label>'+(cfg.weekly ? 'D\u00eda' : 'Semana')+'</label><select data-bind-select="note:'+note.id+':weekId">'+weekOptions+'</select></div>'
         + '</div>'
+        + '<textarea data-bind="note:'+note.id+':text" placeholder="Descripci\u00f3n de la tarea">'+escapeHtml(note.text)+'</textarea>'
         + '<div class="field-row">'
-          + '<div class="field-col"><label>N\u00b0 de p\u00f3rtico</label><select data-bind-select="note:'+note.id+':portico">'+porticoOptions+'</select></div>'
           + '<div class="field-col"><label>Avance %</label><input type="number" min="0" max="100" step="5" data-bind="note:'+note.id+':percent" value="'+escapeHtml(note.percent)+'"></div>'
         + '</div>'
         + lpsFields
@@ -1751,10 +1755,17 @@ window.PORTICOS_LISTA = (function(){
   "use strict";
   var PORTICOS_LISTA = window.PORTICOS_LISTA;
   function esc(s){ return String(s).replace(/[&<>"']/g,function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]; }); }
+  /* Con coordenadas (lat, lng en grados decimales) la ubicación abre Google Maps; sin ellas queda como texto pendiente */
+  function ubicHtml(p){
+    var ok = typeof p.lat === "number" && typeof p.lng === "number" && isFinite(p.lat) && isFinite(p.lng);
+    if(!ok) return '<span class="ubic-pend" title="Coordenadas pendientes">'+esc(p.ubicacion)+'</span>';
+    var url = "https://www.google.com/maps/search/?api=1&query=" + p.lat + "," + p.lng;
+    return '<a class="ubic-link" href="'+url+'" target="_blank" rel="noopener">\ud83d\udccd '+esc(p.ubicacion)+'</a>';
+  }
   var tb = document.getElementById("porticosBody");
   if(!tb) return;
   tb.innerHTML = PORTICOS_LISTA.map(function(p,k){
-    return '<tr><td class="n">'+(k+1)+'</td><td>'+esc(p.nombre)+'</td><td class="comuna">'+esc(p.comuna)+'</td><td class="ubic">'+esc(p.ubicacion)+'</td></tr>';
+    return '<tr><td class="n">'+(k+1)+'</td><td>'+esc(p.nombre)+'</td><td class="comuna">'+esc(p.comuna)+'</td><td class="ubic">'+ubicHtml(p)+'</td></tr>';
   }).join("");
   document.getElementById("porticosCount").textContent = PORTICOS_LISTA.length + " p\u00f3rticos";
 })();
