@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Pizarra de Fundaciones · GeoMav</title>
+<title>Programación de Pórticos de Vigilancia · GeoMav</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Pizarra digital de planificación de fundaciones: excavación, emplantillado, fundación, malla, relleno, pórtico y cámara. Por GeoMav.">
+<meta name="description" content="Programación de instalación de pórticos de vigilancia en la Región de O&#39;Higgins: excavación, emplantillado, fundación, malla, relleno, pórtico y cámara. Por GeoMav.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#F4F3EF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -395,6 +395,33 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   .corner, .month-head, .week-head, .row-label{ position:static !important; }
 }
 
+
+/* ---------- Listado de pórticos (junto al tablero Semanal) ---------- */
+.semanal-layout{ display:flex; align-items:stretch; min-width:0; }
+.semanal-layout > .board-scroll{ flex:0 1 auto; min-width:0; }
+.porticos-panel{ position:relative; flex:0 0 300px; margin:14px 16px 40px 0; }
+.porticos-inner{ position:absolute; inset:0; display:flex; flex-direction:column; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); overflow:hidden; }
+.porticos-head{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; padding:10px 12px; border-bottom:1px solid var(--line); background:var(--paper-sunken); }
+.porticos-head strong{ font-family:var(--font-display); font-size:.92rem; color:var(--ink); }
+.porticos-head .porticos-sub{ display:block; font-size:.72rem; color:var(--ink-soft); font-weight:500; margin-top:2px; }
+.porticos-count{ font-size:.72rem; font-weight:700; color:var(--blueprint); background:var(--blueprint-soft); border-radius:999px; padding:2px 8px; white-space:nowrap; }
+.porticos-scroll{ flex:1; min-height:0; overflow:auto; -webkit-overflow-scrolling:touch; }
+.porticos-table{ width:100%; border-collapse:collapse; font-size:.8rem; color:var(--ink); }
+.porticos-table th{ position:sticky; top:0; z-index:1; background:var(--paper-raised); text-align:left; font-size:.68rem; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); padding:8px 10px; border-bottom:1px solid var(--line-strong); }
+.porticos-table td{ padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+.porticos-table td.n{ width:30px; color:var(--ink-soft); font-family:var(--font-mono); font-size:.72rem; }
+.porticos-table td.comuna{ color:var(--ink-soft); }
+.porticos-table tbody tr:hover td{ background:var(--blueprint-soft); }
+@media (max-width:860px){
+  .semanal-layout{ flex-direction:column; }
+  .porticos-panel{ flex:none; height:360px; margin:0 16px 30px; }
+}
+@media (max-width:480px){
+  .topbar .brand .brand-logo{ display:none; }
+  .topbar .brand .mark{ font-size:13px; }
+  .topbar .brand .tag{ font-size:7.5px; white-space:normal; line-height:1.15; }
+}
+@media print{ .porticos-panel{ display:none !important; } .semanal-layout{ display:block !important; } }
 </style>
 </head>
 
@@ -405,8 +432,8 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     <div class="brand">
       <img class="brand-logo" src="data:image/png;base64,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" alt="GeoMav">
       <div class="brand-text">
-        <span class="mark">Pizarra</span>
-        <span class="tag">DE FUNDACIONES · POR GEOMAV</span>
+        <span class="mark">Pórticos</span>
+        <span class="tag">PROGRAMACIÓN DE VIGILANCIA</span>
       </div>
     </div>
     <span class="spacer"></span>
@@ -453,7 +480,20 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       <div class="checklist-panel"></div>
     </details>
 
-    <div class="board-scroll"><div class="board"></div></div>
+    <div class="semanal-layout">
+      <div class="board-scroll"><div class="board"></div></div>
+      <aside class="porticos-panel" aria-label="Listado de pórticos">
+        <div class="porticos-inner">
+          <div class="porticos-head"><div><strong>Listado de pórticos</strong><span class="porticos-sub">Región de O&#39;Higgins</span></div><span class="porticos-count" id="porticosCount"></span></div>
+          <div class="porticos-scroll">
+            <table class="porticos-table">
+              <thead><tr><th>#</th><th>Nombre pórtico</th><th>Comuna</th></tr></thead>
+              <tbody id="porticosBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </aside>
+    </div>
     <div class="print-semanal-chunks"></div>
   </section>
 
@@ -489,7 +529,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 
   <footer class="app-foot">
     <img class="foot-logo" src="data:image/png;base64,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" alt="GeoMav">
-    <span>Pizarra de Fundaciones · por GeoMav</span>
+    <span>Programación de Pórticos de Vigilancia · por GeoMav</span>
     <span class="foot-cta">¿Necesitas un levantamiento topográfico, dron o recorrido 360°? <a href="https://geomav.me/?utm_source=topocalc-pizarra&amp;utm_medium=app&amp;utm_campaign=pie" target="_blank" rel="noopener">Cotiza en geomav.me</a></span>
     <span class="foot-copy">&copy; <span id="footYear"></span> GeoMav. Todos los derechos reservados.</span>
   </footer>
@@ -1542,8 +1582,8 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     };
   }
 
-  BOARDS.semanal = initPizarra({ sel:'[data-board="semanal"]', storageKey:"pizarra-fund-semanal-v1", weekly:true, defaultTitle:"Fundaciones \u00b7 Semanal" });
-  BOARDS.intermedio = initPizarra({ sel:'[data-board="intermedio"]', storageKey:"pizarra-fund-intermedio-v1", weekly:false, defaultTitle:"Fundaciones \u00b7 Plan Intermedio" });
+  BOARDS.semanal = initPizarra({ sel:'[data-board="semanal"]', storageKey:"pizarra-fund-semanal-v1", weekly:true, defaultTitle:"P\u00f3rticos de Vigilancia \u00b7 Semanal" });
+  BOARDS.intermedio = initPizarra({ sel:'[data-board="intermedio"]', storageKey:"pizarra-fund-intermedio-v1", weekly:false, defaultTitle:"P\u00f3rticos de Vigilancia \u00b7 Plan Intermedio" });
 
   /* ---------- theme (global, una sola vez) ---------- */
   function applyThemeIcon(mode){
@@ -1661,7 +1701,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     var file = null; try{ file = new File([blob], nombre, { type:"application/json" }); }catch(e){}
     // En celular: menú Compartir (WhatsApp, Drive, correo…). En PC: descarga directa.
     if(esMovil && file && navigator.canShare && navigator.canShare({ files:[file] })){
-      navigator.share({ files:[file], title:"Pizarra de Fundaciones" }).catch(function(){});
+      navigator.share({ files:[file], title:"Programaci\u00f3n de P\u00f3rticos de Vigilancia" }).catch(function(){});
       return;
     }
     var a = document.createElement("a");
@@ -1687,6 +1727,22 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     };
     r.readAsText(f);
   });
+})();
+</script>
+
+<script>
+/* ===== Listado de pórticos (Región de O'Higgins) — reemplazar nombres/comunas reales aquí ===== */
+(function(){
+  "use strict";
+  var PORTICOS_LISTA = [];
+  for(var i=1;i<=63;i++){ PORTICOS_LISTA.push({ nombre:"P\u00f3rtico " + i, comuna:"Por definir" }); }
+  function esc(s){ return String(s).replace(/[&<>"']/g,function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]; }); }
+  var tb = document.getElementById("porticosBody");
+  if(!tb) return;
+  tb.innerHTML = PORTICOS_LISTA.map(function(p,k){
+    return '<tr><td class="n">'+(k+1)+'</td><td>'+esc(p.nombre)+'</td><td class="comuna">'+esc(p.comuna)+'</td></tr>';
+  }).join("");
+  document.getElementById("porticosCount").textContent = PORTICOS_LISTA.length + " p\u00f3rticos";
 })();
 </script>
 </body>
