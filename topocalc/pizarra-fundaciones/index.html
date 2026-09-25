@@ -477,7 +477,13 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   .m-group.stripe-amber{ border-left-color:#D6A828; } .m-group.stripe-success{ border-left-color:var(--success); } .m-group.stripe-violet{ border-left-color:var(--stripe-violet); } .m-group.stripe-danger{ border-left-color:var(--danger); }
   .m-group-head{ display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:.9rem; color:var(--ink); margin-bottom:6px; }
   .m-cnt{ font-size:.72rem; color:var(--ink-soft); background:var(--paper-sunken); border-radius:999px; padding:1px 8px; }
-  .m-group .note{ width:auto; margin-bottom:8px; }
+  .m-notes{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px; margin-bottom:8px; }
+  .m-notes .note{ width:auto; margin:0; min-width:0; padding:7px 7px 6px; }
+  .m-notes .note .portico-tag{ font-size:.66rem; padding:1px 6px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; box-sizing:border-box; }
+  .m-notes .note .txt{ font-size:.78rem; line-height:1.25; overflow-wrap:anywhere; }
+  .m-notes .note .meta{ font-size:.68rem; }
+  .m-notes .note.editing{ grid-column:1 / -1; padding:10px; }
+  .m-notes .note.editing .txt{ font-size:inherit; }
   .m-add{ all:unset; box-sizing:border-box; width:100%; min-height:44px; display:flex; align-items:center; justify-content:center; border:1px dashed var(--line-strong); border-radius:8px; color:var(--blueprint); font-weight:700; font-size:.82rem; cursor:pointer; }
   .m-empty{ color:var(--ink-soft); font-size:.85rem; }
   .note-actions button, .tri, .btn-sm, .dategen .btn-sm, .restr-toggle{ min-height:44px; }
@@ -1423,7 +1429,7 @@ window.PORTICOS_LISTA = (function(){
         var ns = notesIn(c.id, mCol);
         var tone = toneForCat(c.id) || "neutral";
         return '<div class="m-group stripe-'+tone+'"><div class="m-group-head"><span>'+escapeHtml(c.name)+'</span><span class="m-cnt">'+ns.length+'</span></div>'
-          + ns.map(function(n){ return renderNote(n); }).join("")
+          + (ns.length ? '<div class="m-notes">' + ns.map(function(n){ return renderNote(n); }).join("") + '</div>' : '')
           + '<button type="button" class="m-add" data-action="add-note" data-cat="'+c.id+'" data-week="'+mCol+'">+ Agregar tarea</button></div>';
       }).join("");
       chips += '<button type="button" class="m-chip m-chip-add" data-action="add-week" aria-label="'+(cfg.weekly ? 'Agregar d\u00eda' : 'Agregar semana')+'"><span aria-hidden="true">+</span><small>'+(cfg.weekly ? 'D\u00eda' : 'Semana')+'</small></button>';
