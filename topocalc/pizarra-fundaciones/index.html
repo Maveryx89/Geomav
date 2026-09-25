@@ -438,6 +438,23 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .pm-thumbs img{ width:56px; height:56px; object-fit:cover; border-radius:6px; border:1px solid var(--line); }
 .pm-fotos-link{ font-size:.72rem; font-weight:700; color:var(--blueprint); text-decoration:none; }
 .pm-fotos-link:hover{ text-decoration:underline; }
+button.pm-fotos-link{ all:unset; cursor:pointer; font-size:.72rem; font-weight:700; color:var(--blueprint); }
+button.pm-fotos-link:hover{ text-decoration:underline; }
+.pm-pct{ font-size:.7rem; font-weight:700; color:var(--ink); background:var(--paper-sunken); border-radius:999px; padding:1px 7px; }
+.gal-overlay{ position:fixed; inset:0; z-index:2000; background:rgba(6,14,26,.94); display:flex; flex-direction:column; color:#fff; }
+.gal-overlay[hidden]{ display:none; }
+.gal-top{ display:flex; align-items:center; gap:10px; padding:calc(10px + env(safe-area-inset-top, 0px)) 14px 10px; }
+.gal-info{ flex:1; font-size:.82rem; font-weight:600; opacity:.9; }
+.gal-drive{ color:#9fd3e0; font-size:.78rem; font-weight:700; text-decoration:none; }
+.gal-x{ all:unset; cursor:pointer; width:44px; height:44px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; border-radius:50%; background:rgba(255,255,255,.12); }
+.gal-main{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; position:relative; padding:0 8px; }
+.gal-img{ max-width:100%; max-height:100%; object-fit:contain; border-radius:6px; box-shadow:0 10px 40px rgba(0,0,0,.5); }
+.gal-nav{ all:unset; cursor:pointer; position:absolute; top:50%; transform:translateY(-50%); width:48px; height:48px; display:flex; align-items:center; justify-content:center; font-size:2rem; border-radius:50%; background:rgba(255,255,255,.14); }
+.gal-prev{ left:10px; } .gal-next{ right:10px; }
+.gal-strip{ display:flex; gap:6px; overflow-x:auto; padding:10px 14px calc(12px + env(safe-area-inset-bottom, 0px)); justify-content:center; }
+.gal-th{ all:unset; cursor:pointer; flex:none; width:56px; height:56px; border-radius:6px; overflow:hidden; opacity:.55; border:2px solid transparent; }
+.gal-th.on{ opacity:1; border-color:#fff; }
+.gal-th img{ width:100%; height:100%; object-fit:cover; }
 .nav-semanas{ display:flex; gap:6px; flex-wrap:wrap; margin-left:auto; }
 @media print{ .nav-semanas{ display:none; } }
 /* ---------- menú "Más opciones" ---------- */
@@ -2287,8 +2304,9 @@ window.PORTICOS_LISTA = (function(){
   window.PORTICOS_AUTOR = { get: getAutor, set: setAutor, pedir: pedirAutor };
   function enviar(body){
     if(!body.autor) body.autor = getAutor() || "Sin nombre";
-    var intento = function(){ return fetch(API, { method:"POST", body: JSON.stringify(body), redirect:"follow" }).then(function(r){ return r.json(); }); };
-    return intento().catch(function(){ return intento(); });
+    /* sin reintento autom\u00e1tico: si la respuesta se pierde pero el servidor s\u00ed guard\u00f3, reintentar duplicar\u00eda el registro */
+    return fetch(API, { method:"POST", body: JSON.stringify(body), redirect:"follow" }).then(function(r){ return r.json(); })
+      .catch(function(err){ setTimeout(cargar, 1500); throw err; });
   }
   try{ var c = JSON.parse(localStorage.getItem(LS_CACHE) || "null"); if(c) aplicarRemoto(c); }catch(e){}
 
@@ -2299,15 +2317,17 @@ window.PORTICOS_LISTA = (function(){
       var n = String(a.portico);
       (hist[n] = hist[n] || []).push(a);
       var idx = o.indexOf(String(a.partida).trim()); if(idx < 0) return;
-      if(!est[n] || idx > est[n].idx || (idx === est[n].idx && a.fecha > est[n].fecha)) est[n] = { idx: idx, fecha: a.fecha };
+      if(!est[n] || idx > est[n].idx || (idx === est[n].idx && (a.fecha + a.registrado) > (est[n].fecha + est[n].reg))) est[n] = { idx: idx, fecha: a.fecha, reg: a.registrado || "", avance: a.avance };
     });
     return { orden: o, est: est, hist: hist };
   }
-  function estadoDe(num, d){ var e = d.est[num]; return e ? { name: d.orden[e.idx], idx: e.idx, fecha: e.fecha } : null; }
+  function estadoDe(num, d){ var e = d.est[num]; return e ? { name: d.orden[e.idx], idx: e.idx, fecha: e.fecha, avance: e.avance } : null; }
+  function parcial(av){ return av !== "" && av != null && Number(av) < 100; }
+  function subEstado(st){ return parcial(st.avance) ? ("en curso " + st.avance + "% \u00b7 " + fmt(st.fecha)) : ("ejecutado " + fmt(st.fecha)); }
   function chip(name){ if(name === "Comentarios") return '<span class="estado-chip note-neutral">\ud83d\udcac Comentario</span>'; var t = window.PARTIDA_TONE[name]; return '<span class="estado-chip note-'+t+'"><i class="dot dot-'+t+'"></i>'+esc(name)+'</span>'; }
   function estadoHtml(num, d){
     var st = estadoDe(num, d);
-    var inner = st ? chip(st.name) + '<span class="estado-sub">ejecutado ' + fmt(st.fecha) + '</span>'
+    var inner = st ? chip(st.name) + '<span class="estado-sub">' + subEstado(st) + '</span>'
                    : '<span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar</span>';
     return '<button type="button" class="estado-btn" data-portico="'+num+'" title="Ver / registrar avance">'+inner+'</button>';
   }
@@ -2399,7 +2419,8 @@ window.PORTICOS_LISTA = (function(){
     var opts = '<option value="Comentarios">0. Comentarios</option>' + d.orden.map(function(n,i){ return '<option value="'+esc(n)+'"'+(i===sig?' selected':'')+'>'+(i+1)+'. '+esc(n)+'</option>'; }).join("");
     var histHtml = hist.length ? hist.map(function(a){
         return '<li>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.obs?'<span class="pm-obs">'+esc(a.obs)+'</span>':'')
-          +(a.nfotos ? '<a class="pm-fotos-link" href="'+esc(a.fotosUrl)+'" target="_blank" rel="noopener">\ud83d\udcf7 '+a.nfotos+' foto'+(a.nfotos===1?'':'s')+'</a>' : '')
+          +(a.avance !== "" && a.avance != null && a.partida !== "Comentarios" ? '<span class="pm-pct">'+esc(a.avance)+'%</span>' : '')
+          +(a.nfotos ? '<button type="button" class="pm-fotos-link" data-galeria="'+esc(a.id)+'">\ud83d\udcf7 '+a.nfotos+' foto'+(a.nfotos===1?'':'s')+'</button>' : '')
           +'<button type="button" class="btn-link" data-addfotos="'+esc(a.id)+'">+ Fotos</button>'
           +'<button type="button" class="btn-link danger" data-anular="'+esc(a.id)+'">Anular</button></li>';
       }).join("") : '<li class="pm-vacio">Sin registros todav\u00eda</li>';
@@ -2407,10 +2428,12 @@ window.PORTICOS_LISTA = (function(){
       + '<div class="pm-head"><div><strong>'+esc(p.nombre)+'</strong><span>'+esc(p.comuna)+'</span></div>'
       + '<button type="button" class="pm-x" aria-label="Cerrar">\u2715</button></div>'
       + '<div class="pm-body">'
-      + '<div class="pm-label">Estado actual</div><div>'+(st ? chip(st.name)+' <span class="pm-f">ejecutado '+fmt(st.fecha)+'</span>' : '<span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar</span>')+'</div>'
+      + '<div class="pm-label">Estado actual</div><div>'+(st ? chip(st.name)+' <span class="pm-f">'+subEstado(st)+'</span>' : '<span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar</span>')+'</div>'
       + '<div class="pm-label">Registrar partida ejecutada o comentario</div>'
       + '<div class="pm-grid"><label>Partida<select id="pmPartida">'+opts+'</select></label>'
       + '<label>Fecha de ejecuci\u00f3n<input type="date" id="pmFecha" value="'+hoyISO()+'"></label></div>'
+      + '<label class="pm-full">Avance de la partida<select id="pmAvance">'
+        + ['100','75','50','25','0'].map(function(v){ return '<option value="'+v+'">'+v+'%'+(v==='100'?' (terminada)':'')+'</option>'; }).join('') + '</select></label>'
       + '<label class="pm-full">Observaci\u00f3n (opcional)<input type="text" id="pmObs" maxlength="300" placeholder="ej. hormigonado OK, falta curado"></label>'
       + '<label class="pm-full pm-fotos-btn">\ud83d\udcf7 Adjuntar fotos (opcional, m\u00e1x. 10)<input type="file" id="pmFotos" accept="image/*" multiple></label>'
       + '<div class="pm-thumbs" id="pmThumbs"></div>'
@@ -2427,10 +2450,13 @@ window.PORTICOS_LISTA = (function(){
       if(modal.querySelector("#pmPartida").value === "Comentarios" && !modal.querySelector("#pmObs").value.trim()){
         var mm = modal.querySelector("#pmMsg"); mm.textContent = "Escribe el comentario en Observaci\u00f3n."; mm.className = "pm-msg err"; modal.querySelector("#pmObs").focus(); return;
       }
-      guardar({ accion:"registrar", portico:Number(num), partida: modal.querySelector("#pmPartida").value,
-                fecha: modal.querySelector("#pmFecha").value, obs: modal.querySelector("#pmObs").value }, num, this, fotosSel);
+      var partSel = modal.querySelector("#pmPartida").value;
+      guardar({ accion:"registrar", portico:Number(num), partida: partSel,
+                fecha: modal.querySelector("#pmFecha").value, obs: modal.querySelector("#pmObs").value,
+                avance: partSel === "Comentarios" ? "" : modal.querySelector("#pmAvance").value }, num, this, fotosSel);
     };
     var fotosSel = [];
+    modal.querySelector("#pmPartida").onchange = function(){ modal.querySelector("#pmAvance").closest("label").style.display = this.value === "Comentarios" ? "none" : ""; };
     modal.querySelector("#pmFotos").onchange = function(){
       var th = modal.querySelector("#pmThumbs"), total = this.files.length, bG = modal.querySelector("#pmGuardar");
       th.innerHTML = '<span class="pm-f">Leyendo fotos\u2026</span>'; bG.disabled = true;
@@ -2521,11 +2547,60 @@ window.PORTICOS_LISTA = (function(){
       abrirPortico(num);
       var m2 = modal.querySelector("#pmMsg"); if(m2){ m2.textContent = "\u2713 Guardado para todos"; m2.className = "pm-msg ok"; }
     }).catch(function(err){
-      msg.textContent = (err && err.message === "fotos") ? "No se pudieron leer las fotos. Vuelve a elegirlas desde la Galer\u00eda o la c\u00e1mara." : "Sin conexi\u00f3n: no se guard\u00f3. Intenta de nuevo.";
+      msg.textContent = (err && err.message === "fotos") ? "No se pudieron leer las fotos. Vuelve a elegirlas desde la Galer\u00eda o la c\u00e1mara." : "No se recibi\u00f3 confirmaci\u00f3n. Revisa el historial en unos segundos antes de reintentar (puede haberse guardado).";
       msg.className = "pm-msg err"; btn.disabled = false;
     });
   }
   window.abrirPortico = abrirPortico;
+
+  /* ---------- galería de fotos dentro de la app ---------- */
+  var gal = document.createElement("div");
+  gal.className = "gal-overlay"; gal.hidden = true; gal.setAttribute("role", "dialog"); gal.setAttribute("aria-modal", "true"); gal.setAttribute("aria-label", "Fotos del avance");
+  document.body.appendChild(gal);
+  var galIds = [], galPos = 0, galInfo = "", galUrl = "";
+  function fotoSrc(id, w){ return "https://drive.google.com/thumbnail?id=" + encodeURIComponent(id) + "&sz=w" + (w || 1600); }
+  function fotoAlt(img, id, w){ img.onerror = null; img.src = "https://lh3.googleusercontent.com/d/" + encodeURIComponent(id) + "=w" + (w || 1600); }
+  window.__fotoAlt = fotoAlt;
+  function pintarGaleria(){
+    var id = galIds[galPos];
+    gal.innerHTML = '<div class="gal-top"><span class="gal-info">'+esc(galInfo)+' \u00b7 '+(galPos+1)+' de '+galIds.length+'</span>'
+      + (galUrl ? '<a class="gal-drive" href="'+esc(galUrl)+'" target="_blank" rel="noopener">Drive</a>' : '')
+      + '<button type="button" class="gal-x" aria-label="Cerrar">\u2715</button></div>'
+      + '<div class="gal-main">'
+      + (galIds.length > 1 ? '<button type="button" class="gal-nav gal-prev" aria-label="Foto anterior"><span aria-hidden="true">\u2039</span></button>' : '')
+      + '<img class="gal-img" alt="Foto '+(galPos+1)+'" src="'+fotoSrc(id, 1600)+'" onerror="window.__fotoAlt(this,\''+esc(id)+'\',1600)">'
+      + (galIds.length > 1 ? '<button type="button" class="gal-nav gal-next" aria-label="Foto siguiente"><span aria-hidden="true">\u203a</span></button>' : '')
+      + '</div>'
+      + (galIds.length > 1 ? '<div class="gal-strip">' + galIds.map(function(x, k){ return '<button type="button" class="gal-th'+(k===galPos?' on':'')+'" data-k="'+k+'"><img alt="" loading="lazy" src="'+fotoSrc(x, 200)+'" onerror="window.__fotoAlt(this,\''+esc(x)+'\',200)"></button>'; }).join("") + '</div>' : '');
+    gal.querySelector(".gal-x").onclick = cerrarGaleria;
+    var pv = gal.querySelector(".gal-prev"), nx = gal.querySelector(".gal-next");
+    if(pv) pv.onclick = function(){ moverGaleria(-1); };
+    if(nx) nx.onclick = function(){ moverGaleria(1); };
+    Array.prototype.forEach.call(gal.querySelectorAll(".gal-th"), function(b){ b.onclick = function(){ galPos = Number(b.dataset.k); pintarGaleria(); }; });
+  }
+  function moverGaleria(d){ galPos = (galPos + d + galIds.length) % galIds.length; pintarGaleria(); }
+  function cerrarGaleria(){ gal.hidden = true; gal.innerHTML = ""; }
+  function abrirGaleria(regId){
+    var a = REMOTO.avance.find(function(x){ return x.id === regId; }); if(!a) return;
+    var ids = Array.isArray(a.fotos) ? a.fotos : [];
+    if(!ids.length){ if(a.fotosUrl) window.open(a.fotosUrl, "_blank", "noopener"); return; }
+    var nombres = {}; lista().forEach(function(p,k){ nombres[numDe(p,k)] = p.nombre; });
+    galIds = ids; galPos = 0; galUrl = a.fotosUrl || "";
+    galInfo = (nombres[String(a.portico)] || "") + " \u00b7 " + (a.partida === "Comentarios" ? "Comentario" : a.partida) + (a.avance !== "" && a.avance != null && a.partida !== "Comentarios" ? " " + a.avance + "%" : "") + " \u00b7 " + fmt(a.fecha);
+    gal.hidden = false; pintarGaleria();
+  }
+  gal.addEventListener("click", function(e){ if(e.target === gal || e.target.classList.contains("gal-main")) cerrarGaleria(); });
+  document.addEventListener("keydown", function(e){
+    if(gal.hidden) return;
+    if(e.key === "Escape"){ cerrarGaleria(); e.stopPropagation(); }
+    else if(e.key === "ArrowLeft" && galIds.length > 1) moverGaleria(-1);
+    else if(e.key === "ArrowRight" && galIds.length > 1) moverGaleria(1);
+  }, true);
+  var toque = null;
+  gal.addEventListener("touchstart", function(e){ toque = e.touches[0].clientX; }, { passive:true });
+  gal.addEventListener("touchend", function(e){ if(toque === null || galIds.length < 2) return; var dx = e.changedTouches[0].clientX - toque; toque = null; if(Math.abs(dx) > 50) moverGaleria(dx < 0 ? 1 : -1); });
+  document.addEventListener("click", function(e){ var b = e.target.closest("[data-galeria]"); if(b){ e.preventDefault(); abrirGaleria(b.dataset.galeria); } });
+  window.abrirGaleria = abrirGaleria;
 
   /* ---------- avance por semana ---------- */
   function lunesTxt(s){ return "Semana del " + fmt(s); }
@@ -2546,7 +2621,7 @@ window.PORTICOS_LISTA = (function(){
       var regs = sem[s].slice().sort(function(a,b){ return a.portico - b.portico || a.fecha.localeCompare(b.fecha); });
       var ports = {}; regs.forEach(function(a){ ports[a.portico] = 1; });
       return '<details class="av-sem"'+(i===0?' open':'')+'><summary>'+lunesTxt(s)+' <span>'+regs.length+' registro'+(regs.length===1?'':'s')+' \u00b7 '+Object.keys(ports).length+' p\u00f3rtico'+(Object.keys(ports).length===1?'':'s')+'</span></summary><ul>'
-        + regs.map(function(a){ return '<li><button type="button" class="btn-link" data-ver="'+a.portico+'">'+esc(nombres[String(a.portico)] || ("P\u00f3rtico " + a.portico))+'</button>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.nfotos ? '<a class="pm-fotos-link" href="'+esc(a.fotosUrl)+'" target="_blank" rel="noopener">\ud83d\udcf7 '+a.nfotos+'</a>' : '')+'</li>'; }).join("")
+        + regs.map(function(a){ return '<li><button type="button" class="btn-link" data-ver="'+a.portico+'">'+esc(nombres[String(a.portico)] || ("P\u00f3rtico " + a.portico))+'</button>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.avance !== "" && a.avance != null && a.partida !== "Comentarios" ? '<span class="pm-pct">'+esc(a.avance)+'%</span>' : '')+(a.nfotos ? '<button type="button" class="pm-fotos-link" data-galeria="'+esc(a.id)+'">\ud83d\udcf7 '+a.nfotos+'</button>' : '')+'</li>'; }).join("")
         + '</ul></details>';
     }).join("") : '<p class="pm-vacio">A\u00fan no hay avances guardados.</p>';
     wrap.innerHTML = resumen + semHtml;
