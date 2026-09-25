@@ -440,6 +440,73 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .pm-fotos-link:hover{ text-decoration:underline; }
 .nav-semanas{ display:flex; gap:6px; flex-wrap:wrap; margin-left:auto; }
 @media print{ .nav-semanas{ display:none; } }
+/* ---------- menú "Más opciones" ---------- */
+.menu-mas{ position:relative; display:inline-block; }
+.menu-mas > summary{ list-style:none; cursor:pointer; }
+.menu-mas > summary::-webkit-details-marker{ display:none; }
+.menu-pop{ position:absolute; z-index:40; top:calc(100% + 6px); left:0; min-width:200px; display:flex; flex-direction:column; gap:6px; padding:8px; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:0 12px 28px -10px rgba(0,0,0,.35); }
+.menu-pop .btn-sm{ width:100%; text-align:left; justify-content:flex-start; }
+.sync-bar.respaldo-det{ display:block; }
+.respaldo-det > summary{ cursor:pointer; list-style:none; }
+.respaldo-det > summary::-webkit-details-marker{ display:none; }
+.respaldo-det > summary::before{ content:"\25B8  "; color:var(--blueprint); }
+.respaldo-det[open] > summary::before{ content:"\25BE  "; }
+.respaldo-body{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:8px; }
+/* ---------- filtros del listado ---------- */
+.porticos-filtros{ display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:8px 10px; border-bottom:1px solid var(--line); }
+.porticos-filtros input{ grid-column:1 / -1; }
+.porticos-filtros input, .porticos-filtros select{ font:inherit; font-size:.8rem; color:var(--ink); background:var(--paper); border:1px solid var(--line-strong); border-radius:6px; padding:6px 8px; min-width:0; }
+/* ---------- vista móvil ---------- */
+.m-view{ display:none; }
+.m-tabs{ display:none; }
+@media (max-width:860px){
+  body{ padding-bottom:calc(66px + env(safe-area-inset-bottom, 0px)); }
+  .m-tabs{ display:flex; position:fixed; left:0; right:0; bottom:0; z-index:60; background:var(--paper-raised); border-top:1px solid var(--line); box-shadow:0 -6px 18px -12px rgba(0,0,0,.35); padding:4px 4px calc(4px + env(safe-area-inset-bottom, 0px)); }
+  .m-tabs button{ all:unset; flex:1; min-height:52px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-size:.66rem; font-weight:700; color:var(--ink-soft); border-radius:10px; cursor:pointer; }
+  .m-tabs button span{ font-size:1.15rem; line-height:1; }
+  .m-tabs button.on{ color:var(--blueprint); background:var(--blueprint-soft); }
+  .m-tabs button:focus-visible{ outline:2px solid var(--blueprint); }
+  .pizarra-block .board-scroll{ display:none !important; }
+  .m-view{ display:block; padding:10px 12px 20px; }
+  .m-chips{ display:flex; gap:6px; overflow-x:auto; padding:2px 0 10px; position:sticky; top:0; z-index:5; background:var(--paper); }
+  .m-chip{ all:unset; flex:none; min-width:58px; min-height:44px; padding:6px 10px; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid var(--line-strong); border-radius:10px; background:var(--paper-raised); color:var(--ink); cursor:pointer; }
+  .m-chip span{ font-weight:700; font-size:.82rem; } .m-chip small{ font-size:.64rem; color:var(--ink-soft); }
+  .m-chip.on{ background:var(--ink); color:var(--paper); border-color:var(--ink); } .m-chip.on small{ color:var(--paper); opacity:.8; }
+  .m-group{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); padding:8px 10px 10px 14px; margin-bottom:10px; border-left-width:6px; }
+  .m-group.stripe-copper{ border-left-color:var(--accent); } .m-group.stripe-neutral{ border-left-color:#8C949E; } .m-group.stripe-blueprint{ border-left-color:var(--blueprint); }
+  .m-group.stripe-amber{ border-left-color:#D6A828; } .m-group.stripe-success{ border-left-color:var(--success); } .m-group.stripe-violet{ border-left-color:var(--stripe-violet); } .m-group.stripe-danger{ border-left-color:var(--danger); }
+  .m-group-head{ display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:.9rem; color:var(--ink); margin-bottom:6px; }
+  .m-cnt{ font-size:.72rem; color:var(--ink-soft); background:var(--paper-sunken); border-radius:999px; padding:1px 8px; }
+  .m-group .note{ width:auto; margin-bottom:8px; }
+  .m-add{ all:unset; box-sizing:border-box; width:100%; min-height:44px; display:flex; align-items:center; justify-content:center; border:1px dashed var(--line-strong); border-radius:8px; color:var(--blueprint); font-weight:700; font-size:.82rem; cursor:pointer; }
+  .m-empty{ color:var(--ink-soft); font-size:.85rem; }
+  .note-actions button, .tri, .btn-sm, .dategen .btn-sm, .restr-toggle{ min-height:44px; }
+  .note.editing select, .note.editing input, .note.editing textarea, .porticos-filtros input, .porticos-filtros select, .pm-body input, .pm-body select{ font-size:16px; min-height:40px; }
+  .estado-btn{ padding:6px 2px; }
+  .hint{ display:none; }
+  body[data-mtab] .pizarra-block{ display:none; }
+  body[data-mtab="semanal"] .pizarra-block[data-board="semanal"],
+  body[data-mtab="porticos"] .pizarra-block[data-board="semanal"],
+  body[data-mtab="mapa"] .pizarra-block[data-board="semanal"],
+  body[data-mtab="avance"] .pizarra-block[data-board="semanal"],
+  body[data-mtab="intermedio"] .pizarra-block[data-board="intermedio"]{ display:block; }
+  body[data-mtab="semanal"] .porticos-panel, body[data-mtab="semanal"] .porticos-mapa{ display:none !important; }
+  body:not([data-mtab="semanal"]) .sync-bar{ display:none; }
+  body[data-mtab="porticos"] .pizarra-block[data-board="semanal"] > :not(.semanal-layout),
+  body[data-mtab="mapa"] .pizarra-block[data-board="semanal"] > :not(.semanal-layout),
+  body[data-mtab="avance"] .pizarra-block[data-board="semanal"] > :not(.semanal-layout){ display:none !important; }
+  body[data-mtab="porticos"] .porticos-mapa{ display:none !important; }
+  body[data-mtab="porticos"] .semanal-layout > .porticos-panel{ grid-row:1; height:calc(100vh - 150px); margin:12px 12px 16px; }
+  body[data-mtab="mapa"] .semanal-layout > .porticos-panel, body[data-mtab="avance"] .semanal-layout > .porticos-panel{ display:none !important; }
+  body[data-mtab="mapa"] .porticos-mapa, body[data-mtab="avance"] .porticos-mapa{ grid-row:1; margin:12px; }
+  body[data-mtab="mapa"] #avanceToggle, body[data-mtab="mapa"] #avanceWrap, body[data-mtab="mapa"] #mapaToggle,
+  body[data-mtab="avance"] #mapaToggle, body[data-mtab="avance"] #mapaWrap, body[data-mtab="avance"] #avanceToggle{ display:none !important; }
+  body[data-mtab="mapa"] .mapa-canvas{ height:calc(100vh - 250px); min-height:320px; }
+  body[data-mtab="avance"] #avanceWrap{ max-height:none; }
+  .app-foot{ display:none; }
+}
+@media print{ .m-tabs, .m-view, .menu-mas, .respaldo-det{ display:none !important; } }
+
 .restr-toggle .restr-caret{ color:var(--blueprint); width:12px; }
 .restrictions-panel .restr-table-wrap{ margin-top:8px; }
 @media print{ .restr-toggle{ display:none; } }
@@ -560,41 +627,48 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     </button>
   </div>
 
-  <div class="sync-bar">
-    <span class="sync-lbl">Respaldo</span>
-    <button class="btn-sm" id="exportarBtn" type="button">Exportar pizarra</button>
-    <button class="btn-sm" id="importarBtn" type="button">Importar pizarra</button>
-    <input type="file" id="importarFile" accept=".json,application/json" hidden>
-    <span class="sync-hint">Pasa tu pizarra entre celular y PC con un archivo</span>
-  </div>
+  <details class="sync-bar respaldo-det">
+    <summary class="sync-lbl">Respaldo del equipo</summary>
+    <div class="respaldo-body">
+      <button class="btn-sm" id="exportarBtn" type="button">Exportar pizarra</button>
+      <button class="btn-sm" id="importarBtn" type="button">Importar pizarra</button>
+      <input type="file" id="importarFile" accept=".json,application/json" hidden>
+      <span class="sync-hint">Copia local en archivo. Lo guardado con PIN ya queda en la planilla.</span>
+    </div>
+  </details>
 
   <section class="pizarra-block" data-board="semanal">
     <div class="section-head"><span class="idx">1</span><h2>Semanal &middot; lunes a viernes</h2></div>
 
     <div class="title-wrap">
-      <div class="title-input" contenteditable="true" data-bind="title" data-placeholder="Nombre del proyecto"></div>
-      <div class="subtitle-input" contenteditable="true" data-bind="subtitle" data-placeholder="Subtítulo / obra / cliente"></div>
+      <div class="title-input" contenteditable="true" role="textbox" aria-label="Título del tablero" data-bind="title" data-placeholder="Nombre del proyecto"></div>
+      <div class="subtitle-input" contenteditable="true" role="textbox" aria-label="Subtítulo del tablero" data-bind="subtitle" data-placeholder="Subtítulo / obra / cliente"></div>
     </div>
 
     <div class="dategen">
       <div class="fld"><label>Fecha de inicio (lunes)</label><input type="date" class="fecha-inicio"></div>
       <button class="btn-sm" data-action="generar-fechas">Generar fechas</button>
       <div class="nav-semanas">
-        <button class="btn-sm" data-action="semana-ant" title="Semana anterior">&#9664; Anterior</button>
+        <button class="btn-sm" data-action="semana-ant" aria-label="Semana anterior"><span aria-hidden="true">&#9664;</span> Anterior</button>
         <button class="btn-sm" data-action="semana-hoy">Esta semana</button>
-        <button class="btn-sm" data-action="semana-sig" title="Semana siguiente">Siguiente &#9654;</button>
+        <button class="btn-sm" data-action="semana-sig" aria-label="Semana siguiente">Siguiente <span aria-hidden="true">&#9654;</span></button>
       </div>
     </div>
 
     <div class="toolbar">
-      <button class="btn-sm" data-action="add-week">+ Día</button>
-      <button class="btn-sm" data-action="add-category">+ Categoría</button>
-      <button class="btn-sm" data-action="cargar-planilla">&#x27F3; Cargar desde planilla</button>
-      <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
-      <button class="btn-sm" data-action="print">Imprimir</button>
-      <button class="btn-sm danger" data-action="reset">Reiniciar</button>
+      <button class="btn-sm" data-action="cargar-planilla"><span aria-hidden="true">&#x27F3;</span> Cargar desde planilla</button>
+      <details class="menu-mas">
+        <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
+        <div class="menu-pop">
+          <button class="btn-sm" data-action="add-week">+ Día</button>
+          <button class="btn-sm" data-action="add-category">+ Categoría</button>
+          <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
+          <button class="btn-sm" data-action="print">Imprimir</button>
+          <button class="btn-sm danger" data-action="reset">Reiniciar tablero</button>
+        </div>
+      </details>
     </div>
-    <div class="hint">Ingresa la fecha de inicio (lunes) y toca "Generar fechas" para crear los 5 días &middot; toca “+” en una celda para agregar una nota &middot; toca una nota para editarla, moverla o cambiar su color</div>
+    <div class="hint">Toca “+” para agregar una tarea y tócala para editarla. Usa <b>Guardar</b> para compartirla.</div>
 
     <div class="reliability-panel"></div>
 
@@ -603,11 +677,17 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       <div class="checklist-panel"></div>
     </details>
 
+    <div class="m-view" aria-label="Vista por día"></div>
     <div class="semanal-layout">
       <div class="board-scroll"><div class="board"></div></div>
       <aside class="porticos-panel" aria-label="Listado de pórticos">
         <div class="porticos-inner">
           <div class="porticos-head"><div><strong>Listado de pórticos</strong><span class="porticos-sub">Región de O&#39;Higgins · <span class="porticos-sync" id="porticosSync">Conectando…</span></span></div><span class="porticos-count" id="porticosCount"></span></div>
+          <div class="porticos-filtros">
+            <input type="search" id="fBuscar" placeholder="Buscar pórtico o comuna" aria-label="Buscar pórtico o comuna" autocomplete="off">
+            <select id="fComuna" aria-label="Filtrar por comuna"><option value="">Todas las comunas</option></select>
+            <select id="fEstado" aria-label="Filtrar por estado"><option value="">Todos los estados</option></select>
+          </div>
           <div class="porticos-scroll">
             <table class="porticos-table">
               <thead><tr><th>Nombre pórtico</th><th>Comuna</th><th>Ubicación</th><th>Estado</th></tr></thead>
@@ -635,8 +715,8 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     <div class="section-head"><span class="idx">2</span><h2>Intermedio &middot; 2 meses</h2></div>
 
     <div class="title-wrap">
-      <div class="title-input" contenteditable="true" data-bind="title" data-placeholder="Nombre del proyecto"></div>
-      <div class="subtitle-input" contenteditable="true" data-bind="subtitle" data-placeholder="Subtítulo / obra / cliente"></div>
+      <div class="title-input" contenteditable="true" role="textbox" aria-label="Título del tablero" data-bind="title" data-placeholder="Nombre del proyecto"></div>
+      <div class="subtitle-input" contenteditable="true" role="textbox" aria-label="Subtítulo del tablero" data-bind="subtitle" data-placeholder="Subtítulo / obra / cliente"></div>
     </div>
 
     <div class="dategen">
@@ -644,26 +724,40 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     <div class="fld"><label>Duración (semanas)</label><input type="number" class="duracion-semanas" min="1" max="52" value="9"></div>
       <button class="btn-sm" data-action="generar-fechas">Generar fechas</button>
       <div class="nav-semanas">
-        <button class="btn-sm" data-action="semana-ant" title="Semana anterior">&#9664; Anterior</button>
+        <button class="btn-sm" data-action="semana-ant" aria-label="Semana anterior"><span aria-hidden="true">&#9664;</span> Anterior</button>
         <button class="btn-sm" data-action="semana-hoy">Esta semana</button>
-        <button class="btn-sm" data-action="semana-sig" title="Semana siguiente">Siguiente &#9654;</button>
+        <button class="btn-sm" data-action="semana-sig" aria-label="Semana siguiente">Siguiente <span aria-hidden="true">&#9654;</span></button>
       </div>
     </div>
 
     <div class="toolbar">
-      <button class="btn-sm" data-action="add-week">+ Semana</button>
-      <button class="btn-sm" data-action="add-category">+ Categoría</button>
-      <button class="btn-sm" data-action="cargar-planilla">&#x27F3; Cargar desde planilla</button>
-      <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
-      <button class="btn-sm" data-action="print">Imprimir</button>
-      <button class="btn-sm danger" data-action="reset">Reiniciar</button>
+      <button class="btn-sm" data-action="cargar-planilla"><span aria-hidden="true">&#x27F3;</span> Cargar desde planilla</button>
+      <details class="menu-mas">
+        <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
+        <div class="menu-pop">
+          <button class="btn-sm" data-action="add-week">+ Semana</button>
+          <button class="btn-sm" data-action="add-category">+ Categoría</button>
+          <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
+          <button class="btn-sm" data-action="print">Imprimir</button>
+          <button class="btn-sm danger" data-action="reset">Reiniciar tablero</button>
+        </div>
+      </details>
     </div>
-    <div class="hint">Ingresa la fecha de inicio y toca "Generar fechas" para crear las columnas &middot; toca “+” en una celda para agregar una nota &middot; toca una nota para editarla, moverla o cambiar su color</div>
+    <div class="hint">Toca “+” para agregar una tarea y tócala para editarla. Usa <b>Guardar</b> para compartirla.</div>
 
     <div class="restrictions-panel"></div>
 
+    <div class="m-view" aria-label="Vista por semana"></div>
     <div class="board-scroll"><div class="board"></div></div>
   </section>
+
+  <nav class="m-tabs" id="mTabs" aria-label="Secciones">
+    <button type="button" data-mtab="semanal" class="on" aria-current="page"><span aria-hidden="true">&#x1F4CB;</span>Semanal</button>
+    <button type="button" data-mtab="intermedio"><span aria-hidden="true">&#x1F5D3;&#xFE0F;</span>Intermedio</button>
+    <button type="button" data-mtab="porticos"><span aria-hidden="true">&#x1F4CD;</span>Pórticos</button>
+    <button type="button" data-mtab="mapa"><span aria-hidden="true">&#x1F5FA;&#xFE0F;</span>Mapa</button>
+    <button type="button" data-mtab="avance"><span aria-hidden="true">&#x1F4C8;</span>Avance</button>
+  </nav>
 
   <div class="print-summary" id="printSummary"></div>
 
@@ -1115,7 +1209,11 @@ window.PORTICOS_LISTA = (function(){
       for(var i=0;i<l.length;i++){ if(String(l[i].num || (i+1)) === s) return l[i]; }
       return { nombre:"P\u00f3rtico " + s, comuna:"" };
     }
-    function pedirPin(api){ var p = api.getPin(); if(p) return p; p = window.prompt("PIN de edici\u00f3n para guardar en la planilla compartida:"); return (p || "").trim(); }
+    function pedirPin(api){
+      var p = api.getPin(); if(p) return p;
+      if(window.PORTICOS_AUTOR) window.PORTICOS_AUTOR.pedir();
+      p = window.prompt("PIN de edici\u00f3n para guardar en la planilla compartida:"); return (p || "").trim();
+    }
     function guardarNotaRemota(note, btn){
       var api = window.PORTICOS_API; if(!api){ alert("No hay conexi\u00f3n con la planilla."); return; }
       if(!note.portico){ alert("Selecciona el p\u00f3rtico antes de guardar."); return; }
@@ -1290,7 +1388,42 @@ window.PORTICOS_LISTA = (function(){
       return groups;
     }
 
+    /* ---------- vista móvil: un día (Semanal) o una semana (Intermedio) por vez, en lista ---------- */
+    var mCol = null;
+    var mqMovil = window.matchMedia ? window.matchMedia("(max-width:860px)") : null;
+    function esMovil(){ return !!(mqMovil && mqMovil.matches); }
+    if(mqMovil && mqMovil.addEventListener) mqMovil.addEventListener("change", function(){ render(); });
+    function colPorDefecto(){
+      if(state.inicio){
+        var hoy = new Date(), h0 = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+        var d = Math.round((h0 - parseInputDate(state.inicio)) / 86400000);
+        var idx = cfg.weekly ? d : Math.floor(d / 7);
+        if(idx >= 0 && idx < state.weeks.length) return state.weeks[idx].id;
+      }
+      return state.weeks[0].id;
+    }
+    function renderMobile(){
+      var box = root.querySelector(".m-view"); if(!box) return;
+      if(!esMovil()){ box.innerHTML = ""; return; }
+      if(!state.weeks.length){ box.innerHTML = '<p class="m-empty">Sin columnas. Elige una fecha y toca \u201cGenerar fechas\u201d.</p>'; return; }
+      if(!mCol || !findWeek(mCol)) mCol = colPorDefecto();
+      var chips = state.weeks.map(function(w){
+        var cnt = state.notes.filter(function(n){ return n.weekId === w.id; }).length;
+        var on = w.id === mCol;
+        return '<button type="button" class="m-chip'+(on?' on':'')+'" data-action="m-col" data-week="'+w.id+'" aria-pressed="'+(on?'true':'false')+'">'
+          + '<span>'+escapeHtml(cfg.weekly ? w.label : ('Sem. ' + w.label))+'</span><small>'+escapeHtml(String(w.month || "").slice(0,3))+' \u00b7 '+cnt+'</small></button>';
+      }).join("");
+      var grupos = state.categories.map(function(c){
+        var ns = notesIn(c.id, mCol);
+        var tone = toneForCat(c.id) || "neutral";
+        return '<div class="m-group stripe-'+tone+'"><div class="m-group-head"><span>'+escapeHtml(c.name)+'</span><span class="m-cnt">'+ns.length+'</span></div>'
+          + ns.map(function(n){ return renderNote(n); }).join("")
+          + '<button type="button" class="m-add" data-action="add-note" data-cat="'+c.id+'" data-week="'+mCol+'">+ Agregar tarea</button></div>';
+      }).join("");
+      box.innerHTML = '<div class="m-chips">'+chips+'</div>' + grupos;
+    }
     function render(){
+      renderMobile();
       var board = root.querySelector(".board");
       var nWeeks = state.weeks.length, nCats = state.categories.length;
       var wideCol = state.weeks.map(function(w){
@@ -1577,8 +1710,8 @@ window.PORTICOS_LISTA = (function(){
         responsable:"", cumplido:null, causa:"", liberada:false, tipoRestriccion:"", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:"", pendiente:true};
       state.notes.push(note); state.editingNoteId = note.id; saveState(); render();
       setTimeout(function(){
-        var ta = root.querySelector('textarea[data-bind="note:'+note.id+':text"]');
-        if(ta) ta.focus();
+        var tas = root.querySelectorAll('textarea[data-bind="note:'+note.id+':text"]');
+        for(var t = 0; t < tas.length; t++){ if(tas[t].offsetParent){ tas[t].focus(); break; } }
       }, 0);
     }
     function delNote(id){
@@ -1677,6 +1810,7 @@ window.PORTICOS_LISTA = (function(){
       else if(action === "add-note") addNote(el.dataset.cat, el.dataset.week);
       else if(action === "open-note"){ state.editingNoteId = el.dataset.note; render(); }
       else if(action === "close-note"){ state.editingNoteId = null; render(); }
+      else if(action === "m-col"){ mCol = el.dataset.week; state.editingNoteId = null; render(); }
       else if(action === "toggle-restr"){ restrAbierto = !restrAbierto; renderRestrictions(); }
       else if(action === "save-note"){ var ns = state.notes.find(function(x){return x.id===el.dataset.note;}); if(ns) guardarNotaRemota(ns, el); }
       else if(action === "del-note") delNote(el.dataset.note);
@@ -1815,7 +1949,8 @@ window.PORTICOS_LISTA = (function(){
         }
       }
       else if(action === "reset"){
-        if(confirm("Esto borrar\u00e1 este tablero. \u00bfContinuar?")){
+        var okR = window.prompt("Esto borra las notas de este tablero SOLO en este equipo (la planilla compartida no cambia).\nPara confirmar escribe BORRAR:");
+        if(okR && okR.trim().toUpperCase() === "BORRAR"){
           state = defaultState(); saveState(); render(); syncHeader();
         }
       }
@@ -2085,7 +2220,7 @@ window.PORTICOS_LISTA = (function(){
     if(Array.isArray(j.programacion)) window.PROGRAMACION = j.programacion;
   }
   function sync(txt, cls){ var el = document.getElementById("porticosSync"); if(el){ el.textContent = txt; el.className = "porticos-sync " + (cls||""); } }
-  function horaAhora(){ var d = new Date(); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+  function horaAhora(){ var d = new Date(); return String(d.getDate()).padStart(2,"0")+"-"+String(d.getMonth()+1).padStart(2,"0")+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
   function cargar(){
     sync("Sincronizando\u2026", "");
     return fetch(API, { cache:"no-store" }).then(function(r){ return r.json(); }).then(function(j){
@@ -2118,7 +2253,18 @@ window.PORTICOS_LISTA = (function(){
       window.renderPorticos(); sincronizarTableros();
     }
   };
+  var SS_AUTOR = "porticos-autor";
+  function getAutor(){ try{ return sessionStorage.getItem(SS_AUTOR) || ""; }catch(e){ return ""; } }
+  function setAutor(a){ try{ if(a) sessionStorage.setItem(SS_AUTOR, a); }catch(e){} }
+  function pedirAutor(){
+    var a = getAutor(); if(a) return a;
+    a = (window.prompt("Tu nombre (queda en la bit\u00e1cora de cambios):") || "").trim();
+    if(a) setAutor(a);
+    return a;
+  }
+  window.PORTICOS_AUTOR = { get: getAutor, set: setAutor, pedir: pedirAutor };
   function enviar(body){
+    if(!body.autor) body.autor = getAutor() || "Sin nombre";
     var intento = function(){ return fetch(API, { method:"POST", body: JSON.stringify(body), redirect:"follow" }).then(function(r){ return r.json(); }); };
     return intento().catch(function(){ return intento(); });
   }
@@ -2152,13 +2298,47 @@ window.PORTICOS_LISTA = (function(){
   var tb = document.getElementById("porticosBody");
   if(!tb) return;
   var ultimoData = null;
+  /* ---------- filtros del listado (tambi\u00e9n se aplican al mapa) ---------- */
+  var fBuscar = document.getElementById("fBuscar"), fComuna = document.getElementById("fComuna"), fEstado = document.getElementById("fEstado");
+  function sinTildes(s){ return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
+  function llenarFiltros(data){
+    if(fComuna){
+      var sel = fComuna.value, comunas = [];
+      lista().forEach(function(p){ if(p.comuna && comunas.indexOf(p.comuna) < 0) comunas.push(p.comuna); });
+      comunas.sort(function(a,b){ return a.localeCompare(b, "es"); });
+      fComuna.innerHTML = '<option value="">Todas las comunas</option>' + comunas.map(function(c){ return '<option'+(c===sel?' selected':'')+'>'+esc(c)+'</option>'; }).join("");
+    }
+    if(fEstado){
+      var se = fEstado.value;
+      fEstado.innerHTML = '<option value="">Todos los estados</option><option value="__sin"'+(se==="__sin"?' selected':'')+'>Sin iniciar</option>'
+        + data.orden.map(function(n){ return '<option'+(n===se?' selected':'')+'>'+esc(n)+'</option>'; }).join("");
+    }
+  }
+  function hayFiltro(){ return !!((fBuscar && fBuscar.value.trim()) || (fComuna && fComuna.value) || (fEstado && fEstado.value)); }
+  function pasaFiltro(p, num, data){
+    var q0 = fBuscar ? sinTildes(fBuscar.value.trim()) : "";
+    if(q0 && sinTildes(p.nombre + " " + p.comuna).indexOf(q0) < 0) return false;
+    if(fComuna && fComuna.value && p.comuna !== fComuna.value) return false;
+    if(fEstado && fEstado.value){
+      var st = estadoDe(num, data);
+      if(fEstado.value === "__sin"){ if(st) return false; }
+      else if(!st || st.name !== fEstado.value) return false;
+    }
+    return true;
+  }
+  [fBuscar, fComuna, fEstado].forEach(function(el){ if(el) el.addEventListener(el === fBuscar ? "input" : "change", function(){ window.renderPorticos(); }); });
+
   window.renderPorticos = function(){
     var data = calcular(); ultimoData = data;
+    llenarFiltros(data);
+    var visibles = 0;
     tb.innerHTML = lista().map(function(p,k){
       var num = numDe(p,k);
+      if(!pasaFiltro(p, num, data)) return "";
+      visibles++;
       return '<tr><td>'+esc(p.nombre)+'</td><td class="comuna">'+esc(p.comuna)+'</td><td class="ubic">'+ubicHtml(p)+'</td><td class="estado">'+estadoHtml(num, data)+'</td></tr>';
-    }).join("");
-    var cnt = document.getElementById("porticosCount"); if(cnt) cnt.textContent = lista().length + " p\u00f3rticos";
+    }).join("") || '<tr><td colspan="4" class="pm-vacio" style="padding:14px">Ning\u00fan p\u00f3rtico coincide con el filtro.</td></tr>';
+    var cnt = document.getElementById("porticosCount"); if(cnt) cnt.textContent = hayFiltro() ? (visibles + " de " + lista().length + " p\u00f3rticos") : (lista().length + " p\u00f3rticos");
     pintarMapa(); pintarAvance(); pintarEditBar();
   };
   tb.addEventListener("click", function(e){ var b = e.target.closest(".estado-btn"); if(b) abrirPortico(b.dataset.portico); });
@@ -2179,7 +2359,15 @@ window.PORTICOS_LISTA = (function(){
   document.body.appendChild(modal);
   modal.addEventListener("click", function(e){ if(e.target === modal) cerrarModal(); });
   document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !modal.hidden) cerrarModal(); });
-  function cerrarModal(){ modal.hidden = true; modal.innerHTML = ""; }
+  var focoPrevio = null;
+  function cerrarModal(){ modal.hidden = true; modal.innerHTML = ""; if(focoPrevio && focoPrevio.focus){ try{ focoPrevio.focus(); }catch(e){} } focoPrevio = null; }
+  modal.addEventListener("keydown", function(e){
+    if(e.key !== "Tab" || modal.hidden) return;
+    var f = modal.querySelectorAll('button:not([disabled]), input, select, a[href]'); if(!f.length) return;
+    var a = f[0], z = f[f.length - 1];
+    if(e.shiftKey && document.activeElement === a){ z.focus(); e.preventDefault(); }
+    else if(!e.shiftKey && document.activeElement === z){ a.focus(); e.preventDefault(); }
+  });
   function abrirPortico(num){
     num = String(num);
     var p = lista().find(function(x,k){ return numDe(x,k) === num; }) || { nombre:"P\u00f3rtico " + num, comuna:"" };
@@ -2193,7 +2381,7 @@ window.PORTICOS_LISTA = (function(){
           +'<button type="button" class="btn-link" data-addfotos="'+esc(a.id)+'">+ Fotos</button>'
           +'<button type="button" class="btn-link danger" data-anular="'+esc(a.id)+'">Anular</button></li>';
       }).join("") : '<li class="pm-vacio">Sin registros todav\u00eda</li>';
-    modal.innerHTML = '<div class="pm-card" role="dialog" aria-modal="true">'
+    modal.innerHTML = '<div class="pm-card" role="dialog" aria-modal="true" aria-label="Avance del p\u00f3rtico">'
       + '<div class="pm-head"><div><strong>'+esc(p.nombre)+'</strong><span>'+esc(p.comuna)+'</span></div>'
       + '<button type="button" class="pm-x" aria-label="Cerrar">\u2715</button></div>'
       + '<div class="pm-body">'
@@ -2204,12 +2392,14 @@ window.PORTICOS_LISTA = (function(){
       + '<label class="pm-full">Observaci\u00f3n (opcional)<input type="text" id="pmObs" maxlength="300" placeholder="ej. hormigonado OK, falta curado"></label>'
       + '<label class="pm-full pm-fotos-btn">\ud83d\udcf7 Adjuntar fotos (opcional, m\u00e1x. 10)<input type="file" id="pmFotos" accept="image/*" multiple></label>'
       + '<div class="pm-thumbs" id="pmThumbs"></div>'
-      + (getPin() ? '' : '<label class="pm-full">PIN de edici\u00f3n<input type="password" id="pmPin" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022"></label>')
+      + (getPin() ? '' : '<div class="pm-grid"><label>Tu nombre<input type="text" id="pmAutor" maxlength="60" autocomplete="name" value="'+esc(getAutor())+'" placeholder="Para la bit\u00e1cora"></label><label>PIN de edici\u00f3n<input type="password" id="pmPin" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022"></label></div>')
       + '<div class="pm-msg" id="pmMsg"></div>'
       + '<button type="button" class="pm-guardar" id="pmGuardar">Guardar avance</button>'
       + '<div class="pm-label">Historial del p\u00f3rtico</div><ul class="pm-hist">'+histHtml+'</ul>'
       + '</div></div>';
+    if(modal.hidden) focoPrevio = document.activeElement;
     modal.hidden = false;
+    setTimeout(function(){ var pp = modal.querySelector("#pmPartida"); if(pp) pp.focus(); }, 30);
     modal.querySelector(".pm-x").onclick = cerrarModal;
     modal.querySelector("#pmGuardar").onclick = function(){
       if(modal.querySelector("#pmPartida").value === "Comentarios" && !modal.querySelector("#pmObs").value.trim()){
@@ -2257,7 +2447,9 @@ window.PORTICOS_LISTA = (function(){
     var pinInput = modal.querySelector("#pmPin");
     var pin = getPin() || (pinInput ? pinInput.value.trim() : "");
     if(!pin){ msg.textContent = "Ingresa el PIN de edici\u00f3n."; msg.className = "pm-msg err"; if(pinInput) pinInput.focus(); return; }
-    body.pin = pin;
+    var autorInput = modal.querySelector("#pmAutor");
+    if(autorInput && autorInput.value.trim()) setAutor(autorInput.value.trim());
+    body.pin = pin; body.autor = getAutor() || "Sin nombre";
     btn.disabled = true; msg.textContent = (files && files.length) ? "Preparando fotos\u2026" : "Guardando\u2026"; msg.className = "pm-msg";
     comprimirTodas(files).then(function(fotos){
       if(fotos.length){ body.fotos = fotos; msg.textContent = "Subiendo " + fotos.length + " foto" + (fotos.length===1?"":"s") + "\u2026"; }
@@ -2329,8 +2521,10 @@ window.PORTICOS_LISTA = (function(){
     var con = 0, pts = [];
     lista().forEach(function(p, k){
       if(!tieneCoords(p)) return;
+      var num = numDe(p,k);
+      if(!pasaFiltro(p, num, ultimoData)) return;
       con++; pts.push([p.lat, p.lng]);
-      var num = numDe(p,k), st = estadoDe(num, ultimoData);
+      var st = estadoDe(num, ultimoData);
       var tone = st ? window.PARTIDA_TONE[st.name] : null;
       var url = "https://www.google.com/maps/search/?api=1&query=" + p.lat + "," + p.lng;
       L.circleMarker([p.lat, p.lng], { radius:8, color: tone ? "#fff" : "#0A2240", weight:2, fillColor: tone ? TONE_HEX[tone] : SIN_INICIAR_HEX, fillOpacity: tone ? .95 : 1 })
@@ -2343,7 +2537,7 @@ window.PORTICOS_LISTA = (function(){
     });
     if(pts.length && !mapa._encuadrado){ mapa.fitBounds(L.latLngBounds(pts), { padding:[28,28], maxZoom:13 }); mapa._encuadrado = true; }
     var info = document.getElementById("mapaInfo");
-    if(info) info.textContent = "Regi\u00f3n de O'Higgins \u00b7 " + con + " de " + lista().length + " p\u00f3rticos con coordenadas";
+    if(info) info.textContent = "Regi\u00f3n de O'Higgins \u00b7 " + (hayFiltro() ? con + " de " + lista().length + " p\u00f3rticos (filtrados)" : con + " de " + lista().length + " p\u00f3rticos con coordenadas");
   }
   function pintarLeyenda(){
     var el = document.getElementById("mapaLeyenda"); if(!el) return;
@@ -2385,6 +2579,24 @@ window.PORTICOS_LISTA = (function(){
     if(btnAv && wrapAv && wrapAv.hidden) btnAv.click();
     if(btnMapa && wrapMapa && wrapMapa.hidden) btnMapa.click();
   }
+  /* ---------- pestañas inferiores (solo celular) ---------- */
+  function irTab(tab){
+    document.body.setAttribute("data-mtab", tab);
+    Array.prototype.forEach.call(document.querySelectorAll("#mTabs [data-mtab]"), function(b){
+      var on = b.dataset.mtab === tab; b.classList.toggle("on", on);
+      if(on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
+    if(tab === "mapa" && btnMapa && wrapMapa){ if(wrapMapa.hidden) btnMapa.click(); else if(mapa) setTimeout(function(){ mapa.invalidateSize(); mapa._encuadrado = false; pintarMapa(); }, 60); }
+    if(tab === "avance" && btnAv && wrapAv && wrapAv.hidden) btnAv.click();
+    window.scrollTo(0, 0);
+  }
+  document.body.setAttribute("data-mtab", "semanal");
+  Array.prototype.forEach.call(document.querySelectorAll("#mTabs [data-mtab]"), function(b){ b.addEventListener("click", function(){ irTab(b.dataset.mtab); }); });
+  document.addEventListener("click", function(e){
+    var bm = e.target.closest(".menu-pop button"); if(bm){ var dm = bm.closest("details"); if(dm) dm.removeAttribute("open"); return; }
+    Array.prototype.forEach.call(document.querySelectorAll("details.menu-mas[open]"), function(dm){ if(!dm.contains(e.target)) dm.removeAttribute("open"); });
+  });
+
   window.renderPorticos();
   cargar();
   document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") cargar(); });
