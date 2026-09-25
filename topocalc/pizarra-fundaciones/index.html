@@ -440,6 +440,11 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .pm-fotos-link:hover{ text-decoration:underline; }
 button.pm-fotos-link{ all:unset; cursor:pointer; font-size:.72rem; font-weight:700; color:var(--blueprint); }
 button.pm-fotos-link:hover{ text-decoration:underline; }
+.porticos-table th.th-fotos, .porticos-table td.fotos{ width:34px; text-align:center; padding-left:2px; padding-right:2px; }
+.foto-btn{ all:unset; cursor:pointer; display:inline-flex; flex-direction:column; align-items:center; line-height:1; font-size:1.05rem; padding:4px; border-radius:8px; }
+.foto-btn small{ font-size:.6rem; font-weight:700; color:var(--blueprint); margin-top:2px; }
+.foto-btn:hover{ background:var(--blueprint-soft); }
+.foto-btn:focus-visible{ outline:2px solid var(--blueprint); }
 .pm-pct{ font-size:.7rem; font-weight:700; color:var(--ink); background:var(--paper-sunken); border-radius:999px; padding:1px 7px; }
 .gal-overlay{ position:fixed; inset:0; z-index:2000; background:rgba(6,14,26,.94); display:flex; flex-direction:column; color:#fff; }
 .gal-overlay[hidden]{ display:none; }
@@ -717,7 +722,7 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
           </div>
           <div class="porticos-scroll">
             <table class="porticos-table">
-              <thead><tr><th>Nombre pórtico</th><th>Comuna</th><th>Ubicación</th><th>Estado</th></tr></thead>
+              <thead><tr><th>Nombre pórtico</th><th>Comuna</th><th>Ubicación</th><th class="th-fotos" aria-label="Fotos">📷</th><th>Estado</th></tr></thead>
               <tbody id="porticosBody"></tbody>
             </table>
           </div>
@@ -2378,8 +2383,11 @@ window.PORTICOS_LISTA = (function(){
       var num = numDe(p,k);
       if(!pasaFiltro(p, num, data)) return "";
       visibles++;
-      return '<tr><td>'+esc(p.nombre)+'</td><td class="comuna">'+esc(p.comuna)+'</td><td class="ubic">'+ubicHtml(p)+'</td><td class="estado">'+estadoHtml(num, data)+'</td></tr>';
-    }).join("") || '<tr><td colspan="4" class="pm-vacio" style="padding:14px">Ning\u00fan p\u00f3rtico coincide con el filtro.</td></tr>';
+      var nf = fotosDePortico(num).length;
+      return '<tr><td>'+esc(p.nombre)+'</td><td class="comuna">'+esc(p.comuna)+'</td><td class="ubic">'+ubicHtml(p)+'</td>'
+        + '<td class="fotos">'+(nf ? '<button type="button" class="foto-btn" data-galport="'+num+'" aria-label="Ver '+nf+' foto'+(nf===1?'':'s')+' de '+esc(p.nombre)+'">\ud83d\udcf7<small>'+nf+'</small></button>' : '')+'</td>'
+        + '<td class="estado">'+estadoHtml(num, data)+'</td></tr>';
+    }).join("") || '<tr><td colspan="5" class="pm-vacio" style="padding:14px">Ning\u00fan p\u00f3rtico coincide con el filtro.</td></tr>';
     var cnt = document.getElementById("porticosCount"); if(cnt) cnt.textContent = hayFiltro() ? (visibles + " de " + lista().length + " p\u00f3rticos") : (lista().length + " p\u00f3rticos");
     pintarMapa(); pintarAvance(); pintarEditBar();
   };
@@ -2557,14 +2565,15 @@ window.PORTICOS_LISTA = (function(){
   var gal = document.createElement("div");
   gal.className = "gal-overlay"; gal.hidden = true; gal.setAttribute("role", "dialog"); gal.setAttribute("aria-modal", "true"); gal.setAttribute("aria-label", "Fotos del avance");
   document.body.appendChild(gal);
-  var galIds = [], galPos = 0, galInfo = "", galUrl = "";
+  var galIds = [], galPos = 0, galInfo = "", galUrl = "", galItems = null;
   function fotoSrc(id, w){ return "https://drive.google.com/thumbnail?id=" + encodeURIComponent(id) + "&sz=w" + (w || 1600); }
   function fotoAlt(img, id, w){ img.onerror = null; img.src = "https://lh3.googleusercontent.com/d/" + encodeURIComponent(id) + "=w" + (w || 1600); }
   window.__fotoAlt = fotoAlt;
   function pintarGaleria(){
     var id = galIds[galPos];
-    gal.innerHTML = '<div class="gal-top"><span class="gal-info">'+esc(galInfo)+' \u00b7 '+(galPos+1)+' de '+galIds.length+'</span>'
-      + (galUrl ? '<a class="gal-drive" href="'+esc(galUrl)+'" target="_blank" rel="noopener">Drive</a>' : '')
+    var info = galItems ? galItems[galPos].info : galInfo, url = galItems ? galItems[galPos].url : galUrl;
+    gal.innerHTML = '<div class="gal-top"><span class="gal-info">'+esc(info)+' \u00b7 '+(galPos+1)+' de '+galIds.length+'</span>'
+      + (url ? '<a class="gal-drive" href="'+esc(url)+'" target="_blank" rel="noopener">Drive</a>' : '')
       + '<button type="button" class="gal-x" aria-label="Cerrar">\u2715</button></div>'
       + '<div class="gal-main">'
       + (galIds.length > 1 ? '<button type="button" class="gal-nav gal-prev" aria-label="Foto anterior"><span aria-hidden="true">\u2039</span></button>' : '')
@@ -2585,7 +2594,7 @@ window.PORTICOS_LISTA = (function(){
     var ids = Array.isArray(a.fotos) ? a.fotos : [];
     if(!ids.length){ if(a.fotosUrl) window.open(a.fotosUrl, "_blank", "noopener"); return; }
     var nombres = {}; lista().forEach(function(p,k){ nombres[numDe(p,k)] = p.nombre; });
-    galIds = ids; galPos = 0; galUrl = a.fotosUrl || "";
+    galIds = ids; galPos = 0; galUrl = a.fotosUrl || ""; galItems = null;
     galInfo = (nombres[String(a.portico)] || "") + " \u00b7 " + (a.partida === "Comentarios" ? "Comentario" : a.partida) + (a.avance !== "" && a.avance != null && a.partida !== "Comentarios" ? " " + a.avance + "%" : "") + " \u00b7 " + fmt(a.fecha);
     gal.hidden = false; pintarGaleria();
   }
@@ -2601,6 +2610,25 @@ window.PORTICOS_LISTA = (function(){
   gal.addEventListener("touchend", function(e){ if(toque === null || galIds.length < 2) return; var dx = e.changedTouches[0].clientX - toque; toque = null; if(Math.abs(dx) > 50) moverGaleria(dx < 0 ? 1 : -1); });
   document.addEventListener("click", function(e){ var b = e.target.closest("[data-galeria]"); if(b){ e.preventDefault(); abrirGaleria(b.dataset.galeria); } });
   window.abrirGaleria = abrirGaleria;
+  /* todas las fotos de un pórtico (todas sus partidas y fechas), la más reciente primero */
+  function infoRegistro(a){
+    var nombres = {}; lista().forEach(function(p,k){ nombres[numDe(p,k)] = p.nombre; });
+    return (nombres[String(a.portico)] || "") + " \u00b7 " + (a.partida === "Comentarios" ? "Comentario" : a.partida)
+      + (a.avance !== "" && a.avance != null && a.partida !== "Comentarios" ? " " + a.avance + "%" : "") + " \u00b7 " + fmt(a.fecha);
+  }
+  function fotosDePortico(num){
+    var vistos = {}, items = [];
+    REMOTO.avance.filter(function(a){ return String(a.portico) === String(num) && Array.isArray(a.fotos) && a.fotos.length; })
+      .sort(function(a,b){ return (b.fecha + b.registrado).localeCompare(a.fecha + a.registrado); })
+      .forEach(function(a){ a.fotos.forEach(function(id){ if(!vistos[id]){ vistos[id] = 1; items.push({ id:id, info: infoRegistro(a), url: a.fotosUrl || "" }); } }); });
+    return items;
+  }
+  function abrirGaleriaPortico(num){
+    var items = fotosDePortico(num); if(!items.length) return;
+    galItems = items; galIds = items.map(function(x){ return x.id; }); galPos = 0;
+    gal.hidden = false; pintarGaleria();
+  }
+  document.addEventListener("click", function(e){ var b = e.target.closest("[data-galport]"); if(b){ e.preventDefault(); abrirGaleriaPortico(b.dataset.galport); } });
 
   /* ---------- avance por semana ---------- */
   function lunesTxt(s){ return "Semana del " + fmt(s); }
