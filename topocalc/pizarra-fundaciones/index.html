@@ -2428,16 +2428,23 @@ window.PORTICOS_LISTA = (function(){
         var mm = modal.querySelector("#pmMsg"); mm.textContent = "Escribe el comentario en Observaci\u00f3n."; mm.className = "pm-msg err"; modal.querySelector("#pmObs").focus(); return;
       }
       guardar({ accion:"registrar", portico:Number(num), partida: modal.querySelector("#pmPartida").value,
-                fecha: modal.querySelector("#pmFecha").value, obs: modal.querySelector("#pmObs").value }, num, this, modal.querySelector("#pmFotos").files);
+                fecha: modal.querySelector("#pmFecha").value, obs: modal.querySelector("#pmObs").value }, num, this, fotosSel);
     };
+    var fotosSel = [];
     modal.querySelector("#pmFotos").onchange = function(){
-      var th = modal.querySelector("#pmThumbs"), fs = Array.prototype.slice.call(this.files, 0, 10);
-      th.innerHTML = fs.map(function(f){ return '<img alt="" src="'+URL.createObjectURL(f)+'">'; }).join("") + (this.files.length > 10 ? '<span class="pm-f">Solo se subir\u00e1n 10</span>' : '');
+      var th = modal.querySelector("#pmThumbs"), total = this.files.length, bG = modal.querySelector("#pmGuardar");
+      th.innerHTML = '<span class="pm-f">Leyendo fotos\u2026</span>'; bG.disabled = true;
+      leerArchivos(this.files).then(function(blobs){
+        fotosSel = blobs; bG.disabled = false;
+        th.innerHTML = blobs.map(function(b){ return '<img alt="" src="'+URL.createObjectURL(b)+'">'; }).join("")
+          + (total > 10 ? '<span class="pm-f">Solo se subir\u00e1n 10</span>' : '')
+          + (blobs.length < Math.min(total, 10) ? '<span class="pm-f">Algunas fotos no se pudieron leer</span>' : '');
+      });
     };
     Array.prototype.forEach.call(modal.querySelectorAll("[data-addfotos]"), function(b){
       b.onclick = function(){
         var inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.multiple = true;
-        inp.onchange = function(){ if(inp.files.length) guardar({ accion:"agregarFotos", id:b.dataset.addfotos }, num, b, inp.files); };
+        inp.onchange = function(){ if(inp.files.length) leerArchivos(inp.files).then(function(blobs){ guardar({ accion:"agregarFotos", id:b.dataset.addfotos }, num, b, blobs); }); };
         inp.click();
       };
     });
@@ -2446,23 +2453,47 @@ window.PORTICOS_LISTA = (function(){
     });
   }
   /* Reduce cada foto (m\u00e1x. 1600 px, JPEG) antes de subirla */
-  function comprimir(file){
-    return new Promise(function(res){
-      var img = new Image(), url = URL.createObjectURL(file);
-      img.onload = function(){
-        var max = 1600, w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, max / Math.max(w, h));
-        var c = document.createElement("canvas"); c.width = Math.round(w * k); c.height = Math.round(h * k);
-        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-        URL.revokeObjectURL(url);
-        res({ nombre: file.name, tipo: "image/jpeg", datos: c.toDataURL("image/jpeg", 0.8).split(",")[1] });
-      };
-      img.onerror = function(){ URL.revokeObjectURL(url); res(null); };
-      img.src = url;
+  /* Las fotos se leen UNA vez a memoria al elegirlas: en Android los archivos de la galer\u00eda/nube
+     a veces no se pueden volver a leer despu\u00e9s (eso causaba "formato no compatible"). */
+  function leerArchivos(files){
+    return Promise.all(Array.prototype.slice.call(files || [], 0, 10).map(function(f){
+      var lector = f.arrayBuffer ? f.arrayBuffer() : new Promise(function(ok, ko){ var fr = new FileReader(); fr.onload = function(){ ok(fr.result); }; fr.onerror = ko; fr.readAsArrayBuffer(f); });
+      return lector.then(function(buf){ var b = new Blob([buf], { type: f.type || "image/jpeg" }); b.nombre = f.name || "foto.jpg"; return b; }).catch(function(){ return null; });
+    })).then(function(a){ return a.filter(Boolean); });
+  }
+  function aBase64(blob){
+    return new Promise(function(res){ var fr = new FileReader(); fr.onload = function(){ res(String(fr.result).split(",")[1] || ""); }; fr.onerror = function(){ res(""); }; fr.readAsDataURL(blob); });
+  }
+  function dibujar(fuente, w, h, nombre){
+    var max = 1600, k = Math.min(1, max / Math.max(w, h));
+    var c = document.createElement("canvas"); c.width = Math.round(w * k); c.height = Math.round(h * k);
+    c.getContext("2d").drawImage(fuente, 0, 0, c.width, c.height);
+    return { nombre: nombre, tipo: "image/jpeg", datos: c.toDataURL("image/jpeg", 0.8).split(",")[1] };
+  }
+  /* Reduce cada foto (m\u00e1x. 1600 px, JPEG). Si el navegador no logra decodificarla, se sube tal cual (hasta 9 MB). */
+  function comprimir(blob){
+    var nombre = blob.nombre || "foto.jpg";
+    var viaImg = function(){
+      return new Promise(function(res){
+        var img = new Image(), url = URL.createObjectURL(blob);
+        img.onload = function(){ try{ var r = dibujar(img, img.naturalWidth, img.naturalHeight, nombre); URL.revokeObjectURL(url); res(r); }catch(e){ URL.revokeObjectURL(url); res(null); } };
+        img.onerror = function(){ URL.revokeObjectURL(url); res(null); };
+        img.src = url;
+      });
+    };
+    var intento = window.createImageBitmap
+      ? createImageBitmap(blob, { imageOrientation: "from-image" }).then(function(bm){ var r = dibujar(bm, bm.width, bm.height, nombre); if(bm.close) bm.close(); return r; }).catch(viaImg)
+      : viaImg();
+    return intento.then(function(r){
+      if(r && r.datos) return r;
+      if(/^image\/(jpeg|png|webp)$/.test(blob.type) && blob.size <= 9 * 1024 * 1024)
+        return aBase64(blob).then(function(d){ return d ? { nombre: nombre, tipo: blob.type, datos: d } : null; });
+      return null;
     });
   }
-  function comprimirTodas(files){
-    if(!files || !files.length) return Promise.resolve([]);
-    return Promise.all(Array.prototype.slice.call(files, 0, 10).map(comprimir)).then(function(a){ return a.filter(Boolean); });
+  function comprimirTodas(blobs){
+    if(!blobs || !blobs.length) return Promise.resolve([]);
+    return Promise.all(Array.prototype.slice.call(blobs, 0, 10).map(comprimir)).then(function(a){ return a.filter(Boolean); });
   }
   function guardar(body, num, btn, files){
     var msg = modal.querySelector("#pmMsg");
@@ -2490,7 +2521,7 @@ window.PORTICOS_LISTA = (function(){
       abrirPortico(num);
       var m2 = modal.querySelector("#pmMsg"); if(m2){ m2.textContent = "\u2713 Guardado para todos"; m2.className = "pm-msg ok"; }
     }).catch(function(err){
-      msg.textContent = (err && err.message === "fotos") ? "No se pudieron leer las fotos (formato no compatible)." : "Sin conexi\u00f3n: no se guard\u00f3. Intenta de nuevo.";
+      msg.textContent = (err && err.message === "fotos") ? "No se pudieron leer las fotos. Vuelve a elegirlas desde la Galer\u00eda o la c\u00e1mara." : "Sin conexi\u00f3n: no se guard\u00f3. Intenta de nuevo.";
       msg.className = "pm-msg err"; btn.disabled = false;
     });
   }
