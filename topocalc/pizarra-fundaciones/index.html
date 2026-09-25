@@ -433,6 +433,11 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .restr-toggle{ all:unset; cursor:pointer; display:flex; align-items:center; gap:8px; width:100%; box-sizing:border-box; padding:10px 14px; font-family:var(--font-display); font-weight:700; font-size:.9rem; color:var(--ink); background:var(--paper-sunken); border:1px solid var(--line); border-radius:var(--radius-md); }
 .restr-toggle:hover{ border-color:var(--blueprint); }
 .restr-toggle .restr-count{ margin-left:auto; font-family:var(--font-body); font-weight:600; font-size:.72rem; color:var(--danger); }
+.pm-fotos-btn input[type=file]{ font-size:.78rem; padding:6px; }
+.pm-thumbs{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.pm-thumbs img{ width:56px; height:56px; object-fit:cover; border-radius:6px; border:1px solid var(--line); }
+.pm-fotos-link{ font-size:.72rem; font-weight:700; color:var(--blueprint); text-decoration:none; }
+.pm-fotos-link:hover{ text-decoration:underline; }
 .restr-toggle .restr-caret{ color:var(--blueprint); width:12px; }
 .restrictions-panel .restr-table-wrap{ margin-top:8px; }
 @media print{ .restr-toggle{ display:none; } }
@@ -2156,6 +2161,8 @@ window.PORTICOS_LISTA = (function(){
     var opts = '<option value="Comentarios">0. Comentarios</option>' + d.orden.map(function(n,i){ return '<option value="'+esc(n)+'"'+(i===sig?' selected':'')+'>'+(i+1)+'. '+esc(n)+'</option>'; }).join("");
     var histHtml = hist.length ? hist.map(function(a){
         return '<li>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.obs?'<span class="pm-obs">'+esc(a.obs)+'</span>':'')
+          +(a.nfotos ? '<a class="pm-fotos-link" href="'+esc(a.fotosUrl)+'" target="_blank" rel="noopener">\ud83d\udcf7 '+a.nfotos+' foto'+(a.nfotos===1?'':'s')+'</a>' : '')
+          +'<button type="button" class="btn-link" data-addfotos="'+esc(a.id)+'">+ Fotos</button>'
           +'<button type="button" class="btn-link danger" data-anular="'+esc(a.id)+'">Anular</button></li>';
       }).join("") : '<li class="pm-vacio">Sin registros todav\u00eda</li>';
     modal.innerHTML = '<div class="pm-card" role="dialog" aria-modal="true">'
@@ -2167,6 +2174,8 @@ window.PORTICOS_LISTA = (function(){
       + '<div class="pm-grid"><label>Partida<select id="pmPartida">'+opts+'</select></label>'
       + '<label>Fecha de ejecuci\u00f3n<input type="date" id="pmFecha" value="'+hoyISO()+'"></label></div>'
       + '<label class="pm-full">Observaci\u00f3n (opcional)<input type="text" id="pmObs" maxlength="300" placeholder="ej. hormigonado OK, falta curado"></label>'
+      + '<label class="pm-full pm-fotos-btn">\ud83d\udcf7 Adjuntar fotos (opcional, m\u00e1x. 10)<input type="file" id="pmFotos" accept="image/*" multiple></label>'
+      + '<div class="pm-thumbs" id="pmThumbs"></div>'
       + (getPin() ? '' : '<label class="pm-full">PIN de edici\u00f3n<input type="password" id="pmPin" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022"></label>')
       + '<div class="pm-msg" id="pmMsg"></div>'
       + '<button type="button" class="pm-guardar" id="pmGuardar">Guardar avance</button>'
@@ -2179,20 +2188,54 @@ window.PORTICOS_LISTA = (function(){
         var mm = modal.querySelector("#pmMsg"); mm.textContent = "Escribe el comentario en Observaci\u00f3n."; mm.className = "pm-msg err"; modal.querySelector("#pmObs").focus(); return;
       }
       guardar({ accion:"registrar", portico:Number(num), partida: modal.querySelector("#pmPartida").value,
-                fecha: modal.querySelector("#pmFecha").value, obs: modal.querySelector("#pmObs").value }, num, this);
+                fecha: modal.querySelector("#pmFecha").value, obs: modal.querySelector("#pmObs").value }, num, this, modal.querySelector("#pmFotos").files);
     };
+    modal.querySelector("#pmFotos").onchange = function(){
+      var th = modal.querySelector("#pmThumbs"), fs = Array.prototype.slice.call(this.files, 0, 10);
+      th.innerHTML = fs.map(function(f){ return '<img alt="" src="'+URL.createObjectURL(f)+'">'; }).join("") + (this.files.length > 10 ? '<span class="pm-f">Solo se subir\u00e1n 10</span>' : '');
+    };
+    Array.prototype.forEach.call(modal.querySelectorAll("[data-addfotos]"), function(b){
+      b.onclick = function(){
+        var inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.multiple = true;
+        inp.onchange = function(){ if(inp.files.length) guardar({ accion:"agregarFotos", id:b.dataset.addfotos }, num, b, inp.files); };
+        inp.click();
+      };
+    });
     Array.prototype.forEach.call(modal.querySelectorAll("[data-anular]"), function(b){
       b.onclick = function(){ if(confirm("\u00bfAnular este registro de avance?")) guardar({ accion:"anular", id:b.dataset.anular }, num, b); };
     });
   }
-  function guardar(body, num, btn){
+  /* Reduce cada foto (m\u00e1x. 1600 px, JPEG) antes de subirla */
+  function comprimir(file){
+    return new Promise(function(res){
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function(){
+        var max = 1600, w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, max / Math.max(w, h));
+        var c = document.createElement("canvas"); c.width = Math.round(w * k); c.height = Math.round(h * k);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        res({ nombre: file.name, tipo: "image/jpeg", datos: c.toDataURL("image/jpeg", 0.8).split(",")[1] });
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); res(null); };
+      img.src = url;
+    });
+  }
+  function comprimirTodas(files){
+    if(!files || !files.length) return Promise.resolve([]);
+    return Promise.all(Array.prototype.slice.call(files, 0, 10).map(comprimir)).then(function(a){ return a.filter(Boolean); });
+  }
+  function guardar(body, num, btn, files){
     var msg = modal.querySelector("#pmMsg");
     var pinInput = modal.querySelector("#pmPin");
     var pin = getPin() || (pinInput ? pinInput.value.trim() : "");
     if(!pin){ msg.textContent = "Ingresa el PIN de edici\u00f3n."; msg.className = "pm-msg err"; if(pinInput) pinInput.focus(); return; }
     body.pin = pin;
-    btn.disabled = true; msg.textContent = "Guardando\u2026"; msg.className = "pm-msg";
-    enviar(body).then(function(j){
+    btn.disabled = true; msg.textContent = (files && files.length) ? "Preparando fotos\u2026" : "Guardando\u2026"; msg.className = "pm-msg";
+    comprimirTodas(files).then(function(fotos){
+      if(fotos.length){ body.fotos = fotos; msg.textContent = "Subiendo " + fotos.length + " foto" + (fotos.length===1?"":"s") + "\u2026"; }
+      else if(files && files.length){ throw new Error("fotos"); }
+      return enviar(body);
+    }).then(function(j){
       if(!j.ok){
         if(/PIN/.test(j.error || "")) setPin("");
         msg.textContent = j.error || "No se pudo guardar."; msg.className = "pm-msg err"; btn.disabled = false; pintarEditBar(); return;
@@ -2204,8 +2247,9 @@ window.PORTICOS_LISTA = (function(){
       window.renderPorticos();
       abrirPortico(num);
       var m2 = modal.querySelector("#pmMsg"); if(m2){ m2.textContent = "\u2713 Guardado para todos"; m2.className = "pm-msg ok"; }
-    }).catch(function(){
-      msg.textContent = "Sin conexi\u00f3n: no se guard\u00f3. Intenta de nuevo."; msg.className = "pm-msg err"; btn.disabled = false;
+    }).catch(function(err){
+      msg.textContent = (err && err.message === "fotos") ? "No se pudieron leer las fotos (formato no compatible)." : "Sin conexi\u00f3n: no se guard\u00f3. Intenta de nuevo.";
+      msg.className = "pm-msg err"; btn.disabled = false;
     });
   }
   window.abrirPortico = abrirPortico;
@@ -2229,7 +2273,7 @@ window.PORTICOS_LISTA = (function(){
       var regs = sem[s].slice().sort(function(a,b){ return a.portico - b.portico || a.fecha.localeCompare(b.fecha); });
       var ports = {}; regs.forEach(function(a){ ports[a.portico] = 1; });
       return '<details class="av-sem"'+(i===0?' open':'')+'><summary>'+lunesTxt(s)+' <span>'+regs.length+' registro'+(regs.length===1?'':'s')+' \u00b7 '+Object.keys(ports).length+' p\u00f3rtico'+(Object.keys(ports).length===1?'':'s')+'</span></summary><ul>'
-        + regs.map(function(a){ return '<li><button type="button" class="btn-link" data-ver="'+a.portico+'">'+esc(nombres[String(a.portico)] || ("P\u00f3rtico " + a.portico))+'</button>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span></li>'; }).join("")
+        + regs.map(function(a){ return '<li><button type="button" class="btn-link" data-ver="'+a.portico+'">'+esc(nombres[String(a.portico)] || ("P\u00f3rtico " + a.portico))+'</button>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.nfotos ? '<a class="pm-fotos-link" href="'+esc(a.fotosUrl)+'" target="_blank" rel="noopener">\ud83d\udcf7 '+a.nfotos+'</a>' : '')+'</li>'; }).join("")
         + '</ul></details>';
     }).join("") : '<p class="pm-vacio">A\u00fan no hay avances guardados.</p>';
     wrap.innerHTML = resumen + semHtml;
