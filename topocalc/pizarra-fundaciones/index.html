@@ -417,16 +417,20 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .semanal-layout > .porticos-panel{ grid-column:2; grid-row:1; }
 .porticos-mapa{ grid-column:2; grid-row:2; margin:-24px 16px 30px 0; min-width:0; }
 @media (min-width:861px){
-  .semanal-layout{ grid-template-columns:minmax(0,1fr) 460px; margin-left:16px; }
-  .semanal-layout > .porticos-panel{ flex:none; }
-
-  .porticos-mapa{ grid-column:1 / -1; display:grid; grid-template-columns:minmax(0,1fr) 360px; column-gap:16px; align-items:start; margin:-24px 16px 30px 0; }
+  .semanal-layout{ grid-template-columns:minmax(0,1fr) 460px; column-gap:24px; padding:0 28px; max-width:1720px; margin:0 auto; box-sizing:border-box; }
+  .semanal-layout > .board-scroll{ padding:14px 0 24px; }
+  .semanal-layout > .porticos-panel{ flex:none; margin:14px 0 24px 0; }
+  .porticos-mapa{ grid-column:1 / -1; display:grid; grid-template-columns:minmax(0,1fr) 460px; grid-template-rows:auto 1fr; column-gap:24px; align-items:stretch; margin:0 0 30px 0; }
   .porticos-mapa > #mapaToggle, .porticos-mapa > #avanceToggle{ display:none; }
   .porticos-mapa > #mapaWrap{ grid-column:1; grid-row:1 / span 2; margin-top:0; }
   .porticos-mapa > #editBar{ grid-column:2; grid-row:1; }
-  .porticos-mapa > #avanceWrap{ grid-column:2; grid-row:2; margin-top:0; max-height:560px; }
+  .porticos-mapa > #avanceWrap{ grid-column:2; grid-row:2; margin-top:0; max-height:none; min-height:0; contain:size; overflow:auto; }
   .porticos-mapa .mapa-canvas{ height:560px; }
 }
+.note-actions button.save{ background:var(--ink); color:#fff; border-color:var(--ink); font-weight:700; }
+:root[data-theme="dark"] .note-actions button.save{ color:var(--paper); }
+.porticos-mapa > #editBar:empty{ display:none; }
+.note .pend-tag{ font-size:.62rem; font-weight:700; color:var(--danger); margin-bottom:3px; }
 .mapa-toggle{ width:100%; justify-content:center; }
 .mapa-wrap{ margin-top:10px; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); overflow:hidden; }
 .mapa-info{ font-size:.74rem; color:var(--ink-soft); padding:8px 12px; border-bottom:1px solid var(--line); background:var(--paper-sunken); }
@@ -1024,12 +1028,14 @@ window.PORTICOS_LISTA = (function(){
     function inicioSemana(d){ var m = mondayOf(new Date(d.getFullYear(), d.getMonth(), d.getDate())); return new Date(m.getFullYear(), m.getMonth(), m.getDate()); }
     function fmtDMY(d){ return String(d.getDate()).padStart(2,"0")+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+d.getFullYear(); }
     /* Arma el tablero desde la hoja "Programaci\u00f3n" de la planilla compartida */
+    function isoFecha(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+    /* Arma el tablero desde la hoja "Programaci\u00f3n" de la planilla compartida (fuente oficial) */
     function cargarProgramacion(prog, desde){
-      var start = inicioSemana(desde || new Date());
+      var start = inicioSemana(desde || (state && state.inicio ? parseInputDate(state.inicio) : new Date()));
       var weeks = cfg.weekly ? generarDiasSemana(start) : generarSemanasIntermedio(start, 9);
       var categories = defaultCategories();
       var catId = {}; categories.forEach(function(c){ catId[c.name] = c.id; });
-      var notes = [];
+      var notes = [], causas = {};
       prog.slice().sort(function(a,b){ return String(a.fecha).localeCompare(String(b.fecha)) || (a.portico - b.portico); }).forEach(function(r){
         if(!/^\d{4}-\d{2}-\d{2}$/.test(r.fecha || "")) return;
         var cid = catId[r.partida]; if(!cid) return;
@@ -1038,27 +1044,66 @@ window.PORTICOS_LISTA = (function(){
         var col;
         if(cfg.weekly){ if(dias < 0 || dias > 4) return; col = weeks[dias]; }
         else { if(dias < 0 || dias >= 63 || fallo) return; col = weeks[Math.floor(dias / 7)]; }
-        var n = { id:uid(), catId:cid, weekId:col.id, text:"", day:"", portico:String(r.portico || ""), percent:"", tone: PARTIDA_TONE[r.partida] || "neutral",
-          responsable:"", cumplido:null, causa:"", liberada:false, tipoRestriccion:"", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:"" };
-        var txt = r.comuna;
+        var n = { id: r.id || uid(), catId:cid, weekId:col.id, text:"", day:"", portico:String(r.portico || ""), percent: String(r.avance || ""), tone: PARTIDA_TONE[r.partida] || "neutral",
+          responsable: r.responsable || "", cumplido:null, causa:"", liberada:false, tipoRestriccion: r.restriccion || "", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:"",
+          fecha: r.fecha, autorizacion: r.autorizacion || "", estadoOrig: r.estado || "Programado", remota: !!r.id, pendiente:false };
+        var txt = r.obs ? String(r.obs) : r.comuna;
         if(cfg.weekly){
-          if(hecho){ n.cumplido = true; n.percent = "100"; }
-          else if(fallo){ n.cumplido = false; txt += " (no ejecutado, reprogramado)"; }
+          if(hecho){ n.cumplido = true; if(!n.percent) n.percent = "100"; }
+          else if(fallo){ n.cumplido = false; if(!r.obs) txt += " (no ejecutado, reprogramado)"; n.causa = r.causa || ""; if(n.causa) causas[n.causa] = (causas[n.causa]||0) + 1; }
         } else {
-          txt += " \u00b7 " + r.fecha.slice(8,10) + "-" + r.fecha.slice(5,7);
-          if(hecho){ n.percent = "100"; txt += " \u2713"; }
-          if(/^pendiente/i.test(r.autorizacion || "") && r.partida === "Excavaci\u00f3n"){
-            var ent = String(r.autorizacion).replace(/^pendiente:?\s*/i, "");
-            n.tipoRestriccion = "Administrativos"; n.respLiberacion = ent; txt += " \u00b7 falta autorizaci\u00f3n " + ent;
-          }
+          if(!r.obs) txt += " \u00b7 " + r.fecha.slice(8,10) + "-" + r.fecha.slice(5,7);
+          if(hecho){ if(!n.percent) n.percent = "100"; if(!r.obs) txt += " \u2713"; }
+        }
+        if(/^pendiente/i.test(r.autorizacion || "")){
+          var ent = String(r.autorizacion).replace(/^pendiente:?\s*/i, "");
+          n.respLiberacion = ent;
+          if(!n.tipoRestriccion && r.partida === "Excavaci\u00f3n" && !cfg.weekly){ n.tipoRestriccion = "Administrativos"; if(!r.obs) txt += " \u00b7 falta autorizaci\u00f3n " + ent; }
         }
         n.text = txt; notes.push(n);
       });
       state = { title: (state && state.title) || cfg.defaultTitle,
         subtitle: "Programaci\u00f3n de la planilla \u00b7 semana del " + fmtDMY(start) + (cfg.weekly ? "" : " + 8 semanas"),
-        weeks: weeks, categories: categories, notes: notes, editingNoteId: null,
-        ppcHistory: (state && state.ppcHistory) || [], causas: {}, checklist: (state && state.checklist) || MEETING_ITEMS.map(function(){ return false; }) };
+        weeks: weeks, categories: categories, notes: notes, editingNoteId: null, inicio: isoFecha(start),
+        ppcHistory: (state && state.ppcHistory) || [], causas: causas, checklist: (state && state.checklist) || MEETING_ITEMS.map(function(){ return false; }) };
       saveState(); render(); syncHeader();
+    }
+    /* Fecha real de una nota seg\u00fan su columna */
+    function fechaDeNota(note){
+      var idx = state.weeks.findIndex(function(w){ return w.id === note.weekId; }); if(idx < 0) return "";
+      var start = inicioSemana(state.inicio ? parseInputDate(state.inicio) : new Date());
+      if(cfg.weekly) return isoFecha(addDays(start, idx));
+      var lunes = addDays(start, idx * 7);
+      if(note.fecha){ var d = parseInputDate(note.fecha); var diff = Math.round((d - lunes) / 86400000); if(diff >= 0 && diff < 7) return note.fecha; }
+      return isoFecha(lunes);
+    }
+    function datosPortico(num){
+      var l = window.PORTICOS_LISTA || [], s = String(num);
+      for(var i=0;i<l.length;i++){ if(String(l[i].num || (i+1)) === s) return l[i]; }
+      return { nombre:"P\u00f3rtico " + s, comuna:"" };
+    }
+    function pedirPin(api){ var p = api.getPin(); if(p) return p; p = window.prompt("PIN de edici\u00f3n para guardar en la planilla compartida:"); return (p || "").trim(); }
+    function guardarNotaRemota(note, btn){
+      var api = window.PORTICOS_API; if(!api){ alert("No hay conexi\u00f3n con la planilla."); return; }
+      if(!note.portico){ alert("Selecciona el p\u00f3rtico antes de guardar."); return; }
+      var cat = findCat(note.catId); if(!cat || !PARTIDA_TONE[cat.name]){ alert("La partida de esta nota no es v\u00e1lida."); return; }
+      var fecha = fechaDeNota(note); if(!fecha){ alert("No se pudo determinar la fecha de la nota."); return; }
+      var pin = pedirPin(api); if(!pin) return;
+      var info = datosPortico(note.portico);
+      var estado;
+      if(cfg.weekly) estado = note.cumplido === true ? "Ejecutado" : (note.cumplido === false ? "No ejecutado" : "Programado");
+      else estado = String(note.percent) === "100" ? "Ejecutado" : (note.estadoOrig && !/^ejecutado/i.test(note.estadoOrig) ? note.estadoOrig : "Programado");
+      var aut = note.autorizacion || (note.tipoRestriccion === "Administrativos" && note.respLiberacion ? "Pendiente: " + note.respLiberacion : "S\u00ed");
+      var body = { accion:"guardarNota", pin:pin, nota:{ id:note.id, fecha:fecha, portico:Number(note.portico), nombre:info.nombre, comuna:info.comuna, partida:cat.name,
+        estado:estado, autorizacion:aut, obs:note.text || "", responsable:note.responsable || "", avance:String(note.percent || ""), restriccion:note.tipoRestriccion || "", causa:note.causa || "" } };
+      btn.disabled = true; btn.textContent = "Guardando\u2026";
+      api.enviar(body).then(function(j){
+        if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) api.setPin(""); alert((j && j.error) || "No se pudo guardar."); btn.disabled = false; btn.textContent = "Guardar"; return; }
+        api.setPin(pin);
+        note.pendiente = false; note.remota = true; note.fecha = fecha;
+        state.editingNoteId = null; saveState();
+        api.aplicar(j); render();
+      }).catch(function(){ alert("Sin conexi\u00f3n: la nota no se guard\u00f3."); btn.disabled = false; btn.textContent = "Guardar"; });
     }
     var state = loadState();
     state.notes.forEach(function(n){ var tt = toneForCat(n.catId); if(tt) n.tone = tt; });
@@ -1367,6 +1412,7 @@ window.PORTICOS_LISTA = (function(){
           if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%");
         }
         return '<div class="note note-'+note.tone+'" style="'+extraStyle+'" data-action="open-note" data-note="'+note.id+'">'
+          + (note.pendiente ? '<div class="pend-tag" title="Cambios sin guardar en la planilla">\u25cf sin guardar</div>' : "")
           + (note.portico ? '<div class="portico-tag tag-'+note.tone+'">'+escapeHtml(nombrePortico(note.portico))+'</div>' : "")
           + '<div class="txt">'+badge+escapeHtml(note.text || "Nueva tarea")+'</div>'
           + (metaBits.length ? '<div class="meta"><span>'+metaBits.join(" \u00b7 ")+'</span></div>' : "")
@@ -1457,6 +1503,7 @@ window.PORTICOS_LISTA = (function(){
         + lpsFields
         + '<div class="swatches">'+swatches+'</div>'
         + '<div class="note-actions">'
+          + '<button class="save" data-action="save-note" data-note="'+note.id+'">Guardar</button>'
           + '<button data-action="dup-note" data-note="'+note.id+'">Duplicar en sig.</button>'
           + '<button data-action="close-note" data-note="'+note.id+'">Cerrar</button>'
           + '<button class="del" data-action="del-note" data-note="'+note.id+'">Eliminar</button>'
@@ -1491,7 +1538,7 @@ window.PORTICOS_LISTA = (function(){
     }
     function addNote(catId, weekId){
       var note = {id:uid(), catId:catId, weekId:weekId, text:"", day:"", percent:"", tone: toneForCat(catId) || TONES[state.notes.length % TONES.length],
-        responsable:"", cumplido:null, causa:"", liberada:false, tipoRestriccion:"", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:""};
+        responsable:"", cumplido:null, causa:"", liberada:false, tipoRestriccion:"", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:"", pendiente:true};
       state.notes.push(note); state.editingNoteId = note.id; saveState(); render();
       setTimeout(function(){
         var ta = root.querySelector('textarea[data-bind="note:'+note.id+':text"]');
@@ -1499,6 +1546,19 @@ window.PORTICOS_LISTA = (function(){
       }, 0);
     }
     function delNote(id){
+      var nd = state.notes.find(function(n){ return n.id === id; });
+      if(nd && nd.remota && window.PORTICOS_API){
+        if(!confirm("\u00bfEliminar esta tarea de la programaci\u00f3n compartida? Se borrar\u00e1 para todos.")) return;
+        var api = window.PORTICOS_API, pin = pedirPin(api); if(!pin) return;
+        api.enviar({ accion:"borrarNota", pin:pin, id:id }).then(function(j){
+          if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) api.setPin(""); alert((j && j.error) || "No se pudo eliminar."); return; }
+          api.setPin(pin);
+          state.notes = state.notes.filter(function(n){ return n.id !== id; });
+          if(state.editingNoteId === id) state.editingNoteId = null;
+          saveState(); api.aplicar(j); render();
+        }).catch(function(){ alert("Sin conexi\u00f3n: no se elimin\u00f3."); });
+        return;
+      }
       state.notes = state.notes.filter(function(n){return n.id!==id;});
       if(state.editingNoteId===id) state.editingNoteId=null;
       saveState(); render();
@@ -1508,7 +1568,7 @@ window.PORTICOS_LISTA = (function(){
       var idx = state.weeks.findIndex(function(w){return w.id===note.weekId;});
       var targetWeek = state.weeks[idx+1] ? state.weeks[idx+1].id : note.weekId;
       var copy = {id:uid(), catId:note.catId, weekId:targetWeek, text:note.text, day:note.day, portico:note.portico||"", percent:note.percent, tone:note.tone,
-        responsable:note.responsable, cumplido:null, causa:"", liberada:false, tipoRestriccion:note.tipoRestriccion, respLiberacion:note.respLiberacion, fechaCompromiso:note.fechaCompromiso, fechaLiberacion:""};
+        responsable:note.responsable, cumplido:null, causa:"", liberada:false, tipoRestriccion:note.tipoRestriccion, respLiberacion:note.respLiberacion, fechaCompromiso:note.fechaCompromiso, fechaLiberacion:"", pendiente:true};
       state.notes.push(copy); state.editingNoteId = copy.id; saveState(); render();
     }
 
@@ -1526,6 +1586,7 @@ window.PORTICOS_LISTA = (function(){
       }
       if(parts[0] === "note"){
         var n = state.notes.find(function(x){return x.id===parts[1];}); if(!n) return;
+        n.pendiente = true;
         var field = parts[2];
         if(field==="percent"){
           if(value==="") n.percent = "";
@@ -1549,6 +1610,7 @@ window.PORTICOS_LISTA = (function(){
         var n = state.notes.find(function(x){return x.id===parts[1];});
         if(n){
           var field = parts[2];
+          n.pendiente = true;
           if(field === "causa"){
             if(n.causa && state.causas[n.causa]) state.causas[n.causa] = Math.max(0, state.causas[n.causa]-1);
             n.causa = t.value;
@@ -1579,17 +1641,18 @@ window.PORTICOS_LISTA = (function(){
       else if(action === "add-note") addNote(el.dataset.cat, el.dataset.week);
       else if(action === "open-note"){ state.editingNoteId = el.dataset.note; render(); }
       else if(action === "close-note"){ state.editingNoteId = null; render(); }
+      else if(action === "save-note"){ var ns = state.notes.find(function(x){return x.id===el.dataset.note;}); if(ns) guardarNotaRemota(ns, el); }
       else if(action === "del-note") delNote(el.dataset.note);
       else if(action === "dup-note") dupNote(el.dataset.note);
       else if(action === "set-tone"){
         var n = state.notes.find(function(x){return x.id===el.dataset.note;});
-        if(n){ n.tone = el.dataset.tone; saveState(); render(); }
+        if(n){ n.tone = el.dataset.tone; n.pendiente = true; saveState(); render(); }
       }
       else if(action === "set-cumplido"){
         var n2 = state.notes.find(function(x){return x.id===el.dataset.note;});
         if(n2){
           var v = el.dataset.value;
-          n2.cumplido = (v === "1") ? true : (v === "0" ? false : null);
+          n2.cumplido = (v === "1") ? true : (v === "0" ? false : null); n2.pendiente = true;
           if(n2.cumplido !== false && n2.causa){
             if(state.causas[n2.causa]) state.causas[n2.causa] = Math.max(0, state.causas[n2.causa]-1);
             n2.causa = "";
@@ -1632,7 +1695,7 @@ window.PORTICOS_LISTA = (function(){
         var prog = window.PROGRAMACION;
         if(!prog || !prog.length){ alert("La planilla todav\u00eda no entrega programaci\u00f3n (revisa la hoja \u201cProgramaci\u00f3n\u201d o espera la sincronizaci\u00f3n)."); return; }
         var fiP = root.querySelector(".fecha-inicio").value;
-        var stP = fiP ? parseInputDate(fiP) : new Date();
+        var stP = fiP ? parseInputDate(fiP) : (state.inicio ? parseInputDate(state.inicio) : new Date());
         if(state.notes.length>0 && !confirm("Esto reemplaza este tablero con la programaci\u00f3n de la planilla (desde la semana del " + fmtDMY(inicioSemana(stP)) + "). \u00bfContinuar?")) return;
         cargarProgramacion(prog, stP);
       }
@@ -1649,6 +1712,7 @@ window.PORTICOS_LISTA = (function(){
           }
         }
         var start = mondayOf(parseInputDate(fi));
+        state.inicio = isoFecha(inicioSemana(parseInputDate(fi)));
         if(cfg.weekly){ state.weeks = generarDiasSemana(start); }
         else {
           var durEl = root.querySelector(".duracion-semanas");
@@ -1756,7 +1820,8 @@ window.PORTICOS_LISTA = (function(){
 
     return {
       vacio: function(){ return state.notes.length === 0; },
-      cargarProgramacion: function(prog){ cargarProgramacion(prog, new Date()); },
+      cargarProgramacion: function(prog){ cargarProgramacion(prog, state.inicio ? parseInputDate(state.inicio) : new Date()); },
+      puedeSincronizar: function(){ return !state.editingNoteId && !state.notes.some(function(n){ return n.pendiente; }); },
       getNotes: function(){
         return state.notes.map(function(n){ var c = findCat(n.catId); return { portico: n.portico || "", cat: c ? c.name : "", cumplido: n.cumplido, percent: n.percent }; });
       },
@@ -1775,7 +1840,7 @@ window.PORTICOS_LISTA = (function(){
         if(!catId) return;
         var note = {id:uid(), catId:catId, weekId:weekId, text:data.text||"", day:data.day||"", portico:data.portico||"", percent:"",
           tone: toneForCat(catId) || data.tone || TONES[state.notes.length % TONES.length],
-          responsable:data.responsable||"", cumplido:null, causa:"", liberada:false, tipoRestriccion:"", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:""};
+          responsable:data.responsable||"", cumplido:null, causa:"", liberada:false, tipoRestriccion:"", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:"", pendiente:true};
         state.notes.push(note); saveState(); render();
       },
       getSummaryData: function(){
@@ -1986,17 +2051,30 @@ window.PORTICOS_LISTA = (function(){
       try{ localStorage.setItem(LS_CACHE, JSON.stringify(j)); }catch(e){}
       sync("\u2713 Datos compartidos \u00b7 " + horaAhora(), "ok");
       window.renderPorticos();
-      /* Tableros vac\u00edos en este equipo: se arman solos con la programaci\u00f3n de la planilla */
-      if(window.PROGRAMACION && window.PROGRAMACION.length){
-        ["semanal","intermedio"].forEach(function(k){
-          var b = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS[k];
-          if(b && b.vacio && b.vacio()) b.cargarProgramacion(window.PROGRAMACION);
-        });
-      }
+      sincronizarTableros();
     }).catch(function(){
       sync("Sin conexi\u00f3n \u00b7 mostrando \u00faltima copia", "warn");
     });
   }
+  /* Los tableros se arman desde la planilla compartida, salvo que haya una nota abierta o cambios sin guardar */
+  function sincronizarTableros(){
+    if(!window.PROGRAMACION || !window.PROGRAMACION.length) return;
+    ["semanal","intermedio"].forEach(function(k){
+      var b = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS[k];
+      if(b && b.puedeSincronizar && b.puedeSincronizar()) b.cargarProgramacion(window.PROGRAMACION);
+    });
+  }
+  window.PORTICOS_API = {
+    enviar: function(body){ return enviar(body); },
+    getPin: function(){ return getPin(); },
+    setPin: function(p){ setPin(p); pintarEditBar(); },
+    aplicar: function(j){
+      aplicarRemoto(j);
+      try{ localStorage.setItem(LS_CACHE, JSON.stringify(j)); }catch(e){}
+      sync("\u2713 Guardado \u00b7 " + horaAhora(), "ok");
+      window.renderPorticos(); sincronizarTableros();
+    }
+  };
   function enviar(body){
     var intento = function(){ return fetch(API, { method:"POST", body: JSON.stringify(body), redirect:"follow" }).then(function(r){ return r.json(); }); };
     return intento().catch(function(){ return intento(); });
@@ -2166,10 +2244,10 @@ window.PORTICOS_LISTA = (function(){
   function pintarMapa(){
     if(!mapa || !capa || !ultimoData) return;
     capa.clearLayers();
-    var con = 0;
+    var con = 0, pts = [];
     lista().forEach(function(p, k){
       if(!tieneCoords(p)) return;
-      con++;
+      con++; pts.push([p.lat, p.lng]);
       var num = numDe(p,k), st = estadoDe(num, ultimoData);
       var tone = st ? window.PARTIDA_TONE[st.name] : null;
       var url = "https://www.google.com/maps/search/?api=1&query=" + p.lat + "," + p.lng;
@@ -2181,6 +2259,7 @@ window.PORTICOS_LISTA = (function(){
           +' \u00b7 <a href="#" onclick="window.abrirPortico('+num+');return false;">Registrar avance</a>')
         .addTo(capa);
     });
+    if(pts.length && !mapa._encuadrado){ mapa.fitBounds(L.latLngBounds(pts), { padding:[28,28], maxZoom:13 }); mapa._encuadrado = true; }
     var info = document.getElementById("mapaInfo");
     if(info) info.textContent = "Regi\u00f3n de O'Higgins \u00b7 " + con + " de " + lista().length + " p\u00f3rticos con coordenadas";
   }
@@ -2209,7 +2288,7 @@ window.PORTICOS_LISTA = (function(){
       btnMapa.setAttribute("aria-expanded", abrir ? "true" : "false");
       btnMapa.innerHTML = abrir ? "\u2715 Ocultar mapa" : "\ud83d\uddfa\ufe0f Ver mapa de p\u00f3rticos";
       if(!abrir) return;
-      if(mapa){ setTimeout(function(){ mapa.invalidateSize(); }, 50); return; }
+      if(mapa){ setTimeout(function(){ mapa.invalidateSize(); mapa._encuadrado = false; pintarMapa(); }, 50); return; }
       cargarLeaflet(function(){
         mapa = L.map("mapaPorticos", { scrollWheelZoom:false });
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom:19, attribution:"&copy; OpenStreetMap" }).addTo(mapa);
