@@ -1177,8 +1177,7 @@ window.PORTICOS_LISTA = (function(){
           if(hecho){ n.cumplido = true; if(!n.percent) n.percent = "100"; }
           else if(fallo){ n.cumplido = false; if(!r.obs) txt += " (no ejecutado, reprogramado)"; n.causa = r.causa || ""; if(n.causa) causas[n.causa] = (causas[n.causa]||0) + 1; }
         } else {
-          if(!r.obs) txt += " \u00b7 " + r.fecha.slice(8,10) + "-" + r.fecha.slice(5,7);
-          if(hecho){ if(!n.percent) n.percent = "100"; if(!r.obs) txt += " \u2713"; }
+          if(hecho){ if(!n.percent) n.percent = "100"; }
         }
         if(/^pendiente/i.test(r.autorizacion || "")){
           var ent = String(r.autorizacion).replace(/^pendiente:?\s*/i, "");
