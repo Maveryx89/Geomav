@@ -451,6 +451,9 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
 .gal-top{ display:flex; align-items:center; gap:10px; padding:calc(10px + env(safe-area-inset-top, 0px)) 14px 10px; }
 .gal-info{ flex:1; font-size:.82rem; font-weight:600; opacity:.9; }
 .gal-drive{ color:#9fd3e0; font-size:.78rem; font-weight:700; text-decoration:none; }
+.gal-del{ all:unset; cursor:pointer; width:44px; height:44px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; border-radius:50%; background:rgba(178,59,59,.35); }
+.gal-del:hover{ background:rgba(178,59,59,.6); } .gal-del:disabled{ opacity:.5; cursor:wait; }
+.gal-msg{ text-align:center; font-size:.8rem; min-height:1.1em; color:#ffd7d2; padding:0 14px 4px; }
 .gal-x{ all:unset; cursor:pointer; width:44px; height:44px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; border-radius:50%; background:rgba(255,255,255,.12); }
 .gal-main{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; position:relative; padding:0 8px; }
 .gal-img{ max-width:100%; max-height:100%; object-fit:contain; border-radius:6px; box-shadow:0 10px 40px rgba(0,0,0,.5); }
@@ -2450,6 +2453,7 @@ window.PORTICOS_LISTA = (function(){
       + '<button type="button" class="pm-guardar" id="pmGuardar">Guardar avance</button>'
       + '<div class="pm-label">Historial del p\u00f3rtico</div><ul class="pm-hist">'+histHtml+'</ul>'
       + '</div></div>';
+    modal.dataset.num = num;
     if(modal.hidden) focoPrevio = document.activeElement;
     modal.hidden = false;
     setTimeout(function(){ var pp = modal.querySelector("#pmPartida"); if(pp) pp.focus(); }, 30);
@@ -2574,7 +2578,9 @@ window.PORTICOS_LISTA = (function(){
     var info = galItems ? galItems[galPos].info : galInfo, url = galItems ? galItems[galPos].url : galUrl;
     gal.innerHTML = '<div class="gal-top"><span class="gal-info">'+esc(info)+' \u00b7 '+(galPos+1)+' de '+galIds.length+'</span>'
       + (url ? '<a class="gal-drive" href="'+esc(url)+'" target="_blank" rel="noopener">Drive</a>' : '')
+      + '<button type="button" class="gal-del" aria-label="Eliminar esta foto"><span aria-hidden="true">\ud83d\uddd1\ufe0f</span></button>'
       + '<button type="button" class="gal-x" aria-label="Cerrar">\u2715</button></div>'
+      + '<div class="gal-msg" id="galMsg" role="status"></div>'
       + '<div class="gal-main">'
       + (galIds.length > 1 ? '<button type="button" class="gal-nav gal-prev" aria-label="Foto anterior"><span aria-hidden="true">\u2039</span></button>' : '')
       + '<img class="gal-img" alt="Foto '+(galPos+1)+'" src="'+fotoSrc(id, 1600)+'" onerror="window.__fotoAlt(this,\''+esc(id)+'\',1600)">'
@@ -2582,10 +2588,28 @@ window.PORTICOS_LISTA = (function(){
       + '</div>'
       + (galIds.length > 1 ? '<div class="gal-strip">' + galIds.map(function(x, k){ return '<button type="button" class="gal-th'+(k===galPos?' on':'')+'" data-k="'+k+'"><img alt="" loading="lazy" src="'+fotoSrc(x, 200)+'" onerror="window.__fotoAlt(this,\''+esc(x)+'\',200)"></button>'; }).join("") + '</div>' : '');
     gal.querySelector(".gal-x").onclick = cerrarGaleria;
+    gal.querySelector(".gal-del").onclick = function(){ eliminarFoto(this); };
     var pv = gal.querySelector(".gal-prev"), nx = gal.querySelector(".gal-next");
     if(pv) pv.onclick = function(){ moverGaleria(-1); };
     if(nx) nx.onclick = function(){ moverGaleria(1); };
     Array.prototype.forEach.call(gal.querySelectorAll(".gal-th"), function(b){ b.onclick = function(){ galPos = Number(b.dataset.k); pintarGaleria(); }; });
+  }
+  function eliminarFoto(btn){
+    var id = galIds[galPos]; if(!id) return;
+    if(!confirm("\u00bfEliminar esta foto para todos?\nQueda 30 d\u00edas en la papelera de Drive por si necesitas recuperarla.")) return;
+    var pin = getPin();
+    if(!pin){ pedirAutor(); pin = (window.prompt("PIN de edici\u00f3n:") || "").trim(); }
+    if(!pin) return;
+    var msg = gal.querySelector("#galMsg"); btn.disabled = true; if(msg) msg.textContent = "Eliminando\u2026";
+    enviar({ accion:"borrarFoto", foto:id, pin:pin }).then(function(j){
+      if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) setPin(""); btn.disabled = false; if(msg) msg.textContent = (j && j.error) || "No se pudo eliminar."; return; }
+      setPin(pin);
+      window.PORTICOS_API.aplicar(j);
+      galIds.splice(galPos, 1); if(galItems) galItems.splice(galPos, 1);
+      if(!galIds.length){ cerrarGaleria(); }
+      else { if(galPos >= galIds.length) galPos = galIds.length - 1; pintarGaleria(); var m2 = gal.querySelector("#galMsg"); if(m2) m2.textContent = "\u2713 Foto eliminada"; }
+      if(!modal.hidden && modal.dataset.num) abrirPortico(modal.dataset.num);
+    }).catch(function(){ btn.disabled = false; if(msg) msg.textContent = "No se recibi\u00f3 confirmaci\u00f3n. Revisa en unos segundos."; });
   }
   function moverGaleria(d){ galPos = (galPos + d + galIds.length) % galIds.length; pintarGaleria(); }
   function cerrarGaleria(){ gal.hidden = true; gal.innerHTML = ""; }
