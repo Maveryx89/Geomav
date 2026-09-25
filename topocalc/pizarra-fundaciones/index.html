@@ -2047,7 +2047,7 @@ window.PORTICOS_LISTA = (function(){
     var el = document.getElementById("editBar"); if(!el) return;
     el.innerHTML = getPin()
       ? '<span>\ud83d\udd13 Edici\u00f3n activa en este equipo</span><button type="button" class="btn-link" id="cerrarEdicion">Cerrar edici\u00f3n</button>'
-      : '<span>\ud83d\udd12 Solo lectura \u00b7 toca un estado para registrar avance (pide PIN)</span>';
+      : "";
     var b = document.getElementById("cerrarEdicion");
     if(b) b.onclick = function(){ setPin(""); pintarEditBar(); };
   }
