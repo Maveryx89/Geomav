@@ -417,16 +417,9 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .semanal-layout > .porticos-panel{ grid-column:2; grid-row:1; }
 .porticos-mapa{ grid-column:2; grid-row:2; margin:-24px 16px 30px 0; min-width:0; }
 @media (min-width:861px){
-  .semanal-layout{ grid-template-columns:minmax(0,1fr) 360px; margin-left:16px; }
+  .semanal-layout{ grid-template-columns:minmax(0,1fr) 460px; margin-left:16px; }
   .semanal-layout > .porticos-panel{ flex:none; }
-  .porticos-table{ font-size:.72rem; table-layout:fixed; width:100%; }
-  .porticos-table th, .porticos-table td{ padding:6px 6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .porticos-table th:nth-child(1), .porticos-table td:nth-child(1){ width:30%; }
-  .porticos-table th:nth-child(2), .porticos-table td:nth-child(2){ width:24%; }
-  .porticos-table th:nth-child(3), .porticos-table td:nth-child(3){ width:20%; }
-  .porticos-table th:nth-child(4), .porticos-table td:nth-child(4){ width:26%; white-space:normal; }
-  .porticos-table td.ubic{ font-size:.66rem; }
-  .porticos-table .ubic-link, .porticos-table .ubic-pend{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block; }
+
   .porticos-mapa{ grid-column:1 / -1; display:grid; grid-template-columns:minmax(0,1fr) 360px; column-gap:16px; align-items:start; margin:-24px 16px 30px 0; }
   .porticos-mapa > #mapaToggle, .porticos-mapa > #avanceToggle{ display:none; }
   .porticos-mapa > #mapaWrap{ grid-column:1; grid-row:1 / span 2; margin-top:0; }
@@ -445,7 +438,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 :root[data-theme="dark"] .mapa-canvas .leaflet-tile-pane{ filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.95); }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .mapa-canvas .leaflet-tile-pane{ filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.95); } }
 .semanal-layout > .board-scroll{ flex:0 1 auto; min-width:0; }
-.porticos-panel{ position:relative; flex:0 0 360px; margin:14px 16px 40px 0; }
+.porticos-panel{ position:relative; flex:0 0 460px; margin:14px 16px 40px 0; }
 .porticos-inner{ position:absolute; inset:0; display:flex; flex-direction:column; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); overflow:hidden; }
 .porticos-head{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; padding:10px 12px; border-bottom:1px solid var(--line); background:var(--paper-sunken); }
 .porticos-head strong{ font-family:var(--font-display); font-size:.92rem; color:var(--ink); }
