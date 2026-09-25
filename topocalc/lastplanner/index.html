@@ -466,6 +466,17 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .sel-actions .btn-sm{ min-height:40px; }
 .sel-ok{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
 @media print{ .sel-overlay{ display:none !important; } }
+.sync-save{ background:var(--blueprint); color:#fff; border-color:var(--blueprint); font-weight:700; }
+.sync-save.pend{ background:var(--danger); border-color:var(--danger); }
+.sync-status{ font-size:.74rem; color:var(--ink-soft); align-self:center; }
+.sync-status.ok{ color:var(--success); } .sync-status.pend{ color:var(--danger); font-weight:700; } .sync-status.warn{ color:var(--accent); }
+.edit-bar{ display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:.74rem; color:var(--ink-soft); margin:6px 2px 0; }
+.edit-bar:empty{ display:none; }
+.btn-link{ all:unset; cursor:pointer; color:var(--blueprint); font-weight:700; text-decoration:underline; }
+.sel-box label{ display:block; font-size:.74rem; color:var(--ink-soft); margin:8px 0 4px; }
+.sel-box input{ box-sizing:border-box; width:100%; font:inherit; font-size:16px; min-height:44px; padding:8px 10px; color:var(--ink); background:var(--paper); border:1px solid var(--line-strong); border-radius:8px; }
+.sel-msg{ min-height:1.2em; font-size:.78rem; margin-top:8px; } .sel-msg.err{ color:var(--danger); }
+@media print{ .sync-save, .sync-status, .edit-bar{ display:none !important; } }
 </style>
 </head>
 
@@ -496,6 +507,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       <span class="sync-hint">Pasa tu pizarra entre celular y PC con un archivo</span>
     </div>
   </details>
+  <div class="edit-bar" id="editBar"></div>
 
   <section class="pizarra-block" data-board="semanal">
     <div class="section-head"><span class="idx">1</span><h2>Semanal &middot; lunes a viernes</h2></div>
@@ -511,6 +523,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     </div>
 
     <div class="toolbar">
+      <button class="btn-sm sync-save" type="button" data-sync="guardar" hidden><span aria-hidden="true">&#x2601;</span> Guardar en planilla</button>
       <button class="btn-sm" data-action="add-category">+ Categoría</button>
       <details class="menu-mas">
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
@@ -520,9 +533,11 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           <button class="btn-sm" data-action="load-porticos">Cargar Gantt Pórticos (con atraso)</button>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
           <button class="btn-sm" data-action="print">Imprimir</button>
+          <button class="btn-sm" type="button" data-sync="recargar" hidden>&#x27F3; Descartar cambios y cargar planilla</button>
           <button class="btn-sm danger" data-action="reset">Reiniciar tablero</button>
         </div>
       </details>
+      <span class="sync-status" aria-live="polite"></span>
     </div>
     <div class="hint">Ingresa la fecha de inicio (lunes) y toca "Generar fechas" para crear los 5 días &middot; toca “+” en una celda para agregar una nota &middot; toca una nota para editarla, moverla o cambiar su color</div>
 
@@ -553,6 +568,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     </div>
 
     <div class="toolbar">
+      <button class="btn-sm sync-save" type="button" data-sync="guardar" hidden><span aria-hidden="true">&#x2601;</span> Guardar en planilla</button>
       <button class="btn-sm" data-action="add-category">+ Categoría</button>
       <details class="menu-mas">
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
@@ -561,9 +577,11 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           <button class="btn-sm" data-action="load-curanipe">Cargar plan Curanipe…</button>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
           <button class="btn-sm" data-action="print">Imprimir</button>
+          <button class="btn-sm" type="button" data-sync="recargar" hidden>&#x27F3; Descartar cambios y cargar planilla</button>
           <button class="btn-sm danger" data-action="reset">Reiniciar tablero</button>
         </div>
       </details>
+      <span class="sync-status" aria-live="polite"></span>
     </div>
     <div class="hint">Ingresa la fecha de inicio y toca "Generar fechas" para crear las columnas &middot; toca “+” en una celda para agregar una nota &middot; toca una nota para editarla, moverla o cambiar su color</div>
 
@@ -1007,7 +1025,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         return parsed;
       }catch(e){ return defaultState(); }
     }
-    function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+    function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} if(window.LP_SYNC) window.LP_SYNC.cambio(cfg.key); }
     var state = loadState();
 
     function findCat(id){ return state.categories.find(function(c){return c.id===id;}); }
@@ -1722,7 +1740,52 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     render();
     syncHeader();
 
+    /* ---------- planilla compartida: foto del tablero y carga desde la planilla ---------- */
+    function snapshot(){
+      var ci = {}, wi = {};
+      state.categories.forEach(function(c, i){ ci[c.id] = i; });
+      state.weeks.forEach(function(w, i){ wi[w.id] = i; });
+      return {
+        meta: { titulo: state.title || "", subtitulo: state.subtitle || "",
+          columnas: state.weeks.map(function(w){ return [String(w.label), String(w.month || "")]; }),
+          categorias: state.categories.map(function(c){ return c.name; }),
+          extra: { ppcHistory: state.ppcHistory || [], causas: state.causas || {}, checklist: state.checklist || [] } },
+        notas: state.notes.filter(function(n){ return ci[n.catId] != null && wi[n.weekId] != null && String(n.text || "").trim(); }).map(function(n){
+          var p = (n.percent === "" || n.percent == null || !isFinite(Number(n.percent))) ? "" : Math.max(0, Math.min(100, Number(n.percent)));
+          return { id: n.id, cat: ci[n.catId], col: wi[n.weekId], tarea: n.text, detalle: n.day || "", responsable: n.responsable || "",
+            avance: p, cumplido: n.cumplido === true ? true : (n.cumplido === false ? false : null), causa: n.causa || "",
+            liberada: !!n.liberada, tipoRestriccion: n.tipoRestriccion || "", respLiberacion: n.respLiberacion || "",
+            fechaCompromiso: n.fechaCompromiso || "", fechaLiberacion: n.fechaLiberacion || "", color: n.tone || "" };
+        })
+      };
+    }
+    function aplicarRemoto(t, notas){
+      var idxCol = mCol ? state.weeks.findIndex(function(w){ return w.id === mCol; }) : -1;
+      var weeks = (t.columnas || []).map(function(c){ return {id:uid(), label:String(c[0]), month:String(c[1] || "")}; });
+      var categories = (t.categorias || []).map(function(n){ return {id:uid(), name:String(n)}; });
+      var ex = t.extra || {};
+      state = {
+        title: t.titulo || cfg.defaultTitle, subtitle: t.subtitulo || "",
+        weeks: weeks, categories: categories, editingNoteId: null,
+        notes: (notas || []).filter(function(n){ return categories[n.cat] && weeks[n.col]; }).map(function(n){
+          return { id: n.id || uid(), catId: categories[n.cat].id, weekId: weeks[n.col].id, text: n.tarea, day: n.detalle || "",
+            percent: (n.avance === "" || n.avance == null) ? "" : n.avance, tone: n.color || "neutral", responsable: n.responsable || "",
+            cumplido: n.cumplido === true ? true : (n.cumplido === false ? false : null), causa: n.causa || "", liberada: !!n.liberada,
+            tipoRestriccion: n.tipoRestriccion || "", respLiberacion: n.respLiberacion || "", fechaCompromiso: n.fechaCompromiso || "", fechaLiberacion: n.fechaLiberacion || "" };
+        }),
+        ppcHistory: Array.isArray(ex.ppcHistory) ? ex.ppcHistory : [], causas: ex.causas || {},
+        checklist: (Array.isArray(ex.checklist) && ex.checklist.length) ? ex.checklist : MEETING_ITEMS.map(function(){ return false; })
+      };
+      mCol = (idxCol >= 0 && weeks[idxCol]) ? weeks[idxCol].id : null;
+      try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+      render(); syncHeader();
+    }
+
     return {
+      key: cfg.key,
+      snapshot: snapshot,
+      aplicarRemoto: aplicarRemoto,
+      editando: function(){ return !!state.editingNoteId; },
       getWeeksOptionsHtml: function(){
         return state.weeks.map(function(w){ return '<option value="'+w.id+'">'+escapeHtml(w.month)+' \u00b7 '+escapeHtml(w.label)+'</option>'; }).join("");
       },
@@ -1763,8 +1826,9 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     };
   }
 
-  BOARDS.semanal = initPizarra({ sel:'[data-board="semanal"]', storageKey:"pizarra-semanal-v1", weekly:true, defaultTitle:"Planificaci\u00f3n Semanal" });
-  BOARDS.intermedio = initPizarra({ sel:'[data-board="intermedio"]', storageKey:"pizarra-planificacion-v2", weekly:false, defaultTitle:"Planificaci\u00f3n de Obra" });
+  BOARDS.semanal = initPizarra({ key:"semanal", sel:'[data-board="semanal"]', storageKey:"pizarra-semanal-v1", weekly:true, defaultTitle:"Planificaci\u00f3n Semanal" });
+  BOARDS.intermedio = initPizarra({ key:"intermedio", sel:'[data-board="intermedio"]', storageKey:"pizarra-planificacion-v2", weekly:false, defaultTitle:"Planificaci\u00f3n de Obra" });
+  window.PIZARRA_BOARDS = BOARDS;
 
   /* ---------- theme (global, una sola vez) ---------- */
   function applyThemeIcon(mode){
@@ -1927,6 +1991,143 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     var bm = e.target.closest(".menu-pop button"); if(bm){ var dm = bm.closest("details"); if(dm) dm.removeAttribute("open"); return; }
     Array.prototype.forEach.call(document.querySelectorAll("details.menu-mas[open]"), function(dm){ if(!dm.contains(e.target)) dm.removeAttribute("open"); });
   });
+})();
+</script>
+<script>
+/* ===== Planilla compartida (Google Sheet vía Apps Script) ===== */
+(function(){
+  "use strict";
+  var API = "https://script.google.com/macros/s/AKfycbxpgtBk20PhiH_qWPpLyK-1eGAEqDagCAMf6c-cCW_ZiRwBPc0zE5PBBdzAtD0lCi_P/exec";
+  var LS_INFO = "lastplanner-remoto-v1", SS_PIN = "lastplanner-pin", SS_AUTOR = "lastplanner-autor";
+  var KEYS = ["semanal", "intermedio"];
+  var remoto = null, cargando = null, guardando = {};
+  function B(k){ return window.PIZARRA_BOARDS && window.PIZARRA_BOARDS[k]; }
+  function ss(k, v){ try{ if(v === undefined) return sessionStorage.getItem(k) || ""; if(v) sessionStorage.setItem(k, v); else sessionStorage.removeItem(k); }catch(e){} return ""; }
+  function info(){ try{ return JSON.parse(localStorage.getItem(LS_INFO) || "{}"); }catch(e){ return {}; } }
+  function setInfo(k, v){ var i = info(); i[k] = v; try{ localStorage.setItem(LS_INFO, JSON.stringify(i)); }catch(e){} }
+  function firma(snap){ return JSON.stringify(snap); }
+  function pendiente(k){ var b = B(k), i = info()[k]; if(!b) return false; if(!i) return b.snapshot().notas.length > 0; return firma(b.snapshot()) !== i.firma; }
+  function sec(k){ return document.querySelector('section[data-board="'+k+'"]'); }
+  function esc(t){ return String(t || "").replace(/[<>&"]/g, function(c){ return ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"})[c]; }); }
+  function estado(k, txt, cls){
+    var s = sec(k); if(!s) return;
+    var el = s.querySelector(".sync-status"); if(el){ el.textContent = txt; el.className = "sync-status " + (cls || ""); }
+    var b = s.querySelector(".sync-save"); if(b) b.classList.toggle("pend", cls === "pend");
+  }
+  function pintar(k){
+    var i = info()[k];
+    if(guardando[k]) return estado(k, "Guardando\u2026", "");
+    if(pendiente(k)) return estado(k, "\u25cf Cambios sin guardar", "pend");
+    if(i && i.version) return estado(k, "\u2713 En la planilla" + (i.autor ? " \u00b7 " + i.autor : "") + (i.actualizado ? " \u00b7 " + i.actualizado : ""), "ok");
+    estado(k, remoto ? "Planilla vac\u00eda" : "", "");
+  }
+  function pintarEditBar(){
+    var el = document.getElementById("editBar"); if(!el) return;
+    el.innerHTML = ss(SS_PIN) ? '<span>\ud83d\udd13 Edici\u00f3n activa en este equipo' + (ss(SS_AUTOR) ? ' \u00b7 ' + esc(ss(SS_AUTOR)) : '') + '</span><button type="button" class="btn-link" id="cerrarEdicion">Cerrar edici\u00f3n</button>' : "";
+    var b = document.getElementById("cerrarEdicion"); if(b) b.onclick = function(){ ss(SS_PIN, ""); pintarEditBar(); };
+  }
+  function aplicar(k){
+    var b = B(k), t = remoto.tableros[k]; if(!b || !t) return;
+    b.aplicarRemoto(t, remoto.notas[k]);
+    setInfo(k, { version: t.version, firma: firma(b.snapshot()), autor: t.autor, actualizado: t.actualizado });
+  }
+  /* Regla: si en este equipo no hay cambios sin guardar, el tablero se arma desde la planilla */
+  function integrar(){
+    KEYS.forEach(function(k){
+      var b = B(k), t = remoto && remoto.tableros[k]; if(!b || !t) return;
+      var i = info()[k];
+      if(t.version > 0){
+        if(!i && pendiente(k)){
+          /* primera conexión de este equipo con datos propios que nunca se guardaron */
+          if(!b.editando() && confirm("La planilla compartida ya tiene el tablero " + k + " (guardado por " + (t.autor || "otra persona") + ").\n\nAceptar: cargar la versi\u00f3n compartida.\nCancelar: mantener lo de este equipo (queda como cambios sin guardar).")) aplicar(k);
+          else setInfo(k, { version: 0, firma: "" });
+        }
+        else if(!pendiente(k) && !b.editando() && (!i || i.version !== t.version)) aplicar(k);
+        else if(i && i.version === t.version){ i.autor = t.autor; i.actualizado = t.actualizado; setInfo(k, i); }
+      } else if(!i){ var sn = b.snapshot(); setInfo(k, { version: 0, firma: sn.notas.length ? "" : firma(sn) }); }
+      pintar(k);
+    });
+  }
+  function cargar(){
+    if(cargando) return cargando;
+    cargando = fetch(API, { cache:"no-store" }).then(function(r){ return r.json(); }).then(function(j){
+      cargando = null; if(!j || !j.ok) throw new Error((j && j.error) || "error");
+      remoto = j; integrar();
+    }).catch(function(){ cargando = null; KEYS.forEach(function(k){ if(!pendiente(k)) estado(k, "Sin conexi\u00f3n con la planilla", "warn"); }); });
+    return cargando;
+  }
+  function enviar(body){
+    var go = function(){ return fetch(API, { method:"POST", body: JSON.stringify(body), redirect:"follow" }).then(function(r){ return r.json(); }); };
+    return go().catch(function(){ return go(); });
+  }
+  /* ventana de PIN + nombre (una vez por sesión) */
+  function credenciales(){
+    return new Promise(function(res){
+      if(ss(SS_PIN) && ss(SS_AUTOR)) return res({ pin: ss(SS_PIN), autor: ss(SS_AUTOR) });
+      var ov = document.createElement("div"); ov.className = "sel-overlay";
+      ov.innerHTML = '<div class="sel-box" role="dialog" aria-modal="true" aria-label="Guardar en la planilla"><h3>Guardar en la planilla compartida</h3>'
+        + '<p>Tu nombre queda en la bit\u00e1cora. El PIN se pide una vez por sesi\u00f3n.</p>'
+        + '<label for="lpAutor">Tu nombre</label><input id="lpAutor" maxlength="60" autocomplete="name" value="' + esc(ss(SS_AUTOR)) + '">'
+        + '<label for="lpPin">PIN de edici\u00f3n</label><input id="lpPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8">'
+        + '<div class="sel-msg"></div><div class="sel-actions"><button type="button" class="btn-sm" data-c="no">Cancelar</button><button type="button" class="btn-sm sel-ok" data-c="si">Guardar</button></div></div>';
+      document.body.appendChild(ov);
+      var a = ov.querySelector("#lpAutor"), p = ov.querySelector("#lpPin"), msg = ov.querySelector(".sel-msg");
+      (a.value ? p : a).focus();
+      function fin(v){ document.removeEventListener("keydown", tec); ov.remove(); res(v); }
+      function ok(){
+        if(!a.value.trim()){ msg.textContent = "Escribe tu nombre."; msg.className = "sel-msg err"; a.focus(); return; }
+        if(!/^\d{4,8}$/.test(p.value.trim())){ msg.textContent = "El PIN tiene de 4 a 8 d\u00edgitos."; msg.className = "sel-msg err"; p.focus(); return; }
+        fin({ pin: p.value.trim(), autor: a.value.trim() });
+      }
+      function tec(e){ if(e.key === "Escape") fin(null); else if(e.key === "Enter") ok(); }
+      document.addEventListener("keydown", tec);
+      ov.addEventListener("click", function(e){ var c = e.target.dataset && e.target.dataset.c; if(e.target === ov || c === "no") fin(null); else if(c === "si") ok(); });
+    });
+  }
+  function guardar(k, forzar){
+    var b = B(k); if(!b || guardando[k]) return;
+    credenciales().then(function(c){
+      if(!c) return;
+      var snap = b.snapshot(), i = info()[k] || { version: 0 };
+      guardando[k] = true; pintar(k);
+      enviar({ accion:"guardarTablero", pin:c.pin, autor:c.autor, tablero:k, meta:snap.meta, notas:snap.notas, baseVersion:i.version, forzar:!!forzar }).then(function(j){
+        guardando[k] = false;
+        if(j && j.ok){
+          ss(SS_PIN, c.pin); ss(SS_AUTOR, c.autor); pintarEditBar();
+          remoto = j; var t = j.tableros[k];
+          setInfo(k, { version: t.version, firma: firma(snap), autor: t.autor, actualizado: t.actualizado });
+          integrar(); return;
+        }
+        if(j && j.conflicto){
+          ss(SS_PIN, c.pin); ss(SS_AUTOR, c.autor); pintarEditBar(); pintar(k);
+          if(confirm((j.autor || "Otra persona") + " guard\u00f3 cambios en este tablero" + (j.actualizado ? " (" + j.actualizado + ")" : "") + ".\n\nAceptar: reemplazar la planilla con TU versi\u00f3n.\nCancelar: descartar tus cambios y cargar la versi\u00f3n de la planilla.")) guardar(k, true);
+          else recargar(k, true);
+          return;
+        }
+        if(j && /PIN/.test(j.error || "")) ss(SS_PIN, "");
+        pintarEditBar(); pintar(k);
+        alert((j && j.error) || "No se pudo guardar. Revisa la conexi\u00f3n.");
+      }).catch(function(){ guardando[k] = false; pintar(k); alert("No se pudo conectar con la planilla. Tus cambios siguen en este equipo."); });
+    });
+  }
+  function recargar(k, sinPreguntar){
+    if(!sinPreguntar && pendiente(k) && !confirm("Se descartan los cambios de este equipo y se carga la versi\u00f3n de la planilla. \u00bfContinuar?")) return;
+    cargar().then(function(){ if(remoto && remoto.tableros[k] && remoto.tableros[k].version > 0) aplicar(k); pintar(k); });
+  }
+  var timer = {};
+  window.LP_SYNC = { cambio: function(k){ clearTimeout(timer[k]); timer[k] = setTimeout(function(){ pintar(k); }, 150); } };
+  if(!/^https:\/\/script\.google\.com\//.test(API)) return;
+  Array.prototype.forEach.call(document.querySelectorAll("[data-sync]"), function(b){ b.hidden = false; });
+  document.addEventListener("click", function(e){
+    var b = e.target.closest("[data-sync]"); if(!b) return;
+    var s = b.closest("section[data-board]"); if(!s) return;
+    if(b.dataset.sync === "guardar") guardar(s.dataset.board);
+    else if(b.dataset.sync === "recargar") recargar(s.dataset.board);
+  });
+  pintarEditBar(); KEYS.forEach(pintar);
+  cargar();
+  setInterval(function(){ if(document.visibilityState === "visible") cargar(); }, 60000);
+  document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") cargar(); });
 })();
 </script>
 </body>
