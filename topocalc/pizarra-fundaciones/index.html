@@ -430,6 +430,12 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .note-actions button.save{ background:var(--ink); color:#fff; border-color:var(--ink); font-weight:700; }
 :root[data-theme="dark"] .note-actions button.save{ color:var(--paper); }
 .porticos-mapa > #editBar:empty{ display:none; }
+.restr-toggle{ all:unset; cursor:pointer; display:flex; align-items:center; gap:8px; width:100%; box-sizing:border-box; padding:10px 14px; font-family:var(--font-display); font-weight:700; font-size:.9rem; color:var(--ink); background:var(--paper-sunken); border:1px solid var(--line); border-radius:var(--radius-md); }
+.restr-toggle:hover{ border-color:var(--blueprint); }
+.restr-toggle .restr-count{ margin-left:auto; font-family:var(--font-body); font-weight:600; font-size:.72rem; color:var(--danger); }
+.restr-toggle .restr-caret{ color:var(--blueprint); width:12px; }
+.restrictions-panel .restr-table-wrap{ margin-top:8px; }
+@media print{ .restr-toggle{ display:none; } }
 .note .pend-tag{ font-size:.62rem; font-weight:700; color:var(--danger); margin-bottom:3px; }
 .mapa-toggle{ width:100%; justify-content:center; }
 .mapa-wrap{ margin-top:10px; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); overflow:hidden; }
@@ -1350,6 +1356,7 @@ window.PORTICOS_LISTA = (function(){
         + '<div class="causas-body">'+causasHtml+'</div>';
     }
 
+    var restrAbierto = false;
     function renderRestrictions(){
       var panel = root.querySelector(".restrictions-panel");
       if(!panel) return;
@@ -1364,6 +1371,7 @@ window.PORTICOS_LISTA = (function(){
         var estado = n.liberada ? '<span class="estado-ok">Liberada</span>' : '<span class="estado-abierta">Abierta</span>';
         return '<tr>'
           + '<td>'+(w?escapeHtml(w.month+" "+w.label):"")+'</td>'
+          + '<td>'+(n.portico?escapeHtml(nombrePortico(n.portico)):"")+'</td>'
           + '<td>'+escapeHtml(n.text||"(sin descripci\u00f3n)")+'</td>'
           + '<td>'+escapeHtml(n.tipoRestriccion)+'</td>'
           + '<td>'+escapeHtml(n.respLiberacion||n.responsable||"")+'</td>'
@@ -1372,10 +1380,11 @@ window.PORTICOS_LISTA = (function(){
           + '<td>'+estado+'</td>'
         + '</tr>';
       }).join("");
-      panel.innerHTML = '<div class="rel-head">Registro de restricciones ('+rows.filter(function(r){return !r.liberada;}).length+' abiertas / '+rows.length+' totales)</div>'
-        + '<div class="restr-table-wrap"><table class="restr-table"><thead><tr>'
-          + '<th>Semana</th><th>Actividad</th><th>Tipo</th><th>Responsable</th><th>Compromiso</th><th>Liberaci\u00f3n real</th><th>Estado</th>'
-        + '</tr></thead><tbody>'+trs+'</tbody></table></div>';
+      panel.innerHTML = '<button type="button" class="restr-toggle" data-action="toggle-restr" aria-expanded="'+(restrAbierto?'true':'false')+'">'
+          + '<span class="restr-caret">'+(restrAbierto?'\u25be':'\u25b8')+'</span> Registro de restricciones <span class="restr-count">'+rows.filter(function(r){return !r.liberada;}).length+' abiertas / '+rows.length+' totales</span></button>'
+        + (restrAbierto ? '<div class="restr-table-wrap"><table class="restr-table"><thead><tr>'
+          + '<th>Semana</th><th>P\u00f3rtico</th><th>Actividad</th><th>Tipo</th><th>Responsable</th><th>Compromiso</th><th>Liberaci\u00f3n real</th><th>Estado</th>'
+        + '</tr></thead><tbody>'+trs+'</tbody></table></div>' : '');
     }
 
     function renderChecklist(){
@@ -1641,6 +1650,7 @@ window.PORTICOS_LISTA = (function(){
       else if(action === "add-note") addNote(el.dataset.cat, el.dataset.week);
       else if(action === "open-note"){ state.editingNoteId = el.dataset.note; render(); }
       else if(action === "close-note"){ state.editingNoteId = null; render(); }
+      else if(action === "toggle-restr"){ restrAbierto = !restrAbierto; renderRestrictions(); }
       else if(action === "save-note"){ var ns = state.notes.find(function(x){return x.id===el.dataset.note;}); if(ns) guardarNotaRemota(ns, el); }
       else if(action === "del-note") delNote(el.dataset.note);
       else if(action === "dup-note") dupNote(el.dataset.note);
