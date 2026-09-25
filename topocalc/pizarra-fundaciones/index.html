@@ -484,6 +484,10 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   .note.editing select, .note.editing input, .note.editing textarea, .porticos-filtros input, .porticos-filtros select, .pm-body input, .pm-body select{ font-size:16px; min-height:40px; }
   .estado-btn{ padding:6px 2px; }
   .hint{ display:none; }
+  /* en celular no se necesitan: fechas, navegación de semanas, cargar desde planilla, respaldo */
+  .pizarra-block .dategen, .toolbar > [data-action="cargar-planilla"], .sync-bar{ display:none !important; }
+  .m-chip-add{ border-style:dashed; color:var(--blueprint); }
+  .m-chip-add span{ font-size:1.2rem; line-height:1; }
   body[data-mtab] .pizarra-block{ display:none; }
   body[data-mtab="semanal"] .pizarra-block[data-board="semanal"],
   body[data-mtab="porticos"] .pizarra-block[data-board="semanal"],
@@ -1151,6 +1155,9 @@ window.PORTICOS_LISTA = (function(){
       var start = inicioSemana(desde || (state && state.inicio ? parseInputDate(state.inicio) : new Date()));
       var nsem = cfg.weekly ? 1 : (nSemanas || (state && state.semanas) || 9);
       var weeks = cfg.weekly ? generarDiasSemana(start) : generarSemanasIntermedio(start, nsem);
+      var nDias = (cfg.weekly && state && state.dias && state.inicio === isoFecha(start)) ? Math.max(5, state.dias) : 5;
+      var DSEM2 = ["Dom","Lun","Mar","Mi\u00e9","Jue","Vie","S\u00e1b"];
+      for(var xd = 5; cfg.weekly && xd < nDias; xd++){ var dx = addDays(start, xd); weeks.push({ id:uid(), label: DSEM2[dx.getDay()] + " " + dx.getDate(), month: MESES[dx.getMonth()] }); }
       var categories = defaultCategories();
       var catId = {}; categories.forEach(function(c){ catId[c.name] = c.id; });
       var notes = [], causas = {};
@@ -1160,7 +1167,7 @@ window.PORTICOS_LISTA = (function(){
         var dias = Math.round((parseInputDate(r.fecha) - start) / 86400000);
         var hecho = /^ejecutado/i.test(r.estado || ""), fallo = /^no ejecutado/i.test(r.estado || "");
         var col;
-        if(cfg.weekly){ if(dias < 0 || dias > 4) return; col = weeks[dias]; }
+        if(cfg.weekly){ if(dias < 0 || dias >= weeks.length) return; col = weeks[dias]; }
         else { if(dias < 0 || dias >= 7 * nsem || fallo) return; col = weeks[Math.floor(dias / 7)]; }
         var n = { id: r.id || uid(), catId:cid, weekId:col.id, text:"", day:"", portico:String(r.portico || ""), percent: String(r.avance || ""), tone: PARTIDA_TONE[r.partida] || "neutral",
           responsable: r.responsable || "", cumplido:null, causa:"", liberada:false, tipoRestriccion: r.restriccion || "", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:"",
@@ -1182,7 +1189,7 @@ window.PORTICOS_LISTA = (function(){
       });
       state = { title: (state && state.title) || cfg.defaultTitle,
         subtitle: "Programaci\u00f3n de la planilla \u00b7 " + (cfg.weekly ? "semana del " + fmtDMY(start) : nsem + " semanas desde el " + fmtDMY(start)),
-        weeks: weeks, categories: categories, notes: notes, editingNoteId: null, inicio: isoFecha(start), semanas: nsem,
+        weeks: weeks, categories: categories, notes: notes, editingNoteId: null, inicio: isoFecha(start), semanas: nsem, dias: cfg.weekly ? weeks.length : undefined,
         ppcHistory: (state && state.ppcHistory) || [], causas: causas, checklist: (state && state.checklist) || MEETING_ITEMS.map(function(){ return false; }) };
       saveState(); render(); syncHeader();
       var fiEl = root.querySelector(".fecha-inicio"); if(fiEl) fiEl.value = isoFecha(start);
@@ -1420,6 +1427,7 @@ window.PORTICOS_LISTA = (function(){
           + ns.map(function(n){ return renderNote(n); }).join("")
           + '<button type="button" class="m-add" data-action="add-note" data-cat="'+c.id+'" data-week="'+mCol+'">+ Agregar tarea</button></div>';
       }).join("");
+      chips += '<button type="button" class="m-chip m-chip-add" data-action="add-week" aria-label="'+(cfg.weekly ? 'Agregar d\u00eda' : 'Agregar semana')+'"><span aria-hidden="true">+</span><small>'+(cfg.weekly ? 'D\u00eda' : 'Semana')+'</small></button>';
       box.innerHTML = '<div class="m-chips">'+chips+'</div>' + grupos;
     }
     function render(){
@@ -1681,7 +1689,16 @@ window.PORTICOS_LISTA = (function(){
 
     function addWeek(){
       var last = state.weeks[state.weeks.length-1];
-      state.weeks.push({id:uid(), label:"Nueva", month: last?last.month:"Mes 1"});
+      if(state.inicio){
+        /* siguiente d\u00eda (Semanal) o siguiente semana (Intermedio) seg\u00fan la fecha de inicio */
+        var st0 = inicioSemana(parseInputDate(state.inicio)), i = state.weeks.length;
+        var dN = addDays(st0, cfg.weekly ? i : 7 * i);
+        var DSEM = ["Dom","Lun","Mar","Mi\u00e9","Jue","Vie","S\u00e1b"];
+        state.weeks.push({ id:uid(), label: cfg.weekly ? DSEM[dN.getDay()] + " " + dN.getDate() : String(dN.getDate()), month: MESES[dN.getMonth()] });
+        if(cfg.weekly) state.dias = state.weeks.length; else state.semanas = state.weeks.length;
+      } else {
+        state.weeks.push({id:uid(), label:"Nueva", month: last?last.month:"Mes 1"});
+      }
       saveState(); render();
     }
     function delWeek(id){
