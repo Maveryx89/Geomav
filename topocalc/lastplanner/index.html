@@ -449,7 +449,8 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   body[data-mtab] .pizarra-block{ display:none; }
   body[data-mtab="semanal"] .pizarra-block[data-board="semanal"],
   body[data-mtab="intermedio"] .pizarra-block[data-board="intermedio"],
-  body[data-mtab="maestro"] .pizarra-block[data-board="maestro"]{ display:block; }
+  body[data-mtab="maestro"] .pizarra-block[data-board="maestro"],
+  body[data-mtab="indicadores"] .pizarra-block[data-board="indicadores"]{ display:block; }
   body:not([data-mtab="semanal"]) .sync-bar{ display:none; }
   .app-foot{ display:none; }
 }
@@ -479,6 +480,50 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .sel-box input{ box-sizing:border-box; width:100%; font:inherit; font-size:16px; min-height:44px; padding:8px 10px; color:var(--ink); background:var(--paper); border:1px solid var(--line-strong); border-radius:8px; }
 .sel-msg{ min-height:1.2em; font-size:.78rem; margin-top:8px; } .sel-msg.err{ color:var(--danger); }
 @media print{ .sync-save, .sync-status, .edit-bar{ display:none !important; } }
+/* ===== Indicadores ===== */
+.ind-body{ display:flex; flex-direction:column; gap:12px; margin-top:10px; max-width:980px; }
+.ind-vacio{ color:var(--ink-soft); font-size:.86rem; }
+.ind-kpis{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+.ind-kpi{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); padding:10px; display:flex; flex-direction:column; gap:2px; }
+.ind-kpi b{ font-size:1.35rem; color:var(--ink); } .ind-kpi span{ font-size:.72rem; color:var(--ink-soft); }
+.ind-kpi.ok b{ color:var(--success); } .ind-kpi.bad b{ color:var(--danger); }
+.ind-rango{ display:flex; gap:6px; } .ind-rango button{ all:unset; cursor:pointer; padding:6px 12px; min-height:32px; box-sizing:border-box; border:1px solid var(--line-strong); border-radius:999px; font-size:.78rem; font-weight:700; color:var(--ink-soft); }
+.ind-rango button.on{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.ind-card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px; }
+.ind-tit{ font-weight:800; font-size:.9rem; color:var(--ink); margin-bottom:8px; } .ind-tit small{ font-weight:500; color:var(--ink-soft); }
+.ind-svg{ width:100%; height:auto; display:block; }
+.ind-svg .g{ stroke:var(--line); stroke-width:1; } .ind-svg .ax{ font-size:10px; fill:var(--ink-soft); font-family:inherit; }
+.ind-svg .meta{ stroke:var(--accent); stroke-width:1.5; stroke-dasharray:6 4; }
+.ind-svg .ppc{ fill:none; stroke:var(--blueprint); stroke-width:2; } .ind-svg .acum{ fill:none; stroke:var(--ink); stroke-width:1.5; opacity:.55; }
+.ind-svg .d-ok{ fill:var(--success); } .ind-svg .d-bad{ fill:var(--danger); }
+.ind-ley{ display:flex; flex-wrap:wrap; gap:4px 12px; font-size:.72rem; color:var(--ink-soft); align-items:center; margin-top:6px; }
+.ind-ley .k{ display:inline-block; width:16px; height:3px; margin-right:4px; vertical-align:middle; }
+.ind-ley .k.ppc{ background:var(--blueprint); } .ind-ley .k.acum{ background:var(--ink); opacity:.55; } .ind-ley .k.meta{ background:var(--accent); }
+.par-head, .par-row{ display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) 40px 40px 48px; gap:6px; align-items:center; font-size:.76rem; }
+.par-head{ color:var(--ink-soft); font-size:.68rem; font-weight:700; text-align:right; margin-bottom:4px; }
+.par-row{ padding:3px 0; } .par-lbl{ color:var(--ink); } .par-n, .par-p, .par-a{ text-align:right; color:var(--ink-soft); } .par-a.vital{ color:var(--danger); font-weight:800; }
+.par-track{ height:10px; background:var(--paper-sunken); border-radius:5px; overflow:hidden; } .par-fill{ height:100%; background:var(--danger); opacity:.8; }
+.ind-nota{ font-size:.72rem; color:var(--ink-soft); margin:8px 0 0; line-height:1.4; }
+.rk-wrap{ overflow-x:auto; } .rk{ width:100%; border-collapse:collapse; font-size:.8rem; }
+.rk th{ text-align:left; font-size:.68rem; color:var(--ink-soft); padding:4px 6px; border-bottom:1px solid var(--line); }
+.rk td{ padding:6px; border-bottom:1px solid var(--line); vertical-align:top; } .rk td small{ display:block; color:var(--danger); font-size:.68rem; }
+.rk-n{ font-weight:700; color:var(--ink); }
+.rk-ppc{ font-weight:800; } .rk-ppc.ok{ color:var(--success); } .rk-ppc.mid{ color:var(--accent); } .rk-ppc.bad{ color:var(--danger); }
+.rk-dot{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+.rk-dot.ok, .ev-prom.ok{ background:var(--success); } .rk-dot.mid, .ev-prom.mid{ background:#E3B63B; } .rk-dot.bad, .ev-prom.bad{ background:var(--danger); }
+.ev-sel{ display:flex; gap:8px; align-items:center; margin-bottom:10px; } .ev-sel label{ font-size:.74rem; color:var(--ink-soft); }
+.ev-sel select{ font:inherit; font-size:16px; min-height:40px; padding:6px 8px; border:1px solid var(--line-strong); border-radius:8px; background:var(--paper); color:var(--ink); }
+.ev-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:8px; }
+.ev-card{ border:1px solid var(--line); border-radius:10px; padding:8px 10px; background:var(--paper); }
+.ev-head{ display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px; font-size:.82rem; color:var(--ink); }
+.ev-prom{ font-size:.72rem; font-weight:800; color:#fff; border-radius:999px; padding:2px 8px; background:var(--ink-soft); }
+.ev-row{ display:flex; justify-content:space-between; align-items:center; font-size:.76rem; color:var(--ink-soft); padding:2px 0; }
+.ev-caras{ display:flex; gap:4px; }
+.cara{ all:unset; cursor:pointer; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; font-size:1.2rem; border:1px solid var(--line); opacity:.35; filter:grayscale(1); }
+.cara.on{ opacity:1; filter:none; } .cara.c1.on{ background:#F6D5D5; border-color:var(--danger); } .cara.c3.on{ background:#FBEFC8; border-color:#E3B63B; } .cara.c5.on{ background:#D5EEDD; border-color:var(--success); }
+.cara:focus-visible{ outline:2px solid var(--blueprint); }
+@media (max-width:860px){ .ind-kpis{ grid-template-columns:repeat(2,minmax(0,1fr)); } .ind-body{ padding:0 12px 20px; } .m-tabs button{ font-size:.6rem; } }
+@media print{ .pizarra-block[data-board="indicadores"]{ display:none !important; } }
 </style>
 </head>
 
@@ -531,6 +576,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
         <div class="menu-pop">
           <button class="btn-sm" data-action="add-week">+ Día</button>
+          <button class="btn-sm" data-action="cerrar-semana">&#x1F4CA; Cerrar semana (registrar en Indicadores)</button>
           <button class="btn-sm" data-action="load-curanipe-semana">Cargar semana Curanipe…</button>
           <button class="btn-sm" data-action="load-porticos">Cargar Gantt Pórticos (con atraso)</button>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
@@ -627,11 +673,29 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     <div class="m-view" aria-label="Vista por mes"></div>
     <div class="board-scroll"><div class="board"></div></div>
   </section>
+  <section class="pizarra-block" data-board="indicadores">
+    <div class="section-head"><span class="idx">4</span><h2>Indicadores &middot; PPC, causas y subcontratos</h2></div>
+    <div class="toolbar">
+      <button class="btn-sm sync-save" type="button" data-sync="guardar" hidden><span aria-hidden="true">&#x2601;</span> Guardar en planilla</button>
+      <details class="menu-mas">
+        <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
+        <div class="menu-pop">
+          <button class="btn-sm" type="button" data-ind="historial">Cargar historial Curanipe (61 semanas)</button>
+          <button class="btn-sm" type="button" data-sync="recargar" hidden>&#x27F3; Descartar cambios y cargar planilla</button>
+          <button class="btn-sm danger" type="button" data-ind="borrar">Borrar indicadores</button>
+        </div>
+      </details>
+      <span class="sync-status" aria-live="polite"></span>
+    </div>
+    <div class="hint">Cada semana cerrada en el Semanal (&#x22ef; M&aacute;s opciones &rarr; Cerrar semana) suma un punto a la curva &middot; la evaluaci&oacute;n 1-3-5 se marca abajo</div>
+    <div id="indBody" class="ind-body"></div>
+  </section>
 
   <nav class="m-tabs" id="mTabs" aria-label="Secciones">
     <button type="button" data-mtab="semanal" class="on" aria-current="page"><span aria-hidden="true">&#x1F4CB;</span>Semanal</button>
     <button type="button" data-mtab="intermedio"><span aria-hidden="true">&#x1F5D3;&#xFE0F;</span>Intermedio</button>
     <button type="button" data-mtab="maestro"><span aria-hidden="true">&#x1F4C5;</span>Maestro</button>
+    <button type="button" data-mtab="indicadores"><span aria-hidden="true">&#x1F4CA;</span>Indicadores</button>
   </nav>
 
   <div class="print-summary" id="printSummary"></div>
@@ -650,7 +714,12 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 
   var BOARDS = {};
 
-  var CAUSAS = [
+  /* Causas de no cumplimiento de la obra (mismas 9 de la planilla Last Planner) */
+  var CAUSAS = [["1","Falta o falla de equipos"],["2","Falta mano de obra"],["3","Falta de materiales"],["4","Falla de subcontratistas"],
+    ["5","Eventos no programables (clima, accidentes)"],["6","Falla de programaci\u00f3n"],["7","Cambio de actividad por JT o AT"],
+    ["8","Indefinici\u00f3n de proyecto o dise\u00f1o"],["9","Mala ejecuci\u00f3n"]];
+  window.LP_CAUSAS9 = CAUSAS;
+  var CAUSAS_LEGACY = [
     ["A","Mala planificacion"],["B","Terminacion de un trabajo anterior"],
     ["C","Terminacion de un trabajo anterior propio"],["D","Falta de informacion"],
     ["E","Cambios en el diseno"],["F","Ausencia no planificada"],
@@ -663,6 +732,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     ["S","Cierre por vacaciones / abandono de la obra"],["T","Reorganizacion de tareas"],
     ["U","Averia de maquinaria"],["V","Otras"]
   ];
+  function causaLabel(code){ var c = CAUSAS.concat(CAUSAS_LEGACY).find(function(x){ return x[0] === code; }); return c ? c[1] : code; }
   var RESTRICCION_TIPOS = ["Contratos","Inspeccion","Materiales","Terreno","Equipos","Informacion y diseno","Administrativos","Mano de obra","Seguridad"];
   var MEETING_ITEMS = [
     "Evaluar la cantidad real de trabajo realizado frente a lo planificado (PPC)",
@@ -1365,13 +1435,14 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         var cls = h.pct >= 85 ? "bar-ok" : (h.pct >= 60 ? "bar-mid" : "bar-bad");
         return '<div class="ppc-bar-wrap"><div class="ppc-bar '+cls+'" style="height:'+h2+'%"></div><span class="ppc-bar-lbl">'+h.pct+'%</span><span class="ppc-bar-week">'+escapeHtml(h.label)+'</span></div>';
       }).join("");
-      var causasArr = Object.keys(state.causas).map(function(k){ return {code:k, count:state.causas[k]}; }).filter(function(x){return x.count>0;});
+      var cc = {}; state.notes.forEach(function(n){ if(n.cumplido === false && n.causa) cc[n.causa] = (cc[n.causa] || 0) + 1; });
+      var causasArr = Object.keys(cc).map(function(k){ return {code:k, count:cc[k]}; });
       causasArr.sort(function(a,b){ return b.count-a.count; });
-      var maxC = causasArr.length ? causasArr[0].count : 1;
-      var causasHtml = causasArr.slice(0,5).map(function(c){
-        var label = (CAUSAS.find(function(x){return x[0]===c.code;})||["",c.code])[1];
-        var w = Math.round((c.count/maxC)*100);
-        return '<div class="causa-row"><span class="causa-lbl">'+c.code+'. '+escapeHtml(label)+'</span><div class="causa-bar-track"><div class="causa-bar-fill" style="width:'+w+'%"></div></div><span class="causa-n">'+c.count+'</span></div>';
+      var maxC = causasArr.length ? causasArr[0].count : 1, totC = causasArr.reduce(function(a,c){ return a + c.count; }, 0), accC = 0;
+      var causasHtml = causasArr.map(function(c){
+        var label = causaLabel(c.code);
+        var w = Math.round((c.count/maxC)*100); accC += c.count;
+        return '<div class="causa-row"><span class="causa-lbl">'+c.code+'. '+escapeHtml(label)+'</span><div class="causa-bar-track"><div class="causa-bar-fill" style="width:'+w+'%"></div></div><span class="causa-n">'+Math.round(accC/totC*100)+'% ac. \u00b7 '+c.count+'</span></div>';
       }).join("") || '<div class="causa-row empty">A\u00fan no hay causas registradas.</div>';
 
       panel.innerHTML = '<div class="rel-head">Confiabilidad del plan (PPC)</div>'
@@ -1379,7 +1450,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           + '<div class="ppc-now"><span class="ppc-num">'+(ppc.pct===null?"\u2013":ppc.pct+"%")+'</span><span class="ppc-sub">'+ppc.done+' de '+ppc.total+' tareas comprometidas esta semana</span></div>'
           + '<div class="ppc-chart">'+(bars || '<span class="ppc-sub">Marca tareas como Cumplido / No cumpli\u00f3 para ver el indicador.</span>')+'</div>'
         + '</div>'
-        + '<div class="causas-head">Principales causas de no cumplimiento</div>'
+        + '<div class="causas-head">Pareto de causas de no cumplimiento (semana actual)</div>'
         + '<div class="causas-body">'+causasHtml+'</div>';
     }
 
@@ -1426,13 +1497,15 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       var editing = state.editingNoteId === note.id;
       if(!editing){
         var metaBits = [];
+        if(cfg.weekly && note.zona) metaBits.push(escapeHtml(note.zona));
         if(note.responsable) metaBits.push(escapeHtml(note.responsable));
         if(note.day) metaBits.push(escapeHtml(note.day));
         var badge = "";
         if(cfg.weekly){
           if(note.cumplido === true) badge = '<span class="badge-ok" title="Cumplido">\u2713</span>';
           else if(note.cumplido === false) badge = '<span class="badge-no" title="No cumplido">\u2715</span>';
-          if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%");
+          if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%" + ((note.real !== "" && note.real != null) ? " \u2192 " + note.real + "%" : ""));
+          if(note.cumplido === false && note.causa) metaBits.push(escapeHtml(causaLabel(note.causa)));
         } else {
           if(note.tipoRestriccion){
             badge = note.liberada ? '<span class="badge-ok" title="Restricci\u00f3n liberada">\u2713</span>' : '<span class="badge-warn" title="Restricci\u00f3n abierta">!</span>';
@@ -1460,7 +1533,12 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           return '<option value="'+c[0]+'"'+(c[0]===note.causa?' selected':"")+'>'+c[0]+'. '+escapeHtml(c[1])+'</option>';
         }).join("");
         lpsFields = '<div class="field-row">'
-          + '<div class="field-col"><label>Responsable</label><input type="text" data-bind="note:'+note.id+':responsable" value="'+escapeHtml(note.responsable)+'" placeholder="Nombre / cuadrilla"></div>'
+          + '<div class="field-col"><label>Responsable</label><input type="text" data-bind="note:'+note.id+':responsable" value="'+escapeHtml(note.responsable)+'" placeholder="Subcontrato / cuadrilla"></div>'
+          + '<div class="field-col"><label>Supervisor</label><input type="text" data-bind="note:'+note.id+':supervisor" value="'+escapeHtml(note.supervisor||"")+'" placeholder="Jefe a cargo"></div>'
+          + '</div>'
+          + '<div class="field-row">'
+          + '<div class="field-col"><label>Zona</label><input type="text" data-bind="note:'+note.id+':zona" value="'+escapeHtml(note.zona||"")+'" placeholder="ej. Z3"></div>'
+          + '<div class="field-col"><label>% real logrado</label><input type="number" min="0" max="100" step="5" data-bind="note:'+note.id+':real" value="'+escapeHtml(note.real==null?"":note.real)+'" placeholder="al cierre"></div>'
           + '</div>'
           + '<div class="field-row"><div class="field-col"><label>Cumplimiento (PPC)</label>'
             + '<div class="tri-btns">'
@@ -1502,7 +1580,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         + '<textarea data-bind="note:'+note.id+':text" placeholder="Descripci\u00f3n de la tarea">'+escapeHtml(note.text)+'</textarea>'
         + '<div class="field-row">'
           + '<div class="field-col"><label>D\u00eda / fecha</label><input type="text" data-bind="note:'+note.id+':day" value="'+escapeHtml(note.day)+'" placeholder="ej. 26"></div>'
-          + '<div class="field-col"><label>Avance %</label><input type="number" min="0" max="100" step="5" data-bind="note:'+note.id+':percent" value="'+escapeHtml(note.percent)+'"></div>'
+          + '<div class="field-col"><label>'+(cfg.weekly ? '% solicitado' : 'Avance %')+'</label><input type="number" min="0" max="100" step="5" data-bind="note:'+note.id+':percent" value="'+escapeHtml(note.percent)+'"></div>'
         + '</div>'
         + lpsFields
         + '<div class="field-row">'
@@ -1603,6 +1681,15 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     });
     root.addEventListener("change", function(e){
       var t = e.target;
+      if(cfg.weekly && t.dataset && t.dataset.bind && /:(real|percent)$/.test(t.dataset.bind)){
+        var nr = state.notes.find(function(x){ return x.id === t.dataset.bind.split(":")[1]; });
+        if(nr && nr.real !== "" && nr.real != null && isFinite(Number(nr.real))){
+          var sol = (nr.percent === "" || nr.percent == null || !isFinite(Number(nr.percent))) ? 100 : Number(nr.percent);
+          nr.cumplido = Number(nr.real) >= sol;
+          if(nr.cumplido && nr.causa) nr.causa = "";
+        }
+        saveState(); render(); return;
+      }
       if(t.dataset && t.dataset.bindSelect){
         var parts = t.dataset.bindSelect.split(":");
         var n = state.notes.find(function(x){return x.id===parts[1];});
@@ -1685,6 +1772,28 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           valorInicial: String(CURANIPE_PLANES.length - 1),
           ok: function(v){ mCol = null; state = curanipePlanSeed(parseInt(v,10)); saveState(); render(); syncHeader(); }
         });
+      }
+      else if(action === "cerrar-semana"){
+        var ev = state.notes.filter(function(n){ return String(n.text || "").trim() && (n.cumplido === true || n.cumplido === false); });
+        var pend = state.notes.filter(function(n){ return String(n.text || "").trim() && n.cumplido !== true && n.cumplido !== false; }).length;
+        if(!ev.length){ alert("No hay tareas evaluadas (cumpli\u00f3 / no cumpli\u00f3) en esta semana."); return; }
+        var hs = window.LP_IND ? window.LP_IND.semanas() : [];
+        var nSug = hs.length ? hs[hs.length-1].n + 1 : 1;
+        var nIn = prompt("N\u00b0 de semana a registrar en Indicadores" + (pend ? "\n(" + pend + " tareas sin evaluar no se cuentan)" : ""), String(nSug));
+        if(nIn === null) return; var nSem = parseInt(nIn, 10); if(!nSem){ alert("N\u00b0 de semana inv\u00e1lido."); return; }
+        var w0 = state.weeks[0], dd = w0 ? parseInt(String(w0.label).replace(/\D+/g, ""), 10) : NaN, mm = w0 ? MESES.indexOf(w0.month) : -1;
+        var hoyC = new Date(), ini = (dd && mm >= 0) ? new Date(hoyC.getFullYear(), mm, dd) : mondayOf(hoyC);
+        if(ini - hoyC > 60*864e5) ini.setFullYear(ini.getFullYear() - 1);
+        function iso(d){ return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
+        var causas9 = [0,0,0,0,0,0,0,0,0], resp = {};
+        ev.forEach(function(n){
+          var ci = parseInt(n.causa, 10); if(n.cumplido === false && ci >= 1 && ci <= 9) causas9[ci-1]++;
+          var r = window.LP_CANON ? window.LP_CANON(n.responsable) : (n.responsable || "Sin responsable");
+          var e = resp[r] || (resp[r] = [0,0]); e[0]++; if(n.cumplido) e[1]++;
+        });
+        var log = ev.filter(function(n){ return n.cumplido; }).length;
+        if(window.LP_IND) window.LP_IND.registrarSemana({ n: nSem, ini: iso(ini), fin: iso(addDays(ini, 6)), prog: ev.length, log: log, causas: causas9, resp: resp, ev: {} });
+        alert("Semana " + nSem + " registrada en Indicadores: PPC " + Math.round(log/ev.length*100) + "% (" + log + " de " + ev.length + ").");
       }
       else if(action === "load-maestro"){
         if(!state.notes.length || confirm("Esto reemplaza este tablero por el Plan Maestro Curanipe (48 partidas, noviembre 2024 a diciembre 2025). \u00bfContinuar?")){
@@ -1843,7 +1952,8 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           return { id: n.id, cat: ci[n.catId], col: wi[n.weekId], tarea: n.text, detalle: n.day || "", responsable: n.responsable || "",
             avance: p, cumplido: n.cumplido === true ? true : (n.cumplido === false ? false : null), causa: n.causa || "",
             liberada: !!n.liberada, tipoRestriccion: n.tipoRestriccion || "", respLiberacion: n.respLiberacion || "",
-            fechaCompromiso: n.fechaCompromiso || "", fechaLiberacion: n.fechaLiberacion || "", color: n.tone || "" };
+            fechaCompromiso: n.fechaCompromiso || "", fechaLiberacion: n.fechaLiberacion || "", color: n.tone || "",
+            zona: n.zona || "", supervisor: n.supervisor || "", real: (n.real === "" || n.real == null || !isFinite(Number(n.real))) ? "" : Number(n.real) };
         })
       };
     }
@@ -1859,7 +1969,8 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           return { id: n.id || uid(), catId: categories[n.cat].id, weekId: weeks[n.col].id, text: n.tarea, day: n.detalle || "",
             percent: (n.avance === "" || n.avance == null) ? "" : n.avance, tone: n.color || "neutral", responsable: n.responsable || "",
             cumplido: n.cumplido === true ? true : (n.cumplido === false ? false : null), causa: n.causa || "", liberada: !!n.liberada,
-            tipoRestriccion: n.tipoRestriccion || "", respLiberacion: n.respLiberacion || "", fechaCompromiso: n.fechaCompromiso || "", fechaLiberacion: n.fechaLiberacion || "" };
+            tipoRestriccion: n.tipoRestriccion || "", respLiberacion: n.respLiberacion || "", fechaCompromiso: n.fechaCompromiso || "", fechaLiberacion: n.fechaLiberacion || "",
+            zona: n.zona || "", supervisor: n.supervisor || "", real: (n.real === "" || n.real == null) ? "" : n.real };
         }),
         ppcHistory: Array.isArray(ex.ppcHistory) ? ex.ppcHistory : [], causas: ex.causas || {},
         checklist: (Array.isArray(ex.checklist) && ex.checklist.length) ? ex.checklist : MEETING_ITEMS.map(function(){ return false; })
@@ -1971,7 +2082,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         return '<div class="rp-bar-wrap"><div class="rp-bar '+cls+'" style="height:'+Math.max(4,h.pct)+'%"></div><span>'+h.pct+'%</span></div>';
       }).join("");
       var causasRows = sem.causas.slice(0,6).map(function(c){
-        var label = (CAUSAS.find(function(x){return x[0]===c.code;})||["",c.code])[1];
+        var label = causaLabel(c.code);
         return '<tr><td>'+c.code+'</td><td>'+label+'</td><td>'+c.count+'</td></tr>';
       }).join("") || '<tr><td colspan="3">Sin causas registradas todav\u00eda.</td></tr>';
 
@@ -2083,12 +2194,171 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 })();
 </script>
 <script>
+  /* Historial Last Planner CESFAM Curanipe (planilla 1. PLAN SEMANAL, semanas 3 a 64): prog/log oficiales, causas [9], responsables {nombre:[prog,log]}, evaluaciones {subcontrato:[CA,S,AA,P,CO]} */
+  var CURANIPE_HIST = [{"n":3,"ini":"2024-12-14","fin":"2024-12-20","prog":37,"log":16,"causas":[0,6,4,0,8,0,0,0,0],"resp":{"Cristian Hernandez":[2,2],"Cristian Hernandez y Luis Aguilar":[1,1],"Alejandro Soto":[1,1],"Ricardo Caro":[4,0],"Patricio Barrientos":[13,6],"Omar Mardones (Enfierradura)":[4,1],"Diego Rivas":[7,1],"Felipe Gutiérrez":[1,1],"Pablo Terraza":[2,2],"Luis Aguilar":[1,1],"Proyectista Sanitario":[1,0]},"ev":{}},{"n":4,"ini":"2024-12-21","fin":"2024-12-27","prog":31,"log":16,"causas":[0,4,0,1,1,8,0,0,0],"resp":{"Ricardo Caro":[3,0],"Alejandro Soto":[6,1],"Luis Aguilar":[1,0],"Bernardo":[2,0],"Patricio Barrientos":[5,3],"Ricardo Caro y Matias Oyarce":[1,1],"Patricio Barrientos y Matias Oyarde":[1,0],"Omar Mardones (Enfierradura)":[2,2],"Diego Rivas":[7,6],"Felipe Gutiérrez":[1,1],"Pablo Terraza":[1,1],"Cristian Gonzalez":[1,1]},"ev":{}},{"n":6,"ini":"2025-01-04","fin":"2025-01-10","prog":36,"log":29,"causas":[0,1,1,0,4,0,0,0,0],"resp":{"Ricardo Caro":[3,3],"Alejandro Soto":[6,2],"Luis Aguilar":[1,1],"Patricio Barrientos y Cristian Hernandez":[1,1],"Bernardo":[2,2],"Patricio Barrientos":[3,2],"Ricardo Caro y Matias Oyarce":[1,1],"Patricio Barrientos y Matias Oyarde":[1,1],"Constructora Torres del Valle":[3,3],"Felipe Gutiérrez":[1,1],"Diego Rivas":[7,6],"Pablo Terraza":[3,2],"Omar Mardones (Enfierradura)":[3,3],"Cristian Gonzalez":[1,1]},"ev":{}},{"n":7,"ini":"2025-01-11","fin":"2025-01-17","prog":33,"log":27,"causas":[0,1,1,0,4,0,0,0,0],"resp":{"Ricardo Caro":[3,2],"Alejandro Soto":[5,5],"Patricio Barrientos y Cristian Hernandez":[1,1],"Ricardo Caro y Matias Oyarce":[1,0],"Patricio Barrientos y Matias Oyarde":[1,1],"Patricio Barrientos":[1,0],"Pablo Terraza":[4,3],"Constructora Torres del Valle":[2,2],"Diego Rivas":[9,7],"Omar Mardones (Enfierradura)":[5,5],"JS Instalaciones Sanitarias":[1,1]},"ev":{}},{"n":8,"ini":"2025-01-18","fin":"2025-01-24","prog":41,"log":37,"causas":[0,0,0,0,0,1,3,0,0],"resp":{"Ricardo Caro":[2,1],"Patricio Barrientos":[2,1],"Patricio Barrientos y Cristian Hernandez":[1,1],"Felipe Gonzalez":[1,0],"Ricardo Caro y Matias Oyarce":[1,1],"Patricio Barrientos y Matias Oyarde":[1,1],"Diego Rivas":[16,16],"Constructora Torres del Valle":[2,2],"Omar Mardones (Enfierradura)":[6,6],"Pablo Terraza":[2,2],"Alejandro Soto":[5,4],"JS Instalaciones Sanitarias":[2,2]},"ev":{}},{"n":9,"ini":"2025-01-25","fin":"2025-01-31","prog":46,"log":36,"causas":[0,1,3,0,1,2,2,0,0],"resp":{"Ricardo Caro":[4,3],"Matias Oyarce":[2,2],"Felipe Gonzalez":[1,0],"Constructora CASAA":[1,1],"Patricio Barrientos":[1,0],"Diego Rivas":[12,11],"Omar Mardones (Enfierradura)":[6,4],"Constructora Torres del Valle":[4,3],"Pablo Terraza":[2,1],"Alejandro Soto":[5,4],"JS Instalaciones Sanitarias":[5,4],"Loma Alta Electricidad":[3,3]},"ev":{}},{"n":10,"ini":"2025-02-01","fin":"2025-02-07","prog":52,"log":45,"causas":[1,0,0,0,1,0,5,0,0],"resp":{"Matias Oyarce":[1,1],"Felipe Gonzalez":[1,0],"Ricardo Caro":[1,0],"Patricio Barrientos":[2,0],"Omar Mardones (Enfierradura)":[9,8],"Constructora Torres del Valle":[8,7],"Diego Rivas":[14,13],"Pablo Terraza":[2,2],"Alejandro Soto":[7,7],"JS Instalaciones Sanitarias":[4,4],"Loma Alta Electricidad":[3,3]},"ev":{}},{"n":11,"ini":"2025-02-08","fin":"2025-02-14","prog":57,"log":41,"causas":[0,0,3,0,0,2,10,0,0],"resp":{"Matias Oyarce":[2,2],"Cristian Hernandez":[1,0],"Felipe Gonzalez":[1,0],"Ricardo Caro":[1,0],"Patricio Barrientos":[2,0],"Constructora Torres del Valle":[11,5],"Diego Rivas":[17,14],"Omar Mardones (Enfierradura)":[7,6],"Pablo Terraza":[1,1],"Alejandro Soto":[8,7],"JS Instalaciones Sanitarias":[3,3],"Loma Alta Electricidad":[3,3]},"ev":{}},{"n":12,"ini":"2025-02-15","fin":"2025-02-21","prog":53,"log":22,"causas":[0,2,0,0,0,18,8,0,0],"resp":{"Matias Oyarce":[1,1],"Cristian Hernandez":[1,0],"Felipe Gonzalez":[1,0],"Patricio Barrientos":[2,0],"Constructora Torres del Valle":[12,8],"Alejandro Soto":[25,8],"Omar Mardones (Enfierradura)":[3,2],"Bernandro Urra":[1,1],"JS Instalaciones Sanitarias":[3,1],"Loma Alta Electricidad":[4,1]},"ev":{}},{"n":13,"ini":"2025-02-22","fin":"2025-02-28","prog":67,"log":38,"causas":[0,9,0,0,1,15,3,0,0],"resp":{"Constructora CASAA":[29,17],"Omar Mardones (Enfierradura)":[11,4],"Constructora Torres del Valle":[19,10],"JS Instalaciones Sanitarias":[5,4],"Loma Alta Electricidad":[3,3]},"ev":{}},{"n":14,"ini":"2025-03-03","fin":"2025-03-09","prog":68,"log":39,"causas":[0,10,0,1,6,2,10,0,0],"resp":{"Constructora CASAA":[34,11],"Omar Mardones (Enfierradura)":[6,6],"Constructora Torres del Valle":[21,15],"JS Instalaciones Sanitarias":[3,3],"Loma Alta Electricidad":[4,4]},"ev":{}},{"n":15,"ini":"2025-03-10","fin":"2025-03-16","prog":72,"log":44,"causas":[0,7,0,0,9,9,1,0,0],"resp":{"Constructora CASAA":[35,18],"Omar Mardones (Enfierradura)":[7,6],"Constructora Torres del Valle":[19,14],"Matias Perez":[5,4],"JS Instalaciones Sanitarias":[4,2],"Loma Alta Electricidad":[2,0]},"ev":{}},{"n":16,"ini":"2025-03-17","fin":"2025-03-23","prog":72,"log":58,"causas":[0,3,0,0,2,6,3,0,0],"resp":{"Constructora CASAA":[31,26],"Omar Mardones (Enfierradura)":[6,6],"Constructora Torres del Valle":[25,18],"JS Instalaciones Sanitarias":[6,5],"Loma Alta Electricidad":[4,3]},"ev":{}},{"n":17,"ini":"2025-03-24","fin":"2025-03-30","prog":85,"log":60,"causas":[0,19,0,0,2,2,1,0,0],"resp":{"Constructora Torres del Valle":[29,16],"Constructora CASAA":[37,29],"Omar Mardones (Enfierradura)":[7,5],"JS Instalaciones Sanitarias":[9,7],"Loma Alta Electricidad":[3,3]},"ev":{"JS Instalaciones Sanitarias":[5,3,5,5,5],"Loma Alta Electricidad":[3,3,3,5,5],"Omar Mardones (Enfierradura)":[5,5,5,5,5],"Constructora Torres del Valle":[3,3,5,3,3]}},{"n":18,"ini":"2025-03-31","fin":"2025-04-06","prog":94,"log":68,"causas":[0,11,3,0,8,0,3,0,0],"resp":{"Constructora Torres del Valle":[30,21],"Raíces Construcciones":[5,2],"Constructora CASAA":[31,20],"Omar Mardones (Enfierradura)":[8,8],"Matias Perez":[1,0],"Socalzados JLP":[8,6],"JS Instalaciones Sanitarias":[3,3],"Loma Alta Electricidad":[8,8]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[3,5,3,5,1],"Omar Mardones (Enfierradura)":[3,5,5,5,5],"Constructora Torres del Valle":[1,3,5,1,1]}},{"n":19,"ini":"2025-04-07","fin":"2025-04-13","prog":95,"log":70,"causas":[0,0,0,20,0,0,3,0,0],"resp":{"Constructora Torres del Valle":[24,9],"Raíces Construcciones":[11,9],"Omar Mardones (Enfierradura)":[5,5],"Constructora CASAA":[26,18],"Socalzados JLP":[7,7],"JS Instalaciones Sanitarias":[15,15],"Loma Alta Electricidad":[7,7]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[5,5,5,5,5],"Omar Mardones (Enfierradura)":[5,5,5,5,5],"Constructora Torres del Valle":[1,3,3,1,1]}},{"n":20,"ini":"2025-04-14","fin":"2025-04-20","prog":58,"log":45,"causas":[0,0,0,4,2,0,4,2,0],"resp":{"Constructora CASAA":[23,16],"Omar Mardones (Enfierradura)":[5,5],"Constructora Torres del Valle":[9,7],"Sin responsable":[1,1],"Raíces Construcciones":[5,4],"Socalzados JLP":[5,3],"JS Instalaciones Sanitarias":[8,7],"Loma Alta Electricidad":[2,2]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[5,5,5,5,5],"Omar Mardones (Enfierradura)":[5,5,5,5,5],"Constructora Torres del Valle":[1,3,5,1,3]}},{"n":21,"ini":"2025-04-21","fin":"2025-04-27","prog":66,"log":52,"causas":[0,0,0,8,0,1,0,0,5],"resp":{"Constructora Torres del Valle":[19,14],"Constructora CASAA":[21,12],"Omar Mardones (Enfierradura)":[4,4],"Raíces Construcciones":[10,10],"Socalzados JLP":[2,2],"JS Instalaciones Sanitarias":[10,10]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[5,5,3,5,5],"Omar Mardones (Enfierradura)":[5,5,5,5,5],"Constructora Torres del Valle":[1,5,5,3,3]}},{"n":22,"ini":"2025-04-28","fin":"2025-05-04","prog":44,"log":36,"causas":[0,0,0,2,1,2,0,3,0],"resp":{"Constructora Torres del Valle":[9,7],"Constructora CASAA":[24,20],"Omar Mardones (Enfierradura)":[2,2],"Raíces Construcciones":[6,4],"JS Instalaciones Sanitarias":[3,3]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[5,5,5,5,5],"Omar Mardones (Enfierradura)":[5,5,5,5,5],"Constructora Torres del Valle":[3,5,5,3,5]}},{"n":23,"ini":"2025-05-05","fin":"2025-05-11","prog":55,"log":35,"causas":[0,0,0,6,5,0,6,2,0],"resp":{"Constructora Torres del Valle":[15,10],"Constructora CASAA":[34,23],"Omar Mardones (Enfierradura)":[2,0],"JS Instalaciones Sanitarias":[3,1],"Loma Alta Electricidad":[1,1]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[5,5,5,5,5],"Omar Mardones (Enfierradura)":[1,5,5,5,5],"Constructora Torres del Valle":[3,5,5,5,5]}},{"n":24,"ini":"2025-05-12","fin":"2025-05-18","prog":81,"log":56,"causas":[0,5,0,8,0,3,7,0,2],"resp":{"Constructora Torres del Valle":[14,9],"Constructora CASAA":[46,28],"Omar Mardones (Enfierradura)":[3,3],"JS Instalaciones Sanitarias":[11,9],"Loma Alta Electricidad":[7,7]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[5,5,5,5,5],"Omar Mardones (Enfierradura)":[1,5,5,5,5],"Constructora Torres del Valle":[3,5,5,5,5]}},{"n":25,"ini":"2025-05-19","fin":"2025-05-25","prog":66,"log":48,"causas":[0,0,0,10,0,1,2,0,4],"resp":{"Constructora Torres del Valle":[15,11],"Constructora CASAA":[29,19],"Olivia Maquinarias":[3,3],"JS Instalaciones Sanitarias":[9,5],"Loma Alta Electricidad":[6,6],"DEIGENER":[4,4]},"ev":{"JS Instalaciones Sanitarias":[3,5,5,5,5],"Loma Alta Electricidad":[3,5,5,5,5],"Omar Mardones (Enfierradura)":[5,5,5,5,5],"Constructora Torres del Valle":[1,5,5,3,1]}},{"n":26,"ini":"2025-05-26","fin":"2025-06-01","prog":72,"log":42,"causas":[0,0,0,15,12,0,2,0,0],"resp":{"Constructora Torres del Valle":[13,3],"Constructora CASAA":[49,30],"JS Instalaciones Sanitarias":[4,4],"Loma Alta Electricidad":[6,5]},"ev":{"JS Instalaciones Sanitarias":[5,null,5,3,3],"Loma Alta Electricidad":[3,null,5,3,3],"Omar Mardones (Enfierradura)":[5,null,5,5,5],"Constructora Torres del Valle":[3,null,5,3,3]}},{"n":27,"ini":"2025-06-02","fin":"2025-06-08","prog":124,"log":100,"causas":[0,3,0,11,0,2,1,2,2],"resp":{"Constructora Torres del Valle":[19,17],"Constructora CASAA":[58,46],"Omar Mardones (Enfierradura)":[4,4],"Mueblealum":[1,1],"Constructora 4S":[6,4],"JS Instalaciones Sanitarias":[12,12],"Loma Alta Electricidad":[15,12],"DEIGENER":[9,4]},"ev":{"JS Instalaciones Sanitarias":[5,null,5,5,5],"Loma Alta Electricidad":[5,null,5,5,5],"Omar Mardones (Enfierradura)":[5,null,5,5,5],"Constructora Torres del Valle":[1,null,5,1,1]}},{"n":28,"ini":"2025-06-09","fin":"2025-06-15","prog":90,"log":61,"causas":[0,0,0,13,6,6,0,0,4],"resp":{"Constructora CASAA":[46,35],"Constructora Torres del Valle":[13,11],"Mueblealum":[2,2],"Constructora 4S":[3,0],"Omar Mardones (Enfierradura)":[2,1],"JS Instalaciones Sanitarias":[4,2],"Loma Alta Electricidad":[11,9],"DEIGENER":[9,1]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[5,5,5,5,5],"Omar Mardones (Enfierradura)":[5,5,5,5,5],"Constructora Torres del Valle":[1,5,5,1,1]}},{"n":29,"ini":"2025-06-16","fin":"2025-06-22","prog":123,"log":85,"causas":[2,4,0,5,8,9,1,1,0],"resp":{"Constructora Torres del Valle":[5,2],"Constructora CASAA":[65,49],"Omar Mardones (Enfierradura)":[6,2],"Mueblealum":[4,0],"Constructora 4S":[3,3],"JS Instalaciones Sanitarias":[17,13],"Loma Alta Electricidad":[8,6],"ISAMED":[8,8],"DEIGENER":[7,2]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[3,5,null,5,5],"Cubiertas y Muebles Talca":[5,5,null,5,3],"Omar Mardones (Enfierradura)":[3,5,null,5,5],"Constructora Torres del Valle":[3,5,3,3,3],"Constructora 4S":[5,5,null,5,3]}},{"n":30,"ini":"2025-06-23","fin":"2025-06-29","prog":105,"log":69,"causas":[9,8,0,4,2,5,0,2,1],"resp":{"Constructora Torres del Valle":[15,9],"Constructora CASAA":[57,35],"Omar Mardones (Enfierradura)":[7,5],"Mueblealum":[4,4],"Constructora 4S":[2,1],"JS Instalaciones Sanitarias":[8,6],"Loma Alta Electricidad":[3,2],"DEIGENER":[9,7]},"ev":{"JS Instalaciones Sanitarias":[5,null,5,5,5],"Loma Alta Electricidad":[5,null,5,5,5],"DEIGENER":[5,null,5,1,3],"Cubiertas y Muebles Talca":[5,null,5,3,5],"Omar Mardones (Enfierradura)":[5,null,5,5,5],"Constructora Torres del Valle":[5,null,5,3,5],"Constructora 4S":[5,null,5,3,5]}},{"n":31,"ini":"2025-06-30","fin":"2025-07-06","prog":122,"log":90,"causas":[0,0,0,4,11,3,0,4,6],"resp":{"Constructora CASAA":[68,53],"Omar Mardones (Enfierradura)":[2,2],"Constructora Torres del Valle":[14,7],"Mueblealum":[1,0],"Venesur":[6,3],"Constructora 4S":[2,0],"JS Instalaciones Sanitarias":[14,14],"Loma Alta Electricidad":[7,7],"DEIGENER":[8,4]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,3],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[3,5,5,1,5],"Cubiertas y Muebles Talca":[5,5,5,3,3],"Omar Mardones (Enfierradura)":[5,5,5,5,5],"Constructora Torres del Valle":[3,5,5,3,5],"Constructora 4S":[5,5,5,3,3]}},{"n":32,"ini":"2025-07-07","fin":"2025-07-13","prog":113,"log":81,"causas":[0,5,0,11,0,7,5,3,0],"resp":{"Constructora Torres del Valle":[12,7],"Constructora CASAA":[74,53],"Mueblealum":[1,1],"Venesur":[5,5],"Omar Mardones (Enfierradura)":[2,2],"JS Instalaciones Sanitarias":[2,2],"Loma Alta Electricidad":[5,5],"DEIGENER":[12,6]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[5,5,5,1,5],"Mueblealum":[null,null,5,3,3],"Venesur":[null,5,5,3,5],"Cubiertas y Muebles Talca":[null,null,5,1,5],"Alperpro":[null,5,5,3,5],"ISAMED":[null,null,5,3,null],"Omar Mardones (Enfierradura)":[5,5,5,5,5],"Constructora Torres del Valle":[5,5,5,3,5],"Constructora 4S":[null,null,5,1,5]}},{"n":33,"ini":"2025-07-14","fin":"2025-07-20","prog":72,"log":50,"causas":[0,5,3,1,0,1,2,3,0],"resp":{"Constructora CASAA":[50,39],"Omar Mardones (Enfierradura)":[3,1],"Mueblealum":[1,0],"Venesur":[4,4],"JS Instalaciones Sanitarias":[4,0],"Loma Alta Electricidad":[2,1],"DEIGENER":[8,5]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[5,5,3,3,5],"Mueblealum":[5,5,5,5,5],"Venesur":[5,5,5,5,5],"Alperpro":[5,5,5,5,5],"Omar Mardones (Enfierradura)":[5,5,5,5,5]}},{"n":34,"ini":"2025-07-21","fin":"2025-07-27","prog":110,"log":87,"causas":[0,3,2,8,1,0,6,0,3],"resp":{"Constructora CASAA":[65,55],"Omar Mardones (Enfierradura)":[3,3],"Mueblealum":[1,1],"JS Instalaciones Sanitarias":[10,8],"Loma Alta Electricidad":[12,12],"Inversiones Mancera":[5,2],"DEIGENER":[14,6]},"ev":{}},{"n":35,"ini":"2025-07-28","fin":"2025-08-03","prog":144,"log":85,"causas":[3,2,0,5,14,10,5,5,4],"resp":{"Constructora CASAA":[105,68],"Mueblealum":[3,0],"JS Instalaciones Sanitarias":[5,0],"Loma Alta Electricidad":[12,3],"Inversiones Mancera":[5,5],"DEIGENER":[14,9]},"ev":{"JS Instalaciones Sanitarias":[5,null,5,5,5],"Loma Alta Electricidad":[5,null,5,5,5],"DEIGENER":[3,null,5,3,3],"Mueblealum":[3,null,5,5,5],"Venesur":[3,null,5,1,3],"Alperpro":[3,null,5,1,3],"Omar Mardones (Enfierradura)":[5,null,5,5,5]}},{"n":36,"ini":"2025-08-04","fin":"2025-08-10","prog":123,"log":85,"causas":[0,12,0,7,4,0,4,8,3],"resp":{"Constructora CASAA":[88,60],"Mueblealum":[2,1],"JS Instalaciones Sanitarias":[3,3],"Loma Alta Electricidad":[20,17],"DEIGENER":[10,4]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[5,5,5,3,3],"Mueblealum":[1,null,null,null,null],"Proyectos y Servicios San Pedro":[null,5,5,5,5],"Inversiones Mancera":[3,5,5,3,3],"Omar Mardones (Enfierradura)":[5,5,5,5,3]}},{"n":37,"ini":"2025-08-11","fin":"2025-08-17","prog":84,"log":62,"causas":[0,3,0,13,0,0,0,0,6],"resp":{"Constructora CASAA":[58,48],"Mueblealum":[2,0],"JS Instalaciones Sanitarias":[2,2],"Loma Alta Electricidad":[12,5],"DEIGENER":[10,7]},"ev":{"JS Instalaciones Sanitarias":[3,5,5,3,3],"Loma Alta Electricidad":[3,5,5,5,5],"DEIGENER":[3,5,5,1,3],"Mueblealum":[3,5,3,3,3],"Proyectos y Servicios San Pedro":[5,5,5,5,5],"Inversiones Mancera":[5,5,5,3,5],"Omar Mardones (Enfierradura)":[5,5,5,5,5]}},{"n":38,"ini":"2025-08-18","fin":"2025-08-24","prog":144,"log":114,"causas":[0,0,0,7,8,3,3,3,0],"resp":{"Constructora CASAA":[82,60],"Mueblealum":[2,2],"JS Instalaciones Sanitarias":[14,11],"Loma Alta Electricidad":[20,20],"DEIGENER":[23,18],"ISAMED":[3,3]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[5,5,5,3,5],"DEIGENER":[3,5,5,3,3],"Mueblealum":[3,5,3,1,3],"Omar Mardones (Enfierradura)":[5,5,5,5,5]}},{"n":39,"ini":"2025-08-25","fin":"2025-08-31","prog":171,"log":138,"causas":[5,5,3,6,0,0,0,14,0],"resp":{"Constructora CASAA":[107,94],"Mueblealum":[1,1],"Darío Marro y Cía.":[5,5],"JS Instalaciones Sanitarias":[20,6],"Loma Alta Electricidad":[15,15],"DEIGENER":[17,13],"Inversiones Mancera":[3,1],"ISAMED":[3,3]},"ev":{"JS Instalaciones Sanitarias":[3,5,5,5,5],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[5,5,5,3,5],"Mueblealum":[3,null,3,5,5],"Venesur":[1,5,5,5,5],"Alperpro":[1,5,5,5,5]}},{"n":40,"ini":"2025-09-01","fin":"2025-09-07","prog":193,"log":166,"causas":[5,11,4,0,0,0,5,2,0],"resp":{"Constructora CASAA":[108,94],"Mueblealum":[5,5],"Darío Marro y Cía.":[5,5],"Alperpro":[5,5],"JS Instalaciones Sanitarias":[35,24],"Loma Alta Electricidad":[12,12],"DEIGENER":[13,13],"Inversiones Mancera":[4,4],"ISAMED":[6,4]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[3,5,5,1,3],"Mueblealum":[3,5,5,5,5],"Venesur":[3,5,5,5,5],"Inversiones Mancera":[null,5,5,5,5],"Alperpro":[3,5,5,5,5],"ISAMED":[null,5,5,5,5]}},{"n":41,"ini":"2025-09-08","fin":"2025-09-14","prog":131,"log":109,"causas":[4,0,2,13,2,1,0,0,0],"resp":{"Constructora CASAA":[55,49],"Mueblealum":[8,4],"JS Instalaciones Sanitarias":[23,20],"Loma Alta Electricidad":[16,16],"DEIGENER":[20,15],"ISAMED":[9,5]},"ev":{"JS Instalaciones Sanitarias":[5,null,5,3,3],"Loma Alta Electricidad":[5,null,5,5,5],"DEIGENER":[5,null,5,5,5],"Mueblealum":[5,null,5,5,5],"Proyectos y Servicios San Pedro":[null,null,5,null,null],"Venesur":[3,null,5,5,5],"Inversiones Mancera":[5,null,5,5,5],"Alperpro":[3,null,5,5,5],"ISAMED":[5,null,5,5,5]}},{"n":42,"ini":"2025-09-15","fin":"2025-09-21","prog":43,"log":36,"causas":[1,3,0,2,0,0,1,0,0],"resp":{"Constructora CASAA":[26,22],"Mueblealum":[2,2],"JS Instalaciones Sanitarias":[3,2],"Loma Alta Electricidad":[5,5],"DEIGENER":[7,5]},"ev":{}},{"n":43,"ini":"2025-09-22","fin":"2025-09-28","prog":126,"log":111,"causas":[1,0,0,3,8,0,1,2,0],"resp":{"Constructora CASAA":[78,66],"Mueblealum":[2,2],"JS Instalaciones Sanitarias":[18,16],"Loma Alta Electricidad":[14,14],"ISAMED":[4,3],"DEIGENER":[10,10]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[3,5,5,5,5],"DEIGENER":[5,5,5,3,5],"Mueblealum":[5,5,5,5,5],"Venesur":[5,5,5,5,5],"Alperpro":[5,5,5,5,5],"ISAMED":[3,5,5,5,5]}},{"n":44,"ini":"2025-09-29","fin":"2025-10-05","prog":149,"log":112,"causas":[2,0,2,2,7,7,1,4,7],"resp":{"Constructora CASAA":[78,60],"Mueblealum":[7,5],"JS Instalaciones Sanitarias":[17,12],"Loma Alta Electricidad":[19,17],"ISAMED":[8,3],"DEIGENER":[20,15]},"ev":{}},{"n":45,"ini":"2025-10-06","fin":"2025-10-12","prog":156,"log":126,"causas":[5,5,5,9,0,0,0,0,0],"resp":{"Constructora CASAA":[75,64],"Mueblealum":[10,3],"JS Instalaciones Sanitarias":[21,17],"Loma Alta Electricidad":[17,17],"ISAMED":[7,1],"DEIGENER":[25,23],"Constructora y Servicios MG":[1,1]},"ev":{"JS Instalaciones Sanitarias":[null,5,5,5,5],"Loma Alta Electricidad":[null,5,5,5,5],"DEIGENER":[null,5,5,5,5],"Mueblealum":[null,5,5,3,3],"Proyectos y Servicios San Pedro":[null,5,5,5,5],"ISAMED":[null,5,5,3,5]}},{"n":46,"ini":"2025-10-13","fin":"2025-10-19","prog":162,"log":138,"causas":[5,2,0,4,0,0,5,2,0],"resp":{"Constructora CASAA":[77,66],"Mueblealum":[14,14],"JS Instalaciones Sanitarias":[18,12],"Loma Alta Electricidad":[23,23],"DEIGENER":[25,20],"Constructora y Servicios MG":[5,3]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,3,5],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[5,5,5,5,5],"Mueblealum":[3,5,5,1,3],"Proyectos y Servicios San Pedro":[3,5,5,5,5],"ISAMED":[3,5,5,1,3]}},{"n":47,"ini":"2025-10-20","fin":"2025-10-26","prog":168,"log":151,"causas":[0,1,2,8,0,2,0,0,0],"resp":{"Constructora CASAA":[92,82],"Mueblealum":[9,7],"JS Instalaciones Sanitarias":[30,30],"Loma Alta Electricidad":[20,17],"DEIGENER":[19,13],"Constructora y Servicios MG":[5,2]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,3,1],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[5,5,5,5,5],"Mueblealum":[5,5,5,5,3],"Constructora y Servicios MG":[5,5,5,5,5]}},{"n":48,"ini":"2025-10-27","fin":"2025-11-02","prog":142,"log":127,"causas":[2,8,1,1,0,1,2,0,0],"resp":{"Constructora CASAA":[73,60],"Mueblealum":[6,5],"By K Construcciones":[2,2],"JS Instalaciones Sanitarias":[16,16],"Loma Alta Electricidad":[16,16],"DEIGENER":[18,18],"ISAMED":[8,8],"Constructora y Servicios MG":[3,2]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,5],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[5,5,5,3,5],"Mueblealum":[5,5,5,3,3],"ISAMED":[5,5,5,5,5],"Constructora y Servicios MG":[5,5,5,5,3]}},{"n":49,"ini":"2025-11-03","fin":"2025-11-09","prog":158,"log":139,"causas":[0,0,3,6,0,5,2,0,3],"resp":{"Constructora CASAA":[83,75],"Consorsing":[2,2],"Mueblealum":[4,3],"Alperpro":[4,4],"Ferama":[9,4],"By K Construcciones":[12,9],"JS Instalaciones Sanitarias":[16,14],"Loma Alta Electricidad":[8,8],"DEIGENER":[20,20]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,3],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[5,5,5,5,3],"Mueblealum":[5,5,5,5,3],"Proyectos y Servicios San Pedro":[5,5,5,5,3],"Constructora y Servicios MG":[5,5,5,5,3]}},{"n":50,"ini":"2025-11-10","fin":"2025-11-16","prog":141,"log":116,"causas":[4,0,0,19,0,2,0,0,0],"resp":{"Consorsing":[9,5],"Constructora CASAA":[48,44],"Proyectos y Servicios San Pedro":[11,11],"Mueblealum":[4,2],"Alperpro":[6,3],"By K Construcciones":[7,5],"DEIGENER":[21,15],"JS Instalaciones Sanitarias":[25,19],"Loma Alta Electricidad":[16,12]},"ev":{"JS Instalaciones Sanitarias":[3,5,5,5,3],"Loma Alta Electricidad":[3,5,5,5,5],"DEIGENER":[5,5,5,5,3],"Mueblealum":[3,5,5,3,3],"Proyectos y Servicios San Pedro":[3,5,5,5,5],"Venesur":[5,5,5,5,5]}},{"n":51,"ini":"2025-11-17","fin":"2025-11-23","prog":165,"log":149,"causas":[4,0,3,8,0,1,0,4,0],"resp":{"Constructora CASAA":[58,51],"Consorsing":[5,2],"Proyectos y Servicios San Pedro":[18,17],"Venesur":[5,5],"Alperpro":[8,8],"By K Construcciones":[7,7],"Loma Alta Electricidad":[24,22],"DEIGENER":[23,19],"JS Instalaciones Sanitarias":[21,18]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,3,5],"Loma Alta Electricidad":[5,5,5,3,5],"DEIGENER":[5,5,3,3,5],"Mueblealum":[5,5,5,5,3],"Proyectos y Servicios San Pedro":[5,5,5,5,5],"Venesur":[5,5,5,5,5],"Consorsing":[5,5,5,3,5],"Alperpro":[5,5,5,3,5],"Constructora y Servicios MG":[5,5,5,5,5]}},{"n":52,"ini":"2025-11-24","fin":"2025-11-30","prog":151,"log":128,"causas":[9,0,2,10,1,1,0,0,0],"resp":{"Consorsing":[17,8],"Proyectos y Servicios San Pedro":[14,14],"Constructora CASAA":[41,37],"Venesur":[5,5],"Ferama":[3,3],"By K Construcciones":[2,2],"Loma Alta Electricidad":[31,27],"JS Instalaciones Sanitarias":[20,14],"DEIGENER":[18,18]},"ev":{"JS Instalaciones Sanitarias":[5,5,3,3,5],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[1,5,5,3,3],"Mueblealum":[3,5,5,5,5],"Proyectos y Servicios San Pedro":[5,5,5,5,3],"Venesur":[5,5,5,5,5],"Consorsing":[5,5,5,5,5],"Alperpro":[3,5,3,5,5],"ISAMED":[1,5,3,5,3],"Constructora y Servicios MG":[5,5,5,5,5]}},{"n":53,"ini":"2025-12-01","fin":"2025-12-07","prog":136,"log":117,"causas":[5,5,3,6,0,0,0,0,0],"resp":{"Consorsing":[18,18],"Proyectos y Servicios San Pedro":[18,18],"Constructora CASAA":[46,28],"Mueblealum":[2,2],"Venesur":[6,1],"Ferama":[2,2],"JS Instalaciones Sanitarias":[20,9],"Loma Alta Electricidad":[26,26],"DEIGENER":[14,13]},"ev":{}},{"n":54,"ini":"2025-12-08","fin":"2025-12-14","prog":163,"log":129,"causas":[0,0,0,23,0,0,2,5,0],"resp":{"Consorsing":[8,6],"Constructora CASAA":[49,42],"Proyectos y Servicios San Pedro":[35,33],"Mueblealum":[6,6],"Venesur":[6,6],"JS Instalaciones Sanitarias":[33,9],"Loma Alta Electricidad":[34,26],"DEIGENER":[11,1]},"ev":{"JS Instalaciones Sanitarias":[5,5,null,3,3],"Loma Alta Electricidad":[5,5,null,5,5],"DEIGENER":[3,3,null,5,5],"Mueblealum":[5,5,null,5,5],"Proyectos y Servicios San Pedro":[5,5,null,5,5],"Venesur":[5,5,null,3,5],"Consorsing":[3,5,null,5,5],"ISAMED":[5,5,null,5,5]}},{"n":55,"ini":"2025-12-15","fin":"2025-12-21","prog":190,"log":172,"causas":[0,0,0,16,0,0,2,0,0],"resp":{"Consorsing":[8,8],"Procesa":[1,1],"Cubiertas y Muebles Talca":[8,8],"Constructora CASAA":[64,62],"Proyectos y Servicios San Pedro":[33,23],"Venesur":[3,3],"JS Instalaciones Sanitarias":[31,31],"Loma Alta Electricidad":[25,25],"DEIGENER":[17,11]},"ev":{"JS Instalaciones Sanitarias":[3,3,3,3,3],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[3,5,3,1,1],"Mueblealum":[5,5,3,5,3],"Proyectos y Servicios San Pedro":[3,5,5,5,3],"Venesur":[5,5,3,5,5],"Consorsing":[5,5,3,5,3],"Alperpro":[null,null,3,null,null]}},{"n":56,"ini":"2025-12-22","fin":"2026-01-04","prog":151,"log":123,"causas":[0,0,0,22,0,0,4,0,2],"resp":{"Consorsing":[16,14],"Constructora CASAA":[24,18],"Proyectos y Servicios San Pedro":[12,12],"Venesur":[2,2],"Cubiertas y Muebles Talca":[10,8],"Mueblealum":[5,3],"Emanuel Tirapegui":[4,4],"Angel Aguila":[7,5],"JS Instalaciones Sanitarias":[34,25],"Loma Alta Electricidad":[14,10],"DEIGENER":[25,22]},"ev":{}},{"n":57,"ini":"2026-01-05","fin":"2026-01-11","prog":147,"log":114,"causas":[1,0,4,23,4,0,0,0,0],"resp":{"Constructora CASAA":[38,30],"Proyectos y Servicios San Pedro":[32,29],"Venesur":[5,5],"Cubiertas y Muebles Talca":[3,0],"Mueblealum":[6,3],"Emanuel Tirapegui":[5,5],"Angel Aguila":[5,0],"Prefasen":[5,3],"Inversiones Mancera":[1,0],"JS Instalaciones Sanitarias":[22,19],"Loma Alta Electricidad":[9,9],"DEIGENER":[18,9],"ISAMED":[2,2]},"ev":{}},{"n":58,"ini":"2026-01-12","fin":"2026-01-18","prog":179,"log":151,"causas":[0,2,0,22,0,0,1,0,3],"resp":{"Consorsing":[4,4],"Constructora CASAA":[30,28],"Proyectos y Servicios San Pedro":[21,18],"Venesur":[5,5],"Cubiertas y Muebles Talca":[10,10],"Mueblealum":[14,10],"Emanuel Tirapegui":[4,2],"Angel Aguila":[5,0],"Prefasen":[4,4],"Inversiones Mancera":[1,1],"JS Instalaciones Sanitarias":[23,14],"Loma Alta Electricidad":[21,19],"DEIGENER":[43,36]},"ev":{"JS Instalaciones Sanitarias":[3,5,5,3,3],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[3,5,3,3,3],"Mueblealum":[3,5,5,5,3],"Proyectos y Servicios San Pedro":[3,5,5,5,3],"Venesur":[5,5,3,5,5],"Cubiertas y Muebles Talca":[3,5,5,3,3],"Consorsing":[3,5,3,5,5]}},{"n":59,"ini":"2026-01-19","fin":"2026-01-25","prog":159,"log":127,"causas":[0,0,0,21,0,3,0,1,7],"resp":{"Constructora CASAA":[37,35],"Proyectos y Servicios San Pedro":[19,10],"Cubiertas y Muebles Talca":[8,3],"Venesur":[5,2],"Mueblealum":[5,5],"Emanuel Tirapegui":[5,5],"Angel Aguila":[9,5],"Inversiones Mancera":[3,3],"Loma Alta Electricidad":[24,20],"JS Instalaciones Sanitarias":[23,22],"DEIGENER":[21,17]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,3,5],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[5,5,5,3,5],"Mueblealum":[5,5,5,3,3],"Proyectos y Servicios San Pedro":[3,5,5,5,5],"Venesur":[5,5,5,5,5],"Cubiertas y Muebles Talca":[3,5,5,3,3],"Inversiones Mancera":[5,5,5,5,5]}},{"n":60,"ini":"2026-01-26","fin":"2026-02-01","prog":153,"log":107,"causas":[5,2,5,32,0,0,0,0,2],"resp":{"Constructora CASAA":[41,34],"Consorsing":[5,3],"Proyectos y Servicios San Pedro":[27,27],"Venesur":[2,2],"Cubiertas y Muebles Talca":[13,3],"Emanuel Tirapegui":[5,0],"Angel Aguila":[2,2],"JS Instalaciones Sanitarias":[9,8],"Loma Alta Electricidad":[27,18],"DEIGENER":[22,10]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,3],"Loma Alta Electricidad":[5,5,5,3,5],"DEIGENER":[5,5,5,3,3],"Mueblealum":[5,5,1,5,5],"Proyectos y Servicios San Pedro":[5,5,5,5,5],"Venesur":[5,5,1,5,5],"Cubiertas y Muebles Talca":[3,5,1,3,3],"Inversiones Mancera":[5,5,5,5,5]}},{"n":61,"ini":"2026-02-02","fin":"2026-02-08","prog":208,"log":144,"causas":[6,6,0,52,0,0,0,0,0],"resp":{"Proyectos y Servicios San Pedro":[17,17],"Constructora CASAA":[79,73],"Venesur":[9,9],"Cubiertas y Muebles Talca":[9,2],"Emanuel Tirapegui":[9,0],"JS Instalaciones Sanitarias":[24,20],"Loma Alta Electricidad":[44,17],"DEIGENER":[17,6]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,5,3],"Loma Alta Electricidad":[5,5,5,3,5],"DEIGENER":[5,5,5,3,5],"Mueblealum":[5,3,3,5,5],"Proyectos y Servicios San Pedro":[5,5,5,5,5],"Venesur":[5,5,5,5,5],"Cubiertas y Muebles Talca":[3,5,5,1,1]}},{"n":62,"ini":"2026-02-09","fin":"2026-02-15","prog":174,"log":122,"causas":[0,1,5,37,0,0,0,0,3],"resp":{"Proyectos y Servicios San Pedro":[17,8],"Constructora CASAA":[44,37],"Venesur":[8,8],"Cubiertas y Muebles Talca":[13,9],"Emanuel Tirapegui":[10,5],"JS Instalaciones Sanitarias":[15,10],"Loma Alta Electricidad":[36,30],"DEIGENER":[37,15]},"ev":{"JS Instalaciones Sanitarias":[5,5,5,3,5],"Loma Alta Electricidad":[5,5,5,1,3],"DEIGENER":[5,5,5,3,5],"Mueblealum":[null,5,1,null,null],"Proyectos y Servicios San Pedro":[5,5,5,5,5],"Venesur":[5,5,5,5,5],"Cubiertas y Muebles Talca":[5,5,5,3,3]}},{"n":63,"ini":"2026-02-16","fin":"2026-02-22","prog":152,"log":106,"causas":[0,2,1,35,0,0,0,0,0],"resp":{"Constructora CASAA":[44,38],"Proyectos y Servicios San Pedro":[22,20],"Venesur":[13,13],"Cubiertas y Muebles Talca":[9,8],"Emanuel Tirapegui":[10,0],"JS Instalaciones Sanitarias":[10,10],"Loma Alta Electricidad":[15,10],"DEIGENER":[29,7]},"ev":{"JS Instalaciones Sanitarias":[3,5,3,3,5],"Loma Alta Electricidad":[5,5,5,5,5],"DEIGENER":[3,5,3,3,3],"Mueblealum":[null,null,3,null,null],"Proyectos y Servicios San Pedro":[5,5,5,5,5],"Venesur":[5,5,3,5,5],"Cubiertas y Muebles Talca":[3,5,3,3,1]}},{"n":64,"ini":"2026-02-23","fin":"2026-03-01","prog":155,"log":93,"causas":[0,9,0,45,0,0,0,0,0],"resp":{"Constructora CASAA":[36,32],"Proyectos y Servicios San Pedro":[14,10],"Cubiertas y Muebles Talca":[13,10],"Emanuel Tirapegui":[10,5],"JS Instalaciones Sanitarias":[22,13],"Loma Alta Electricidad":[22,12],"DEIGENER":[38,11]},"ev":{}}];
+  window.CURANIPE_HIST = CURANIPE_HIST;
+  /* nombres de subcontratos unificados (la planilla los escribe de varias formas) */
+  var LP_CANON_MAP = [["casaa", "Constructora CASAA"], ["js instal", "JS Instalaciones Sanitarias"], ["juvenal", "JS Instalaciones Sanitarias"], ["loma alta", "Loma Alta Electricidad"], ["deigener", "DEIGENER"], ["san pedro", "Proyectos y Servicios San Pedro"], ["torres de", "Constructora Torres del Valle"], ["mardones", "Omar Mardones (Enfierradura)"], ["mueble alum", "Mueblealum"], ["mueblealum", "Mueblealum"], ["cubiertas y muebles", "Cubiertas y Muebles Talca"], ["muebles y cubiertas", "Cubiertas y Muebles Talca"], ["consor", "Consorsing"], ["venesur", "Venesur"], ["isamed", "ISAMED"], ["raices", "Raíces Construcciones"], ["alperpro", "Alperpro"], ["mancera", "Inversiones Mancera"], ["4s", "Constructora 4S"], ["servicios mg", "Constructora y Servicios MG"], ["ferama", "Ferama"]];
+  window.LP_CANON = function(s){ var l = String(s || "").toLowerCase(); for(var i=0;i<LP_CANON_MAP.length;i++){ if(l.indexOf(LP_CANON_MAP[i][0]) >= 0) return LP_CANON_MAP[i][1]; } return String(s || "").trim() || "Sin responsable"; };
+/* ===== Indicadores: curva PPC, Pareto, ranking y evaluación 1-3-5 de subcontratos ===== */
+(function(){
+  "use strict";
+  var LS = "lastplanner-indicadores-v1";
+  var CAUSAS9 = window.LP_CAUSAS9;
+  var CRIT = [["CA","Calidad"],["S","Prevenci\u00f3n"],["A.A","Administraci\u00f3n"],["P","Plazo"],["CO","Compromiso"]];
+  var META = 80;
+  var st = cargar(), rango = "todo", semEval = null;
+  function cargar(){ try{ var s = JSON.parse(localStorage.getItem(LS) || "null"); if(s && Array.isArray(s.semanas)) return s; }catch(e){} return { semanas: [] }; }
+  function guardarLocal(){ try{ localStorage.setItem(LS, JSON.stringify(st)); }catch(e){} if(window.LP_SYNC) window.LP_SYNC.cambio("indicadores"); }
+  function esc(t){ return String(t == null ? "" : t).replace(/[&<>"']/g, function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]; }); }
+  function ord(){ st.semanas.sort(function(a,b){ return a.n - b.n; }); }
+  function pct(w){ return w.prog ? Math.round(w.log / w.prog * 100) : 0; }
+  function fcorta(iso){ if(!iso) return ""; var p = iso.split("-"); return p[2] + "/" + p[1] + "/" + p[0].slice(2); }
+  function prom(arr){ var v = (arr || []).filter(function(x){ return x; }); return v.length ? v.reduce(function(a,b){ return a+b; }, 0) / v.length : null; }
+  function semaforo(v){ return v == null ? "" : (v >= 4.5 ? "ok" : (v >= 3.5 ? "mid" : "bad")); }
+  function enRango(){ var s = st.semanas; return rango === "todo" ? s : s.slice(-12); }
+
+  function registrarSemana(obj){
+    var i = st.semanas.findIndex(function(w){ return w.n === obj.n; });
+    if(i >= 0){ obj.ev = st.semanas[i].ev || obj.ev || {}; st.semanas[i] = obj; } else st.semanas.push(obj);
+    ord(); guardarLocal(); render();
+  }
+
+  function kpis(){
+    var s = st.semanas; if(!s.length) return '<p class="ind-vacio">Sin semanas registradas. Usa <b>\u22ef M\u00e1s opciones \u2192 Cargar historial Curanipe</b> o <b>Cerrar semana</b> en el Semanal.</p>';
+    var ult = s[s.length-1], sobre = s.filter(function(w){ return pct(w) >= META; }).length;
+    var P = s.reduce(function(a,w){ return a + w.prog; }, 0), L = s.reduce(function(a,w){ return a + w.log; }, 0);
+    function card(v, l, cls){ return '<div class="ind-kpi '+(cls||"")+'"><b>'+v+'</b><span>'+l+'</span></div>'; }
+    return '<div class="ind-kpis">'
+      + card(pct(ult) + "%", "PPC semana " + ult.n, pct(ult) >= META ? "ok" : "bad")
+      + card(Math.round(L/P*100) + "%", "PPC acumulado")
+      + card(sobre + " de " + s.length, "semanas \u2265 " + META + "%")
+      + card(P.toLocaleString("es-CL"), "actividades programadas")
+      + '</div>';
+  }
+
+  function curva(){
+    var s = st.semanas; if(s.length < 2) return "";
+    var W = 640, H = 220, l = 34, r = 10, t = 12, b = 26, iw = W-l-r, ih = H-t-b;
+    function x(i){ return l + (s.length === 1 ? iw/2 : i * iw / (s.length-1)); }
+    function y(v){ return t + ih - v/100*ih; }
+    var acum = 0, accP = 0, pts = [], ptsA = [];
+    s.forEach(function(w, i){ accP += w.prog; acum += w.log; pts.push(x(i).toFixed(1) + "," + y(pct(w)).toFixed(1)); ptsA.push(x(i).toFixed(1) + "," + y(acum/accP*100).toFixed(1)); });
+    var grid = [0,20,40,60,80,100].map(function(v){ return '<line x1="'+l+'" x2="'+(W-r)+'" y1="'+y(v)+'" y2="'+y(v)+'" class="g"/><text x="'+(l-6)+'" y="'+(y(v)+3)+'" class="ax" text-anchor="end">'+v+'</text>'; }).join("");
+    var paso = Math.max(1, Math.ceil(s.length/8)), xl = "";
+    s.forEach(function(w, i){ if(i % paso === 0 || i === s.length-1) xl += '<text x="'+x(i)+'" y="'+(H-8)+'" class="ax" text-anchor="middle">S'+w.n+'</text>'; });
+    var dots = s.map(function(w, i){ var p = pct(w); return '<circle cx="'+x(i)+'" cy="'+y(p)+'" r="3.2" class="'+(p >= META ? "d-ok" : "d-bad")+'"><title>Semana '+w.n+' ('+fcorta(w.ini)+'): '+p+'% \u00b7 '+w.log+' de '+w.prog+'</title></circle>'; }).join("");
+    return '<div class="ind-card"><div class="ind-tit">Curva PPC semanal</div>'
+      + '<svg viewBox="0 0 '+W+' '+H+'" class="ind-svg" role="img" aria-label="Curva de porcentaje de plan cumplido por semana">'+grid
+      + '<line x1="'+l+'" x2="'+(W-r)+'" y1="'+y(META)+'" y2="'+y(META)+'" class="meta"/>'
+      + '<polyline points="'+ptsA.join(" ")+'" class="acum"/><polyline points="'+pts.join(" ")+'" class="ppc"/>'+dots+xl+'</svg>'
+      + '<div class="ind-ley"><span class="k ppc"></span>PPC semanal <span class="k acum"></span>PPC acumulado <span class="k meta"></span>Meta '+META+'%</div></div>';
+  }
+
+  function pareto(){
+    var c = [0,0,0,0,0,0,0,0,0];
+    enRango().forEach(function(w){ (w.causas || []).forEach(function(v, i){ c[i] += v || 0; }); });
+    var tot = c.reduce(function(a,b){ return a+b; }, 0); if(!tot) return "";
+    var arr = c.map(function(v, i){ return {i:i, v:v}; }).filter(function(o){ return o.v; }).sort(function(a,b){ return b.v - a.v; });
+    var acc = 0, max = arr[0].v;
+    var filas = arr.map(function(o){ acc += o.v;
+      return '<div class="par-row"><span class="par-lbl">'+esc(CAUSAS9[o.i][1])+'</span><div class="par-track"><div class="par-fill" style="width:'+Math.round(o.v/max*100)+'%"></div></div>'
+        + '<span class="par-n">'+o.v+'</span><span class="par-p">'+Math.round(o.v/tot*100)+'%</span><span class="par-a'+(acc/tot <= 0.8 ? " vital" : "")+'">'+Math.round(acc/tot*100)+'%</span></div>'; }).join("");
+    return '<div class="ind-card"><div class="ind-tit">Pareto de causas de no cumplimiento <small>('+tot+' en '+(rango === "todo" ? "todo el proyecto" : "las \u00faltimas 12 semanas")+')</small></div>'
+      + '<div class="par-head"><span></span><span></span><span>N\u00b0</span><span>%</span><span>Acum.</span></div>' + filas
+      + '<p class="ind-nota">En rojo, las causas que acumulan el 80% de los incumplimientos: atacarlas primero.</p></div>';
+  }
+
+  function ranking(){
+    var t = {}, ev = {};
+    enRango().forEach(function(w){
+      Object.keys(w.resp || {}).forEach(function(k){ var e = t[k] || (t[k] = [0,0]); e[0] += w.resp[k][0]; e[1] += w.resp[k][1]; });
+      Object.keys(w.ev || {}).forEach(function(k){ (ev[k] || (ev[k] = [])).push(w.ev[k]); });
+    });
+    var nombres = Object.keys(t).filter(function(k){ return t[k][0] >= 10 || ev[k]; });
+    Object.keys(ev).forEach(function(k){ if(nombres.indexOf(k) < 0) nombres.push(k); });
+    if(!nombres.length) return "";
+    var filas = nombres.map(function(k){
+      var e = t[k] || [0,0], evs = ev[k] || [];
+      var porCrit = CRIT.map(function(c, j){ return prom(evs.map(function(a){ return a[j]; })); });
+      var p = prom(porCrit.filter(function(v){ return v != null; }));
+      var peor = null; porCrit.forEach(function(v, j){ if(v != null && (peor == null || v < porCrit[peor])) peor = j; });
+      return { k:k, prog:e[0], ppc: e[0] ? Math.round(e[1]/e[0]*100) : null, ev:p, peor: (p != null && peor != null && porCrit[peor] < 4) ? CRIT[peor][1] : "" };
+    }).sort(function(a,b){ return (b.prog - a.prog); });
+    var trs = filas.map(function(f){
+      return '<tr><td class="rk-n">'+esc(f.k)+(f.peor ? '<small>Bajo en '+esc(f.peor)+'</small>' : '')+'</td><td>'+(f.prog || "\u2013")+'</td>'
+        + '<td>'+(f.ppc == null ? "\u2013" : '<span class="rk-ppc '+(f.ppc >= META ? "ok" : (f.ppc >= 65 ? "mid" : "bad"))+'">'+f.ppc+'%</span>')+'</td>'
+        + '<td>'+(f.ev == null ? "\u2013" : '<span class="rk-dot '+semaforo(f.ev)+'"></span>'+f.ev.toFixed(1))+'</td></tr>';
+    }).join("");
+    return '<div class="ind-card"><div class="ind-tit">Ranking de subcontratos y responsables</div><div class="rk-wrap"><table class="rk"><thead><tr><th>Responsable</th><th>Activ.</th><th>PPC</th><th>Eval. 1-5</th></tr></thead><tbody>'+trs+'</tbody></table></div>'
+      + '<p class="ind-nota">PPC = actividades cumplidas / programadas. Evaluaci\u00f3n = promedio de Calidad, Prevenci\u00f3n, Administraci\u00f3n, Plazo y Compromiso (1 malo \u00b7 3 regular \u00b7 5 bueno).</p></div>';
+  }
+
+  function evaluacion(){
+    var s = st.semanas; if(!s.length) return "";
+    if(semEval == null || !s.some(function(w){ return w.n === semEval; })) semEval = s[s.length-1].n;
+    var w = s.find(function(x){ return x.n === semEval; }); w.ev = w.ev || {};
+    var subs = {}; s.forEach(function(x){ Object.keys(x.ev || {}).forEach(function(k){ subs[k] = 1; }); });
+    Object.keys(w.resp || {}).forEach(function(k){ if(w.resp[k][0] >= 3) subs[k] = 1; });
+    var ops = s.map(function(x){ return '<option value="'+x.n+'"'+(x.n === semEval ? " selected" : "")+'>Semana '+x.n+' \u00b7 '+fcorta(x.ini)+'</option>'; }).join("");
+    var cards = Object.keys(subs).sort().map(function(k){
+      var sc = w.ev[k] || [null,null,null,null,null], p = prom(sc);
+      return '<div class="ev-card"><div class="ev-head"><b>'+esc(k)+'</b><span class="ev-prom '+semaforo(p)+'">'+(p == null ? "sin nota" : p.toFixed(1))+'</span></div>'
+        + CRIT.map(function(c, j){ return '<div class="ev-row"><span title="'+esc(c[1])+'">'+esc(c[1])+'</span><div class="ev-caras">'
+          + [1,3,5].map(function(v){ return '<button type="button" class="cara c'+v+(sc[j] === v ? " on" : "")+'" data-ev-sub="'+esc(k)+'" data-ev-j="'+j+'" data-ev-v="'+v+'" aria-label="'+esc(c[1])+' '+v+'" aria-pressed="'+(sc[j] === v)+'">'+(v === 1 ? "\u2639" : (v === 3 ? "\ud83d\ude10" : "\u263a"))+'</button>'; }).join("")
+          + '</div></div>'; }).join("") + '</div>';
+    }).join("");
+    return '<div class="ind-card"><div class="ind-tit">Evaluaci\u00f3n semanal de subcontratos</div>'
+      + '<div class="ev-sel"><label>Semana</label><select id="evSemana">'+ops+'</select></div>'
+      + '<div class="ev-grid">'+(cards || '<p class="ind-vacio">No hay subcontratos en esta semana.</p>')+'</div>'
+      + '<p class="ind-nota">Toca \ud83d\ude41 1 malo \u00b7 \ud83d\ude10 3 regular \u00b7 \u263a 5 bueno. Toca de nuevo para borrar.</p></div>';
+  }
+
+  function render(){
+    var box = document.getElementById("indBody"); if(!box) return;
+    box.innerHTML = kpis() + (st.semanas.length ? '<div class="ind-rango"><button type="button" data-rango="todo" class="'+(rango === "todo" ? "on" : "")+'">Todo el proyecto</button><button type="button" data-rango="12" class="'+(rango === "12" ? "on" : "")+'">\u00daltimas 12 semanas</button></div>' : "")
+      + curva() + pareto() + ranking() + evaluacion();
+  }
+
+  document.addEventListener("click", function(e){
+    var sec = e.target.closest('section[data-board="indicadores"]'); if(!sec) return;
+    var b = e.target.closest("[data-rango]"); if(b){ rango = b.dataset.rango; render(); return; }
+    var c = e.target.closest("[data-ev-sub]");
+    if(c){
+      var w = st.semanas.find(function(x){ return x.n === semEval; }); if(!w) return;
+      var k = c.dataset.evSub, j = +c.dataset.evJ, v = +c.dataset.evV;
+      var sc = (w.ev[k] || [null,null,null,null,null]).slice(); sc[j] = sc[j] === v ? null : v;
+      if(sc.every(function(x){ return x == null; })) delete w.ev[k]; else w.ev[k] = sc;
+      guardarLocal(); render(); return;
+    }
+    var a = e.target.closest("[data-ind]"); if(!a) return;
+    if(a.dataset.ind === "historial"){
+      if(st.semanas.length && !confirm("Esto reemplaza los indicadores por el historial de la planilla Curanipe (61 semanas, 3 a 64). \u00bfContinuar?")) return;
+      st = { semanas: JSON.parse(JSON.stringify(window.CURANIPE_HIST || [])) }; ord(); guardarLocal(); render();
+    } else if(a.dataset.ind === "borrar"){
+      if(confirm("Esto borra todas las semanas registradas en los indicadores de este equipo. \u00bfContinuar?")){ st = { semanas: [] }; guardarLocal(); render(); }
+    }
+  });
+  document.addEventListener("change", function(e){ if(e.target && e.target.id === "evSemana"){ semEval = +e.target.value; render(); } });
+
+  window.PIZARRA_BOARDS = window.PIZARRA_BOARDS || {};
+  window.PIZARRA_BOARDS.indicadores = {
+    key: "indicadores",
+    snapshot: function(){ return { meta: { titulo: "Indicadores", subtitulo: "", columnas: [], categorias: [], extra: {}, semanas: st.semanas }, notas: [] }; },
+    aplicarRemoto: function(t){ st = { semanas: Array.isArray(t.semanas) ? t.semanas : [] }; ord(); try{ localStorage.setItem(LS, JSON.stringify(st)); }catch(e){} render(); },
+    editando: function(){ return false; }
+  };
+  window.LP_IND = { registrarSemana: registrarSemana, semanas: function(){ return st.semanas; } };
+  render();
+})();
+</script>
+<script>
 /* ===== Planilla compartida (Google Sheet vía Apps Script) ===== */
 (function(){
   "use strict";
   var API = "https://script.google.com/macros/s/AKfycbxpgtBk20PhiH_qWPpLyK-1eGAEqDagCAMf6c-cCW_ZiRwBPc0zE5PBBdzAtD0lCi_P/exec";
   var LS_INFO = "lastplanner-remoto-v1", SS_PIN = "lastplanner-pin", SS_AUTOR = "lastplanner-autor";
-  var KEYS = ["semanal", "intermedio", "maestro"];
+  var KEYS = ["semanal", "intermedio", "maestro", "indicadores"];
   var remoto = null, cargando = null, guardando = {};
   function B(k){ return window.PIZARRA_BOARDS && window.PIZARRA_BOARDS[k]; }
   function ss(k, v){ try{ if(v === undefined) return sessionStorage.getItem(k) || ""; if(v) sessionStorage.setItem(k, v); else sessionStorage.removeItem(k); }catch(e){} return ""; }
