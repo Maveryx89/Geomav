@@ -470,7 +470,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   .m-view{ display:block; padding:10px 12px 20px; }
   .m-chips{ display:flex; gap:6px; overflow-x:auto; padding:2px 0 10px; position:sticky; top:0; z-index:5; background:var(--paper); }
   .m-chip{ all:unset; flex:none; min-width:58px; min-height:44px; padding:6px 10px; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid var(--line-strong); border-radius:10px; background:var(--paper-raised); color:var(--ink); cursor:pointer; }
-  .m-chip span{ font-weight:700; font-size:.82rem; } .m-chip small{ font-size:.64rem; color:var(--ink-soft); }
+  .m-chip span{ font-weight:700; font-size:.82rem; } .m-chip small{ font-size:.66rem; color:var(--ink-soft); }
   .m-chip.on{ background:var(--ink); color:var(--paper); border-color:var(--ink); } .m-chip.on small{ color:var(--paper); opacity:.8; }
   .m-group{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); padding:8px 10px 10px 14px; margin-bottom:10px; border-left-width:6px; }
   .m-group.stripe-copper{ border-left-color:var(--accent); } .m-group.stripe-neutral{ border-left-color:#8C949E; } .m-group.stripe-blueprint{ border-left-color:var(--blueprint); }
@@ -1417,7 +1417,7 @@ window.PORTICOS_LISTA = (function(){
         var cnt = state.notes.filter(function(n){ return n.weekId === w.id; }).length;
         var on = w.id === mCol;
         return '<button type="button" class="m-chip'+(on?' on':'')+'" data-action="m-col" data-week="'+w.id+'" aria-pressed="'+(on?'true':'false')+'">'
-          + '<span>'+escapeHtml(cfg.weekly ? w.label : ('Sem. ' + w.label))+'</span><small>'+escapeHtml(String(w.month || "").slice(0,3))+' \u00b7 '+cnt+'</small></button>';
+          + '<span>'+escapeHtml(cfg.weekly ? w.label : ('Lun ' + w.label))+'</span><small>'+escapeHtml(String(w.month || ""))+'</small></button>';
       }).join("");
       var grupos = state.categories.map(function(c){
         var ns = notesIn(c.id, mCol);
