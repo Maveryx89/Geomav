@@ -438,6 +438,8 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .pm-thumbs img{ width:56px; height:56px; object-fit:cover; border-radius:6px; border:1px solid var(--line); }
 .pm-fotos-link{ font-size:.72rem; font-weight:700; color:var(--blueprint); text-decoration:none; }
 .pm-fotos-link:hover{ text-decoration:underline; }
+.nav-semanas{ display:flex; gap:6px; flex-wrap:wrap; margin-left:auto; }
+@media print{ .nav-semanas{ display:none; } }
 .restr-toggle .restr-caret{ color:var(--blueprint); width:12px; }
 .restrictions-panel .restr-table-wrap{ margin-top:8px; }
 @media print{ .restr-toggle{ display:none; } }
@@ -577,6 +579,11 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     <div class="dategen">
       <div class="fld"><label>Fecha de inicio (lunes)</label><input type="date" class="fecha-inicio"></div>
       <button class="btn-sm" data-action="generar-fechas">Generar fechas</button>
+      <div class="nav-semanas">
+        <button class="btn-sm" data-action="semana-ant" title="Semana anterior">&#9664; Anterior</button>
+        <button class="btn-sm" data-action="semana-hoy">Esta semana</button>
+        <button class="btn-sm" data-action="semana-sig" title="Semana siguiente">Siguiente &#9654;</button>
+      </div>
     </div>
 
     <div class="toolbar">
@@ -636,6 +643,11 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       <div class="fld"><label>Fecha de inicio (lunes)</label><input type="date" class="fecha-inicio"></div>
     <div class="fld"><label>Duración (semanas)</label><input type="number" class="duracion-semanas" min="1" max="52" value="9"></div>
       <button class="btn-sm" data-action="generar-fechas">Generar fechas</button>
+      <div class="nav-semanas">
+        <button class="btn-sm" data-action="semana-ant" title="Semana anterior">&#9664; Anterior</button>
+        <button class="btn-sm" data-action="semana-hoy">Esta semana</button>
+        <button class="btn-sm" data-action="semana-sig" title="Semana siguiente">Siguiente &#9654;</button>
+      </div>
     </div>
 
     <div class="toolbar">
@@ -1041,9 +1053,10 @@ window.PORTICOS_LISTA = (function(){
     /* Arma el tablero desde la hoja "Programaci\u00f3n" de la planilla compartida */
     function isoFecha(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
     /* Arma el tablero desde la hoja "Programaci\u00f3n" de la planilla compartida (fuente oficial) */
-    function cargarProgramacion(prog, desde){
+    function cargarProgramacion(prog, desde, nSemanas){
       var start = inicioSemana(desde || (state && state.inicio ? parseInputDate(state.inicio) : new Date()));
-      var weeks = cfg.weekly ? generarDiasSemana(start) : generarSemanasIntermedio(start, 9);
+      var nsem = cfg.weekly ? 1 : (nSemanas || (state && state.semanas) || 9);
+      var weeks = cfg.weekly ? generarDiasSemana(start) : generarSemanasIntermedio(start, nsem);
       var categories = defaultCategories();
       var catId = {}; categories.forEach(function(c){ catId[c.name] = c.id; });
       var notes = [], causas = {};
@@ -1054,7 +1067,7 @@ window.PORTICOS_LISTA = (function(){
         var hecho = /^ejecutado/i.test(r.estado || ""), fallo = /^no ejecutado/i.test(r.estado || "");
         var col;
         if(cfg.weekly){ if(dias < 0 || dias > 4) return; col = weeks[dias]; }
-        else { if(dias < 0 || dias >= 63 || fallo) return; col = weeks[Math.floor(dias / 7)]; }
+        else { if(dias < 0 || dias >= 7 * nsem || fallo) return; col = weeks[Math.floor(dias / 7)]; }
         var n = { id: r.id || uid(), catId:cid, weekId:col.id, text:"", day:"", portico:String(r.portico || ""), percent: String(r.avance || ""), tone: PARTIDA_TONE[r.partida] || "neutral",
           responsable: r.responsable || "", cumplido:null, causa:"", liberada:false, tipoRestriccion: r.restriccion || "", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:"",
           fecha: r.fecha, autorizacion: r.autorizacion || "", estadoOrig: r.estado || "Programado", remota: !!r.id, pendiente:false };
@@ -1074,10 +1087,19 @@ window.PORTICOS_LISTA = (function(){
         n.text = txt; notes.push(n);
       });
       state = { title: (state && state.title) || cfg.defaultTitle,
-        subtitle: "Programaci\u00f3n de la planilla \u00b7 semana del " + fmtDMY(start) + (cfg.weekly ? "" : " + 8 semanas"),
-        weeks: weeks, categories: categories, notes: notes, editingNoteId: null, inicio: isoFecha(start),
+        subtitle: "Programaci\u00f3n de la planilla \u00b7 " + (cfg.weekly ? "semana del " + fmtDMY(start) : nsem + " semanas desde el " + fmtDMY(start)),
+        weeks: weeks, categories: categories, notes: notes, editingNoteId: null, inicio: isoFecha(start), semanas: nsem,
         ppcHistory: (state && state.ppcHistory) || [], causas: causas, checklist: (state && state.checklist) || MEETING_ITEMS.map(function(){ return false; }) };
       saveState(); render(); syncHeader();
+      var fiEl = root.querySelector(".fecha-inicio"); if(fiEl) fiEl.value = isoFecha(start);
+    }
+    /* Carga una semana puntual desde la planilla (historial o programaci\u00f3n futura) */
+    function irASemana(fecha){
+      if(!window.PROGRAMACION){ return false; }
+      if(state.notes.some(function(n){ return n.pendiente; }) && !confirm("Hay notas sin guardar en este tablero y se perder\u00e1n. \u00bfContinuar?")) return true;
+      var durEl = root.querySelector(".duracion-semanas");
+      cargarProgramacion(window.PROGRAMACION, fecha, cfg.weekly ? 1 : (parseInt(durEl && durEl.value, 10) || state.semanas || 9));
+      return true;
     }
     /* Fecha real de una nota seg\u00fan su columna */
     function fechaDeNota(note){
@@ -1714,9 +1736,15 @@ window.PORTICOS_LISTA = (function(){
         if(state.notes.length>0 && !confirm("Esto reemplaza este tablero con la programaci\u00f3n de la planilla (desde la semana del " + fmtDMY(inicioSemana(stP)) + "). \u00bfContinuar?")) return;
         cargarProgramacion(prog, stP);
       }
+      else if(action === "semana-ant" || action === "semana-sig" || action === "semana-hoy"){
+        var base = state.inicio ? parseInputDate(state.inicio) : new Date();
+        var destino = action === "semana-hoy" ? new Date() : addDays(base, action === "semana-ant" ? -7 : 7);
+        if(!irASemana(destino)) alert("A\u00fan no se carga la programaci\u00f3n de la planilla. Espera unos segundos.");
+      }
       else if(action === "generar-fechas"){
         var fi = root.querySelector(".fecha-inicio").value;
         if(!fi){ alert("Ingresa la fecha de inicio."); return; }
+        if(irASemana(parseInputDate(fi))) return;
         if(state.notes.length>0 && !confirm("Esto reemplaza las columnas actuales por las nuevas fechas y borra las notas ya cargadas en este tablero (las categor\u00edas se mantienen). \u00bfContinuar?")) return;
         if(cfg.weekly){
           var ppcPrev = computePPC();
