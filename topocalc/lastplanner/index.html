@@ -552,6 +552,25 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .reu-crit{ display:flex; flex-wrap:wrap; gap:6px 16px; font-size:.8rem; color:var(--ink); }
 @media (max-width:860px){ .reu-grid3, .reu-form{ grid-template-columns:1fr 1fr; } .reu-tema{ grid-template-columns:1fr 1fr 36px; } .reu-tema textarea{ grid-column:1 / -1; } .reu-pers{ grid-template-columns:1fr 1fr; } }
 @media print{ .pizarra-block[data-board="reunion"]{ display:none !important; } }
+.reu-r.inter{ border-left-color:var(--accent); } .reu-origen{ color:var(--accent); font-weight:800; }
+#printActa{ display:none; }
+.rp-2col{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+@media print{
+  body[data-print-board="acta"] > *:not(#printActa){ display:none !important; }
+  body[data-print-board="acta"] #printActa{ display:block !important; }
+  .acta{ font-family:var(--font-body), Arial, sans-serif; color:#111; font-size:10pt; }
+  .acta-head{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #0A2240; padding-bottom:4px; margin-bottom:8px; }
+  .acta-head b{ font-size:16pt; display:block; color:#0A2240; } .acta-head span{ font-size:9pt; } .acta-logo{ font-size:9pt; color:#2C6B7E; font-weight:700; }
+  .acta h4{ margin:10px 0 4px; font-size:11pt; color:#0A2240; } .acta h4 small{ font-weight:400; color:#555; }
+  .acta-t{ width:100%; border-collapse:collapse; } .acta-t th, .acta-t td{ border:1px solid #777; padding:3px 5px; vertical-align:top; text-align:left; }
+  .acta-t th{ background:#E9EDF2; font-size:8.5pt; } .acta-t .c{ text-align:center; } .acta-p td{ font-size:8.5pt; height:20px; } .acta-p .firma{ width:70px; }
+  .acta-temas td{ height:22px; } .acta-temas td:nth-child(1){ width:28px; } .acta-temas td:nth-child(2){ width:110px; } .acta-temas td:nth-child(4){ width:150px; }
+  .acta-meta th{ width:90px; } .acta-pie{ margin-top:10px; font-size:8pt; color:#666; text-align:right; }
+  .acta tr{ page-break-inside:avoid; }
+  body[data-print-board="resumen"] .print-summary .ind-svg{ max-width:100%; }
+  body[data-print-board="resumen"] .print-summary .ind-card{ border:1px solid #ccc; break-inside:avoid; margin-bottom:8px; }
+  body[data-print-board="resumen"] .print-summary .ind-rango, body[data-print-board="resumen"] .print-summary .ind-nota{ display:none; }
+}
 </style>
 </head>
 
@@ -1239,7 +1258,9 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
             var line = n.text || "";
             if(n.responsable) line += " \u2014 " + n.responsable;
             if(cfg.weekly){
-              if(n.percent !== "" && n.percent !== null && n.percent !== undefined) line += " (" + n.percent + "%)";
+              if(n.zona) line = "[" + n.zona + "] " + line;
+              if(n.supervisor) line += " / sup. " + n.supervisor;
+              if(n.percent !== "" && n.percent !== null && n.percent !== undefined) line += " (" + n.percent + "%" + ((n.real !== "" && n.real != null) ? " \u2192 real " + n.real + "%" : "") + ")";
               if(n.cumplido === true) line = "\u2713 " + line;
               else if(n.cumplido === false) line = "\u2717 " + line;
             } else if(n.tipoRestriccion){
@@ -1282,6 +1303,34 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       });
 
       ws.views = [{ state: "frozen", xSplit: 1, ySplit: 1 }];
+
+      /* Hoja 2: una fila por tarea (formato planilla Last Planner) */
+      var wd = wb.addWorksheet("Detalle");
+      var cols = cfg.weekly
+        ? ["\u00cdtem","Fase","Zona","Actividad","Responsable","Supervisor","D\u00eda","% solicitado","% real","L / NL","Causa de no cumplimiento","Detalle"]
+        : ["\u00cdtem",(cfg.mensual ? "Mes" : "Semana"),"Fase","Actividad","Responsable","Avance %","Detalle","Tipo de restricci\u00f3n","Resp. liberaci\u00f3n","Compromiso","Liberada","Estado"];
+      wd.columns = cols.map(function(c){ return { width: /Actividad|Causa|Detalle/.test(c) ? 44 : 16 }; });
+      var hd = wd.addRow(cols);
+      hd.eachCell(function(cell){ cell.font = { bold:true, color:{ argb:"FFFFFFFF" } }; cell.fill = { type:"pattern", pattern:"solid", fgColor:{ argb: INK_ARGB } }; cell.border = allBorders; cell.alignment = { wrapText:true, vertical:"middle", horizontal:"center" }; });
+      var item = 0;
+      state.weeks.forEach(function(w){ state.categories.forEach(function(cat){ notesIn(cat.id, w.id).forEach(function(n){
+        if(!String(n.text || "").trim()) return; item++;
+        var fila = cfg.weekly
+          ? [item, cat.name, n.zona || "", n.text, n.responsable || "", n.supervisor || "", w.label, n.percent === "" ? "" : Number(n.percent), (n.real === "" || n.real == null) ? "" : Number(n.real), n.cumplido === true ? 1 : (n.cumplido === false ? 0 : ""), n.causa ? causaLabel(n.causa) : "", n.day || ""]
+          : [item, w.label + " " + w.month, cat.name, n.text, n.responsable || "", n.percent === "" ? "" : Number(n.percent), n.day || "", n.tipoRestriccion || "", n.respLiberacion || "", n.fechaCompromiso || "", n.fechaLiberacion || "", n.tipoRestriccion ? (n.liberada ? "Liberada" : "Abierta") : ""];
+        var r = wd.addRow(fila);
+        r.eachCell({ includeEmpty:true }, function(cell){ cell.border = allBorders; cell.alignment = { wrapText:true, vertical:"top" }; });
+        if(cfg.weekly && n.cumplido === false) r.getCell(10).font = { bold:true, color:{ argb:"FFB42318" } };
+      }); }); });
+      if(cfg.weekly && item){
+        var ev = state.notes.filter(function(n){ return n.cumplido === true || n.cumplido === false; }), ok = ev.filter(function(n){ return n.cumplido; }).length;
+        wd.addRow([]);
+        wd.addRow(["", "", "", "N\u00b0 actividades programadas (evaluadas)", "", "", "", "", "", ev.length]);
+        wd.addRow(["", "", "", "Total logrado", "", "", "", "", "", ok]);
+        var rp = wd.addRow(["", "", "", "% de cumplimiento PAC (PPC)", "", "", "", "", "", ev.length ? ok / ev.length : ""]);
+        rp.getCell(10).numFmt = "0%"; rp.font = { bold:true };
+      }
+      wd.views = [{ state:"frozen", ySplit:1 }];
 
       var base = (state.title || (cfg.mensual ? "Plan Maestro" : (cfg.weekly ? "Planificacion Semanal" : "Planificacion Intermedio")));
       var nombre = base.replace(/[\\/:*?"<>|]/g, "").trim() + " - " + sheetName + ".xlsx";
@@ -2030,6 +2079,18 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       snapshot: snapshot,
       aplicarRemoto: aplicarRemoto,
       editando: function(){ return !!state.editingNoteId; },
+      restricciones: function(){
+        return state.notes.filter(function(n){ return n.tipoRestriccion; }).map(function(n){
+          var w = findWeek(n.weekId), c = state.categories.find(function(x){ return x.id === n.catId; });
+          return { id: "n:" + n.id, origen: "Intermedio", zona: "", det: "", fase: c ? c.name : "", partida: w ? ("Semana " + (cfg.mensual ? "" : "del ") + w.label + " " + w.month) : "",
+            tipo: n.tipoRestriccion, desc: n.text || "", cliente: "", resp: n.respLiberacion || n.responsable || "", req: n.fechaCompromiso || "", lib: n.fechaLiberacion || "", ok: !!n.liberada };
+        });
+      },
+      liberarRestriccion: function(id, liberar){
+        var n = state.notes.find(function(x){ return "n:" + x.id === id; }); if(!n) return;
+        var d = new Date(), iso = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+        n.liberada = !!liberar; n.fechaLiberacion = liberar ? iso : ""; saveState(); render();
+      },
       getWeeksOptionsHtml: function(){
         return state.weeks.map(function(w){ return '<option value="'+w.id+'">'+escapeHtml(w.month)+' \u00b7 '+escapeHtml(w.label)+'</option>'; }).join("");
       },
@@ -2139,6 +2200,8 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         + '</div>';
     }
 
+    if(window.LP_IND && window.LP_IND.resumenHtml) html += window.LP_IND.resumenHtml();
+    if(window.LP_REU && window.LP_REU.resumenHtml){ html += window.LP_REU.resumenHtml(); inter = null; }
     if(inter){
       var rows = inter.listaAbiertas.slice(0,15).map(function(r){
         return '<tr><td>'+r.semana+'</td><td>'+r.texto+'</td><td>'+r.tipo+'</td><td>'+r.responsable+'</td><td>'+r.compromiso+'</td></tr>';
@@ -2314,7 +2377,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       + '<p class="ind-nota">En rojo, las causas que acumulan el 80% de los incumplimientos: atacarlas primero.</p></div>';
   }
 
-  function ranking(){
+  function ranking(max){
     var t = {}, ev = {};
     enRango().forEach(function(w){
       Object.keys(w.resp || {}).forEach(function(k){ var e = t[k] || (t[k] = [0,0]); e[0] += w.resp[k][0]; e[1] += w.resp[k][1]; });
@@ -2330,6 +2393,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       var peor = null; porCrit.forEach(function(v, j){ if(v != null && (peor == null || v < porCrit[peor])) peor = j; });
       return { k:k, prog:e[0], ppc: e[0] ? Math.round(e[1]/e[0]*100) : null, ev:p, peor: (p != null && peor != null && porCrit[peor] < 4) ? CRIT[peor][1] : "" };
     }).sort(function(a,b){ return (b.prog - a.prog); });
+    if(max) filas = filas.slice(0, max);
     var trs = filas.map(function(f){
       return '<tr><td class="rk-n">'+esc(f.k)+(f.peor ? '<small>Bajo en '+esc(f.peor)+'</small>' : '')+'</td><td>'+(f.prog || "\u2013")+'</td>'
         + '<td>'+(f.ppc == null ? "\u2013" : '<span class="rk-ppc '+(f.ppc >= META ? "ok" : (f.ppc >= 65 ? "mid" : "bad"))+'">'+f.ppc+'%</span>')+'</td>'
@@ -2393,7 +2457,14 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     aplicarRemoto: function(t){ st = { semanas: Array.isArray(t.semanas) ? t.semanas : [] }; ord(); try{ localStorage.setItem(LS, JSON.stringify(st)); }catch(e){} render(); },
     editando: function(){ return false; }
   };
-  window.LP_IND = { registrarSemana: registrarSemana, semanas: function(){ return st.semanas; } };
+  function resumenHtml(){
+    if(!st.semanas.length) return "";
+    var r0 = rango; rango = "12";
+    var h = '<div class="rp-section"><h3>Indicadores del proyecto</h3>' + kpis() + curva() + '</div>'
+      + '<div class="rp-section"><h3>\u00daltimas 12 semanas</h3><div class="rp-2col">' + pareto() + ranking(12) + '</div></div>';
+    rango = r0; return h;
+  }
+  window.LP_IND = { registrarSemana: registrarSemana, semanas: function(){ return st.semanas; }, resumenHtml: resumenHtml };
   render();
 })();
 </script>
@@ -2417,6 +2488,11 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   function sem(v){ return v == null ? "" : (v >= 4.5 ? "ok" : (v >= 3.5 ? "mid" : "bad")); }
   function uidR(){ return "r" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
   function vencida(r){ return !r.ok && r.req && r.req < hoyIso(); }
+  function todasR(){
+    var b = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS.intermedio;
+    var inter = (b && b.restricciones) ? b.restricciones() : [];
+    return st.restricciones.map(function(r){ return Object.assign({ origen: "Reuni\u00f3n" }, r); }).concat(inter);
+  }
 
   function importar(){
     var d = JSON.parse(JSON.stringify(window.CURANIPE_REU || vacio()));
@@ -2429,7 +2505,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     var ks = nums(st.minutas);
     if(semMin == null || !st.minutas[semMin]) semMin = ks.length ? ks[ks.length-1] : null;
     var ops = ks.map(function(n){ return '<option value="'+n+'"'+(n === semMin ? " selected" : "")+'>Semana '+n+(st.minutas[n].fecha ? " \u00b7 " + fc(st.minutas[n].fecha) : "")+'</option>'; }).join("");
-    var cab = '<div class="reu-sel"><label>Acta</label><select id="reuSemMin">'+(ops || '<option>Sin actas</option>')+'</select><button type="button" class="btn-sm" data-reu="nueva-minuta">+ Nueva acta</button></div>';
+    var cab = '<div class="reu-sel"><label>Acta</label><select id="reuSemMin">'+(ops || '<option>Sin actas</option>')+'</select><button type="button" class="btn-sm" data-reu="nueva-minuta">+ Nueva acta</button>'+(semMin != null ? '<button type="button" class="btn-sm" data-reu="imprimir-acta">\ud83d\udda8 Imprimir acta</button>' : '')+'</div>';
     if(semMin == null) return cab + '<p class="ind-vacio">Crea la primera acta o carga el historial Curanipe desde \u22ef M\u00e1s opciones.</p>';
     var m = st.minutas[semMin], asis = m.asistentes || [];
     /* frecuentes: asistieron a alguna de las 4 reuniones anteriores con asistencia, están marcados hoy o se agregaron recién */
@@ -2475,16 +2551,17 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       + '<div class="reu-acts full"><button type="button" class="btn-sm" data-reu="cerrar-r">Listo</button><button type="button" class="btn-sm danger" data-reu="del-r" data-id="'+esc(r.id)+'">Eliminar</button></div></div>';
   }
   function vRestricciones(){
-    var R = st.restricciones, ab = R.filter(function(r){ return !r.ok; }), ve = R.filter(vencida);
+    var R = todasR(), ab = R.filter(function(r){ return !r.ok; }), ve = R.filter(vencida);
     var lista = (filtroR === "abiertas" ? ab : (filtroR === "vencidas" ? ve : R)).slice().sort(function(a,b){ return (a.ok?1:0)-(b.ok?1:0) || String(a.req).localeCompare(String(b.req)); });
     function chip(k, l){ return '<button type="button" data-rfil="'+k+'" class="'+(filtroR === k ? "on" : "")+'">'+l+'</button>'; }
     var cards = lista.map(function(r){
       if(editR === r.id) return formR(r);
       var est = r.ok ? '<span class="estado-ok">Liberada '+fc(r.lib)+'</span>' : (vencida(r) ? '<span class="estado-venc">Vencida '+fc(r.req)+'</span>' : '<span class="estado-abierta">Abierta \u00b7 para '+fc(r.req)+'</span>');
-      return '<div class="reu-r'+(vencida(r) ? " venc" : "")+'"><div class="reu-r-top">'+est+'<span>'+esc([r.zona, r.fase, r.tipo].filter(Boolean).join(" \u00b7 "))+'</span></div>'
+      var deInter = r.origen === "Intermedio";
+      return '<div class="reu-r'+(vencida(r) ? " venc" : "")+(deInter ? " inter" : "")+'"><div class="reu-r-top">'+est+'<span>'+(deInter ? '<b class="reu-origen">Intermedio</b> ' : '')+esc([r.zona, r.fase, r.tipo].filter(Boolean).join(" \u00b7 "))+'</span></div>'
         + '<div class="reu-r-desc">'+esc(r.desc)+'</div><div class="reu-r-meta">'+esc(r.partida)+(r.resp ? ' \u00b7 <b>'+esc(r.resp)+'</b>' : '')+' \u00b7 detectada '+fc(r.det)+'</div>'
         + '<div class="reu-acts">'+(r.ok ? '<button type="button" class="btn-sm" data-reu="reabrir" data-id="'+esc(r.id)+'">Reabrir</button>' : '<button type="button" class="btn-sm sel-ok" data-reu="liberar" data-id="'+esc(r.id)+'">\u2713 Liberar hoy</button>')
-        + '<button type="button" class="btn-sm" data-reu="edit-r" data-id="'+esc(r.id)+'">Editar</button></div></div>';
+        + (deInter ? '<span class="reu-r-meta">Se edita en la nota del Intermedio</span>' : '<button type="button" class="btn-sm" data-reu="edit-r" data-id="'+esc(r.id)+'">Editar</button>') + '</div></div>';
     }).join("");
     return '<div class="ind-kpis">'
       + '<div class="ind-kpi '+(ab.length ? "bad" : "ok")+'"><b>'+ab.length+'</b><span>abiertas</span></div>'
@@ -2517,6 +2594,50 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       + '<div class="ev-grid">'+(cards || '<p class="ind-vacio">Agrega los subcontratos que eval\u00faan a la constructora.</p>')+'</div>'
       + (hist ? '<div class="ind-card"><div class="ind-tit">Historial</div><table class="rk"><thead><tr><th>Semana</th><th>Evaluadores</th><th>Promedio</th></tr></thead><tbody>'+hist+'</tbody></table></div>' : "");
   }
+
+  function iniciales(n){ return String(n).split(/\s+/).filter(Boolean).map(function(p){ return p[0]; }).join("").toUpperCase().slice(0,3); }
+  function participantesActa(n){
+    var m = st.minutas[n], ks = nums(st.minutas), frec = {};
+    ks.filter(function(k){ return k < n && (st.minutas[k].asistentes || []).length; }).slice(-4).forEach(function(k){ st.minutas[k].asistentes.forEach(function(x){ frec[x] = 1; }); });
+    (m.asistentes || []).forEach(function(x){ frec[x] = 1; });
+    var lista = st.personas.filter(function(p){ return frec[p[0]]; });
+    return lista.length ? lista : st.personas;
+  }
+  function imprimirActa(){
+    var m = st.minutas[semMin]; if(!m) return;
+    var b = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS.intermedio, obra = "";
+    try{ obra = b ? (b.getSummaryData().title || "") : ""; }catch(e){}
+    var ps = participantesActa(semMin), mitad = Math.ceil(ps.length / 2);
+    function filaP(p, i){ return p ? '<td>'+(i+1)+'</td><td>'+esc(p[0])+'</td><td>'+esc(p[1])+'</td><td>'+iniciales(p[0])+'</td><td class="c">'+((m.asistentes || []).indexOf(p[0]) >= 0 ? "\u2713" : "")+'</td><td class="firma"></td>' : '<td></td><td></td><td></td><td></td><td></td><td></td>'; }
+    var filas = ""; for(var i = 0; i < mitad; i++) filas += '<tr>' + filaP(ps[i], i) + filaP(ps[i + mitad], i + mitad) + '</tr>';
+    var temas = (m.temas || []).filter(function(t){ return String(t[1] || t[0]).trim(); });
+    var trT = temas.map(function(t, i){ return '<tr><td class="c">'+(i+1)+'</td><td>'+esc(t[0])+'</td><td>'+esc(t[1])+'</td><td>'+esc(t[2])+'</td></tr>'; }).join("");
+    for(var j = temas.length; j < Math.max(8, temas.length + 3); j++) trT += '<tr class="vacia"><td class="c">'+(j+1)+'</td><td></td><td></td><td></td></tr>';
+    var html = '<div class="acta"><div class="acta-head"><div><b>Acta de Reuni\u00f3n</b><span>'+esc(obra)+'</span></div><div class="acta-logo">GeoMav \u00b7 Last Planner\u00ae</div></div>'
+      + '<table class="acta-t acta-meta"><tr><th>Tema</th><td>'+esc(m.tema || "Plan Semanal")+'</td><th>Documento N\u00b0</th><td>'+semMin+'</td></tr><tr><th>Fecha</th><td>'+fc(m.fecha)+'</td><th>Lugar</th><td>'+esc(m.lugar)+'</td></tr></table>'
+      + '<h4>Participantes <small>('+(m.asistentes || []).length+' asistentes)</small></h4>'
+      + '<table class="acta-t acta-p"><thead><tr><th>N\u00b0</th><th>Nombre</th><th>Cargo</th><th>Inic.</th><th>Asist.</th><th>Firma</th><th>N\u00b0</th><th>Nombre</th><th>Cargo</th><th>Inic.</th><th>Asist.</th><th>Firma</th></tr></thead><tbody>'+filas+'</tbody></table>'
+      + '<h4>Temas de la planificaci\u00f3n y acuerdos</h4><table class="acta-t acta-temas"><thead><tr><th>N\u00b0</th><th>\u00c1rea</th><th>Tema / acuerdo</th><th>Responsable</th></tr></thead><tbody>'+trT+'</tbody></table>'
+      + '<div class="acta-pie">Acta generada con la Pizarra Last Planner \u00b7 GeoMav</div></div>';
+    var box = document.getElementById("printActa");
+    if(!box){ box = document.createElement("div"); box.id = "printActa"; document.body.appendChild(box); }
+    box.innerHTML = html;
+    document.body.setAttribute("data-print-board", "acta");
+    var pc = document.getElementById("dynamicPageSize");
+    if(!pc){ pc = document.createElement("style"); pc.id = "dynamicPageSize"; document.head.appendChild(pc); }
+    pc.textContent = "@page{ size: letter landscape; margin: 10mm; }";
+    requestAnimationFrame(function(){ window.print(); });
+  }
+  window.addEventListener("afterprint", function(){ if(document.body.getAttribute("data-print-board") === "acta") document.body.removeAttribute("data-print-board"); });
+  function resumenHtml(){
+    var R = todasR(); if(!R.length) return "";
+    var ab = R.filter(function(r){ return !r.ok; }).sort(function(a,b){ return String(a.req).localeCompare(String(b.req)); }), ve = ab.filter(vencida);
+    var rows = ab.slice(0, 15).map(function(r){ return '<tr><td>'+(vencida(r) ? '<b style="color:#B42318">Vencida</b>' : 'Abierta')+'</td><td>'+esc(r.desc)+'</td><td>'+esc(r.tipo)+'</td><td>'+esc(r.resp)+'</td><td>'+fc(r.req)+'</td><td>'+esc(r.origen || "Reuni\u00f3n")+'</td></tr>'; }).join("") || '<tr><td colspan="6">Sin restricciones abiertas.</td></tr>';
+    return '<div class="rp-section"><h3>Restricciones (Reuni\u00f3n + Intermedio)</h3><div class="rp-restr-summary"><span><b>'+ab.length+'</b> abiertas</span><span><b>'+ve.length+'</b> vencidas</span><span><b>'+(R.length - ab.length)+'</b> liberadas</span><span><b>'+R.length+'</b> total</span></div>'
+      + '<table class="rp-table"><thead><tr><th>Estado</th><th>Restricci\u00f3n</th><th>Tipo</th><th>Responsable</th><th>Requerida</th><th>Origen</th></tr></thead><tbody>'+rows+'</tbody></table>'
+      + (ab.length > 15 ? '<p class="rp-note">Y '+(ab.length - 15)+' m\u00e1s.</p>' : '') + '</div>';
+  }
+  window.LP_REU = { resumenHtml: resumenHtml, render: function(){ render(); } };
 
   function render(){
     var box = document.getElementById("reuBody"); if(!box) return;
@@ -2554,8 +2675,14 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     else if(a === "edit-r"){ editR = b.dataset.id; render(); return; }
     else if(a === "cerrar-r"){ editR = null; st.restricciones = st.restricciones.filter(function(r){ return String(r.desc).trim() || r.id !== b.closest("[data-rid]").dataset.rid; }); }
     else if(a === "del-r"){ if(!confirm("\u00bfEliminar esta restricci\u00f3n?")) return; st.restricciones = st.restricciones.filter(function(r){ return r.id !== b.dataset.id; }); editR = null; }
+    else if((a === "liberar" || a === "reabrir") && /^n:/.test(b.dataset.id)){
+      var bi = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS.intermedio;
+      if(bi && bi.liberarRestriccion) bi.liberarRestriccion(b.dataset.id, a === "liberar");
+      render(); return;
+    }
     else if(a === "liberar"){ var r1 = findR(b.dataset.id); if(r1){ r1.ok = true; r1.lib = hoyIso(); } }
     else if(a === "reabrir"){ var r2 = findR(b.dataset.id); if(r2){ r2.ok = false; r2.lib = ""; } }
+    else if(a === "imprimir-acta"){ imprimirActa(); return; }
     else if(a === "add-evaluador"){ var ne = prompt("Subcontrato que eval\u00faa a la constructora"); if(!ne || !ne.trim()) return; var ev2 = st.evalConst[semEc] || (st.evalConst[semEc] = {}); if(!ev2[ne.trim()]) ev2[ne.trim()] = [null,null,null,null,null]; }
     else if(a === "historial"){ if((st.restricciones.length || nums(st.minutas).length) && !confirm("Esto reemplaza la reuni\u00f3n por el historial Curanipe (actas 15 a 65, 142 restricciones y evaluaci\u00f3n a la constructora). \u00bfContinuar?")) return; importar(); return; }
     else if(a === "borrar"){ if(!confirm("Esto borra actas, restricciones y evaluaciones de este equipo. \u00bfContinuar?")) return; st = vacio(); }
