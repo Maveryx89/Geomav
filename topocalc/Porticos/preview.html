@@ -800,6 +800,16 @@ body[data-mtab]:not([data-mtab="semanal"]):not([data-mtab="intermedio"]) .proyec
 .cue-btn.on{ display:flex; }
 .cue-btn:hover{ border-color:var(--blueprint); color:var(--blueprint); }
 @media (max-width:860px){ .cue-sh, .cue-btn{ display:none !important; } }
+
+/* ===== celular: mapa bajo el listado de pórticos ===== */
+@media (max-width:860px){
+  body[data-mtab="porticos"] #avanceToggle, body[data-mtab="porticos"] #avanceWrap,
+  body[data-mtab="porticos"] #mapaToggle, body[data-mtab="porticos"] #editBar{ display:none !important; }
+  body.pm-mapa[data-mtab="porticos"] .semanal-layout > .porticos-panel{ height:50vh; min-height:280px; margin-bottom:10px; }
+  body.pm-mapa[data-mtab="porticos"] .porticos-mapa{ display:block !important; grid-row:2; margin:0 12px 16px; }
+  body.pm-mapa[data-mtab="porticos"] #mapaWrap{ margin-top:0; }
+  body.pm-mapa[data-mtab="porticos"] .mapa-canvas{ height:calc(50vh - 245px); min-height:210px; }
+}
 </style>
 </head>
 
@@ -825,7 +835,6 @@ body[data-mtab]:not([data-mtab="semanal"]):not([data-mtab="intermedio"]) .proyec
     <button type="button" data-mtab="semanal" class="on" aria-current="page"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6M9 4a1 1 0 0 0-1 1v1h8V5a1 1 0 0 0-1-1M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/><path d="M9 11h6M9 15h4"/></svg><span class="t-l">Semanal</span></button>
     <button type="button" data-mtab="intermedio"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4M7 13.5h4M13 16.5h4"/></svg><span class="t-l">Intermedio</span></button>
     <button type="button" data-mtab="porticos"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><span class="t-l">Pórticos</span></button>
-    <button type="button" data-mtab="mapa"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 6.5 9 4l6 2.5 5.5-2.5v13.5L15 20l-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg><span class="t-l">Mapa</span></button>
     <button type="button" data-mtab="avance"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M5 16l4.5-5 3.5 3 6-7"/><path d="M15 7h4v4"/></svg><span class="t-l">Avance</span></button>
     <button type="button" data-mtab="indicadores"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V8M17 16v-6"/></svg><span class="t-l">Indicadores</span></button>
   </nav>
@@ -2587,7 +2596,7 @@ window.PORTICOS_LISTA = (function(){
     if(nSel(selEst)){ var st = estadoDe(num, data); if(!selEst[st ? st.name : "__sin"]) return false; }
     return true;
   }
-  function filtroCambio(){ if(mapa) mapa._encuadrado = false; window.renderPorticos(); }
+  function filtroCambio(){ if(mapa) mapa._encuadrado = false; window.renderPorticos(); mapaMovil(false); }
   if(fBuscar) fBuscar.addEventListener("input", filtroCambio);
   [[fComuna, selCom], [fEstado, selEst]].forEach(function(par){
     var det = par[0], sel = par[1]; if(!det) return;
@@ -2636,6 +2645,7 @@ window.PORTICOS_LISTA = (function(){
       var mk = selPortico && marcadores[selPortico];
       if(mk && !desdeMapa){ mapa.setView(mk.getLatLng(), Math.max(mapa.getZoom(), 12), { animate:true }); }
     }
+    mapaMovil(!desdeMapa);
   }
 
   /* ---------- barra de edición (PIN) ---------- */
@@ -3007,6 +3017,25 @@ window.PORTICOS_LISTA = (function(){
     if(btnAv && wrapAv && wrapAv.hidden) btnAv.click();
     if(btnMapa && wrapMapa && wrapMapa.hidden) btnMapa.click();
   }
+  /* ---------- celular: el mapa aparece bajo el listado al filtrar por comuna/estado o al tocar un pórtico ---------- */
+  function mapaMovil(centrar){
+    var movil = window.matchMedia && window.matchMedia("(max-width:860px)").matches;
+    if(!movil || !btnMapa || !wrapMapa) return;
+    var ver = !!(nSel(selCom) || nSel(selEst) || selPortico);
+    var antes = document.body.classList.contains("pm-mapa");
+    document.body.classList.toggle("pm-mapa", ver);
+    if(!ver || document.body.getAttribute("data-mtab") !== "porticos") return;
+    function centrarSel(){ var mk = mapa && selPortico && marcadores[selPortico]; if(mk) mapa.setView(mk.getLatLng(), Math.max(mapa.getZoom(), 13), { animate:true }); }
+    if(wrapMapa.hidden){ btnMapa.click(); if(centrar) setTimeout(centrarSel, 500); return; }
+    if(!mapa) return;
+    setTimeout(function(){
+      mapa.invalidateSize();
+      if(!antes) mapa._encuadrado = false;
+      pintarMapa();
+      if(centrar) centrarSel();
+    }, 60);
+  }
+  window.addEventListener("resize", function(){ if(mapa && document.body.classList.contains("pm-mapa")) mapa.invalidateSize(); });
   /* ---------- indicadores: PPC semanal, Pareto de causas, curva S, resumen ---------- */
   function isoD(s){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ""); return m ? new Date(+m[1], +m[2]-1, +m[3], 12) : null; }
   function lunesIso(s){ var d = isoD(s); if(!d) return ""; d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
@@ -3122,6 +3151,7 @@ window.PORTICOS_LISTA = (function(){
     if((tab === "mapa" || (tab === "porticos" && window.matchMedia && window.matchMedia("(min-width:861px)").matches)) && btnMapa && wrapMapa){ if(wrapMapa.hidden) btnMapa.click(); else if(mapa) setTimeout(function(){ mapa.invalidateSize(); mapa._encuadrado = false; pintarMapa(); }, 60); }
     if(tab === "avance" && btnAv && wrapAv && wrapAv.hidden) btnAv.click();
     if(tab === "indicadores") pintarIndicadores();
+    if(tab === "porticos") mapaMovil(true);
     window.scrollTo(0, 0);
     try{ history.replaceState(null, "", "#" + tab); }catch(e){}
     if(window.LP_cues) window.LP_cues();
