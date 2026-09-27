@@ -11,6 +11,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script>
+/* Reintenta cargar ExcelJS bajo demanda (si falló al abrir la app sin conexión) */
+window.LP_cargarExcel = function(){
+  return new Promise(function(ok, no){
+    if(typeof ExcelJS !== "undefined") return ok();
+    var sc = document.createElement("script");
+    sc.src = "https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js?r=" + Date.now();
+    sc.onload = function(){ typeof ExcelJS !== "undefined" ? ok() : no(); };
+    sc.onerror = no; document.head.appendChild(sc);
+  });
+};
+</script>
 <style>
 /* ===================== DESIGN TOKENS (alineados a index.html / geomav.me) ===================== */
 :root{
@@ -571,6 +583,74 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   body[data-print-board="resumen"] .print-summary .ind-card{ border:1px solid #ccc; break-inside:avoid; margin-bottom:8px; }
   body[data-print-board="resumen"] .print-summary .ind-rango, body[data-print-board="resumen"] .print-summary .ind-nota{ display:none; }
 }
+
+/* ===== v-mejoras 2026-09: navegación, cabecera única, ayuda, menú, indicadores de scroll, deshacer ===== */
+.tab-ic{ width:20px; height:20px; flex:none; }
+.m-tabs .t-sh{ display:none; }
+@media screen and (min-width:861px){
+  .m-tabs{ display:flex; gap:2px; position:sticky; top:var(--topbar-h, 64px); z-index:19; background:var(--paper); border-bottom:1px solid var(--line); padding:0 12px; overflow-x:auto; }
+  .m-tabs button{ all:unset; box-sizing:border-box; display:inline-flex; align-items:center; gap:8px; padding:12px 14px 10px; font-size:13px; font-weight:600; color:var(--ink-soft); border-bottom:2px solid transparent; cursor:pointer; white-space:nowrap; }
+  .m-tabs button:hover{ color:var(--ink); }
+  .m-tabs button.on{ color:var(--blueprint); border-bottom-color:var(--blueprint); }
+  .m-tabs button:focus-visible{ outline:2px solid var(--blueprint); outline-offset:-2px; }
+  body[data-mtab] .pizarra-block{ display:none; }
+  body[data-mtab="semanal"] .pizarra-block[data-board="semanal"],
+  body[data-mtab="intermedio"] .pizarra-block[data-board="intermedio"],
+  body[data-mtab="maestro"] .pizarra-block[data-board="maestro"],
+  body[data-mtab="indicadores"] .pizarra-block[data-board="indicadores"],
+  body[data-mtab="reunion"] .pizarra-block[data-board="reunion"]{ display:block; }
+  .pizarra-block + .pizarra-block{ border-top:none; margin-top:0; }
+}
+@media (max-width:860px){
+  .m-tabs .tab-ic{ width:22px; height:22px; }
+  .m-tabs .t-lg{ display:none; } .m-tabs .t-sh{ display:inline; }
+  .m-tabs button{ min-width:0; }
+  .m-tabs button span{ font-size:inherit; line-height:1.15; }
+}
+/* cabecera única del proyecto (los títulos por tablero se mantienen solo para impresión) */
+.proyecto-head{ padding:14px 16px 2px; }
+.proyecto-tit{ font-family:var(--font-display); font-weight:700; font-size:22px; color:var(--ink); line-height:1.2; }
+.proyecto-sub{ font-size:13px; color:var(--ink-soft); margin-top:2px; font-family:var(--font-mono); }
+.proyecto-tit:empty::before, .proyecto-sub:empty::before{ content:attr(data-placeholder); color:var(--ink-soft); }
+.proyecto-tit:focus-visible, .proyecto-sub:focus-visible{ box-shadow:0 2px 0 var(--blueprint); }
+@media screen{ .pizarra-block .title-wrap{ display:none; } }
+@media print{ .proyecto-head, .ayuda, .undo-toast, .cue-btn, .scroll-cue::before, .scroll-cue::after{ display:none !important; } }
+@media (max-width:860px){ .proyecto-tit{ font-size:18px; } .proyecto-head{ padding:10px 12px 0; } }
+/* menú Más opciones: grupos y ejemplos */
+.menu-sep{ font-size:10.5px; font-weight:700; color:var(--ink-soft); padding:6px 4px 0; border-top:1px solid var(--line); margin-top:2px; }
+.menu-pop .btn-sm.ej{ display:flex; align-items:center; gap:6px; color:var(--ink-soft); border-style:dashed; }
+.tag-ej{ flex:none; font-size:10px; font-weight:700; padding:1px 6px; border-radius:999px; background:var(--accent); color:#fff; }
+/* ayuda (?) */
+.ayuda{ position:relative; display:inline-block; }
+.ayuda > summary{ list-style:none; cursor:pointer; width:30px; height:30px; box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; border:1px solid var(--line-strong); background:var(--paper-raised); color:var(--blueprint); font-weight:800; font-size:13px; }
+.ayuda > summary::-webkit-details-marker{ display:none; }
+.ayuda[open] > summary{ background:var(--blueprint); color:#fff; border-color:var(--blueprint); }
+.ayuda-pop.hint{ display:block !important; position:absolute; z-index:40; top:calc(100% + 6px); left:0; width:min(340px, 80vw); padding:10px 12px; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:0 12px 28px -10px rgba(0,0,0,.35); font-family:var(--font-body); font-size:12.5px; line-height:1.45; color:var(--ink); }
+.toolbar{ position:relative; }
+@media (max-width:860px){ .ayuda > summary{ width:44px; height:44px; } .ayuda{ position:static; } .ayuda-pop.hint{ left:12px; right:12px; width:auto; } }
+/* PPC sin datos */
+.ppc-num.vacio{ font-size:18px; color:var(--ink-soft); }
+.ppc-now{ min-width:min(220px, 45%); }
+/* botón eliminar columna: más separado y con área táctil mayor */
+.week-head .lbl{ flex:1; min-width:0; }
+.week-x{ flex:none; width:28px; height:28px; margin-left:10px; border-radius:6px; font-size:12px; opacity:.55; }
+.week-x:hover, .week-x:focus-visible{ opacity:1; background:var(--paper-raised); }
+/* indicadores de "hay más columnas" */
+.scroll-cue{ position:relative; flex:1; display:flex; flex-direction:column; min-height:0; }
+.scroll-cue::before, .scroll-cue::after{ content:""; position:absolute; top:14px; bottom:40px; width:44px; pointer-events:none; opacity:0; transition:opacity .2s; z-index:6; }
+.scroll-cue::before{ left:var(--cue-l, 0px); background:linear-gradient(to right, rgba(10,34,64,.16), transparent); }
+.scroll-cue::after{ right:0; background:linear-gradient(to left, rgba(10,34,64,.16), transparent); }
+.scroll-cue.mas-izq::before, .scroll-cue.mas-der::after{ opacity:1; }
+.cue-btn{ position:absolute; top:60px; z-index:7; width:34px; height:34px; border-radius:50%; border:1px solid var(--line-strong); background:var(--paper-raised); color:var(--ink); box-shadow:0 4px 12px -4px rgba(0,0,0,.35); cursor:pointer; display:none; align-items:center; justify-content:center; font-size:16px; }
+.cue-btn.der{ right:10px; } .cue-btn.izq{ left:calc(var(--cue-l, 0px) + 10px); }
+.scroll-cue.mas-der .cue-btn.der, .scroll-cue.mas-izq .cue-btn.izq{ display:flex; }
+.cue-btn:hover{ border-color:var(--blueprint); color:var(--blueprint); }
+@media (max-width:860px){ .scroll-cue::before, .scroll-cue::after, .cue-btn{ display:none !important; } }
+/* aviso con Deshacer */
+.undo-toast{ position:fixed; left:50%; bottom:20px; transform:translateX(-50%); z-index:120; display:flex; align-items:center; gap:14px; max-width:calc(100vw - 24px); padding:10px 12px 10px 16px; background:var(--ink); color:var(--paper); border-radius:10px; box-shadow:0 12px 30px -10px rgba(0,0,0,.5); font-size:13px; }
+.undo-toast button{ all:unset; cursor:pointer; font-weight:700; color:var(--accent); padding:6px 8px; border-radius:6px; }
+.undo-toast button:focus-visible{ outline:2px solid var(--accent); }
+@media (max-width:860px){ .undo-toast{ bottom:calc(76px + env(safe-area-inset-bottom, 0px)); } }
 </style>
 </head>
 
@@ -592,6 +672,18 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     </button>
   </div>
 
+
+  <nav class="m-tabs" id="mTabs" aria-label="Secciones">
+    <button type="button" data-mtab="semanal" class="on" aria-current="page"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6M9 4a1 1 0 0 0-1 1v1h8V5a1 1 0 0 0-1-1M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/><path d="M9 11h6M9 15h4"/></svg><span class="t-l">Semanal</span></button>
+    <button type="button" data-mtab="intermedio"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4M7 13.5h4M13 16.5h4"/></svg><span class="t-l">Intermedio</span></button>
+    <button type="button" data-mtab="maestro"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16h16"/><path d="M7 8h6M10 12h7M8 16h5"/></svg><span class="t-l"><span class="t-lg">Plan </span>Maestro</span></button>
+    <button type="button" data-mtab="indicadores"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V8M17 16v-6"/></svg><span class="t-l"><span class="t-lg">Indicadores</span><span class="t-sh">Indicad.</span></span></button>
+    <button type="button" data-mtab="reunion"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.6-3 2.8-4.8 5.5-4.8s4.9 1.8 5.5 4.8"/><circle cx="17" cy="9" r="2.3"/><path d="M15.8 14.4c2.3.2 4 1.8 4.6 4.6"/></svg><span class="t-l">Reuni&oacute;n</span></button>
+  </nav>
+  <div class="proyecto-head">
+    <div class="proyecto-tit" contenteditable="true" id="proyTitulo" data-placeholder="Nombre del proyecto" role="textbox" aria-label="Nombre del proyecto"></div>
+    <div class="proyecto-sub" contenteditable="true" id="proySub" data-placeholder="Subtítulo / obra / cliente" role="textbox" aria-label="Subtítulo del proyecto"></div>
+  </div>
   <details class="sync-bar respaldo-det">
     <summary class="sync-lbl">Respaldo</summary>
     <div class="respaldo-body">
@@ -622,19 +714,22 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       <details class="menu-mas">
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
         <div class="menu-pop">
+          <button class="btn-sm" data-action="cerrar-semana">Cerrar semana (registrar en Indicadores)</button>
           <button class="btn-sm" data-action="add-week">+ Día</button>
-          <button class="btn-sm" data-action="cerrar-semana">&#x1F4CA; Cerrar semana (registrar en Indicadores)</button>
-          <button class="btn-sm" data-action="load-curanipe-semana">Cargar semana Curanipe…</button>
-          <button class="btn-sm" data-action="load-porticos">Cargar Gantt Pórticos (con atraso)</button>
+          <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
           <button class="btn-sm" data-action="print">Imprimir</button>
+          <div class="menu-sep">Datos de ejemplo</div>
+          <button class="btn-sm ej" data-action="load-curanipe-semana"><span class="tag-ej">ejemplo</span>Semana Curanipe…</button>
+          <button class="btn-sm ej" data-action="load-porticos"><span class="tag-ej">ejemplo</span>Gantt Pórticos (con atraso)</button>
+          <div class="menu-sep">Zona de riesgo</div>
           <button class="btn-sm" type="button" data-sync="recargar" hidden>&#x27F3; Descartar cambios y cargar planilla</button>
           <button class="btn-sm danger" data-action="reset">Reiniciar tablero</button>
         </div>
       </details>
+      <details class="ayuda"><summary aria-label="Ayuda de esta sección" title="Ayuda">?</summary><div class="ayuda-pop hint">Ingresa la fecha de inicio (lunes) y toca "Generar fechas" para crear los 5 días &middot; toca “+” en una celda para agregar una nota &middot; toca una nota para editarla, moverla o cambiar su color</div></details>
       <span class="sync-status" aria-live="polite"></span>
     </div>
-    <div class="hint">Ingresa la fecha de inicio (lunes) y toca "Generar fechas" para crear los 5 días &middot; toca “+” en una celda para agregar una nota &middot; toca una nota para editarla, moverla o cambiar su color</div>
 
     <div class="reliability-panel"></div>
 
@@ -669,16 +764,19 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
         <div class="menu-pop">
           <button class="btn-sm" data-action="add-week">+ Semana</button>
-          <button class="btn-sm" data-action="load-curanipe">Cargar plan Curanipe…</button>
+          <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
           <button class="btn-sm" data-action="print">Imprimir</button>
+          <div class="menu-sep">Datos de ejemplo</div>
+          <button class="btn-sm ej" data-action="load-curanipe"><span class="tag-ej">ejemplo</span>Plan intermedio Curanipe…</button>
+          <div class="menu-sep">Zona de riesgo</div>
           <button class="btn-sm" type="button" data-sync="recargar" hidden>&#x27F3; Descartar cambios y cargar planilla</button>
           <button class="btn-sm danger" data-action="reset">Reiniciar tablero</button>
         </div>
       </details>
+      <details class="ayuda"><summary aria-label="Ayuda de esta sección" title="Ayuda">?</summary><div class="ayuda-pop hint">Ingresa la fecha de inicio y toca "Generar fechas" para crear las columnas &middot; toca “+” en una celda para agregar una nota &middot; toca una nota para editarla, moverla o cambiar su color</div></details>
       <span class="sync-status" aria-live="polite"></span>
     </div>
-    <div class="hint">Ingresa la fecha de inicio y toca "Generar fechas" para crear las columnas &middot; toca “+” en una celda para agregar una nota &middot; toca una nota para editarla, moverla o cambiar su color</div>
 
     <div class="restrictions-panel"></div>
 
@@ -706,16 +804,19 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
         <div class="menu-pop">
           <button class="btn-sm" data-action="add-week">+ Mes</button>
-          <button class="btn-sm" data-action="load-maestro">Cargar Plan Maestro Curanipe</button>
+          <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
           <button class="btn-sm" data-action="print">Imprimir</button>
+          <div class="menu-sep">Datos de ejemplo</div>
+          <button class="btn-sm ej" data-action="load-maestro"><span class="tag-ej">ejemplo</span>Plan Maestro Curanipe</button>
+          <div class="menu-sep">Zona de riesgo</div>
           <button class="btn-sm" type="button" data-sync="recargar" hidden>&#x27F3; Descartar cambios y cargar planilla</button>
           <button class="btn-sm danger" data-action="reset">Reiniciar tablero</button>
         </div>
       </details>
+      <details class="ayuda"><summary aria-label="Ayuda de esta sección" title="Ayuda">?</summary><div class="ayuda-pop hint">Cada columna es un mes y cada fila una fase &middot; la partida aparece en todos los meses que dura &middot; toca una nota para editarla</div></details>
       <span class="sync-status" aria-live="polite"></span>
     </div>
-    <div class="hint">Cada columna es un mes y cada fila una fase &middot; la partida aparece en todos los meses que dura &middot; toca una nota para editarla</div>
 
     <div class="m-view" aria-label="Vista por mes"></div>
     <div class="board-scroll"><div class="board"></div></div>
@@ -727,14 +828,16 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       <details class="menu-mas">
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
         <div class="menu-pop">
-          <button class="btn-sm" type="button" data-ind="historial">Cargar historial Curanipe (61 semanas)</button>
+          <div class="menu-sep">Datos de ejemplo</div>
+          <button class="btn-sm ej" type="button" data-ind="historial"><span class="tag-ej">ejemplo</span>Historial Curanipe (61 semanas)</button>
+          <div class="menu-sep">Zona de riesgo</div>
           <button class="btn-sm" type="button" data-sync="recargar" hidden>&#x27F3; Descartar cambios y cargar planilla</button>
           <button class="btn-sm danger" type="button" data-ind="borrar">Borrar indicadores</button>
         </div>
       </details>
+      <details class="ayuda"><summary aria-label="Ayuda de esta sección" title="Ayuda">?</summary><div class="ayuda-pop hint">Cada semana cerrada en el Semanal (&#x22ef; M&aacute;s opciones &rarr; Cerrar semana) suma un punto a la curva &middot; la evaluaci&oacute;n 1-3-5 se marca abajo</div></details>
       <span class="sync-status" aria-live="polite"></span>
     </div>
-    <div class="hint">Cada semana cerrada en el Semanal (&#x22ef; M&aacute;s opciones &rarr; Cerrar semana) suma un punto a la curva &middot; la evaluaci&oacute;n 1-3-5 se marca abajo</div>
     <div id="indBody" class="ind-body"></div>
   </section>
   <section class="pizarra-block" data-board="reunion">
@@ -744,7 +847,9 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       <details class="menu-mas">
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
         <div class="menu-pop">
-          <button class="btn-sm" type="button" data-reu="historial">Cargar historial Curanipe (actas 15&ndash;65)</button>
+          <div class="menu-sep">Datos de ejemplo</div>
+          <button class="btn-sm ej" type="button" data-reu="historial"><span class="tag-ej">ejemplo</span>Historial Curanipe (actas 15&ndash;65)</button>
+          <div class="menu-sep">Zona de riesgo</div>
           <button class="btn-sm" type="button" data-sync="recargar" hidden>&#x27F3; Descartar cambios y cargar planilla</button>
           <button class="btn-sm danger" type="button" data-reu="borrar">Borrar reuni&oacute;n</button>
         </div>
@@ -754,13 +859,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     <div id="reuBody" class="ind-body"></div>
   </section>
 
-  <nav class="m-tabs" id="mTabs" aria-label="Secciones">
-    <button type="button" data-mtab="semanal" class="on" aria-current="page"><span aria-hidden="true">&#x1F4CB;</span>Semanal</button>
-    <button type="button" data-mtab="intermedio"><span aria-hidden="true">&#x1F5D3;&#xFE0F;</span>Intermedio</button>
-    <button type="button" data-mtab="maestro"><span aria-hidden="true">&#x1F4C5;</span>Maestro</button>
-    <button type="button" data-mtab="indicadores"><span aria-hidden="true">&#x1F4CA;</span>Indicad.</button>
-    <button type="button" data-mtab="reunion"><span aria-hidden="true">&#x1F91D;</span>Reuni&oacute;n</button>
-  </nav>
+
 
   <div class="print-summary" id="printSummary"></div>
 
@@ -1235,7 +1334,9 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     function notesIn(catId, weekId){ return state.notes.filter(function(n){ return n.catId===catId && n.weekId===weekId; }); }
     function exportExcel(){
       if(typeof ExcelJS === "undefined"){
-        alert("No se pudo cargar el motor de Excel (revisa tu conexi\u00f3n a internet) e intenta de nuevo.");
+        window.LP_cargarExcel().then(exportExcel, function(){
+          alert("No se pudo exportar a Excel: el motor de Excel se descarga desde internet y este equipo no tiene conexi\u00f3n en este momento.\n\nTus datos no se perdieron. Con\u00e9ctate y vuelve a intentar, o usa Imprimir mientras tanto.");
+        });
         return;
       }
       /* Mismos colores que la pizarra en pantalla: tonos de las notas + fondo de encabezados/categor\u00edas */
@@ -1477,7 +1578,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
         var col = 2+i;
         html += '<div class="cell week-head" style="grid-row:2; grid-column:'+col+';">'
           + '<span class="lbl" contenteditable="true" data-bind="week:'+w.id+':label" data-placeholder="Semana">'+escapeHtml(w.label)+'</span>'
-          + '<button class="week-x" data-action="del-week" data-week="'+w.id+'" title="Eliminar">\u2715</button></div>';
+          + '<button class="week-x" data-action="del-week" data-week="'+w.id+'" title="Eliminar columna" aria-label="Eliminar columna '+escapeHtml(w.label||'')+'">\u2715</button></div>';
       });
       state.categories.forEach(function(cat, ci){
         var row = 3+ci;
@@ -1541,7 +1642,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 
       panel.innerHTML = '<div class="rel-head">Confiabilidad del plan (PPC)</div>'
         + '<div class="rel-body">'
-          + '<div class="ppc-now"><span class="ppc-num">'+(ppc.pct===null?"\u2013":ppc.pct+"%")+'</span><span class="ppc-sub">'+ppc.done+' de '+ppc.total+' tareas comprometidas esta semana</span></div>'
+          + '<div class="ppc-now"><span class="ppc-num'+(ppc.pct===null?' vacio':'')+'">'+(ppc.pct===null?"Sin evaluar":ppc.pct+"%")+'</span><span class="ppc-sub">'+(ppc.pct===null?(state.notes.length?'Hay '+state.notes.length+' tareas en el tablero, ninguna marcada como Cumplido / No cumpli\u00f3 todav\u00eda.':'Sin tareas planificadas esta semana.'):ppc.done+' de '+ppc.total+' tareas comprometidas esta semana')+'</span></div>'
           + '<div class="ppc-chart">'+(bars || '<span class="ppc-sub">Marca tareas como Cumplido / No cumpli\u00f3 para ver el indicador.</span>')+'</div>'
         + '</div>'
         + '<div class="causas-head">Pareto de causas de no cumplimiento (semana actual)</div>'
@@ -1701,7 +1802,8 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     }
     function delWeek(id){
       var has = state.notes.some(function(n){return n.weekId===id;});
-      if(has && !confirm("Esta columna tiene notas. \u00bfEliminarla junto con sus notas?")) return;
+      var wl = findWeek(id), nom = wl && wl.label ? "\u00ab" + wl.label + "\u00bb" : "esta columna";
+      if(!confirm(has ? "La columna " + nom + " tiene notas. \u00bfEliminarla junto con sus notas?" : "\u00bfEliminar la columna " + nom + "?")) return;
       state.weeks = state.weeks.filter(function(w){return w.id!==id;});
       state.notes = state.notes.filter(function(n){return n.weekId!==id;});
       saveState(); render();
@@ -2292,8 +2394,12 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       if(on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     });
     window.scrollTo(0, 0);
+    try{ history.replaceState(null, "", "#" + tab); }catch(e){}
+    if(window.LP_cues) window.LP_cues();
   }
+  var TABS = ["semanal","intermedio","maestro","indicadores","reunion"], h0 = (location.hash || "").slice(1);
   document.body.setAttribute("data-mtab", "semanal");
+  if(TABS.indexOf(h0) > 0) setTimeout(function(){ irTab(h0); }, 0);
   Array.prototype.forEach.call(document.querySelectorAll("#mTabs [data-mtab]"), function(b){ b.addEventListener("click", function(){ irTab(b.dataset.mtab); }); });
   document.addEventListener("click", function(e){
     var bm = e.target.closest(".menu-pop button"); if(bm){ var dm = bm.closest("details"); if(dm) dm.removeAttribute("open"); return; }
@@ -2736,7 +2842,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   function pintar(k){
     var i = info()[k];
     if(guardando[k]) return estado(k, "Guardando\u2026", "");
-    if(pendiente(k)) return estado(k, "\u25cf Cambios sin guardar", "pend");
+    if(pendiente(k)) return estado(k, "\u25cf Cambios sin guardar en la planilla" + (localTs && localTs[k] ? " \u00b7 respaldados en este equipo " + hhmm(localTs[k]) : ""), "pend");
     if(i && i.version) return estado(k, "\u2713 En la planilla" + (i.autor ? " \u00b7 " + i.autor : "") + (i.actualizado ? " \u00b7 " + i.actualizado : ""), "ok");
     estado(k, remoto ? "Planilla vac\u00eda" : "", "");
   }
@@ -2773,7 +2879,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     cargando = fetch(API, { cache:"no-store" }).then(function(r){ return r.json(); }).then(function(j){
       cargando = null; if(!j || !j.ok) throw new Error((j && j.error) || "error");
       remoto = j; integrar();
-    }).catch(function(){ cargando = null; KEYS.forEach(function(k){ if(!pendiente(k)) estado(k, "Sin conexi\u00f3n con la planilla", "warn"); }); });
+    }).catch(function(){ cargando = null; KEYS.forEach(function(k){ if(!pendiente(k)) estado(k, "Sin conexi\u00f3n con la planilla \u00b7 tus cambios quedan en este equipo", "warn"); }); });
     return cargando;
   }
   function enviar(body){
@@ -2835,8 +2941,9 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     if(!sinPreguntar && pendiente(k) && !confirm("Se descartan los cambios de este equipo y se carga la versi\u00f3n de la planilla. \u00bfContinuar?")) return;
     cargar().then(function(){ if(remoto && remoto.tableros[k] && remoto.tableros[k].version > 0) aplicar(k); pintar(k); });
   }
-  var timer = {};
-  window.LP_SYNC = { cambio: function(k){ clearTimeout(timer[k]); timer[k] = setTimeout(function(){ pintar(k); }, 150); } };
+  var timer = {}, localTs = {};
+  function hhmm(t){ var d = new Date(t); return ("0"+d.getHours()).slice(-2) + ":" + ("0"+d.getMinutes()).slice(-2); }
+  window.LP_SYNC = { cambio: function(k){ localTs[k] = Date.now(); clearTimeout(timer[k]); timer[k] = setTimeout(function(){ pintar(k); }, 150); } };
   if(!/^https:\/\/script\.google\.com\//.test(API)) return;
   Array.prototype.forEach.call(document.querySelectorAll("[data-sync]"), function(b){ b.hidden = false; });
   document.addEventListener("click", function(e){
@@ -2849,6 +2956,103 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   cargar();
   setInterval(function(){ if(document.visibilityState === "visible") cargar(); }, 60000);
   document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") cargar(); });
+})();
+</script>
+<script>
+/* ===== mejoras 2026-09: cabecera única, indicadores de scroll, deshacer ===== */
+(function(){
+  "use strict";
+  /* altura de la barra superior para pegar las pestañas debajo (escritorio) */
+  var tb = document.querySelector(".topbar");
+  function altoTop(){ if(tb) document.documentElement.style.setProperty("--topbar-h", tb.offsetHeight + "px"); }
+  altoTop(); window.addEventListener("resize", altoTop);
+
+  /* --- Cabecera única: edita a la vez el título de Semanal, Intermedio y Plan Maestro --- */
+  var BOARDS = ["semanal","intermedio","maestro"];
+  var gT = document.getElementById("proyTitulo"), gS = document.getElementById("proySub");
+  function campos(bind){ return BOARDS.map(function(b){ return document.querySelector('section[data-board="'+b+'"] [data-bind="'+bind+'"]'); }).filter(Boolean); }
+  function primero(bind){ var c = campos(bind); for(var i=0;i<c.length;i++){ if(c[i].textContent.trim()) return c[i].textContent; } return ""; }
+  function leer(){
+    if(document.activeElement !== gT) gT.textContent = primero("title");
+    if(document.activeElement !== gS) gS.textContent = primero("subtitle");
+  }
+  function escribir(bind, val){
+    campos(bind).forEach(function(el){
+      if(el.textContent === val) return;
+      el.textContent = val;
+      el.dispatchEvent(new Event("input", { bubbles:true }));
+    });
+  }
+  if(gT && gS){
+    leer();
+    gT.addEventListener("input", function(){ escribir("title", gT.textContent); });
+    gS.addEventListener("input", function(){ escribir("subtitle", gS.textContent); });
+    [gT, gS].forEach(function(el){ el.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); el.blur(); } }); });
+    var mo = new MutationObserver(leer);
+    campos("title").concat(campos("subtitle")).forEach(function(el){ mo.observe(el, { childList:true, characterData:true, subtree:true }); });
+  }
+
+  /* --- Indicadores de "hay más columnas" en tableros anchos (escritorio) --- */
+  var cues = [];
+  Array.prototype.forEach.call(document.querySelectorAll(".pizarra-block .board-scroll"), function(sc){
+    var w = document.createElement("div"); w.className = "scroll-cue";
+    sc.parentNode.insertBefore(w, sc); w.appendChild(sc);
+    var bi = document.createElement("button"), bd = document.createElement("button");
+    bi.type = bd.type = "button"; bi.className = "cue-btn izq"; bd.className = "cue-btn der";
+    bi.innerHTML = "&#x2039;"; bd.innerHTML = "&#x203A;";
+    bi.setAttribute("aria-label", "Ver columnas a la izquierda"); bd.setAttribute("aria-label", "Ver m\u00e1s columnas a la derecha");
+    w.appendChild(bi); w.appendChild(bd);
+    function upd(){
+      var max = sc.scrollWidth - sc.clientWidth, sl = sc.scrollLeft;
+      w.classList.toggle("mas-izq", max > 4 && sl > 4);
+      w.classList.toggle("mas-der", max > 4 && sl < max - 4);
+      var rl = sc.querySelector(".row-label");
+      var l = rl ? Math.max(0, rl.getBoundingClientRect().right - w.getBoundingClientRect().left) : 0;
+      w.style.setProperty("--cue-l", l + "px");
+    }
+    function paso(d){ sc.scrollBy({ left: d * Math.max(200, sc.clientWidth * 0.7), behavior:"smooth" }); }
+    bi.addEventListener("click", function(){ paso(-1); }); bd.addEventListener("click", function(){ paso(1); });
+    sc.addEventListener("scroll", upd, { passive:true });
+    var b = sc.querySelector(".board"); if(b) new MutationObserver(function(){ requestAnimationFrame(upd); }).observe(b, { childList:true });
+    cues.push(upd);
+  });
+  window.LP_cues = function(){ requestAnimationFrame(function(){ cues.forEach(function(f){ f(); }); }); };
+  window.addEventListener("resize", window.LP_cues); window.addEventListener("load", window.LP_cues); window.LP_cues();
+
+  /* --- Deshacer tras acciones que reemplazan o borran datos --- */
+  var PELIGRO = '[data-action="reset"],[data-action="del-week"],[data-action="del-category"],[data-action^="load-"],[data-ind="borrar"],[data-ind="historial"],[data-reu="borrar"],[data-reu="historial"]';
+  function foto(){ var o = {}; try{ for(var i=0;i<localStorage.length;i++){ var k = localStorage.key(i); if(k !== "pizarra-theme") o[k] = localStorage.getItem(k); } }catch(e){} return o; }
+  function igual(a, b){ var ka = Object.keys(a), kb = Object.keys(b); if(ka.length !== kb.length) return false; for(var i=0;i<ka.length;i++){ if(a[ka[i]] !== b[ka[i]]) return false; } return true; }
+  function texto(el){
+    var d = el.dataset;
+    if(d.action === "reset") return "Tablero reiniciado";
+    if(d.action === "del-week") return "Columna eliminada";
+    if(d.action === "del-category") return "Categor\u00eda eliminada";
+    if(d.ind === "borrar") return "Indicadores borrados";
+    if(d.reu === "borrar") return "Reuni\u00f3n borrada";
+    return "Se cargaron datos de ejemplo";
+  }
+  var previo = null, toastT = null;
+  function aviso(msg, snap){
+    var t = document.querySelector(".undo-toast"); if(t) t.remove(); clearTimeout(toastT);
+    t = document.createElement("div"); t.className = "undo-toast"; t.setAttribute("role", "status");
+    t.innerHTML = '<span></span><button type="button">Deshacer</button>';
+    t.firstChild.textContent = msg;
+    t.querySelector("button").addEventListener("click", function(){
+      try{
+        Object.keys(foto()).forEach(function(k){ localStorage.removeItem(k); });
+        Object.keys(snap).forEach(function(k){ localStorage.setItem(k, snap[k]); });
+      }catch(e){}
+      location.reload();
+    });
+    document.body.appendChild(t);
+    toastT = setTimeout(function(){ t.remove(); }, 12000);
+  }
+  window.addEventListener("click", function(e){ var el = e.target.closest && e.target.closest(PELIGRO); previo = el ? { el: el, snap: foto() } : null; }, true);
+  window.addEventListener("click", function(e){
+    if(!previo) return; var p = previo; previo = null;
+    setTimeout(function(){ if(!igual(p.snap, foto())) aviso(texto(p.el), p.snap); }, 0);
+  });
 })();
 </script>
 </body>
