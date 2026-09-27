@@ -2814,7 +2814,7 @@ window.PORTICOS_LISTA = (function(){
       var on = b.dataset.mtab === tab; b.classList.toggle("on", on);
       if(on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     });
-    if((tab === "mapa" || tab === "porticos") && btnMapa && wrapMapa){ if(wrapMapa.hidden) btnMapa.click(); else if(mapa) setTimeout(function(){ mapa.invalidateSize(); mapa._encuadrado = false; pintarMapa(); }, 60); }
+    if((tab === "mapa" || (tab === "porticos" && window.matchMedia && window.matchMedia("(min-width:861px)").matches)) && btnMapa && wrapMapa){ if(wrapMapa.hidden) btnMapa.click(); else if(mapa) setTimeout(function(){ mapa.invalidateSize(); mapa._encuadrado = false; pintarMapa(); }, 60); }
     if(tab === "avance" && btnAv && wrapAv && wrapAv.hidden) btnAv.click();
     window.scrollTo(0, 0);
   }
