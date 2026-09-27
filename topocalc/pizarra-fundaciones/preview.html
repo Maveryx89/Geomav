@@ -589,6 +589,50 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
   body[data-mtab="avance"] #avanceWrap{ contain:none; max-height:none; margin-top:0; }
 }
 
+/* ---------- indicadores ---------- */
+.ind-block{ display:none; padding:14px 16px 30px; }
+body[data-mtab="indicadores"] .ind-block{ display:block; }
+@media screen and (min-width:861px){ .ind-block{ max-width:1720px; margin:0 auto; padding:18px 28px 40px; box-sizing:border-box; } }
+@media print{ .ind-block{ display:none !important; } }
+.ind-cards{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:14px; margin-bottom:14px; }
+.ind-card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); padding:14px 16px; display:flex; flex-direction:column; gap:4px; }
+.ind-card .ind-k{ font-size:.7rem; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft); font-weight:700; }
+.ind-card b{ font-family:var(--font-display); font-size:1.9rem; line-height:1.1; color:var(--ink); }
+.ind-card b em{ font-style:normal; font-size:1rem; color:var(--ink-soft); }
+.ind-card small{ font-size:.74rem; color:var(--ink-soft); }
+.ind-grid2{ display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:14px; margin-bottom:14px; }
+.ind-box{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); padding:14px 16px; min-width:0; }
+.ind-box h3{ font-family:var(--font-display); font-size:.95rem; margin:0 0 10px; color:var(--ink); }
+.ind-svg{ width:100%; height:auto; display:block; }
+.ind-svg .ind-grid{ stroke:var(--line); stroke-width:1; }
+.ind-svg .ind-ax{ font-size:10.5px; fill:var(--ink-soft); font-family:var(--font-body); }
+.ind-svg .ind-val{ font-size:11px; font-weight:700; fill:var(--ink); font-family:var(--font-body); }
+.ind-svg .ind-meta{ stroke:var(--danger); stroke-width:1.5; stroke-dasharray:5 4; }
+.ind-svg .ind-meta-t{ font-size:10.5px; fill:var(--danger); font-weight:700; font-family:var(--font-body); }
+.ind-svg .ind-hoy{ stroke:var(--ink-soft); stroke-width:1; stroke-dasharray:3 3; }
+.ind-svg .ind-plan{ fill:none; stroke:var(--line-strong); stroke-width:2.5; stroke-dasharray:6 4; }
+.ind-svg .ind-real{ fill:none; stroke:var(--blueprint); stroke-width:3; }
+.ind-svg .ind-real-p{ fill:var(--blueprint); }
+.ind-ley{ display:flex; gap:16px; font-size:.74rem; color:var(--ink-soft); margin-top:6px; }
+.ind-ley i{ display:inline-block; width:22px; height:0; vertical-align:middle; margin-right:6px; }
+.ind-ley .lp{ border-top:2.5px dashed var(--line-strong); } .ind-ley .lr{ border-top:3px solid var(--blueprint); }
+.ind-nota{ font-size:.74rem; color:var(--ink-soft); margin:8px 0 0; }
+.ind-pareto{ display:flex; flex-direction:column; gap:7px; }
+.par-row{ display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 28px 40px; gap:8px; align-items:center; font-size:.76rem; color:var(--ink); }
+.par-t{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.par-bar{ height:12px; background:var(--paper-sunken); border-radius:6px; overflow:hidden; }
+.par-bar i{ display:block; height:100%; background:var(--danger); border-radius:6px; }
+.par-row.sin .par-bar i{ background:var(--line-strong); } .par-row.sin{ color:var(--ink-soft); }
+.par-n{ text-align:right; font-weight:700; } .par-a{ text-align:right; color:var(--ink-soft); }
+.lib-btn{ white-space:nowrap; color:var(--success); font-weight:700; }
+@media (max-width:860px){
+  .ind-cards{ grid-template-columns:1fr 1fr; gap:10px; }
+  .ind-card b{ font-size:1.5rem; }
+  .ind-grid2{ grid-template-columns:minmax(0,1fr); }
+  .ind-block{ padding:12px 12px 24px; }
+  .m-tabs button span.t-l{ font-size:.6rem; }
+}
+
 .restr-toggle .restr-caret{ color:var(--blueprint); width:12px; }
 .restrictions-panel .restr-table-wrap{ margin-top:8px; }
 @media print{ .restr-toggle{ display:none; } }
@@ -715,6 +759,7 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
     <button type="button" data-mtab="porticos"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><span class="t-l">Pórticos</span></button>
     <button type="button" data-mtab="mapa"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 6.5 9 4l6 2.5 5.5-2.5v13.5L15 20l-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg><span class="t-l">Mapa</span></button>
     <button type="button" data-mtab="avance"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M5 16l4.5-5 3.5 3 6-7"/><path d="M15 7h4v4"/></svg><span class="t-l">Avance</span></button>
+    <button type="button" data-mtab="indicadores"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V8M17 16v-6"/></svg><span class="t-l">Indicadores</span></button>
   </nav>
 
   <details class="sync-bar respaldo-det">
@@ -841,6 +886,11 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
     <div class="board-scroll"><div class="board"></div></div>
   </section>
 
+
+  <section class="ind-block" id="indBlock" aria-label="Indicadores">
+    <div class="section-head"><h2>Indicadores del proyecto</h2></div>
+    <div id="indBody"></div>
+  </section>
 
   <div class="print-summary" id="printSummary"></div>
 
@@ -1126,6 +1176,7 @@ window.PORTICOS_LISTA = (function(){
     "Inst. Malla":"amber", "Relleno":"success", "Inst. P\u00f3rtico":"violet", "Inst. C\u00e1mara":"danger"
   };
   window.PARTIDA_TONE = PARTIDA_TONE;
+  setTimeout(function(){ try{ window.CAUSAS_LP = CAUSAS; }catch(e){} }, 0);
   var RESPONSABLES = [
     ["Jos\u00e9 Ramirez \u00b7 Jefe de Obra", "JR \u00b7 Jefe de Obra"],
     ["Pedro Garcia \u00b7 Administrador", "PG \u00b7 Administrador"],
@@ -1262,6 +1313,12 @@ window.PORTICOS_LISTA = (function(){
           var ent = String(r.autorizacion).replace(/^pendiente:?\s*/i, "");
           n.respLiberacion = ent;
           if(!n.tipoRestriccion && r.partida === "Excavaci\u00f3n" && !cfg.weekly){ n.tipoRestriccion = "Administrativos"; if(!r.obs) txt += " \u00b7 falta autorizaci\u00f3n " + ent; }
+        } else {
+          var mLib = /^liberada\s+(\d{2}-\d{2}-\d{4})\s*\u00b7?\s*(.*)$/i.exec(r.autorizacion || "");
+          if(mLib){
+            n.respLiberacion = mLib[2]; n.liberada = true; n.fechaLiberacion = mLib[1];
+            if(!n.tipoRestriccion && r.partida === "Excavaci\u00f3n" && !cfg.weekly) n.tipoRestriccion = "Administrativos";
+          }
         }
         n.text = txt; notes.push(n);
       });
@@ -1624,12 +1681,13 @@ window.PORTICOS_LISTA = (function(){
           + '<td>'+escapeHtml(n.fechaCompromiso||"")+'</td>'
           + '<td>'+escapeHtml(n.fechaLiberacion||"")+'</td>'
           + '<td>'+estado+'</td>'
+          + '<td>'+(!n.liberada && /^pendiente/i.test(n.autorizacion || "") && n.portico ? '<button type="button" class="btn-sm lib-btn" data-action="liberar-hoy" data-portico="'+escapeHtml(n.portico)+'">\u2713 Liberar hoy</button>' : '')+'</td>'
         + '</tr>';
       }).join("");
       panel.innerHTML = '<button type="button" class="restr-toggle" data-action="toggle-restr" aria-expanded="'+(restrAbierto?'true':'false')+'">'
           + '<span class="restr-caret">'+(restrAbierto?'\u25be':'\u25b8')+'</span> Registro de restricciones <span class="restr-count">'+rows.filter(function(r){return !r.liberada;}).length+' abiertas / '+rows.length+' totales</span></button>'
         + (restrAbierto ? '<div class="restr-table-wrap"><table class="restr-table"><thead><tr>'
-          + '<th>Semana</th><th>P\u00f3rtico</th><th>Actividad</th><th>Tipo</th><th>Responsable</th><th>Compromiso</th><th>Liberaci\u00f3n real</th><th>Estado</th>'
+          + '<th>Semana</th><th>P\u00f3rtico</th><th>Actividad</th><th>Tipo</th><th>Responsable</th><th>Compromiso</th><th>Liberaci\u00f3n real</th><th>Estado</th><th></th>'
         + '</tr></thead><tbody>'+trs+'</tbody></table></div>' : '');
     }
 
@@ -1906,6 +1964,7 @@ window.PORTICOS_LISTA = (function(){
       else if(action === "open-note"){ state.editingNoteId = el.dataset.note; render(); }
       else if(action === "close-note"){ state.editingNoteId = null; render(); }
       else if(action === "m-col"){ mCol = el.dataset.week; state.editingNoteId = null; render(); }
+      else if(action === "liberar-hoy"){ if(window.PORTICOS_API && window.PORTICOS_API.liberar) window.PORTICOS_API.liberar(el.dataset.portico, el); }
       else if(action === "toggle-restr"){ restrAbierto = !restrAbierto; renderRestrictions(); }
       else if(action === "save-note"){ var ns = state.notes.find(function(x){return x.id===el.dataset.note;}); if(ns) guardarNotaRemota(ns, el); }
       else if(action === "del-note") delNote(el.dataset.note);
@@ -2338,6 +2397,17 @@ window.PORTICOS_LISTA = (function(){
     });
   }
   window.PORTICOS_API = {
+    liberar: function(num, btn){
+      var nombre = ""; lista().forEach(function(p,k){ if(numDe(p,k) === String(num)) nombre = p.nombre; });
+      if(!confirm("\u00bfDar por liberada hoy la autorizaci\u00f3n de " + (nombre || ("P\u00f3rtico " + num)) + "?\nSe actualiza en la planilla para todos.")) return;
+      var pin = getPin(); if(!pin){ pedirAutor(); pin = (window.prompt("PIN de edici\u00f3n:") || "").trim(); }
+      if(!pin) return;
+      btn.disabled = true; btn.textContent = "Liberando\u2026";
+      enviar({ accion:"liberarAutorizacion", portico:Number(num), fecha:hoyISO(), pin:pin }).then(function(j){
+        if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) setPin(""); alert((j && j.error) || "No se pudo liberar."); btn.disabled = false; btn.textContent = "\u2713 Liberar hoy"; return; }
+        setPin(pin); window.PORTICOS_API.aplicar(j);
+      }).catch(function(){ alert("No se recibi\u00f3 confirmaci\u00f3n. Revisa en unos segundos."); btn.disabled = false; btn.textContent = "\u2713 Liberar hoy"; });
+    },
     enviar: function(body){ return enviar(body); },
     getPin: function(){ return getPin(); },
     setPin: function(p){ setPin(p); pintarEditBar(); },
@@ -2441,6 +2511,7 @@ window.PORTICOS_LISTA = (function(){
     }).join("") || '<tr><td colspan="5" class="pm-vacio" style="padding:14px">Ning\u00fan p\u00f3rtico coincide con el filtro.</td></tr>';
     var cnt = document.getElementById("porticosCount"); if(cnt) cnt.textContent = hayFiltro() ? (visibles + " de " + lista().length + " p\u00f3rticos") : (lista().length + " p\u00f3rticos");
     pintarMapa(); pintarAvance(); pintarEditBar();
+    if(document.body.getAttribute("data-mtab") === "indicadores") pintarIndicadores();
   };
   tb.addEventListener("click", function(e){ var b = e.target.closest(".estado-btn"); if(b) abrirPortico(b.dataset.portico); });
 
@@ -2807,6 +2878,111 @@ window.PORTICOS_LISTA = (function(){
     if(btnAv && wrapAv && wrapAv.hidden) btnAv.click();
     if(btnMapa && wrapMapa && wrapMapa.hidden) btnMapa.click();
   }
+  /* ---------- indicadores: PPC semanal, Pareto de causas, curva S, resumen ---------- */
+  function isoD(s){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ""); return m ? new Date(+m[1], +m[2]-1, +m[3], 12) : null; }
+  function lunesIso(s){ var d = isoD(s); if(!d) return ""; d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  function sumarDias(iso, n){ var d = isoD(iso); d.setDate(d.getDate() + n); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  var MES3 = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  function etqSem(iso){ var d = isoD(iso); return d ? d.getDate() + "-" + MES3[d.getMonth()] : iso; }
+  function pintarIndicadores(){
+    var box = document.getElementById("indBody"); if(!box) return;
+    var prog = window.PROGRAMACION || [], orden = Object.keys(window.PARTIDA_TONE || {});
+    var hoy = hoyISO(), lunHoy = lunesIso(hoy), total = lista().length * orden.length;
+    /* ejecutadas oficiales (registro de avance, 100% o sin %) por p\u00f3rtico+partida */
+    var real = {};
+    REMOTO.avance.forEach(function(a){
+      if(a.partida === "Comentarios" || orden.indexOf(a.partida) < 0) return;
+      if(a.avance !== "" && a.avance != null && Number(a.avance) < 100) return;
+      var k = a.portico + "|" + a.partida; if(!real[k] || a.fecha < real[k]) real[k] = a.fecha;
+    });
+    var nReal = Object.keys(real).length;
+    var iniciados = {}; REMOTO.avance.forEach(function(a){ if(a.partida !== "Comentarios") iniciados[a.portico] = 1; });
+    var pend = {}; prog.forEach(function(r){ if(/^pendiente/i.test(r.autorizacion || "")) pend[r.portico] = 1; });
+    /* PPC por semana */
+    var sem = {};
+    prog.forEach(function(r){
+      var l = lunesIso(r.fecha); if(!l || l > lunHoy) return;
+      var s = sem[l] = sem[l] || { ej:0, no:0, sin:0 };
+      if(/^ejecutado/i.test(r.estado || "")) s.ej++;
+      else if(/^no ejecutado/i.test(r.estado || "")) s.no++;
+      else if(r.fecha < hoy) s.sin++;
+    });
+    var semanas = Object.keys(sem).sort().slice(-12);
+    var ppcs = semanas.map(function(l){ var s = sem[l], c = s.ej + s.no; return { l:l, ppc: c ? Math.round(100 * s.ej / c) : null, s:s }; });
+    var conPpc = ppcs.filter(function(x){ return x.ppc !== null; });
+    var ult = conPpc.length ? conPpc[conPpc.length - 1] : null, prev = conPpc.length > 1 ? conPpc[conPpc.length - 2] : null;
+    var prom = conPpc.length ? Math.round(conPpc.reduce(function(a,x){ return a + x.ppc; }, 0) / conPpc.length) : null;
+    function colPpc(v){ return v === null ? "var(--line-strong)" : (v >= 80 ? "var(--success)" : (v >= 60 ? "#D6A828" : "var(--danger)")); }
+    /* tarjetas */
+    var tend = (ult && prev) ? (ult.ppc - prev.ppc) : null;
+    var cards = '<div class="ind-cards">'
+      + '<div class="ind-card"><span class="ind-k">Avance global</span><b>'+(total ? Math.round(100 * nReal / total) : 0)+'%</b><small>'+nReal+' de '+total+' partidas ejecutadas</small></div>'
+      + '<div class="ind-card"><span class="ind-k">P\u00f3rticos iniciados</span><b>'+Object.keys(iniciados).length+' <em>/ '+lista().length+'</em></b><small>con al menos un registro</small></div>'
+      + '<div class="ind-card"><span class="ind-k">PPC \u00faltima semana</span><b style="color:'+colPpc(ult ? ult.ppc : null)+'">'+(ult ? ult.ppc + '%' : '\u2013')+'</b><small>'+(ult ? 'sem. ' + etqSem(ult.l) + (tend !== null ? ' \u00b7 ' + (tend >= 0 ? '\u25b2 +' : '\u25bc ') + tend + ' pts' : '') : 'sin datos')+' \u00b7 meta 80%</small></div>'
+      + '<div class="ind-card"><span class="ind-k">Autorizaciones pendientes</span><b style="color:'+(Object.keys(pend).length ? 'var(--danger)' : 'var(--success)')+'">'+Object.keys(pend).length+'</b><small>p\u00f3rticos con restricci\u00f3n abierta</small></div>'
+      + '</div>';
+    /* gr\u00e1fico PPC */
+    var W = 640, H = 220, pl = 34, pr = 10, pt = 14, pb = 34, bw = semanas.length ? (W - pl - pr) / semanas.length : 0;
+    var y = function(v){ return pt + (H - pt - pb) * (1 - v / 100); };
+    var g = '<svg class="ind-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="PPC por semana">';
+    [0,20,40,60,80,100].forEach(function(v){ g += '<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y(v)+'" y2="'+y(v)+'" class="ind-grid"/><text x="'+(pl-6)+'" y="'+(y(v)+4)+'" class="ind-ax" text-anchor="end">'+v+'</text>'; });
+    ppcs.forEach(function(x, i){
+      var cx = pl + i * bw + bw * 0.18, w = bw * 0.64;
+      if(x.ppc !== null){ g += '<rect x="'+cx+'" y="'+y(x.ppc)+'" width="'+w+'" height="'+(y(0) - y(x.ppc))+'" rx="3" fill="'+colPpc(x.ppc)+'"><title>'+etqSem(x.l)+': '+x.ppc+'% ('+x.s.ej+' de '+(x.s.ej + x.s.no)+')</title></rect>'
+        + '<text x="'+(cx + w/2)+'" y="'+(y(x.ppc) - 4)+'" class="ind-val" text-anchor="middle">'+x.ppc+'%</text>'; }
+      else g += '<text x="'+(cx + w/2)+'" y="'+(y(0) - 6)+'" class="ind-ax" text-anchor="middle">s/d</text>';
+      g += '<text x="'+(cx + w/2)+'" y="'+(H - 12)+'" class="ind-ax" text-anchor="middle">'+etqSem(x.l)+'</text>';
+    });
+    g += '<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y(80)+'" y2="'+y(80)+'" class="ind-meta"/><text x="'+(W-pr)+'" y="'+(y(80) - 4)+'" class="ind-meta-t" text-anchor="end">meta 80%</text></svg>';
+    var sinRep = ppcs.reduce(function(a,x){ return a + x.s.sin; }, 0);
+    var ppcHtml = '<div class="ind-box"><h3>Cumplimiento del plan semanal (PPC)</h3>'
+      + (semanas.length ? g : '<p class="pm-vacio">A\u00fan no hay semanas con tareas comprometidas.</p>')
+      + '<p class="ind-nota">PPC = tareas ejecutadas \u00f7 tareas comprometidas de cada semana'+(prom !== null ? ' \u00b7 promedio '+prom+'%' : '')+(sinRep ? ' \u00b7 <b>'+sinRep+'</b> tareas pasadas a\u00fan sin reportar (no cuentan)' : '')+'.</p></div>';
+    /* Pareto */
+    var causas = {}, nNo = 0;
+    prog.forEach(function(r){ if(!/^no ejecutado/i.test(r.estado || "")) return; nNo++; var c = r.causa || "__"; causas[c] = (causas[c] || 0) + 1; });
+    var lbl = {}; (window.CAUSAS_LP || []).forEach(function(c){ lbl[c[0]] = c[1]; });
+    var lst = Object.keys(causas).map(function(k){ return { k:k, n:causas[k], t: k === "__" ? "Sin causa asignada" : (lbl[k] ? k + ". " + lbl[k] : k) }; }).sort(function(a,b){ return b.n - a.n; });
+    var acum = 0, maxN = lst.length ? lst[0].n : 1;
+    var par = '<div class="ind-box"><h3>Causas de no cumplimiento (Pareto)</h3>' + (lst.length ? '<div class="ind-pareto">' + lst.map(function(x){
+        acum += x.n;
+        return '<div class="par-row'+(x.k === "__" ? ' sin' : '')+'"><span class="par-t">'+esc(x.t)+'</span><span class="par-bar"><i style="width:'+(100 * x.n / maxN)+'%"></i></span><span class="par-n">'+x.n+'</span><span class="par-a">'+Math.round(100 * acum / nNo)+'%</span></div>';
+      }).join("") + '</div><p class="ind-nota">'+nNo+' tareas no cumplidas \u00b7 la columna derecha es el % acumulado. Asigna la causa en cada nota \u201cNo cumpli\u00f3\u201d del Semanal y gu\u00e1rdala.</p>'
+      : '<p class="pm-vacio">No hay tareas marcadas como \u201cNo cumpli\u00f3\u201d.</p>') + '</div>';
+    /* curva S: partidas programadas vs ejecutadas, acumuladas por semana */
+    var planK = {};
+    prog.forEach(function(r){ if(/^no ejecutado/i.test(r.estado || "") || orden.indexOf(r.partida) < 0) return; var k = r.portico + "|" + r.partida; if(!planK[k] || r.fecha > planK[k]) planK[k] = r.fecha; });
+    var fechas = Object.keys(planK).map(function(k){ return planK[k]; }).concat(Object.keys(real).map(function(k){ return real[k]; })).sort();
+    var curva = '<div class="ind-box"><h3>Curva S \u00b7 partidas programadas vs. ejecutadas</h3>';
+    if(fechas.length){
+      var l0 = lunesIso(fechas[0]), lN = lunesIso(fechas[fechas.length - 1]); if(lunHoy > lN) lN = lunHoy;
+      var ws = []; for(var l = l0; l <= lN; l = sumarDias(l, 7)) ws.push(l);
+      var fin = function(l){ return sumarDias(l, 6); };
+      var pv = ws.map(function(l){ var f = fin(l); return Object.keys(planK).filter(function(k){ return planK[k] <= f; }).length; });
+      var rv = ws.map(function(l){ var f = fin(l); return l > lunHoy ? null : Object.keys(real).filter(function(k){ return real[k] <= f; }).length; });
+      var ymax = Math.max(1, Object.keys(planK).length, nReal);
+      var W2 = 640, H2 = 230, px = W2 - 44 - 12;
+      var xs = function(i){ return 44 + (ws.length > 1 ? px * i / (ws.length - 1) : px / 2); };
+      var ys = function(v){ return 14 + (H2 - 14 - 36) * (1 - v / ymax); };
+      var s = '<svg class="ind-svg" viewBox="0 0 '+W2+' '+H2+'" role="img" aria-label="Curva S">';
+      [0, .25, .5, .75, 1].forEach(function(f){ var v = Math.round(ymax * f); s += '<line x1="44" x2="'+(W2-12)+'" y1="'+ys(v)+'" y2="'+ys(v)+'" class="ind-grid"/><text x="38" y="'+(ys(v)+4)+'" class="ind-ax" text-anchor="end">'+v+'</text>'; });
+      var paso = Math.ceil(ws.length / 8);
+      ws.forEach(function(l, i){ if(i % paso === 0 || i === ws.length - 1) s += '<text x="'+xs(i)+'" y="'+(H2 - 14)+'" class="ind-ax" text-anchor="middle">'+etqSem(l)+'</text>'; });
+      var iHoy = ws.indexOf(lunHoy); if(iHoy >= 0) s += '<line x1="'+xs(iHoy)+'" x2="'+xs(iHoy)+'" y1="14" y2="'+(H2 - 36)+'" class="ind-hoy"/><text x="'+(xs(iHoy) + 4)+'" y="24" class="ind-ax">hoy</text>';
+      s += '<polyline class="ind-plan" points="'+pv.map(function(v,i){ return xs(i)+','+ys(v); }).join(" ")+'"/>';
+      var rp = rv.map(function(v,i){ return v === null ? null : xs(i)+','+ys(v); }).filter(Boolean);
+      s += '<polyline class="ind-real" points="'+rp.join(" ")+'"/>';
+      rv.forEach(function(v,i){ if(v !== null) s += '<circle cx="'+xs(i)+'" cy="'+ys(v)+'" r="3.5" class="ind-real-p"><title>'+etqSem(ws[i])+': '+v+' ejecutadas / '+pv[i]+' programadas</title></circle>'; });
+      s += '</svg>';
+      var iUlt = iHoy >= 0 ? iHoy : rv.length - 1, dif = (rv[iUlt] || 0) - pv[iUlt];
+      curva += s + '<div class="ind-ley"><span><i class="lp"></i>Programado</span><span><i class="lr"></i>Ejecutado</span></div>'
+        + '<p class="ind-nota">A la fecha: <b>'+(rv[iUlt] || 0)+'</b> partidas ejecutadas vs <b>'+pv[iUlt]+'</b> programadas \u00b7 '
+        + (dif >= 0 ? '<b style="color:var(--success)">al d\u00eda o adelantado (+'+dif+')</b>' : '<b style="color:var(--danger)">atraso de '+(-dif)+' partidas</b>') + '. Ejecutado = registros de avance al 100%.</p>';
+    } else curva += '<p class="pm-vacio">Sin programaci\u00f3n cargada.</p>';
+    curva += '</div>';
+    box.innerHTML = cards + '<div class="ind-grid2">' + ppcHtml + par + '</div>' + curva;
+  }
+
   /* ---------- pestañas inferiores (solo celular) ---------- */
   function irTab(tab){
     document.body.setAttribute("data-mtab", tab);
@@ -2816,6 +2992,7 @@ window.PORTICOS_LISTA = (function(){
     });
     if((tab === "mapa" || (tab === "porticos" && window.matchMedia && window.matchMedia("(min-width:861px)").matches)) && btnMapa && wrapMapa){ if(wrapMapa.hidden) btnMapa.click(); else if(mapa) setTimeout(function(){ mapa.invalidateSize(); mapa._encuadrado = false; pintarMapa(); }, 60); }
     if(tab === "avance" && btnAv && wrapAv && wrapAv.hidden) btnAv.click();
+    if(tab === "indicadores") pintarIndicadores();
     window.scrollTo(0, 0);
   }
   document.body.setAttribute("data-mtab", "semanal");
