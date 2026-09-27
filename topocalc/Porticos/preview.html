@@ -819,6 +819,11 @@ section[data-board="intermedio"] .restrictions-panel{ display:none !important; }
 @media (max-width:860px){ .rs-box{ margin:0 12px 14px; padding:12px; } }
 .rs-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
 .rs-head h3{ margin:0; font-family:var(--font-display); font-size:1rem; color:var(--ink); }
+.rs-toggle{ all:unset; box-sizing:border-box; flex:1; min-width:0; display:flex; align-items:center; gap:10px; cursor:pointer; padding:4px 0; border-radius:6px; }
+.rs-toggle:focus-visible{ outline:2px solid var(--blueprint); outline-offset:2px; }
+.rs-caret{ flex:none; width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:var(--blueprint-soft); color:var(--blueprint); font-size:.8rem; }
+.rs-tt{ display:flex; flex-direction:column; gap:1px; min-width:0; }
+.rs-box.cerrado{ padding-top:10px; padding-bottom:10px; }
 .rs-cnt{ font-size:.78rem; color:var(--ink-soft); }
 .rs-cnt b{ color:var(--danger); }
 .rs-add{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
@@ -3285,6 +3290,8 @@ window.PORTICOS_LISTA = (function(){
   var TIPOS = [["Materiales","Materiales"],["Mano de obra","Mano de obra"],["Equipos","Equipos"],["Terreno","Terreno"],["Administrativos","Permisos / autorizaciones"],
                ["Informacion y diseno","Información y diseño"],["Contratos","Contratos"],["Inspeccion","Inspección"],["Seguridad","Seguridad"]];
   var formAbierto = false, editId = null, verLib = false;
+  var desplegado = false; try{ desplegado = localStorage.getItem("porticos-restr-abierto") === "1"; }catch(e){}
+  function setDesplegado(v){ desplegado = v; try{ localStorage.setItem("porticos-restr-abierto", v ? "1" : "0"); }catch(e){} }
   function esc(t){ return String(t == null ? "" : t).replace(/[&<>"]/g, function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]; }); }
   function tipoTxt(k){ for(var i=0;i<TIPOS.length;i++){ if(TIPOS[i][0] === k) return TIPOS[i][1]; } return k; }
   function hoy(){ var d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
@@ -3349,9 +3356,11 @@ window.PORTICOS_LISTA = (function(){
     abiertas.sort(function(a,b){ return (a.compromiso || "9999") < (b.compromiso || "9999") ? -1 : 1; });
     liberadas.sort(function(a,b){ return (b.liberada || "") < (a.liberada || "") ? -1 : 1; });
     var editando = editId ? regs.filter(function(r){ return r.id === editId; })[0] : null;
-    var html = '<div class="rs-head"><div><h3>Restricciones</h3><span class="rs-cnt">'
+    var html = '<div class="rs-head"><button type="button" class="rs-toggle" data-rs="toggle" aria-expanded="'+(desplegado?'true':'false')+'"><span class="rs-caret" aria-hidden="true">'+(desplegado?'\u25be':'\u25b8')+'</span><span class="rs-tt"><h3>Restricciones</h3><span class="rs-cnt">'
       + (soporta ? abiertas.length+' abierta'+(abiertas.length===1?'':'s')+(venc ? ' \u00b7 <b>'+venc+' vencida'+(venc===1?'':'s')+'</b>' : '')+' \u00b7 '+liberadas.length+' liberada'+(liberadas.length===1?'':'s') : 'Lo que impide avanzar las tareas')
-      + '</span></div>' + (soporta && !formAbierto ? '<button type="button" class="btn-sm rs-add" data-rs="nueva">+ Agregar</button>' : '') + '</div>';
+      + '</span></span></button>' + (soporta && !formAbierto ? '<button type="button" class="btn-sm rs-add" data-rs="nueva">+ Agregar</button>' : '') + '</div>';
+    if(!desplegado){ box.innerHTML = html; box.classList.add("cerrado"); return; }
+    box.classList.remove("cerrado");
     if(!soporta) html += '<p class="rs-aviso">Para guardar restricciones compartidas falta actualizar el script de la planilla.</p>';
     if(formAbierto) html += formHtml(editando);
     if(soporta){
@@ -3380,7 +3389,8 @@ window.PORTICOS_LISTA = (function(){
   box.addEventListener("click", function(e){
     var b = e.target.closest("[data-rs]"); if(!b) return;
     var a = b.dataset.rs, r = b.dataset.id ? buscar(b.dataset.id) : null;
-    if(a === "nueva"){ formAbierto = true; editId = null; pintar(); }
+    if(a === "toggle"){ setDesplegado(!desplegado); if(!desplegado){ formAbierto = false; editId = null; } pintar(); }
+    else if(a === "nueva"){ setDesplegado(true); formAbierto = true; editId = null; pintar(); }
     else if(a === "cancelar"){ formAbierto = false; editId = null; pintar(); }
     else if(a === "editar" && r){ formAbierto = true; editId = r.id; pintar(); }
     else if(a === "verlib"){ verLib = !verLib; pintar(); }
