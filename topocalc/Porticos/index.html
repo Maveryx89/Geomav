@@ -2296,6 +2296,7 @@ window.PORTICOS_LISTA = (function(){
       vacio: function(){ return state.notes.length === 0; },
       cargarProgramacion: function(prog){ cargarProgramacion(prog, state.inicio ? parseInputDate(state.inicio) : new Date()); },
       puedeSincronizar: function(){ return !state.editingNoteId && !state.notes.some(function(n){ return n.pendiente; }); },
+      repintar: function(){ if(!state.editingNoteId) render(); },
       getNotes: function(){
         return state.notes.map(function(n){ var c = findCat(n.catId); return { portico: n.portico || "", cat: c ? c.name : "", cumplido: n.cumplido, percent: n.percent }; });
       },
@@ -2533,10 +2534,11 @@ window.PORTICOS_LISTA = (function(){
   }
   /* Los tableros se arman desde la planilla compartida, salvo que haya una nota abierta o cambios sin guardar */
   function sincronizarTableros(){
-    if(!window.PROGRAMACION || !window.PROGRAMACION.length) return;
+    var hayProg = !!(window.PROGRAMACION && window.PROGRAMACION.length);
     ["semanal","intermedio"].forEach(function(k){
-      var b = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS[k];
-      if(b && b.puedeSincronizar && b.puedeSincronizar()) b.cargarProgramacion(window.PROGRAMACION);
+      var b = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS[k]; if(!b) return;
+      if(hayProg && b.puedeSincronizar && b.puedeSincronizar()) b.cargarProgramacion(window.PROGRAMACION);
+      else if(b.repintar) b.repintar();   /* aunque no se recargue (cambios sin guardar), refresca nombres y comunas */
     });
   }
   window.PORTICOS_API = {
@@ -2577,7 +2579,7 @@ window.PORTICOS_LISTA = (function(){
     return fetch(API, { method:"POST", body: JSON.stringify(body), redirect:"follow" }).then(function(r){ return r.json(); })
       .catch(function(err){ setTimeout(cargar, 1500); throw err; });
   }
-  try{ var c = JSON.parse(localStorage.getItem(LS_CACHE) || "null"); if(c) aplicarRemoto(c); }catch(e){}
+  try{ var c = JSON.parse(localStorage.getItem(LS_CACHE) || "null"); if(c){ aplicarRemoto(c); setTimeout(sincronizarTableros, 0); } }catch(e){}
 
   /* ---------- estado oficial: partida más avanzada registrada ---------- */
   function calcular(){
