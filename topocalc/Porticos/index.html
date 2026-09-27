@@ -516,7 +516,7 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
   .m-cnt{ font-size:.72rem; color:var(--ink-soft); background:var(--paper-sunken); border-radius:999px; padding:1px 8px; }
   .m-notes{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px; margin-bottom:8px; }
   .m-notes .note{ width:auto; margin:0; min-width:0; padding:7px 7px 6px; }
-  .m-notes .note .portico-tag{ font-size:.66rem; padding:1px 6px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; box-sizing:border-box; }
+  .m-notes .note .portico-tag{ font-size:.66rem; padding:1px 6px; max-width:100%; overflow:hidden; white-space:normal; line-height:1.25; border-radius:8px; box-sizing:border-box; overflow-wrap:anywhere; }
   .m-notes .note .txt{ font-size:.78rem; line-height:1.25; overflow-wrap:anywhere; }
   .m-notes .note .meta{ font-size:.68rem; }
   .m-notes .note.editing{ grid-column:1 / -1; padding:10px; }
@@ -1425,17 +1425,17 @@ window.PORTICOS_LISTA = (function(){
         var n = { id: r.id || uid(), catId:cid, weekId:col.id, text:"", day:"", portico:String(r.portico || ""), percent: String(r.avance || ""), tone: PARTIDA_TONE[r.partida] || "neutral",
           responsable: r.responsable || "", cumplido:null, causa:"", liberada:false, tipoRestriccion: r.restriccion || "", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:"",
           fecha: r.fecha, autorizacion: r.autorizacion || "", estadoOrig: r.estado || "Programado", remota: !!r.id, pendiente:false };
-        var txt = r.obs ? String(r.obs) : r.comuna;
+        var txt = r.obs ? String(r.obs) : "";   /* la comuna ya va en la etiqueta del pórtico */
         if(cfg.weekly){
           if(hecho){ n.cumplido = true; if(!n.percent) n.percent = "100"; }
-          else if(fallo){ n.cumplido = false; if(!r.obs) txt += " (no ejecutado, reprogramado)"; n.causa = r.causa || ""; if(n.causa) causas[n.causa] = (causas[n.causa]||0) + 1; }
+          else if(fallo){ n.cumplido = false; if(!r.obs) txt += (txt ? " " : "") + "(no ejecutado, reprogramado)"; n.causa = r.causa || ""; if(n.causa) causas[n.causa] = (causas[n.causa]||0) + 1; }
         } else {
           if(hecho){ if(!n.percent) n.percent = "100"; }
         }
         if(/^pendiente/i.test(r.autorizacion || "")){
           var ent = String(r.autorizacion).replace(/^pendiente:?\s*/i, "");
           n.respLiberacion = ent;
-          if(!n.tipoRestriccion && r.partida === "Excavaci\u00f3n" && !cfg.weekly){ n.tipoRestriccion = "Administrativos"; if(!r.obs) txt += " \u00b7 falta autorizaci\u00f3n " + ent; }
+          if(!n.tipoRestriccion && r.partida === "Excavaci\u00f3n" && !cfg.weekly){ n.tipoRestriccion = "Administrativos"; if(!r.obs) txt += (txt ? " \u00b7 " : "") + "falta autorizaci\u00f3n " + ent; }
         } else {
           var mLib = /^liberada\s+(\d{2}-\d{2}-\d{4})\s*\u00b7?\s*(.*)$/i.exec(r.autorizacion || "");
           if(mLib){
@@ -1531,7 +1531,7 @@ window.PORTICOS_LISTA = (function(){
         state.weeks.forEach(function(w){
           var notesHere = notesIn(cat.id, w.id);
           var cellLines = notesHere.map(function(n){
-            var line = n.text || "";
+            var tx = textoNota(n), line = n.portico ? etiquetaPortico(n.portico) + (tx ? " \u00b7 " + tx : "") : tx;
             if(n.responsable) line += " \u2014 " + n.responsable;
             if(cfg.weekly){
               if(n.percent !== "" && n.percent !== null && n.percent !== undefined) line += " (" + n.percent + "%)";
@@ -1831,6 +1831,22 @@ window.PORTICOS_LISTA = (function(){
       for(var i=0;i<l.length;i++){ if(String(l[i].num || (i+1)) === s) return l[i].nombre; }
       return "P\u00f3rtico " + s;
     }
+    function datoPortico(num){
+      var l = window.PORTICOS_LISTA || [], s = String(num);
+      for(var i=0;i<l.length;i++){ if(String(l[i].num || (i+1)) === s) return l[i]; }
+      return null;
+    }
+    /* etiqueta automática "Comuna: Pórtico" (ej. "San Fernando: P157-b") */
+    function etiquetaPortico(num){
+      var p = datoPortico(num); if(!p) return "P\u00f3rtico " + num;
+      var c = String(p.comuna || "").trim();
+      return (c && !/^por definir$/i.test(c)) ? c + ": " + p.nombre : p.nombre;
+    }
+    function textoNota(note){
+      var t = String(note.text || "");
+      if(note.portico){ var p = datoPortico(note.portico); if(p && t.trim() && t.trim() === String(p.comuna || "").trim()) t = ""; }
+      return t;
+    }
     function renderNote(note, extraStyle){
       extraStyle = extraStyle || "";
       var editing = state.editingNoteId === note.id;
@@ -1851,8 +1867,8 @@ window.PORTICOS_LISTA = (function(){
         }
         return '<div class="note note-'+note.tone+'" style="'+extraStyle+'" data-action="open-note" data-note="'+note.id+'">'
           + (note.pendiente ? '<div class="pend-tag" title="Cambios sin guardar en la planilla">\u25cf sin guardar</div>' : "")
-          + (note.portico ? '<div class="portico-tag tag-'+note.tone+'">'+escapeHtml(nombrePortico(note.portico))+'</div>' : "")
-          + '<div class="txt">'+badge+escapeHtml(note.text || "Nueva tarea")+'</div>'
+          + (note.portico ? '<div class="portico-tag tag-'+note.tone+'">'+escapeHtml(etiquetaPortico(note.portico))+'</div>' : "")
+          + ((textoNota(note) || badge || !note.portico) ? '<div class="txt">'+badge+escapeHtml(textoNota(note) || (note.portico ? "" : "Nueva tarea"))+'</div>' : "")
           + (metaBits.length ? '<div class="meta"><span>'+metaBits.join(" \u00b7 ")+'</span></div>' : "")
           + '</div>';
       }
