@@ -812,6 +812,41 @@ body[data-mtab]:not([data-mtab="semanal"]):not([data-mtab="intermedio"]) .proyec
 }
 /* columna fija: se pega al borde real del área visible (compensa el padding de 16px del contenedor) */
 section[data-board="intermedio"] > .board-scroll .corner, section[data-board="intermedio"] > .board-scroll .row-label{ left:-16px; }
+
+/* ===== restricciones en Indicadores ===== */
+section[data-board="intermedio"] .restrictions-panel{ display:none !important; }
+.rs-box{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); padding:14px 16px; margin:0 0 16px; }
+@media (max-width:860px){ .rs-box{ margin:0 12px 14px; padding:12px; } }
+.rs-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.rs-head h3{ margin:0; font-family:var(--font-display); font-size:1rem; color:var(--ink); }
+.rs-cnt{ font-size:.78rem; color:var(--ink-soft); }
+.rs-cnt b{ color:var(--danger); }
+.rs-add{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.rs-add:hover{ color:var(--paper); opacity:.9; }
+.rs-aviso{ margin:10px 0 0; font-size:.8rem; color:var(--accent); }
+.rs-form{ margin:12px 0 4px; padding:12px; border:1px dashed var(--blueprint); border-radius:var(--radius-md); background:var(--paper); display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+.rs-form label{ display:flex; flex-direction:column; gap:4px; font-size:.74rem; font-weight:700; color:var(--ink-soft); }
+.rs-form .full{ grid-column:1 / -1; }
+.rs-form input, .rs-form select{ font:inherit; font-size:.9rem; font-weight:400; color:var(--ink); background:var(--paper-raised); border:1px solid var(--line-strong); border-radius:8px; padding:8px 10px; min-height:38px; box-sizing:border-box; width:100%; }
+.rs-form .rs-btns{ grid-column:1 / -1; display:flex; justify-content:flex-end; gap:8px; }
+.rs-form .rs-ok{ background:var(--blueprint); color:#fff; border-color:var(--blueprint); }
+@media (max-width:860px){ .rs-form{ grid-template-columns:1fr; } .rs-form input, .rs-form select{ font-size:16px; min-height:44px; } }
+.rs-list{ list-style:none; margin:12px 0 0; padding:0; display:flex; flex-direction:column; gap:8px; }
+.rs-item{ display:flex; gap:12px; align-items:flex-start; justify-content:space-between; padding:10px 12px; border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:8px; background:var(--paper); }
+.rs-item.vencida{ border-left-color:var(--danger); }
+.rs-item.lib{ border-left-color:var(--success); opacity:.75; }
+.rs-main{ min-width:0; }
+.rs-main b{ display:block; font-size:.9rem; color:var(--ink); overflow-wrap:anywhere; }
+.rs-meta{ margin-top:4px; font-size:.75rem; color:var(--ink-soft); display:flex; flex-wrap:wrap; gap:4px 10px; align-items:center; }
+.rs-tag{ font-weight:700; color:var(--blueprint); background:var(--blueprint-soft); border-radius:999px; padding:1px 8px; }
+.rs-venc{ color:var(--danger); font-weight:700; }
+.rs-acts{ display:flex; gap:6px; flex:none; flex-wrap:wrap; justify-content:flex-end; }
+.rs-acts .btn-sm{ padding:5px 9px; }
+@media (max-width:860px){ .rs-item{ flex-direction:column; } .rs-acts{ justify-content:flex-start; } .rs-acts .btn-sm{ min-height:40px; } }
+.rs-vacio{ margin:12px 0 0; font-size:.82rem; color:var(--ink-soft); }
+.rs-more{ margin-top:10px; background:none; border:none; padding:4px 0; color:var(--blueprint); font:inherit; font-size:.8rem; font-weight:700; cursor:pointer; }
+.rs-sub{ margin:16px 0 0; padding-top:12px; border-top:1px solid var(--line); font-size:.78rem; font-weight:700; color:var(--ink-soft); }
+@media print{ .rs-box{ display:none !important; } }
 </style>
 </head>
 
@@ -972,6 +1007,7 @@ section[data-board="intermedio"] > .board-scroll .corner, section[data-board="in
 
   <section class="ind-block" id="indBlock" aria-label="Indicadores">
     <div class="section-head"><h2>Indicadores del proyecto</h2></div>
+    <div id="restrBox" class="rs-box" aria-label="Restricciones"></div>
     <div id="indBody"></div>
   </section>
 
@@ -2458,6 +2494,7 @@ window.PORTICOS_LISTA = (function(){
     }
     REMOTO.avance = Array.isArray(j.avance) ? j.avance : [];
     if(Array.isArray(j.programacion)) window.PROGRAMACION = j.programacion;
+    window.RESTR_REMOTAS = Array.isArray(j.restricciones) ? j.restricciones : null;
   }
   function sync(txt, cls){ var el = document.getElementById("porticosSync"); if(el){ el.textContent = txt; el.className = "porticos-sync " + (cls||""); } }
   function horaAhora(){ var d = new Date(); return String(d.getDate()).padStart(2,"0")+"-"+String(d.getMonth()+1).padStart(2,"0")+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
@@ -3238,6 +3275,136 @@ window.PORTICOS_LISTA = (function(){
   window.addEventListener("resize", window.LP_cues); window.addEventListener("load", window.LP_cues);
   if(window.ResizeObserver){ var ro = new ResizeObserver(window.LP_cues); ro.observe(document.body); }
   window.LP_cues();
+})();
+</script>
+<script>
+/* ===== Restricciones compartidas (hoja "Restricciones" de la planilla) ===== */
+(function(){
+  "use strict";
+  var box = document.getElementById("restrBox"); if(!box) return;
+  var TIPOS = [["Materiales","Materiales"],["Mano de obra","Mano de obra"],["Equipos","Equipos"],["Terreno","Terreno"],["Administrativos","Permisos / autorizaciones"],
+               ["Informacion y diseno","Información y diseño"],["Contratos","Contratos"],["Inspeccion","Inspección"],["Seguridad","Seguridad"]];
+  var formAbierto = false, editId = null, verLib = false;
+  function esc(t){ return String(t == null ? "" : t).replace(/[&<>"]/g, function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]; }); }
+  function tipoTxt(k){ for(var i=0;i<TIPOS.length;i++){ if(TIPOS[i][0] === k) return TIPOS[i][1]; } return k; }
+  function hoy(){ var d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  function fmt(iso){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ""); return m ? m[3]+"-"+m[2]+"-"+m[1] : ""; }
+  function lista(){ return window.PORTICOS_LISTA || []; }
+  function nombreP(num){ var l = lista(), s = String(num); for(var i=0;i<l.length;i++){ if(String(l[i].num || (i+1)) === s) return l[i].nombre; } return "P\u00f3rtico " + s; }
+  function datos(){ return window.RESTR_REMOTAS; }
+  function pedirPin(api){
+    var p = api.getPin(); if(p) return p;
+    if(window.PORTICOS_AUTOR) window.PORTICOS_AUTOR.pedir();
+    return (window.prompt("PIN de edici\u00f3n para guardar en la planilla compartida:") || "").trim();
+  }
+  function mandar(body, btn){
+    var api = window.PORTICOS_API; if(!api){ alert("No hay conexi\u00f3n con la planilla."); return; }
+    var pin = pedirPin(api); if(!pin) return;
+    body.pin = pin;
+    if(btn){ btn.disabled = true; btn.textContent = "Guardando\u2026"; }
+    api.enviar(body).then(function(j){
+      if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) api.setPin(""); alert((j && j.error) || "No se pudo guardar."); pintar(); return; }
+      api.setPin(pin); formAbierto = false; editId = null; api.aplicar(j);
+    }).catch(function(){ alert("No se recibi\u00f3 confirmaci\u00f3n. Revisa en unos segundos."); pintar(); });
+  }
+  function delPrograma(){
+    var vistos = {};
+    return (window.PROGRAMACION || []).filter(function(r){
+      if(/^ejecutado/i.test(r.estado || "")) return false;
+      var pend = /^pendiente/i.test(r.autorizacion || "");
+      if(!pend && !r.restriccion) return false;
+      var k = r.portico + "|" + (pend ? "aut" : r.restriccion); if(vistos[k]) return false; vistos[k] = 1; return true;
+    });
+  }
+  function formHtml(r){
+    r = r || {};
+    var ops = '<option value="">General (sin p\u00f3rtico)</option>' + lista().map(function(p, k){
+      var n = String(p.num || (k+1)); return '<option value="'+n+'"'+(String(r.portico) === n ? ' selected' : '')+'>'+esc(p.nombre)+(p.comuna ? ' \u00b7 '+esc(p.comuna) : '')+'</option>';
+    }).join("");
+    var tipos = TIPOS.map(function(t){ return '<option value="'+t[0]+'"'+(r.tipo === t[0] ? ' selected' : '')+'>'+t[1]+'</option>'; }).join("");
+    return '<div class="rs-form" role="group" aria-label="'+(r.id ? 'Editar' : 'Nueva')+' restricci\u00f3n">'
+      + '<label class="full">\u00bfQu\u00e9 impide avanzar?<input id="rsDesc" maxlength="280" placeholder="ej. Falta permiso municipal para excavar" value="'+esc(r.descripcion)+'"></label>'
+      + '<label>P\u00f3rtico<select id="rsPort">'+ops+'</select></label>'
+      + '<label>Tipo<select id="rsTipo">'+tipos+'</select></label>'
+      + '<label>Qui\u00e9n la resuelve<input id="rsResp" maxlength="80" placeholder="Nombre o empresa" value="'+esc(r.responsable)+'"></label>'
+      + '<label>Resolver antes del<input id="rsComp" type="date" value="'+esc(r.compromiso)+'"></label>'
+      + '<div class="rs-btns"><button type="button" class="btn-sm" data-rs="cancelar">Cancelar</button><button type="button" class="btn-sm rs-ok" data-rs="guardar">'+(r.id ? 'Guardar cambios' : 'Agregar restricci\u00f3n')+'</button></div></div>';
+  }
+  function itemHtml(r){
+    var lib = r.estado === "Liberada", venc = !lib && r.compromiso && r.compromiso < hoy();
+    var meta = '<span class="rs-tag">'+esc(tipoTxt(r.tipo))+'</span>'
+      + '<span>'+(r.portico !== "" && r.portico != null ? esc(nombreP(r.portico)) : 'General')+'</span>'
+      + (r.responsable ? '<span>Resuelve: '+esc(r.responsable)+'</span>' : '')
+      + (lib ? '<span>Liberada '+fmt(r.liberada)+'</span>' : (r.compromiso ? '<span class="'+(venc ? 'rs-venc' : '')+'">'+(venc ? 'Vencida \u00b7 ' : 'Antes del ')+fmt(r.compromiso)+'</span>' : ''));
+    var acts = lib
+      ? '<button type="button" class="btn-sm" data-rs="reabrir" data-id="'+esc(r.id)+'">Reabrir</button>'
+      : '<button type="button" class="btn-sm" data-rs="liberar" data-id="'+esc(r.id)+'">\u2713 Liberar</button><button type="button" class="btn-sm" data-rs="editar" data-id="'+esc(r.id)+'">Editar</button>';
+    acts += '<button type="button" class="btn-sm danger" data-rs="eliminar" data-id="'+esc(r.id)+'">Eliminar</button>';
+    return '<li class="rs-item'+(lib ? ' lib' : (venc ? ' vencida' : ''))+'"><div class="rs-main"><b>'+esc(r.descripcion)+'</b><div class="rs-meta">'+meta+'</div></div><div class="rs-acts">'+acts+'</div></li>';
+  }
+  function pintar(){
+    var d = datos(), soporta = Array.isArray(d), regs = soporta ? d.slice() : [];
+    var abiertas = regs.filter(function(r){ return r.estado !== "Liberada"; }), liberadas = regs.filter(function(r){ return r.estado === "Liberada"; });
+    var venc = abiertas.filter(function(r){ return r.compromiso && r.compromiso < hoy(); }).length;
+    abiertas.sort(function(a,b){ return (a.compromiso || "9999") < (b.compromiso || "9999") ? -1 : 1; });
+    liberadas.sort(function(a,b){ return (b.liberada || "") < (a.liberada || "") ? -1 : 1; });
+    var editando = editId ? regs.filter(function(r){ return r.id === editId; })[0] : null;
+    var html = '<div class="rs-head"><div><h3>Restricciones</h3><span class="rs-cnt">'
+      + (soporta ? abiertas.length+' abierta'+(abiertas.length===1?'':'s')+(venc ? ' \u00b7 <b>'+venc+' vencida'+(venc===1?'':'s')+'</b>' : '')+' \u00b7 '+liberadas.length+' liberada'+(liberadas.length===1?'':'s') : 'Lo que impide avanzar las tareas')
+      + '</span></div>' + (soporta && !formAbierto ? '<button type="button" class="btn-sm rs-add" data-rs="nueva">+ Agregar</button>' : '') + '</div>';
+    if(!soporta) html += '<p class="rs-aviso">Para guardar restricciones compartidas falta actualizar el script de la planilla.</p>';
+    if(formAbierto) html += formHtml(editando);
+    if(soporta){
+      html += abiertas.length ? '<ul class="rs-list">'+abiertas.map(itemHtml).join("")+'</ul>'
+        : '<p class="rs-vacio">No hay restricciones abiertas. Usa <b>+ Agregar</b> cuando algo impida avanzar una tarea (materiales, permisos, terreno\u2026).</p>';
+      if(liberadas.length){
+        html += '<button type="button" class="rs-more" data-rs="verlib">'+(verLib ? '\u25be Ocultar liberadas' : '\u25b8 Ver liberadas ('+liberadas.length+')')+'</button>';
+        if(verLib) html += '<ul class="rs-list">'+liberadas.map(itemHtml).join("")+'</ul>';
+      }
+    }
+    var prog = delPrograma();
+    if(prog.length){
+      html += '<div class="rs-sub">Marcadas en tareas del programa ('+prog.length+')</div><ul class="rs-list">' + prog.map(function(r){
+        var pend = /^pendiente/i.test(r.autorizacion || "");
+        return '<li class="rs-item"><div class="rs-main"><b>'+esc(nombreP(r.portico))+' \u00b7 '+esc(r.partida || "")+'</b><div class="rs-meta">'
+          + '<span class="rs-tag">'+esc(pend ? 'Autorizaci\u00f3n pendiente' : tipoTxt(r.restriccion))+'</span>'
+          + (pend ? '<span>'+esc(String(r.autorizacion).replace(/^pendiente:?\s*/i, "Espera: "))+'</span>' : '')
+          + (r.fecha ? '<span>Programada '+fmt(r.fecha)+'</span>' : '') + '</div></div>'
+          + (pend ? '<div class="rs-acts"><button type="button" class="btn-sm" data-rs="libaut" data-portico="'+esc(r.portico)+'">\u2713 Liberar hoy</button></div>' : '') + '</li>';
+      }).join("") + '</ul>';
+    }
+    box.innerHTML = html;
+    if(formAbierto){ var f = box.querySelector("#rsDesc"); if(f && !f.value) setTimeout(function(){ f.focus(); }, 30); }
+  }
+  function buscar(id){ return (datos() || []).filter(function(r){ return r.id === id; })[0]; }
+  box.addEventListener("click", function(e){
+    var b = e.target.closest("[data-rs]"); if(!b) return;
+    var a = b.dataset.rs, r = b.dataset.id ? buscar(b.dataset.id) : null;
+    if(a === "nueva"){ formAbierto = true; editId = null; pintar(); }
+    else if(a === "cancelar"){ formAbierto = false; editId = null; pintar(); }
+    else if(a === "editar" && r){ formAbierto = true; editId = r.id; pintar(); }
+    else if(a === "verlib"){ verLib = !verLib; pintar(); }
+    else if(a === "guardar"){
+      var desc = box.querySelector("#rsDesc").value.trim();
+      if(!desc){ alert("Escribe qu\u00e9 impide avanzar."); box.querySelector("#rsDesc").focus(); return; }
+      var base = editId ? buscar(editId) : null;
+      mandar({ accion:"guardarRestriccion", restriccion:{ id: editId || "", descripcion: desc, portico: box.querySelector("#rsPort").value,
+        tipo: box.querySelector("#rsTipo").value, responsable: box.querySelector("#rsResp").value.trim(), compromiso: box.querySelector("#rsComp").value,
+        estado: base ? base.estado : "Abierta" } }, b);
+    }
+    else if((a === "liberar" || a === "reabrir") && r){
+      if(a === "liberar" && !confirm("\u00bfMarcar como liberada?\n\u00ab" + r.descripcion + "\u00bb")) return;
+      mandar({ accion:"guardarRestriccion", restriccion:{ id:r.id, descripcion:r.descripcion, portico:r.portico, tipo:r.tipo, responsable:r.responsable, compromiso:r.compromiso, estado: a === "liberar" ? "Liberada" : "Abierta" } }, b);
+    }
+    else if(a === "eliminar" && r){
+      if(!confirm("\u00bfEliminar esta restricci\u00f3n?\n\u00ab" + r.descripcion + "\u00bb\n\nSe borra de la planilla para todos.")) return;
+      mandar({ accion:"borrarRestriccion", id:r.id }, b);
+    }
+    else if(a === "libaut"){ if(window.PORTICOS_API && window.PORTICOS_API.liberar) window.PORTICOS_API.liberar(b.dataset.portico, b); }
+  });
+  var orig = window.renderPorticos;
+  if(typeof orig === "function"){ window.renderPorticos = function(){ var r = orig.apply(this, arguments); try{ pintar(); }catch(e){} return r; }; }
+  pintar();
 })();
 </script>
 </body>
