@@ -11,6 +11,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script>
+/* Reintenta cargar ExcelJS bajo demanda (si falló al abrir la app sin conexión) */
+window.LP_cargarExcel = function(){
+  return new Promise(function(ok, no){
+    if(typeof ExcelJS !== "undefined") return ok();
+    var sc = document.createElement("script");
+    sc.src = "https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js?r=" + Date.now();
+    sc.onload = function(){ typeof ExcelJS !== "undefined" ? ok() : no(); };
+    sc.onerror = no; document.head.appendChild(sc);
+  });
+};
+</script>
 <style>
 /* ===================== DESIGN TOKENS (alineados a index.html / geomav.me) ===================== */
 :root{
@@ -156,7 +168,7 @@ button{font-family:inherit;}
 .board{
   display:grid; align-items:stretch; background:var(--line); gap:1px;
   min-width: calc(150px + var(--cols, 5) * 303px);
-  border:1px solid var(--line); border-radius:var(--radius-md); overflow:hidden;
+  border:1px solid var(--line); border-radius:var(--radius-md); overflow:hidden; overflow:clip;
 }
 .cell{ background:var(--paper-raised); }
 .corner{ position:sticky; top:0; left:0; z-index:5; background:var(--paper-sunken); }
@@ -754,6 +766,49 @@ body[data-mtab="indicadores"] .ind-block{ display:block; }
   .topbar .brand .tag{ font-size:7.5px; white-space:normal; line-height:1.15; }
 }
 @media print{ .porticos-mapa{ display:none !important; } .porticos-panel{ display:none !important; } .semanal-layout{ display:block !important; } }
+
+/* ===== mejoras 2026-09 (portadas desde Last Planner) ===== */
+.proyecto-head{ padding:14px 16px 2px; }
+@media screen and (min-width:861px){ .proyecto-head{ padding:16px 28px 2px; width:100%; max-width:1720px; margin:0 auto; box-sizing:border-box; } }
+.proyecto-tit{ font-family:var(--font-display); font-weight:700; font-size:22px; color:var(--ink); line-height:1.2; }
+.proyecto-sub{ font-size:13px; color:var(--ink-soft); margin-top:2px; font-family:var(--font-mono); }
+.proyecto-tit:empty::before, .proyecto-sub:empty::before{ content:attr(data-placeholder); color:var(--ink-soft); }
+.proyecto-tit:focus-visible, .proyecto-sub:focus-visible{ box-shadow:0 2px 0 var(--blueprint); }
+body[data-mtab]:not([data-mtab="semanal"]):not([data-mtab="intermedio"]) .proyecto-head{ display:none; }
+@media screen{ .pizarra-block .title-wrap{ display:none; } }
+@media print{ .proyecto-head, .ayuda, .cue-sh, .cue-btn{ display:none !important; } }
+@media (max-width:860px){ .proyecto-tit{ font-size:18px; } .proyecto-head{ padding:10px 12px 0; } }
+.menu-sep{ font-size:10.5px; font-weight:700; color:var(--ink-soft); padding:6px 4px 0; border-top:1px solid var(--line); margin-top:2px; }
+.toolbar{ position:relative; }
+.ayuda{ position:relative; display:inline-block; }
+.ayuda > summary{ list-style:none; cursor:pointer; width:30px; height:30px; box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; border:1px solid var(--line-strong); background:var(--paper-raised); color:var(--blueprint); font-weight:800; font-size:13px; }
+.ayuda > summary::-webkit-details-marker{ display:none; }
+.ayuda[open] > summary{ background:var(--blueprint); color:#fff; border-color:var(--blueprint); }
+.ayuda-pop.hint{ display:block !important; position:absolute; z-index:40; top:calc(100% + 6px); left:0; width:min(340px, 80vw); padding:10px 12px; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:0 12px 28px -10px rgba(0,0,0,.35); font-family:var(--font-body); font-size:12.5px; line-height:1.45; color:var(--ink); }
+@media (max-width:860px){ .ayuda > summary{ width:44px; height:44px; } .ayuda{ position:static; } .ayuda-pop.hint{ left:12px; right:12px; width:auto; } }
+.ppc-num.vacio{ font-size:18px; color:var(--ink-soft); }
+.ppc-now{ min-width:min(220px, 45%); }
+.week-head .lbl{ flex:1; min-width:0; }
+.week-x{ flex:none; width:28px; height:28px; margin-left:10px; border-radius:6px; font-size:12px; opacity:.55; }
+.week-x:hover, .week-x:focus-visible{ opacity:1; background:var(--paper-raised); }
+.cue-sh{ position:absolute; width:44px; pointer-events:none; z-index:6; opacity:0; transition:opacity .2s; }
+.cue-sh.izq{ background:linear-gradient(to right, rgba(10,34,64,.16), transparent); }
+.cue-sh.der{ background:linear-gradient(to left, rgba(10,34,64,.16), transparent); }
+.cue-sh.on{ opacity:1; }
+.cue-btn{ position:absolute; z-index:7; width:34px; height:34px; border-radius:50%; border:1px solid var(--line-strong); background:var(--paper-raised); color:var(--ink); box-shadow:0 4px 12px -4px rgba(0,0,0,.35); cursor:pointer; display:none; align-items:center; justify-content:center; font-size:16px; }
+.cue-btn.on{ display:flex; }
+.cue-btn:hover{ border-color:var(--blueprint); color:var(--blueprint); }
+@media (max-width:860px){ .cue-sh, .cue-btn{ display:none !important; } }
+
+/* ===== celular: mapa bajo el listado de pórticos ===== */
+@media (max-width:860px){
+  body[data-mtab="porticos"] #avanceToggle, body[data-mtab="porticos"] #avanceWrap,
+  body[data-mtab="porticos"] #mapaToggle, body[data-mtab="porticos"] #editBar{ display:none !important; }
+  body.pm-mapa[data-mtab="porticos"] .semanal-layout > .porticos-panel{ height:50vh; min-height:280px; margin-bottom:10px; }
+  body.pm-mapa[data-mtab="porticos"] .porticos-mapa{ display:block !important; grid-row:2; margin:0 12px 16px; }
+  body.pm-mapa[data-mtab="porticos"] #mapaWrap{ margin-top:0; }
+  body.pm-mapa[data-mtab="porticos"] .mapa-canvas{ height:calc(50vh - 245px); min-height:210px; }
+}
 </style>
 </head>
 
@@ -779,10 +834,13 @@ body[data-mtab="indicadores"] .ind-block{ display:block; }
     <button type="button" data-mtab="semanal" class="on" aria-current="page"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6M9 4a1 1 0 0 0-1 1v1h8V5a1 1 0 0 0-1-1M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/><path d="M9 11h6M9 15h4"/></svg><span class="t-l">Semanal</span></button>
     <button type="button" data-mtab="intermedio"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4M7 13.5h4M13 16.5h4"/></svg><span class="t-l">Intermedio</span></button>
     <button type="button" data-mtab="porticos"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><span class="t-l">Pórticos</span></button>
-    <button type="button" data-mtab="mapa"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 6.5 9 4l6 2.5 5.5-2.5v13.5L15 20l-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg><span class="t-l">Mapa</span></button>
     <button type="button" data-mtab="avance"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M5 16l4.5-5 3.5 3 6-7"/><path d="M15 7h4v4"/></svg><span class="t-l">Avance</span></button>
     <button type="button" data-mtab="indicadores"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V8M17 16v-6"/></svg><span class="t-l">Indicadores</span></button>
   </nav>
+  <div class="proyecto-head">
+    <div class="proyecto-tit" contenteditable="true" id="proyTitulo" data-placeholder="Nombre del proyecto" role="textbox" aria-label="Nombre del proyecto"></div>
+    <div class="proyecto-sub" contenteditable="true" id="proySub" data-placeholder="Subtítulo / obra / cliente" role="textbox" aria-label="Subtítulo del proyecto"></div>
+  </div>
 
   <details class="sync-bar respaldo-det">
     <summary class="sync-lbl">Respaldo del equipo</summary>
@@ -819,13 +877,15 @@ body[data-mtab="indicadores"] .ind-block{ display:block; }
         <div class="menu-pop">
           <button class="btn-sm" data-action="add-week">+ Día</button>
           <button class="btn-sm" data-action="add-category">+ Categoría</button>
+          <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
           <button class="btn-sm" data-action="print">Imprimir</button>
+          <div class="menu-sep">Zona de riesgo</div>
           <button class="btn-sm danger" data-action="reset">Reiniciar tablero</button>
         </div>
       </details>
+      <details class="ayuda"><summary aria-label="Ayuda de esta sección" title="Ayuda">?</summary><div class="ayuda-pop hint">Toca “+” para agregar una tarea y tócala para editarla. Usa <b>Guardar</b> para compartirla.</div></details>
     </div>
-    <div class="hint">Toca “+” para agregar una tarea y tócala para editarla. Usa <b>Guardar</b> para compartirla.</div>
 
     <div class="reliability-panel"></div>
 
@@ -894,13 +954,15 @@ body[data-mtab="indicadores"] .ind-block{ display:block; }
         <div class="menu-pop">
           <button class="btn-sm" data-action="add-week">+ Semana</button>
           <button class="btn-sm" data-action="add-category">+ Categoría</button>
+          <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
           <button class="btn-sm" data-action="print">Imprimir</button>
+          <div class="menu-sep">Zona de riesgo</div>
           <button class="btn-sm danger" data-action="reset">Reiniciar tablero</button>
         </div>
       </details>
+      <details class="ayuda"><summary aria-label="Ayuda de esta sección" title="Ayuda">?</summary><div class="ayuda-pop hint">Toca “+” para agregar una tarea y tócala para editarla. Usa <b>Guardar</b> para compartirla.</div></details>
     </div>
-    <div class="hint">Toca “+” para agregar una tarea y tócala para editarla. Usa <b>Guardar</b> para compartirla.</div>
 
     <div class="restrictions-panel"></div>
 
@@ -1408,7 +1470,9 @@ window.PORTICOS_LISTA = (function(){
     function notesIn(catId, weekId){ return state.notes.filter(function(n){ return n.catId===catId && n.weekId===weekId; }); }
     function exportExcel(){
       if(typeof ExcelJS === "undefined"){
-        alert("No se pudo cargar el motor de Excel (revisa tu conexi\u00f3n a internet) e intenta de nuevo.");
+        window.LP_cargarExcel().then(exportExcel, function(){
+          alert("No se pudo exportar a Excel: el motor de Excel se descarga desde internet y este equipo no tiene conexi\u00f3n en este momento.\n\nTus datos no se perdieron. Con\u00e9ctate y vuelve a intentar, o usa Imprimir mientras tanto.");
+        });
         return;
       }
       /* Mismos colores que la pizarra en pantalla: tonos de las notas + fondo de encabezados/categor\u00edas */
@@ -1611,7 +1675,7 @@ window.PORTICOS_LISTA = (function(){
         var col = 2+i;
         html += '<div class="cell week-head" style="grid-row:2; grid-column:'+col+';">'
           + '<span class="lbl" contenteditable="true" data-bind="week:'+w.id+':label" data-placeholder="Semana">'+escapeHtml(w.label)+'</span>'
-          + '<button class="week-x" data-action="del-week" data-week="'+w.id+'" title="Eliminar">\u2715</button></div>';
+          + '<button class="week-x" data-action="del-week" data-week="'+w.id+'" title="Eliminar columna" aria-label="Eliminar columna '+escapeHtml(w.label||'')+'">\u2715</button></div>';
       });
       state.categories.forEach(function(cat, ci){
         var row = 3+ci;
@@ -1674,7 +1738,7 @@ window.PORTICOS_LISTA = (function(){
 
       panel.innerHTML = '<div class="rel-head">Confiabilidad del plan (PPC)</div>'
         + '<div class="rel-body">'
-          + '<div class="ppc-now"><span class="ppc-num">'+(ppc.pct===null?"\u2013":ppc.pct+"%")+'</span><span class="ppc-sub">'+ppc.done+' de '+ppc.total+' tareas comprometidas esta semana</span></div>'
+          + '<div class="ppc-now"><span class="ppc-num'+(ppc.pct===null?' vacio':'')+'">'+(ppc.pct===null?"Sin evaluar":ppc.pct+"%")+'</span><span class="ppc-sub">'+(ppc.pct===null?(state.notes.length?'Hay '+state.notes.length+' tareas en el tablero, ninguna marcada como Cumplido / No cumpli\u00f3 todav\u00eda.':'Sin tareas planificadas esta semana.'):ppc.done+' de '+ppc.total+' tareas comprometidas esta semana')+'</span></div>'
           + '<div class="ppc-chart">'+(bars || '<span class="ppc-sub">Marca tareas como Cumplido / No cumpli\u00f3 para ver el indicador.</span>')+'</div>'
         + '</div>'
         + '<div class="causas-head">Principales causas de no cumplimiento</div>'
@@ -1861,7 +1925,8 @@ window.PORTICOS_LISTA = (function(){
     }
     function delWeek(id){
       var has = state.notes.some(function(n){return n.weekId===id;});
-      if(has && !confirm("Esta columna tiene notas. \u00bfEliminarla junto con sus notas?")) return;
+      var wl = findWeek(id), nom = wl && wl.label ? "\u00ab" + wl.label + "\u00bb" : "esta columna";
+      if(!confirm(has ? "La columna " + nom + " tiene notas. \u00bfEliminarla junto con sus notas?" : "\u00bfEliminar la columna " + nom + "?")) return;
       state.weeks = state.weeks.filter(function(w){return w.id!==id;});
       state.notes = state.notes.filter(function(n){return n.weekId!==id;});
       saveState(); render();
@@ -2530,7 +2595,7 @@ window.PORTICOS_LISTA = (function(){
     if(nSel(selEst)){ var st = estadoDe(num, data); if(!selEst[st ? st.name : "__sin"]) return false; }
     return true;
   }
-  function filtroCambio(){ if(mapa) mapa._encuadrado = false; window.renderPorticos(); }
+  function filtroCambio(){ if(mapa) mapa._encuadrado = false; window.renderPorticos(); mapaMovil(false); }
   if(fBuscar) fBuscar.addEventListener("input", filtroCambio);
   [[fComuna, selCom], [fEstado, selEst]].forEach(function(par){
     var det = par[0], sel = par[1]; if(!det) return;
@@ -2579,6 +2644,7 @@ window.PORTICOS_LISTA = (function(){
       var mk = selPortico && marcadores[selPortico];
       if(mk && !desdeMapa){ mapa.setView(mk.getLatLng(), Math.max(mapa.getZoom(), 12), { animate:true }); }
     }
+    mapaMovil(!desdeMapa);
   }
 
   /* ---------- barra de edición (PIN) ---------- */
@@ -2950,6 +3016,25 @@ window.PORTICOS_LISTA = (function(){
     if(btnAv && wrapAv && wrapAv.hidden) btnAv.click();
     if(btnMapa && wrapMapa && wrapMapa.hidden) btnMapa.click();
   }
+  /* ---------- celular: el mapa aparece bajo el listado al filtrar por comuna/estado o al tocar un pórtico ---------- */
+  function mapaMovil(centrar){
+    var movil = window.matchMedia && window.matchMedia("(max-width:860px)").matches;
+    if(!movil || !btnMapa || !wrapMapa) return;
+    var ver = !!(nSel(selCom) || nSel(selEst) || selPortico);
+    var antes = document.body.classList.contains("pm-mapa");
+    document.body.classList.toggle("pm-mapa", ver);
+    if(!ver || document.body.getAttribute("data-mtab") !== "porticos") return;
+    function centrarSel(){ var mk = mapa && selPortico && marcadores[selPortico]; if(mk) mapa.setView(mk.getLatLng(), Math.max(mapa.getZoom(), 13), { animate:true }); }
+    if(wrapMapa.hidden){ btnMapa.click(); if(centrar) setTimeout(centrarSel, 500); return; }
+    if(!mapa) return;
+    setTimeout(function(){
+      mapa.invalidateSize();
+      if(!antes) mapa._encuadrado = false;
+      pintarMapa();
+      if(centrar) centrarSel();
+    }, 60);
+  }
+  window.addEventListener("resize", function(){ if(mapa && document.body.classList.contains("pm-mapa")) mapa.invalidateSize(); });
   /* ---------- indicadores: PPC semanal, Pareto de causas, curva S, resumen ---------- */
   function isoD(s){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ""); return m ? new Date(+m[1], +m[2]-1, +m[3], 12) : null; }
   function lunesIso(s){ var d = isoD(s); if(!d) return ""; d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
@@ -3065,12 +3150,16 @@ window.PORTICOS_LISTA = (function(){
     if((tab === "mapa" || (tab === "porticos" && window.matchMedia && window.matchMedia("(min-width:861px)").matches)) && btnMapa && wrapMapa){ if(wrapMapa.hidden) btnMapa.click(); else if(mapa) setTimeout(function(){ mapa.invalidateSize(); mapa._encuadrado = false; pintarMapa(); }, 60); }
     if(tab === "avance" && btnAv && wrapAv && wrapAv.hidden) btnAv.click();
     if(tab === "indicadores") pintarIndicadores();
+    if(tab === "porticos") mapaMovil(true);
     window.scrollTo(0, 0);
+    try{ history.replaceState(null, "", "#" + tab); }catch(e){}
+    if(window.LP_cues) window.LP_cues();
   }
   document.body.setAttribute("data-mtab", "semanal");
   function altoTopbar(){ var tb = document.querySelector(".topbar"); if(tb) document.documentElement.style.setProperty("--topbar-h", tb.offsetHeight + "px"); }
   altoTopbar(); window.addEventListener("resize", altoTopbar);
   Array.prototype.forEach.call(document.querySelectorAll("#mTabs [data-mtab]"), function(b){ b.addEventListener("click", function(){ irTab(b.dataset.mtab); }); });
+  (function(){ var h0 = (location.hash || "").slice(1); if(h0 && h0 !== "semanal" && document.querySelector('#mTabs [data-mtab="' + h0.replace(/[^a-z]/g, "") + '"]')) setTimeout(function(){ irTab(h0); }, 0); })();
   document.addEventListener("click", function(e){
     var bm = e.target.closest(".menu-pop button"); if(bm){ var dm = bm.closest("details"); if(dm) dm.removeAttribute("open"); return; }
     Array.prototype.forEach.call(document.querySelectorAll("details.menu-mas[open], details.msel[open]"), function(dm){ if(!dm.contains(e.target)) dm.removeAttribute("open"); });
@@ -3080,6 +3169,69 @@ window.PORTICOS_LISTA = (function(){
   cargar();
   document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") cargar(); });
   setInterval(function(){ if(document.visibilityState === "visible" && modal.hidden) cargar(); }, 120000);
+})();
+</script>
+<script>
+/* ===== mejoras 2026-09: cabecera única e indicadores de "hay más columnas" ===== */
+(function(){
+  "use strict";
+  var BOARDS = ["semanal","intermedio"];
+  var gT = document.getElementById("proyTitulo"), gS = document.getElementById("proySub");
+  function campos(bind){ return BOARDS.map(function(b){ return document.querySelector('section[data-board="'+b+'"] [data-bind="'+bind+'"]'); }).filter(Boolean); }
+  function primero(bind){ var c = campos(bind); for(var i=0;i<c.length;i++){ if(c[i].textContent.trim()) return c[i].textContent; } return ""; }
+  function leer(){
+    if(document.activeElement !== gT) gT.textContent = primero("title");
+    if(document.activeElement !== gS) gS.textContent = primero("subtitle");
+  }
+  function escribir(bind, val){
+    campos(bind).forEach(function(el){
+      if(el.textContent === val) return;
+      el.textContent = val; el.dispatchEvent(new Event("input", { bubbles:true }));
+    });
+  }
+  if(gT && gS){
+    leer();
+    gT.addEventListener("input", function(){ escribir("title", gT.textContent); });
+    gS.addEventListener("input", function(){ escribir("subtitle", gS.textContent); });
+    [gT, gS].forEach(function(el){ el.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); el.blur(); } }); });
+    var mo = new MutationObserver(leer);
+    campos("title").concat(campos("subtitle")).forEach(function(el){ mo.observe(el, { childList:true, characterData:true, subtree:true }); });
+  }
+
+  /* Sombras + botones ‹ › superpuestos (sin envolver el tablero, para no alterar la grilla de Pórticos) */
+  var cues = [];
+  Array.prototype.forEach.call(document.querySelectorAll(".pizarra-block .board-scroll"), function(sc){
+    var par = sc.parentNode; if(getComputedStyle(par).position === "static") par.style.position = "relative";
+    function mk(tag, cls){ var e = document.createElement(tag); e.className = cls; par.appendChild(e); return e; }
+    var si = mk("div", "cue-sh izq"), sd = mk("div", "cue-sh der"), bi = mk("button", "cue-btn izq"), bd = mk("button", "cue-btn der");
+    bi.type = bd.type = "button"; bi.innerHTML = "&#x2039;"; bd.innerHTML = "&#x203A;";
+    bi.setAttribute("aria-label", "Ver columnas a la izquierda"); bd.setAttribute("aria-label", "Ver m\u00e1s columnas a la derecha");
+    function upd(){
+      var r = sc.getBoundingClientRect(), b = sc.querySelector(".board");
+      var max = sc.scrollWidth - sc.clientWidth, sl = sc.scrollLeft;
+      var vis = r.width > 0 && b && max > 4;
+      var L = vis && sl > 4, R = vis && sl < max - 4;
+      [si, bi].forEach(function(e){ e.classList.toggle("on", L); }); [sd, bd].forEach(function(e){ e.classList.toggle("on", R); });
+      if(!vis) return;
+      var p = par.getBoundingClientRect(), br = b.getBoundingClientRect();
+      var top = Math.max(br.top, r.top) - p.top, bot = Math.min(br.bottom, r.bottom) - p.top;
+      var rl = sc.querySelector(".row-label"), izq = (rl ? Math.max(r.left, rl.getBoundingClientRect().right) : r.left) - p.left;
+      var der = r.right - p.left - sc.clientLeft;
+      si.style.cssText = "top:"+top+"px;height:"+(bot-top)+"px;left:"+izq+"px";
+      sd.style.cssText = "top:"+top+"px;height:"+(bot-top)+"px;left:"+(der-44)+"px";
+      var by = top + Math.min(90, (bot-top)/2) - 17;
+      bi.style.top = bd.style.top = by + "px"; bi.style.left = (izq+8) + "px"; bd.style.left = (der-42) + "px";
+    }
+    function paso(d){ sc.scrollBy({ left: d * Math.max(200, sc.clientWidth * 0.7), behavior:"smooth" }); }
+    bi.addEventListener("click", function(){ paso(-1); }); bd.addEventListener("click", function(){ paso(1); });
+    sc.addEventListener("scroll", upd, { passive:true });
+    var b = sc.querySelector(".board"); if(b) new MutationObserver(function(){ requestAnimationFrame(upd); }).observe(b, { childList:true, subtree:true });
+    cues.push(upd);
+  });
+  window.LP_cues = function(){ requestAnimationFrame(function(){ cues.forEach(function(f){ f(); }); }); };
+  window.addEventListener("resize", window.LP_cues); window.addEventListener("load", window.LP_cues);
+  if(window.ResizeObserver){ var ro = new ResizeObserver(window.LP_cues); ro.observe(document.body); }
+  window.LP_cues();
 })();
 </script>
 </body>
