@@ -2925,7 +2925,7 @@ window.PORTICOS_LISTA = (function(){
       + '<div class="ind-card"><span class="ind-k">Autorizaciones pendientes</span><b style="color:'+(Object.keys(pend).length ? 'var(--danger)' : 'var(--success)')+'">'+Object.keys(pend).length+'</b><small>p\u00f3rticos con restricci\u00f3n abierta</small></div>'
       + '</div>';
     /* gr\u00e1fico PPC */
-    var W = 640, H = 220, pl = 34, pr = 10, pt = 14, pb = 34, bw = semanas.length ? (W - pl - pr) / semanas.length : 0;
+    var W = 640, H = 220, pl = 44, pr = 10, pt = 14, pb = 34, bw = semanas.length ? (W - pl - pr) / semanas.length : 0;
     var y = function(v){ return pt + (H - pt - pb) * (1 - v / 100); };
     var g = '<svg class="ind-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="PPC por semana">';
     [0,20,40,60,80,100].forEach(function(v){ g += '<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y(v)+'" y2="'+y(v)+'" class="ind-grid"/><text x="'+(pl-6)+'" y="'+(y(v)+4)+'" class="ind-ax" text-anchor="end">'+v+'</text>'; });
@@ -2965,12 +2965,12 @@ window.PORTICOS_LISTA = (function(){
       var rv = ws.map(function(l){ var f = fin(l); return l > lunHoy ? null : Object.keys(real).filter(function(k){ return real[k] <= f; }).length; });
       var ymax = Math.max(1, Object.keys(planK).length, nReal);
       var W2 = 640, H2 = 230, px = W2 - 44 - 12;
-      var xs = function(i){ return 44 + (ws.length > 1 ? px * i / (ws.length - 1) : px / 2); };
+      var xs = function(i){ return 52 + (ws.length > 1 ? (px - 8) * i / (ws.length - 1) : px / 2); };
       var ys = function(v){ return 14 + (H2 - 14 - 36) * (1 - v / ymax); };
       var s = '<svg class="ind-svg" viewBox="0 0 '+W2+' '+H2+'" role="img" aria-label="Curva S">';
-      [0, .25, .5, .75, 1].forEach(function(f){ var v = Math.round(ymax * f); s += '<line x1="44" x2="'+(W2-12)+'" y1="'+ys(v)+'" y2="'+ys(v)+'" class="ind-grid"/><text x="38" y="'+(ys(v)+4)+'" class="ind-ax" text-anchor="end">'+v+'</text>'; });
+      [0, .25, .5, .75, 1].forEach(function(f){ var v = Math.round(ymax * f); s += '<line x1="52" x2="'+(W2-12)+'" y1="'+ys(v)+'" y2="'+ys(v)+'" class="ind-grid"/><text x="46" y="'+(ys(v)+4)+'" class="ind-ax" text-anchor="end">'+v+'</text>'; });
       var paso = Math.ceil(ws.length / 8);
-      ws.forEach(function(l, i){ if(i % paso === 0 || i === ws.length - 1) s += '<text x="'+xs(i)+'" y="'+(H2 - 14)+'" class="ind-ax" text-anchor="middle">'+etqSem(l)+'</text>'; });
+      ws.forEach(function(l, i){ if(i % paso === 0 || i === ws.length - 1) s += '<text x="'+xs(i)+'" y="'+(H2 - 14)+'" class="ind-ax" text-anchor="'+(i === ws.length - 1 && ws.length > 1 ? 'end' : (i === 0 ? 'start' : 'middle'))+'">'+etqSem(l)+'</text>'; });
       var iHoy = ws.indexOf(lunHoy); if(iHoy >= 0) s += '<line x1="'+xs(iHoy)+'" x2="'+xs(iHoy)+'" y1="14" y2="'+(H2 - 36)+'" class="ind-hoy"/><text x="'+(xs(iHoy) + 4)+'" y="24" class="ind-ax">hoy</text>';
       s += '<polyline class="ind-plan" points="'+pv.map(function(v,i){ return xs(i)+','+ys(v); }).join(" ")+'"/>';
       var rp = rv.map(function(v,i){ return v === null ? null : xs(i)+','+ys(v); }).filter(Boolean);
