@@ -604,6 +604,7 @@ body[data-mtab="indicadores"] .ind-block{ display:block; }
 .ind-box{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); padding:14px 16px; min-width:0; }
 .ind-box h3{ font-family:var(--font-display); font-size:.95rem; margin:0 0 10px; color:var(--ink); }
 .ind-svg{ width:100%; height:auto; display:block; }
+.ind-curva .ind-svg{ max-height:320px; width:auto; max-width:100%; margin:0 auto; }
 .ind-svg .ind-grid{ stroke:var(--line); stroke-width:1; }
 .ind-svg .ind-ax{ font-size:10.5px; fill:var(--ink-soft); font-family:var(--font-body); }
 .ind-svg .ind-val{ font-size:11px; font-weight:700; fill:var(--ink); font-family:var(--font-body); }
@@ -631,6 +632,8 @@ body[data-mtab="indicadores"] .ind-block{ display:block; }
   .ind-grid2{ grid-template-columns:minmax(0,1fr); }
   .ind-block{ padding:12px 12px 24px; }
   .m-tabs button span.t-l{ font-size:.6rem; }
+  .ind-svg .ind-ax, .ind-svg .ind-meta-t{ font-size:19px; }
+  .ind-svg .ind-val{ font-size:20px; }
 }
 
 .restr-toggle .restr-caret{ color:var(--blueprint); width:12px; }
@@ -917,31 +920,31 @@ window.PORTICOS_LISTA = (function(){
   var BOARDS = {};
 
   var CAUSAS = [
-    ["A","Mala planificacion"],["B","Terminacion de un trabajo anterior"],
-    ["C","Terminacion de un trabajo anterior propio"],["D","Falta de informacion"],
-    ["E","Cambios en el diseno"],["F","Ausencia no planificada"],
+    ["A","Mala planificación"],["B","Terminación de un trabajo anterior"],
+    ["C","Terminación de un trabajo anterior propio"],["D","Falta de información"],
+    ["E","Cambios en el diseño"],["F","Ausencia no planificada"],
     ["G","Falta de personal"],["H","Falta de materiales, equipos, andamios, etc."],
-    ["I","Cambios del cliente"],["J","Falta de supervision"],
-    ["K","Estimacion incorrecta de tiempo"],["L","Requerimientos externos al proyecto"],
-    ["M","Condiciones meteorologicas"],["N","Condiciones inseguras de trabajo"],
-    ["O","Mala definicion del proyecto"],["P","Mala calidad o retrabajo / no conformidad"],
+    ["I","Cambios del cliente"],["J","Falta de supervisión"],
+    ["K","Estimación incorrecta de tiempo"],["L","Requerimientos externos al proyecto"],
+    ["M","Condiciones meteorológicas"],["N","Condiciones inseguras de trabajo"],
+    ["O","Mala definición del proyecto"],["P","Mala calidad o retrabajo / no conformidad"],
     ["Q","Rendimiento inferior al esperado"],["R","Malas condiciones del entorno"],
-    ["S","Cierre por vacaciones / abandono de la obra"],["T","Reorganizacion de tareas"],
-    ["U","Averia de maquinaria"],["V","Otras"]
+    ["S","Cierre por vacaciones / abandono de la obra"],["T","Reorganización de tareas"],
+    ["U","Avería de maquinaria"],["V","Otras"]
   ];
   var RESTRICCION_TIPOS = ["Contratos","Inspeccion","Materiales","Terreno","Equipos","Informacion y diseno","Administrativos","Mano de obra","Seguridad"];
   var MEETING_ITEMS = [
     "Evaluar la cantidad real de trabajo realizado frente a lo planificado (PPC)",
-    "Analizar la causa raiz de las NO Conformidades",
+    "Analizar la causa raíz de las NO Conformidades",
     "Tomar acciones para mitigar las Razones de No Cumplimiento",
     "Actualizar el Plan Intermedio: que actividades nuevas entran al plan",
     "Actualizar listado de restricciones",
     "Actualizar cronograma y nueva fecha de terminacion",
     "Promover nuevas acciones de mejora para recuperar o adelantar el plan",
     "Determinar nuevo Inventario de Trabajo Ejecutable (ITE)",
-    "Definir plan de produccion para la siguiente semana",
-    "Actualizar el Plan de Accion y diagrama de Pareto",
-    "Revision de indicadores generales de la obra (avance, seguridad, calidad, etc.)"
+    "Definir plan de producción para la siguiente semana",
+    "Actualizar el Plan de Acción y diagrama de Pareto",
+    "Revisión de indicadores generales de la obra (avance, seguridad, calidad, etc.)"
   ];
 
   var CURANIPE_WEEKDEFS = [
@@ -2927,7 +2930,7 @@ window.PORTICOS_LISTA = (function(){
     var g = '<svg class="ind-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="PPC por semana">';
     [0,20,40,60,80,100].forEach(function(v){ g += '<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y(v)+'" y2="'+y(v)+'" class="ind-grid"/><text x="'+(pl-6)+'" y="'+(y(v)+4)+'" class="ind-ax" text-anchor="end">'+v+'</text>'; });
     ppcs.forEach(function(x, i){
-      var cx = pl + i * bw + bw * 0.18, w = bw * 0.64;
+      var w = Math.min(bw * 0.64, 56), cx = pl + i * bw + (bw - w) / 2;
       if(x.ppc !== null){ g += '<rect x="'+cx+'" y="'+y(x.ppc)+'" width="'+w+'" height="'+(y(0) - y(x.ppc))+'" rx="3" fill="'+colPpc(x.ppc)+'"><title>'+etqSem(x.l)+': '+x.ppc+'% ('+x.s.ej+' de '+(x.s.ej + x.s.no)+')</title></rect>'
         + '<text x="'+(cx + w/2)+'" y="'+(y(x.ppc) - 4)+'" class="ind-val" text-anchor="middle">'+x.ppc+'%</text>'; }
       else g += '<text x="'+(cx + w/2)+'" y="'+(y(0) - 6)+'" class="ind-ax" text-anchor="middle">s/d</text>';
@@ -2953,7 +2956,7 @@ window.PORTICOS_LISTA = (function(){
     var planK = {};
     prog.forEach(function(r){ if(/^no ejecutado/i.test(r.estado || "") || orden.indexOf(r.partida) < 0) return; var k = r.portico + "|" + r.partida; if(!planK[k] || r.fecha > planK[k]) planK[k] = r.fecha; });
     var fechas = Object.keys(planK).map(function(k){ return planK[k]; }).concat(Object.keys(real).map(function(k){ return real[k]; })).sort();
-    var curva = '<div class="ind-box"><h3>Curva S \u00b7 partidas programadas vs. ejecutadas</h3>';
+    var curva = '<div class="ind-box ind-curva"><h3>Curva S \u00b7 partidas programadas vs. ejecutadas</h3>';
     if(fechas.length){
       var l0 = lunesIso(fechas[0]), lN = lunesIso(fechas[fechas.length - 1]); if(lunHoy > lN) lN = lunHoy;
       var ws = []; for(var l = l0; l <= lN; l = sumarDias(l, 7)) ws.push(l);
