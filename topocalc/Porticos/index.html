@@ -2671,7 +2671,10 @@ window.PORTICOS_LISTA = (function(){
   function estadoDe(num, d){ var e = d.est[num]; return e ? { name: d.orden[e.idx], idx: e.idx, fecha: e.fecha, avance: e.avance } : null; }
   function parcial(av){ return av !== "" && av != null && Number(av) < 100; }
   function subEstado(st){ return parcial(st.avance) ? ("en curso " + st.avance + "% \u00b7 " + fmt(st.fecha)) : ("ejecutado " + fmt(st.fecha)); }
-  function chip(name){ if(name === "Comentarios") return '<span class="estado-chip note-neutral">\ud83d\udcac Comentario</span>'; var t = window.PARTIDA_TONE[name]; return '<span class="estado-chip note-'+t+'"><i class="dot dot-'+t+'"></i>'+esc(name)+'</span>'; }
+  /* registros que no son partidas de obra: no cambian el estado del pórtico */
+  function esNota(p){ return p === "Comentarios" || p === "Prevenci\u00f3n"; }
+  function chip(name){ if(name === "Comentarios") return '<span class="estado-chip note-neutral">\ud83d\udcac Comentario</span>';
+    if(name === "Prevenci\u00f3n") return '<span class="estado-chip note-amber">\ud83e\uddba Prevenci\u00f3n</span>'; var t = window.PARTIDA_TONE[name]; return '<span class="estado-chip note-'+t+'"><i class="dot dot-'+t+'"></i>'+esc(name)+'</span>'; }
   function estadoHtml(num, d){
     var st = estadoDe(num, d);
     var inner = st ? chip(st.name) + '<span class="estado-sub">' + subEstado(st) + '</span>'
@@ -2880,10 +2883,10 @@ window.PORTICOS_LISTA = (function(){
     var d = ultimoData || calcular(), st = estadoDe(num, d);
     var sig = st ? Math.min(st.idx + 1, d.orden.length - 1) : 0;
     var hist = (d.hist[num] || []).slice().sort(function(a,b){ return (b.fecha+b.registrado).localeCompare(a.fecha+a.registrado); });
-    var opts = '<option value="Comentarios">0. Comentarios</option>' + d.orden.map(function(n,i){ return '<option value="'+esc(n)+'"'+(i===sig?' selected':'')+'>'+(i+1)+'. '+esc(n)+'</option>'; }).join("");
+    var opts = '<option value="Comentarios">0. Comentarios</option><option value="Prevenci\u00f3n">0. Prevenci\u00f3n</option>' + d.orden.map(function(n,i){ return '<option value="'+esc(n)+'"'+(i===sig?' selected':'')+'>'+(i+1)+'. '+esc(n)+'</option>'; }).join("");
     var histHtml = hist.length ? hist.map(function(a){
         return '<li>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.obs?'<span class="pm-obs">'+esc(a.obs)+'</span>':'')
-          +(a.avance !== "" && a.avance != null && a.partida !== "Comentarios" ? '<span class="pm-pct">'+esc(a.avance)+'%</span>' : '')
+          +(a.avance !== "" && a.avance != null && !esNota(a.partida) ? '<span class="pm-pct">'+esc(a.avance)+'%</span>' : '')
           +(a.nfotos ? '<button type="button" class="pm-fotos-link" data-galeria="'+esc(a.id)+'">\ud83d\udcf7 '+a.nfotos+' foto'+(a.nfotos===1?'':'s')+'</button>' : '')
           +'<button type="button" class="btn-link" data-addfotos="'+esc(a.id)+'">+ Fotos</button>'
           +'<button type="button" class="btn-link danger" data-anular="'+esc(a.id)+'">Anular</button></li>';
@@ -2912,16 +2915,20 @@ window.PORTICOS_LISTA = (function(){
     setTimeout(function(){ var pp = modal.querySelector("#pmPartida"); if(pp) pp.focus(); }, 30);
     modal.querySelector(".pm-x").onclick = cerrarModal;
     modal.querySelector("#pmGuardar").onclick = function(){
-      if(modal.querySelector("#pmPartida").value === "Comentarios" && !modal.querySelector("#pmObs").value.trim()){
+      var pSel0 = modal.querySelector("#pmPartida").value;
+      if(pSel0 === "Prevenci\u00f3n" && !modal.querySelector("#pmObs").value.trim() && !fotosSel.length){
+        var mp = modal.querySelector("#pmMsg"); mp.textContent = "Para Prevenci\u00f3n escribe una observaci\u00f3n o adjunta fotos."; mp.className = "pm-msg err"; return;
+      }
+      if(pSel0 === "Comentarios" && !modal.querySelector("#pmObs").value.trim()){
         var mm = modal.querySelector("#pmMsg"); mm.textContent = "Escribe el comentario en Observaci\u00f3n."; mm.className = "pm-msg err"; modal.querySelector("#pmObs").focus(); return;
       }
       var partSel = modal.querySelector("#pmPartida").value;
       guardar({ accion:"registrar", portico:Number(num), partida: partSel,
                 fecha: modal.querySelector("#pmFecha").value, obs: modal.querySelector("#pmObs").value,
-                avance: partSel === "Comentarios" ? "" : modal.querySelector("#pmAvance").value }, num, this, fotosSel);
+                avance: esNota(partSel) ? "" : modal.querySelector("#pmAvance").value }, num, this, fotosSel);
     };
     var fotosSel = [];
-    modal.querySelector("#pmPartida").onchange = function(){ modal.querySelector("#pmAvance").closest("label").style.display = this.value === "Comentarios" ? "none" : ""; };
+    modal.querySelector("#pmPartida").onchange = function(){ modal.querySelector("#pmAvance").closest("label").style.display = esNota(this.value) ? "none" : ""; };
     modal.querySelector("#pmFotos").onchange = function(){
       var th = modal.querySelector("#pmThumbs"), total = this.files.length, bG = modal.querySelector("#pmGuardar");
       th.innerHTML = '<span class="pm-f">Leyendo fotos\u2026</span>'; bG.disabled = true;
@@ -3072,7 +3079,7 @@ window.PORTICOS_LISTA = (function(){
     if(!ids.length){ if(a.fotosUrl) window.open(a.fotosUrl, "_blank", "noopener"); return; }
     var nombres = {}; lista().forEach(function(p,k){ nombres[numDe(p,k)] = p.nombre; });
     galIds = ids; galPos = 0; galUrl = a.fotosUrl || ""; galItems = null;
-    galInfo = (nombres[String(a.portico)] || "") + " \u00b7 " + (a.partida === "Comentarios" ? "Comentario" : a.partida) + (a.avance !== "" && a.avance != null && a.partida !== "Comentarios" ? " " + a.avance + "%" : "") + " \u00b7 " + fmt(a.fecha);
+    galInfo = (nombres[String(a.portico)] || "") + " \u00b7 " + (a.partida === "Comentarios" ? "Comentario" : a.partida) + (a.avance !== "" && a.avance != null && !esNota(a.partida) ? " " + a.avance + "%" : "") + " \u00b7 " + fmt(a.fecha);
     gal.hidden = false; pintarGaleria();
   }
   gal.addEventListener("click", function(e){ if(e.target === gal || e.target.classList.contains("gal-main")) cerrarGaleria(); });
@@ -3091,7 +3098,7 @@ window.PORTICOS_LISTA = (function(){
   function infoRegistro(a){
     var nombres = {}; lista().forEach(function(p,k){ nombres[numDe(p,k)] = p.nombre; });
     return (nombres[String(a.portico)] || "") + " \u00b7 " + (a.partida === "Comentarios" ? "Comentario" : a.partida)
-      + (a.avance !== "" && a.avance != null && a.partida !== "Comentarios" ? " " + a.avance + "%" : "") + " \u00b7 " + fmt(a.fecha);
+      + (a.avance !== "" && a.avance != null && !esNota(a.partida) ? " " + a.avance + "%" : "") + " \u00b7 " + fmt(a.fecha);
   }
   function fotosDePortico(num){
     var vistos = {}, items = [];
@@ -3126,14 +3133,14 @@ window.PORTICOS_LISTA = (function(){
       var ult = {};
       sem[s].forEach(function(a){
         var k = String(a.portico), b = ult[k];
-        var esCom = a.partida === "Comentarios", bCom = b && b.partida === "Comentarios";
+        var esCom = esNota(a.partida), bCom = b && esNota(b.partida);
         var masNuevo = !b || ((a.fecha || "") + (a.registrado || "")) > ((b.fecha || "") + (b.registrado || ""));
         if(!b || (bCom && !esCom) || (esCom === bCom && masNuevo)) ult[k] = a;
       });
       var regs = Object.keys(ult).map(function(k){ return ult[k]; }).sort(function(a,b){ return a.portico - b.portico; });
       var ports = {}; regs.forEach(function(a){ ports[a.portico] = 1; });
       return '<details class="av-sem"'+(i===0?' open':'')+'><summary>'+lunesTxt(s)+' <span>'+Object.keys(ports).length+' p\u00f3rtico'+(Object.keys(ports).length===1?'':'s')+' actualizado'+(Object.keys(ports).length===1?'':'s')+'</span></summary><ul>'
-        + regs.map(function(a){ return '<li><button type="button" class="btn-link" data-ver="'+a.portico+'">'+esc(nombres[String(a.portico)] || ("P\u00f3rtico " + a.portico))+'</button>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.avance !== "" && a.avance != null && a.partida !== "Comentarios" ? '<span class="pm-pct">'+esc(a.avance)+'%</span>' : '')+(a.nfotos ? '<button type="button" class="pm-fotos-link" data-galeria="'+esc(a.id)+'">\ud83d\udcf7 '+a.nfotos+'</button>' : '')+'</li>'; }).join("")
+        + regs.map(function(a){ return '<li><button type="button" class="btn-link" data-ver="'+a.portico+'">'+esc(nombres[String(a.portico)] || ("P\u00f3rtico " + a.portico))+'</button>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.avance !== "" && a.avance != null && !esNota(a.partida) ? '<span class="pm-pct">'+esc(a.avance)+'%</span>' : '')+(a.nfotos ? '<button type="button" class="pm-fotos-link" data-galeria="'+esc(a.id)+'">\ud83d\udcf7 '+a.nfotos+'</button>' : '')+'</li>'; }).join("")
         + '</ul></details>';
     }).join("") : '<p class="pm-vacio">A\u00fan no hay avances guardados.</p>';
     wrap.innerHTML = resumen + semHtml;
@@ -3266,12 +3273,12 @@ window.PORTICOS_LISTA = (function(){
     /* ejecutadas oficiales (registro de avance, 100% o sin %) por p\u00f3rtico+partida */
     var real = {};
     REMOTO.avance.forEach(function(a){
-      if(a.partida === "Comentarios" || orden.indexOf(a.partida) < 0) return;
+      if(esNota(a.partida) || orden.indexOf(a.partida) < 0) return;
       if(a.avance !== "" && a.avance != null && Number(a.avance) < 100) return;
       var k = a.portico + "|" + a.partida; if(!real[k] || a.fecha < real[k]) real[k] = a.fecha;
     });
     var nReal = Object.keys(real).length;
-    var iniciados = {}; REMOTO.avance.forEach(function(a){ if(a.partida !== "Comentarios") iniciados[a.portico] = 1; });
+    var iniciados = {}; REMOTO.avance.forEach(function(a){ if(!esNota(a.partida)) iniciados[a.portico] = 1; });
     var pend = {}; prog.forEach(function(r){ if(/^pendiente/i.test(r.autorizacion || "")) pend[r.portico] = 1; });
     /* PPC por semana */
     var sem = {};
