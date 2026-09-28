@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Manual de uso · Pizarra de Planificación</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Manual de uso de la Pizarra de Planificación Last Planner de GEOMAV: plan maestro, intermedio, semanal, indicadores y reunión.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>try{var t=localStorage.getItem("pizarra-theme");if(t)document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+<style>
+:root{
+  --ink:#0A2240; --ink-soft:rgba(10,34,64,.68); --paper:#F4F3EF; --paper-raised:#FFFFFF; --paper-sunken:#EDEBE4;
+  --line:rgba(10,34,64,.12); --line-strong:rgba(10,34,64,.24); --accent:#D49A6A; --accent-text:#94562A;
+  --blueprint:#2C6B7E; --blueprint-soft:rgba(44,107,126,.1); --success:#26694B; --success-soft:#E3F1EA;
+  --danger:#B23B3B; --danger-soft:#F7E7E5; --shadow:0 1px 2px rgba(10,34,64,.06), 0 6px 16px -8px rgba(10,34,64,.14);
+  --note-copper:rgba(212,154,106,.22); --radius:10px;
+  --font:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif; --mono:ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+:root[data-theme="dark"]{
+  --ink:#E8EDF3; --ink-soft:rgba(232,237,243,.7); --paper:#10161D; --paper-raised:#1A222C; --paper-sunken:#0B1015;
+  --line:rgba(232,237,243,.13); --line-strong:rgba(232,237,243,.28); --accent:#D9A272; --accent-text:#D9A272;
+  --blueprint:#5BA8BF; --blueprint-soft:rgba(91,168,191,.16); --success:#4CB88A; --success-soft:rgba(76,184,138,.16);
+  --danger:#EE8F8F; --danger-soft:rgba(226,123,123,.16); --shadow:0 1px 2px rgba(0,0,0,.45), 0 6px 16px -8px rgba(0,0,0,.65);
+  --note-copper:rgba(217,162,114,.2); color-scheme:dark;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#E8EDF3; --ink-soft:rgba(232,237,243,.7); --paper:#10161D; --paper-raised:#1A222C; --paper-sunken:#0B1015;
+    --line:rgba(232,237,243,.13); --line-strong:rgba(232,237,243,.28); --accent:#D9A272; --accent-text:#D9A272;
+    --blueprint:#5BA8BF; --blueprint-soft:rgba(91,168,191,.16); --success:#4CB88A; --success-soft:rgba(76,184,138,.16);
+    --danger:#EE8F8F; --danger-soft:rgba(226,123,123,.16); --shadow:0 1px 2px rgba(0,0,0,.45), 0 6px 16px -8px rgba(0,0,0,.65);
+    --note-copper:rgba(217,162,114,.2); color-scheme:dark;
+  }
+}
+:root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+html{ scroll-padding-top:calc(env(safe-area-inset-top,0px) + 76px); scroll-behavior:smooth; }
+*,*::before,*::after{ box-sizing:inherit; }
+body{ margin:0; background:var(--paper); color:var(--ink); font-family:var(--font); font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased; }
+a{ color:var(--blueprint); }
+/* barra superior */
+.top{ position:sticky; top:env(safe-area-inset-top,0px); z-index:20; display:flex; align-items:center; gap:12px; padding:12px 18px; background:var(--paper); border-bottom:1px solid var(--line); }
+.top .back{ display:inline-flex; align-items:center; gap:6px; text-decoration:none; font-weight:700; font-size:14px; color:var(--ink); border:1px solid var(--line-strong); background:var(--paper-raised); border-radius:8px; padding:8px 12px; }
+.top .tt{ flex:1; min-width:0; }
+.top .tt b{ display:block; font-size:17px; line-height:1.2; }
+.top .tt span{ font-size:11px; color:var(--ink-soft); font-family:var(--mono); letter-spacing:.03em; }
+.btn{ font:inherit; font-size:14px; font-weight:700; cursor:pointer; border-radius:8px; padding:8px 14px; border:1px solid var(--line-strong); background:var(--paper-raised); color:var(--ink); text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+.btn.pri{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.btn:focus-visible, .top .back:focus-visible{ outline:2px solid var(--blueprint); outline-offset:2px; }
+/* diseño */
+.wrap{ max-width:1120px; margin:0 auto; padding:24px 18px 64px; display:grid; grid-template-columns:240px minmax(0,1fr); gap:36px; }
+nav.indice{ position:sticky; top:84px; align-self:start; max-height:calc(100vh - 100px); overflow:auto; font-size:14px; }
+nav.indice b{ display:block; font-size:11px; letter-spacing:.06em; color:var(--ink-soft); margin:0 0 8px; }
+nav.indice ol{ list-style:none; margin:0; padding:0; }
+nav.indice a{ display:block; padding:6px 10px; border-radius:6px; text-decoration:none; color:var(--ink); }
+nav.indice a:hover{ background:var(--blueprint-soft); color:var(--blueprint); }
+nav.indice a.on{ background:var(--blueprint-soft); color:var(--blueprint); font-weight:700; }
+main{ min-width:0; }
+.hero{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:22px; margin-bottom:28px; }
+.hero h1{ margin:0 0 6px; font-size:clamp(24px, 4vw, 32px); line-height:1.15; letter-spacing:-.01em; }
+.hero p{ margin:0 0 14px; color:var(--ink-soft); }
+.hero .acciones{ display:flex; flex-wrap:wrap; gap:8px; }
+section{ padding-top:8px; margin-bottom:36px; }
+h2{ font-size:22px; line-height:1.25; margin:0 0 10px; display:flex; align-items:center; gap:10px; }
+h2 .n{ flex:none; width:30px; height:30px; border-radius:8px; background:var(--blueprint); color:#fff; font-size:14px; display:inline-flex; align-items:center; justify-content:center; }
+h3{ font-size:17px; margin:22px 0 6px; }
+p{ margin:0 0 12px; }
+ol.pasos, ul.lista{ margin:0 0 14px; padding-left:22px; }
+ol.pasos li, ul.lista li{ margin-bottom:6px; }
+.nota{ border-left:4px solid var(--blueprint); background:var(--blueprint-soft); border-radius:0 8px 8px 0; padding:10px 14px; margin:12px 0 16px; font-size:15px; }
+.nota.ojo{ border-left-color:var(--accent); background:var(--note-copper); }
+.tabla{ overflow-x:auto; margin:8px 0 16px; border:1px solid var(--line); border-radius:var(--radius); background:var(--paper-raised); }
+table{ width:100%; border-collapse:collapse; font-size:14.5px; }
+th, td{ text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+th{ font-size:12px; letter-spacing:.04em; color:var(--ink-soft); background:var(--paper-sunken); }
+tr:last-child td{ border-bottom:none; }
+.k{ font-family:var(--mono); font-size:13px; background:var(--paper-sunken); border:1px solid var(--line); border-radius:5px; padding:1px 6px; white-space:nowrap; }
+/* ilustraciones */
+.ilus{ background:var(--paper-sunken); border:1px dashed var(--line-strong); border-radius:var(--radius); padding:16px; margin:10px 0 18px; }
+.ilus figcaption{ font-size:12.5px; color:var(--ink-soft); margin-top:10px; }
+.tarjeta{ width:210px; max-width:100%; background:var(--note-copper); border:1px solid var(--line); border-radius:8px; padding:10px; font-size:13px; box-shadow:var(--shadow); }
+.tag{ display:inline-block; background:var(--accent); color:#0A2240; font-weight:800; font-size:12px; border-radius:999px; padding:2px 10px; margin-bottom:6px; }
+.tarjeta .t{ font-weight:700; }
+.tarjeta .m{ font-family:var(--mono); font-size:11.5px; color:var(--ink-soft); margin-top:4px; }
+.tarjeta .sg{ color:var(--danger); font-weight:700; font-size:12px; display:block; margin-bottom:4px; }
+.fila-ilus{ display:flex; flex-wrap:wrap; gap:14px; align-items:flex-start; }
+.pest{ display:flex; gap:4px; flex-wrap:wrap; }
+.pest span{ font-size:13px; font-weight:600; padding:8px 12px; border-radius:8px; background:var(--paper-raised); border:1px solid var(--line); }
+.pest span.on{ color:var(--blueprint); border-color:var(--blueprint); background:var(--blueprint-soft); }
+.chips{ display:flex; flex-wrap:wrap; gap:8px 14px; font-size:13.5px; }
+.chips i{ display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:6px; vertical-align:-1px; }
+.num{ display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--accent); color:#0A2240; font-weight:800; font-size:12px; align-items:center; justify-content:center; margin-right:6px; }
+.roles{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin:12px 0 18px; }
+.rol{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:14px; }
+.rol b{ display:block; margin-bottom:4px; }
+.rol p{ margin:0; font-size:14.5px; color:var(--ink-soft); }
+details.faq{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:0 14px; margin-bottom:8px; }
+details.faq summary{ cursor:pointer; font-weight:700; padding:12px 0; list-style:none; }
+details.faq summary::-webkit-details-marker{ display:none; }
+details.faq summary::before{ content:"\25B8"; color:var(--blueprint); margin-right:8px; }
+details.faq[open] summary::before{ content:"\25BE"; }
+details.faq div{ padding:0 0 12px; }
+dl.glosario{ margin:0; display:grid; grid-template-columns:minmax(120px, 200px) 1fr; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; background:var(--paper-raised); }
+dl.glosario dt, dl.glosario dd{ margin:0; padding:10px 12px; border-bottom:1px solid var(--line); }
+dl.glosario dt{ font-weight:700; background:var(--paper-sunken); }
+.pie{ margin-top:40px; font-size:13px; color:var(--ink-soft); border-top:1px solid var(--line); padding-top:14px; }
+@media (max-width:860px){
+  .wrap{ grid-template-columns:1fr; gap:0; padding-top:16px; }
+  nav.indice{ position:static; max-height:none; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:12px; margin-bottom:22px; }
+  nav.indice ol{ columns:2; column-gap:8px; }
+  .top{ padding:10px 12px; }
+  .top .btn.pdf span{ display:none; }
+  .top .tt span{ display:none; }
+  .top .back{ padding:8px 10px; }
+  dl.glosario{ grid-template-columns:1fr; }
+  dl.glosario dt{ border-bottom:none; padding-bottom:2px; }
+}
+@media print{
+  @page{ size:A4; margin:16mm 14mm; }
+  :root{ --ink:#0A2240; --ink-soft:#44546A; --paper:#fff; --paper-raised:#fff; --paper-sunken:#F2F1EC; --line:#D5D9DF; color-scheme:light; }
+  .top, nav.indice, .hero .acciones, .no-print{ display:none !important; }
+  .wrap{ display:block; padding:0; max-width:none; }
+  body{ font-size:11pt; }
+  section{ break-inside:auto; }
+  h2, h3, .ilus, .tabla, .nota, details.faq{ break-inside:avoid; }
+  details.faq > div{ display:block !important; }
+  a{ color:inherit; text-decoration:none; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="./">&#x2039; Volver a la app</a>
+  <div class="tt"><b>Manual de uso</b><span>PIZARRA DE PLANIFICACIÓN · LAST PLANNER</span></div>
+  <button class="btn pdf" type="button" onclick="window.print()" aria-label="Descargar o imprimir en PDF">&#x2B07;&#xFE0E; <span>Descargar PDF</span></button>
+</header>
+
+<div class="wrap">
+<nav class="indice" aria-label="Índice">
+  <b>CONTENIDO</b>
+  <ol>
+    <li><a href="#inicio">1. Qué es esta app</a></li>
+    <li><a href="#navegacion">2. Cómo moverse</a></li>
+    <li><a href="#semanal">3. Semanal</a></li>
+    <li><a href="#intermedio">4. Intermedio</a></li>
+    <li><a href="#maestro">5. Plan Maestro</a></li>
+    <li><a href="#indicadores">6. Indicadores</a></li>
+    <li><a href="#reunion">7. Reunión</a></li>
+    <li><a href="#guardar">8. Guardar y respaldar</a></li>
+    <li><a href="#tareas">9. Tareas frecuentes</a></li>
+    <li><a href="#glosario">10. Glosario</a></li>
+    <li><a href="#faq">11. Preguntas frecuentes</a></li>
+  </ol>
+</nav>
+
+<main>
+<div class="hero">
+  <h1>Manual de uso · Pizarra de Planificación</h1>
+  <p>Guía para planificar y controlar la obra con el método Last Planner®: plan maestro, plan intermedio, plan semanal, indicadores y reunión semanal.</p>
+  <div class="acciones">
+    <a class="btn pri" href="./?tour=1">&#x25B6; Ver recorrido guiado</a>
+    <button class="btn" type="button" onclick="window.print()">&#x2B07;&#xFE0E; Descargar PDF</button>
+  </div>
+</div>
+
+<section id="inicio">
+  <h2><span class="n">1</span>Qué es esta app</h2>
+  <p>Es la versión digital de la pizarra de planificación de obra. Cada tarea es una <b>nota adhesiva</b> ubicada por partida (filas) y por fecha (columnas). La app aplica el método <b>Last Planner®</b>: se planifica en tres niveles, se compromete solo lo que realmente se puede hacer y cada semana se mide cuánto se cumplió.</p>
+  <div class="roles">
+    <div class="rol"><b>&#x1F441;&#xFE0F; ITO, mandante y visitantes</b><p>Pueden revisar la programación, los indicadores y las actas. Si modifican algo, el cambio queda solo en su equipo: no se guarda en la planilla compartida sin el PIN.</p></div>
+    <div class="rol"><b>&#x1F511; Equipo de obra</b><p>Con su nombre y el PIN de edición guardan los cambios en la planilla compartida, que todos ven.</p></div>
+  </div>
+  <div class="tabla"><table>
+    <thead><tr><th>Nivel</th><th>Horizonte</th><th>Pregunta que responde</th></tr></thead>
+    <tbody>
+      <tr><td><b>Plan Maestro</b></td><td>Toda la obra, por mes</td><td>¿Qué <i>debería</i> hacerse?</td></tr>
+      <tr><td><b>Plan Intermedio</b></td><td>Próximas semanas (~2 meses)</td><td>¿Qué <i>puede</i> hacerse? ¿Qué lo impide?</td></tr>
+      <tr><td><b>Plan Semanal</b></td><td>Esta semana, por día</td><td>¿Qué <i>se hará</i>? ¿Se cumplió?</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="navegacion">
+  <h2><span class="n">2</span>Cómo moverse</h2>
+  <p>La app tiene cinco secciones. En celular están en la barra inferior; en computador, en la barra bajo el título.</p>
+  <figure class="ilus">
+    <div class="pest"><span class="on">Semanal</span><span>Intermedio</span><span>Plan Maestro</span><span>Indicadores</span><span>Reunión</span></div>
+    <figcaption>Barra de secciones. La sección activa aparece destacada.</figcaption>
+  </figure>
+  <ul class="lista">
+    <li><b>Nombre del proyecto</b>: arriba de todo. Tócalo para editarlo; se usa en todos los tableros e impresiones.</li>
+    <li><b>&#x1F4D6; Manual</b>: abre esta guía.</li>
+    <li><b>Resumen ejecutivo</b>: hoja imprimible con el estado del proyecto.</li>
+    <li><b>&#x2600;&#xFE0F; / &#x1F319; Tema</b>: modo claro u oscuro.</li>
+    <li><b>? en cada sección</b>: ayuda corta de esa pantalla.</li>
+    <li><b>&#x22EF; Más opciones</b>: exportar a Excel, imprimir y funciones menos frecuentes.</li>
+  </ul>
+</section>
+
+<section id="semanal">
+  <h2><span class="n">3</span>Semanal</h2>
+  <p>El <b>compromiso de la semana</b>, de lunes a viernes. Filas = partidas o categorías; columnas = días.</p>
+  <figure class="ilus">
+    <div class="fila-ilus">
+      <div class="tarjeta"><div class="t">Moldaje muro eje 3</div><div class="m">Resp: E. Torres · 100%</div></div>
+      <div class="tarjeta"><div class="t">Hormigonado losa</div><div class="m">&#x26A0; Materiales</div></div>
+    </div>
+    <figcaption>Cada nota es una tarea con su responsable, % de avance y, si existe, su restricción.</figcaption>
+  </figure>
+  <ol class="pasos">
+    <li>Ingresa la <b>fecha de inicio (lunes)</b> y toca <b>Generar fechas</b>.</li>
+    <li>Toca <b>+</b> (o <b>+ Agregar tarea</b> en celular) para crear una nota; tócala para editarla, moverla o cambiar su color.</li>
+    <li>Al final de la semana marca cada tarea: <b>Sí cumplió</b>, <b>No cumplió</b> o <b>Pendiente</b>. Si no se cumplió, elige la <b>causa</b>.</li>
+    <li>En <b>&#x22EF; Más opciones → Cerrar semana</b> se registra el resultado en Indicadores.</li>
+  </ol>
+  <p>El panel <b>Confiabilidad del plan (PPC)</b> muestra el cumplimiento de la semana y el <b>Pareto</b> de causas. La sección desplegable <b>Rutina de reunión semanal</b> es un checklist para conducir la reunión.</p>
+</section>
+
+<section id="intermedio">
+  <h2><span class="n">4</span>Intermedio</h2>
+  <p>La programación de las <b>próximas semanas</b>. Su objetivo es <b>detectar y liberar restricciones</b> antes de que la tarea llegue al plan semanal.</p>
+  <ol class="pasos">
+    <li>Ingresa la fecha de inicio y la <b>duración en semanas</b>, y toca <b>Generar fechas</b>.</li>
+    <li>Agrega tareas con <b>+</b>. Si algo impide ejecutarla, indica en la nota el <b>tipo de restricción</b>, quién la libera y la fecha compromiso.</li>
+    <li>Cuando la restricción se resuelve, abre la nota y marca <b>¿Liberada? → Sí</b> (y la fecha real de liberación). También se puede liberar desde <b>Reunión → Restricciones</b> con <b>✓ Liberar hoy</b>.</li>
+    <li>Con la tarea lista, toca <b>Enviar →</b> para pasarla al Semanal. <b>Duplicar en sig.</b> la copia a la semana siguiente.</li>
+  </ol>
+  <div class="nota">En computador, si hay más semanas a la derecha aparecen los botones <b>‹ ›</b>. La columna de partidas se mantiene fija al desplazarse.</div>
+</section>
+
+<section id="maestro">
+  <h2><span class="n">5</span>Plan Maestro</h2>
+  <p>La visión de <b>toda la obra por mes</b>. Cada columna es un mes y cada fila una fase; una partida aparece en todos los meses que dura.</p>
+  <ol class="pasos">
+    <li>Ingresa el mes de inicio y la <b>duración en meses</b>, y toca <b>Generar meses</b>.</li>
+    <li>Agrega o edita partidas tocando <b>+</b> o la nota.</li>
+  </ol>
+  <p>Es la referencia para armar el Intermedio: lo que el Maestro dice que <i>debería</i> hacerse se revisa ahí para ver si <i>puede</i> hacerse.</p>
+</section>
+
+<section id="indicadores">
+  <h2><span class="n">6</span>Indicadores</h2>
+  <div class="tabla"><table>
+    <thead><tr><th>Indicador</th><th>Qué significa</th><th>Cómo leerlo</th></tr></thead>
+    <tbody>
+      <tr><td><b>PPC</b></td><td>Actividades cumplidas ÷ programadas en cada semana cerrada.</td><td>Meta habitual: <b>80% o más</b>. Valores bajos indican que se compromete más de lo que se puede ejecutar.</td></tr>
+      <tr><td><b>Curva PPC</b></td><td>Evolución semana a semana (últimas 12 o todo el proyecto).</td><td>Lo importante es la tendencia: debe estabilizarse o subir.</td></tr>
+      <tr><td><b>Pareto de causas</b></td><td>Motivos de no cumplimiento, de mayor a menor.</td><td>Resolver las primeras causas corrige la mayor parte del problema.</td></tr>
+      <tr><td><b>Ranking de subcontratos</b></td><td>Cumplimiento por responsable.</td><td>Muestra quién necesita apoyo o seguimiento.</td></tr>
+      <tr><td><b>Evaluación 1-3-5</b></td><td>Promedio de Calidad, Prevención, Administración, Plazo y Compromiso (1 malo, 3 regular, 5 bueno).</td><td>Complementa el PPC con una mirada cualitativa.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="nota">Cada semana cerrada en el Semanal suma un punto a la curva. Si falta una semana, revisa que se haya usado <b>Cerrar semana</b>.</div>
+</section>
+
+<section id="reunion">
+  <h2><span class="n">7</span>Reunión</h2>
+  <p>Registro de la <b>reunión semanal de planificación</b>, en cuatro pestañas:</p>
+  <div class="tabla"><table>
+    <thead><tr><th>Pestaña</th><th>Para qué sirve</th></tr></thead>
+    <tbody>
+      <tr><td><b>Minuta</b></td><td>Acta de la reunión: <b>+ Nueva acta</b> y <b>+ Tema</b> para cada acuerdo.</td></tr>
+      <tr><td><b>Asistencia</b></td><td>Quién participó (<b>+ Participante</b>).</td></tr>
+      <tr><td><b>Restricciones</b></td><td>Todas las restricciones abiertas, las de la reunión y las del Intermedio, con su estado.</td></tr>
+      <tr><td><b>Eval. constructora</b></td><td>Los subcontratos evalúan a la constructora (<b>+ Evaluador</b>).</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>&#x1F5A8; Imprimir acta</b> genera el documento para firmar o archivar.</p>
+</section>
+
+<section id="guardar">
+  <h2><span class="n">8</span>Guardar y respaldar</h2>
+  <ul class="lista">
+    <li><b>En este equipo</b>: todo cambio se guarda automáticamente en el navegador.</li>
+    <li><b>En la planilla compartida</b>: toca <b>&#x2601; Guardar en planilla</b>. La primera vez pide tu <b>nombre</b> (queda en la bitácora) y el <b>PIN</b>, que se pide una vez por sesión.</li>
+    <li>El estado junto a los botones indica si hay <b>cambios sin guardar en la planilla</b> y a qué hora se respaldaron en el equipo.</li>
+    <li><b>Deshacer</b>: después de reiniciar, borrar o cargar datos de ejemplo aparece un aviso con <b>Deshacer</b> durante unos segundos.</li>
+    <li><b>Respaldo</b> (arriba): <b>Exportar pizarra</b> crea un archivo para pasar todo entre celular y computador; <b>Importar pizarra</b> lo carga.</li>
+  </ul>
+  <div class="nota ojo">Las opciones marcadas como <b>ejemplo</b> en los menús cargan datos de demostración y reemplazan el tablero. Úsalas solo para practicar.</div>
+</section>
+
+<section id="tareas">
+  <h2><span class="n">9</span>Tareas frecuentes</h2>
+  <h3><span class="num">1</span>Preparar la semana</h3>
+  <p>Intermedio → revisa que las tareas de la próxima semana no tengan restricciones → <b>Enviar →</b> → en Semanal ajusta día y responsable → <b>Guardar en planilla</b>.</p>
+  <h3><span class="num">2</span>Cerrar la semana</h3>
+  <p>Semanal → marca <b>Sí/No cumplió</b> (con causa) en cada tarea → <b>&#x22EF; Más opciones → Cerrar semana</b> → <b>Guardar en planilla</b>.</p>
+  <h3><span class="num">3</span>Registrar y liberar una restricción</h3>
+  <p>Intermedio → abre la tarea → tipo de restricción, responsable y fecha compromiso → cuando se resuelva, <b>¿Liberada? → Sí</b>, o <b>✓ Liberar hoy</b> desde Reunión → Restricciones.</p>
+  <h3><span class="num">4</span>Documentar la reunión</h3>
+  <p>Reunión → Asistencia → Minuta (<b>+ Nueva acta</b>, <b>+ Tema</b>) → <b>&#x1F5A8; Imprimir acta</b>.</p>
+  <h3><span class="num">5</span>Informar al mandante</h3>
+  <p><b>Resumen ejecutivo</b> en la barra superior, o <b>Exportar Excel</b> desde Más opciones.</p>
+</section>
+
+<section id="glosario">
+  <h2><span class="n">10</span>Glosario</h2>
+  <dl class="glosario">
+    <dt>Last Planner®</dt><dd>Sistema de planificación colaborativa de Lean Construction: compromete solo lo que se puede hacer y mide su cumplimiento.</dd>
+    <dt>Plan Maestro</dt><dd>Programa general de la obra; indica lo que <i>debería</i> hacerse.</dd>
+    <dt>Plan Intermedio</dt><dd>Ventana de las próximas semanas donde se identifican y liberan restricciones.</dd>
+    <dt>Plan Semanal</dt><dd>Compromisos de la semana; lo que <i>se hará</i>.</dd>
+    <dt>PPC</dt><dd>Porcentaje de Plan Cumplido: tareas cumplidas ÷ tareas comprometidas.</dd>
+    <dt>Restricción</dt><dd>Lo que impide ejecutar una tarea: materiales, mano de obra, equipos, información, permisos, etc.</dd>
+    <dt>Liberar</dt><dd>Dar por resuelta una restricción.</dd>
+    <dt>Causa de no cumplimiento</dt><dd>Motivo por el que una tarea comprometida no se ejecutó (9 causas estándar).</dd>
+    <dt>Pareto</dt><dd>Gráfico que ordena las causas de mayor a menor frecuencia.</dd>
+    <dt>PIN de edición</dt><dd>Clave del equipo para guardar en la planilla compartida.</dd>
+  </dl>
+</section>
+
+<section id="faq">
+  <h2><span class="n">11</span>Preguntas frecuentes</h2>
+  <details class="faq"><summary>¿Necesito clave para ver la planificación?</summary><div>No. La clave (PIN) solo se pide para guardar cambios en la planilla compartida.</div></details>
+  <details class="faq"><summary>Hice cambios y los demás no los ven</summary><div>Los cambios quedan primero en tu equipo. Toca <b>&#x2601; Guardar en planilla</b> para compartirlos.</div></details>
+  <details class="faq"><summary>Borré algo por error</summary><div>Toca <b>Deshacer</b> en el aviso que aparece abajo. Si ya desapareció y habías guardado antes en la planilla, usa <b>Descartar cambios y cargar planilla</b> en Más opciones.</div></details>
+  <details class="faq"><summary>No aparece una semana en la curva PPC</summary><div>La semana debe cerrarse en el Semanal con <b>Más opciones → Cerrar semana</b>.</div></details>
+  <details class="faq"><summary>¿Cómo paso mi pizarra del celular al computador?</summary><div>Guárdala en la planilla y ábrela en el otro equipo, o usa <b>Respaldo → Exportar pizarra</b> e <b>Importar pizarra</b>.</div></details>
+  <details class="faq"><summary>La fecha aparece como mm/dd/aaaa</summary><div>El selector de fecha usa el idioma de tu navegador o teléfono. Con el sistema en español se muestra dd-mm-aaaa.</div></details>
+  <details class="faq"><summary>¿Cómo vuelvo a ver el recorrido guiado?</summary><div>Toca <a href="./?tour=1">Ver recorrido guiado</a> al inicio de este manual.</div></details>
+</section>
+
+<p class="pie">GEOMAV · Topografía y visualización · Manual de la Pizarra de Planificación (Last Planner®).</p>
+</main>
+</div>
+
+<script>
+/* resalta en el índice la sección visible */
+(function(){
+  if(!("IntersectionObserver" in window)) return;
+  var links = {}; Array.prototype.forEach.call(document.querySelectorAll("nav.indice a"), function(a){ links[a.getAttribute("href").slice(1)] = a; });
+  var io = new IntersectionObserver(function(ents){
+    ents.forEach(function(e){ if(e.isIntersecting){ Object.keys(links).forEach(function(k){ links[k].classList.toggle("on", k === e.target.id); }); } });
+  }, { rootMargin:"-30% 0px -60% 0px" });
+  Array.prototype.forEach.call(document.querySelectorAll("main section[id]"), function(s){ io.observe(s); });
+  /* al imprimir, abrir todas las preguntas */
+  window.addEventListener("beforeprint", function(){ Array.prototype.forEach.call(document.querySelectorAll("details.faq"), function(d){ d.dataset.prev = d.open ? "1" : ""; d.open = true; }); });
+  window.addEventListener("afterprint", function(){ Array.prototype.forEach.call(document.querySelectorAll("details.faq"), function(d){ d.open = d.dataset.prev === "1"; }); });
+})();
+</script>
+</body>
+</html>
