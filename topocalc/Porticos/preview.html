@@ -2881,6 +2881,7 @@ window.PORTICOS_LISTA = (function(){
 
   /* ---------- vista compartible: pestaña, filtros y pórtico en la dirección (#porticos?c=…&e=…&q=…&p=…) ---------- */
   var urlAplicada = false;
+  var URL0 = leerURL();   /* se lee al abrir, antes de que el cambio de pestaña reescriba la dirección */
   function paramsVista(opc){
     opc = opc || {};
     var ps = [], nom = "";
@@ -2913,7 +2914,7 @@ window.PORTICOS_LISTA = (function(){
   }
   function aplicarURL(){
     if(urlAplicada) return;
-    var u = leerURL(), p = u.p;
+    var u = URL0 || leerURL(), p = u.p;
     var dec = function(s){ try{ return decodeURIComponent(s); }catch(e){ return s; } };
     if(p.c) p.c.split(",").forEach(function(c){ c = dec(c); if(c) selCom[c] = 1; });
     if(p.e) p.e.split(",").forEach(function(e){ e = dec(e); if(e) selEst[e === "sin-iniciar" ? "__sin" : e] = 1; });
