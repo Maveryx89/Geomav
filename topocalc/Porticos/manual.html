@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Manual de uso · Pórticos de Vigilancia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Manual de uso de la app de programación y avance de pórticos de vigilancia. Para el equipo, ITO y visitantes.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>try{var t=localStorage.getItem("pizarra-theme");if(t)document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+<style>
+:root{
+  --ink:#0A2240; --ink-soft:rgba(10,34,64,.68); --paper:#F4F3EF; --paper-raised:#FFFFFF; --paper-sunken:#EDEBE4;
+  --line:rgba(10,34,64,.12); --line-strong:rgba(10,34,64,.24); --accent:#D49A6A; --accent-text:#94562A;
+  --blueprint:#2C6B7E; --blueprint-soft:rgba(44,107,126,.1); --success:#26694B; --success-soft:#E3F1EA;
+  --danger:#B23B3B; --danger-soft:#F7E7E5; --shadow:0 1px 2px rgba(10,34,64,.06), 0 6px 16px -8px rgba(10,34,64,.14);
+  --note-copper:rgba(212,154,106,.22); --radius:10px;
+  --font:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif; --mono:ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+:root[data-theme="dark"]{
+  --ink:#E8EDF3; --ink-soft:rgba(232,237,243,.7); --paper:#10161D; --paper-raised:#1A222C; --paper-sunken:#0B1015;
+  --line:rgba(232,237,243,.13); --line-strong:rgba(232,237,243,.28); --accent:#D9A272; --accent-text:#D9A272;
+  --blueprint:#5BA8BF; --blueprint-soft:rgba(91,168,191,.16); --success:#4CB88A; --success-soft:rgba(76,184,138,.16);
+  --danger:#EE8F8F; --danger-soft:rgba(226,123,123,.16); --shadow:0 1px 2px rgba(0,0,0,.45), 0 6px 16px -8px rgba(0,0,0,.65);
+  --note-copper:rgba(217,162,114,.2); color-scheme:dark;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#E8EDF3; --ink-soft:rgba(232,237,243,.7); --paper:#10161D; --paper-raised:#1A222C; --paper-sunken:#0B1015;
+    --line:rgba(232,237,243,.13); --line-strong:rgba(232,237,243,.28); --accent:#D9A272; --accent-text:#D9A272;
+    --blueprint:#5BA8BF; --blueprint-soft:rgba(91,168,191,.16); --success:#4CB88A; --success-soft:rgba(76,184,138,.16);
+    --danger:#EE8F8F; --danger-soft:rgba(226,123,123,.16); --shadow:0 1px 2px rgba(0,0,0,.45), 0 6px 16px -8px rgba(0,0,0,.65);
+    --note-copper:rgba(217,162,114,.2); color-scheme:dark;
+  }
+}
+:root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+html{ scroll-padding-top:calc(env(safe-area-inset-top,0px) + 76px); scroll-behavior:smooth; }
+*,*::before,*::after{ box-sizing:inherit; }
+body{ margin:0; background:var(--paper); color:var(--ink); font-family:var(--font); font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased; }
+a{ color:var(--blueprint); }
+/* barra superior */
+.top{ position:sticky; top:env(safe-area-inset-top,0px); z-index:20; display:flex; align-items:center; gap:12px; padding:12px 18px; background:var(--paper); border-bottom:1px solid var(--line); }
+.top .back{ display:inline-flex; align-items:center; gap:6px; text-decoration:none; font-weight:700; font-size:14px; color:var(--ink); border:1px solid var(--line-strong); background:var(--paper-raised); border-radius:8px; padding:8px 12px; }
+.top .tt{ flex:1; min-width:0; }
+.top .tt b{ display:block; font-size:17px; line-height:1.2; }
+.top .tt span{ font-size:11px; color:var(--ink-soft); font-family:var(--mono); letter-spacing:.03em; }
+.btn{ font:inherit; font-size:14px; font-weight:700; cursor:pointer; border-radius:8px; padding:8px 14px; border:1px solid var(--line-strong); background:var(--paper-raised); color:var(--ink); text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+.btn.pri{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.btn:focus-visible, .top .back:focus-visible{ outline:2px solid var(--blueprint); outline-offset:2px; }
+/* diseño */
+.wrap{ max-width:1120px; margin:0 auto; padding:24px 18px 64px; display:grid; grid-template-columns:240px minmax(0,1fr); gap:36px; }
+nav.indice{ position:sticky; top:84px; align-self:start; max-height:calc(100vh - 100px); overflow:auto; font-size:14px; }
+nav.indice b{ display:block; font-size:11px; letter-spacing:.06em; color:var(--ink-soft); margin:0 0 8px; }
+nav.indice ol{ list-style:none; margin:0; padding:0; }
+nav.indice a{ display:block; padding:6px 10px; border-radius:6px; text-decoration:none; color:var(--ink); }
+nav.indice a:hover{ background:var(--blueprint-soft); color:var(--blueprint); }
+nav.indice a.on{ background:var(--blueprint-soft); color:var(--blueprint); font-weight:700; }
+main{ min-width:0; }
+.hero{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:22px; margin-bottom:28px; }
+.hero h1{ margin:0 0 6px; font-size:clamp(24px, 4vw, 32px); line-height:1.15; letter-spacing:-.01em; }
+.hero p{ margin:0 0 14px; color:var(--ink-soft); }
+.hero .acciones{ display:flex; flex-wrap:wrap; gap:8px; }
+section{ padding-top:8px; margin-bottom:36px; }
+h2{ font-size:22px; line-height:1.25; margin:0 0 10px; display:flex; align-items:center; gap:10px; }
+h2 .n{ flex:none; width:30px; height:30px; border-radius:8px; background:var(--blueprint); color:#fff; font-size:14px; display:inline-flex; align-items:center; justify-content:center; }
+h3{ font-size:17px; margin:22px 0 6px; }
+p{ margin:0 0 12px; }
+ol.pasos, ul.lista{ margin:0 0 14px; padding-left:22px; }
+ol.pasos li, ul.lista li{ margin-bottom:6px; }
+.nota{ border-left:4px solid var(--blueprint); background:var(--blueprint-soft); border-radius:0 8px 8px 0; padding:10px 14px; margin:12px 0 16px; font-size:15px; }
+.nota.ojo{ border-left-color:var(--accent); background:var(--note-copper); }
+.tabla{ overflow-x:auto; margin:8px 0 16px; border:1px solid var(--line); border-radius:var(--radius); background:var(--paper-raised); }
+table{ width:100%; border-collapse:collapse; font-size:14.5px; }
+th, td{ text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+th{ font-size:12px; letter-spacing:.04em; color:var(--ink-soft); background:var(--paper-sunken); }
+tr:last-child td{ border-bottom:none; }
+.k{ font-family:var(--mono); font-size:13px; background:var(--paper-sunken); border:1px solid var(--line); border-radius:5px; padding:1px 6px; white-space:nowrap; }
+/* ilustraciones */
+.ilus{ background:var(--paper-sunken); border:1px dashed var(--line-strong); border-radius:var(--radius); padding:16px; margin:10px 0 18px; }
+.ilus figcaption{ font-size:12.5px; color:var(--ink-soft); margin-top:10px; }
+.tarjeta{ width:210px; max-width:100%; background:var(--note-copper); border:1px solid var(--line); border-radius:8px; padding:10px; font-size:13px; box-shadow:var(--shadow); }
+.tag{ display:inline-block; background:var(--accent); color:#0A2240; font-weight:800; font-size:12px; border-radius:999px; padding:2px 10px; margin-bottom:6px; }
+.tarjeta .t{ font-weight:700; }
+.tarjeta .m{ font-family:var(--mono); font-size:11.5px; color:var(--ink-soft); margin-top:4px; }
+.tarjeta .sg{ color:var(--danger); font-weight:700; font-size:12px; display:block; margin-bottom:4px; }
+.fila-ilus{ display:flex; flex-wrap:wrap; gap:14px; align-items:flex-start; }
+.pest{ display:flex; gap:4px; flex-wrap:wrap; }
+.pest span{ font-size:13px; font-weight:600; padding:8px 12px; border-radius:8px; background:var(--paper-raised); border:1px solid var(--line); }
+.pest span.on{ color:var(--blueprint); border-color:var(--blueprint); background:var(--blueprint-soft); }
+.chips{ display:flex; flex-wrap:wrap; gap:8px 14px; font-size:13.5px; }
+.chips i{ display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:6px; vertical-align:-1px; }
+.num{ display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--accent); color:#0A2240; font-weight:800; font-size:12px; align-items:center; justify-content:center; margin-right:6px; }
+.roles{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin:12px 0 18px; }
+.rol{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:14px; }
+.rol b{ display:block; margin-bottom:4px; }
+.rol p{ margin:0; font-size:14.5px; color:var(--ink-soft); }
+details.faq{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:0 14px; margin-bottom:8px; }
+details.faq summary{ cursor:pointer; font-weight:700; padding:12px 0; list-style:none; }
+details.faq summary::-webkit-details-marker{ display:none; }
+details.faq summary::before{ content:"\25B8"; color:var(--blueprint); margin-right:8px; }
+details.faq[open] summary::before{ content:"\25BE"; }
+details.faq div{ padding:0 0 12px; }
+dl.glosario{ margin:0; display:grid; grid-template-columns:minmax(120px, 200px) 1fr; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; background:var(--paper-raised); }
+dl.glosario dt, dl.glosario dd{ margin:0; padding:10px 12px; border-bottom:1px solid var(--line); }
+dl.glosario dt{ font-weight:700; background:var(--paper-sunken); }
+.pie{ margin-top:40px; font-size:13px; color:var(--ink-soft); border-top:1px solid var(--line); padding-top:14px; }
+@media (max-width:860px){
+  .wrap{ grid-template-columns:1fr; gap:0; padding-top:16px; }
+  nav.indice{ position:static; max-height:none; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:12px; margin-bottom:22px; }
+  nav.indice ol{ columns:2; column-gap:8px; }
+  .top{ padding:10px 12px; }
+  .top .btn.pdf span{ display:none; }
+  .top .tt span{ display:none; }
+  .top .back{ padding:8px 10px; }
+  dl.glosario{ grid-template-columns:1fr; }
+  dl.glosario dt{ border-bottom:none; padding-bottom:2px; }
+}
+@media print{
+  @page{ size:A4; margin:16mm 14mm; }
+  :root{ --ink:#0A2240; --ink-soft:#44546A; --paper:#fff; --paper-raised:#fff; --paper-sunken:#F2F1EC; --line:#D5D9DF; color-scheme:light; }
+  .top, nav.indice, .hero .acciones, .no-print{ display:none !important; }
+  .wrap{ display:block; padding:0; max-width:none; }
+  body{ font-size:11pt; }
+  section{ break-inside:auto; }
+  h2, h3, .ilus, .tabla, .nota, details.faq{ break-inside:avoid; }
+  details.faq > div{ display:block !important; }
+  a{ color:inherit; text-decoration:none; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="./">&#x2039; Volver a la app</a>
+  <div class="tt"><b>Manual de uso</b><span>PÓRTICOS DE VIGILANCIA</span></div>
+  <button class="btn pdf" type="button" onclick="window.print()" aria-label="Descargar o imprimir en PDF">&#x2B07;&#xFE0E; <span>Descargar PDF</span></button>
+</header>
+
+<div class="wrap">
+<nav class="indice" aria-label="Índice">
+  <b>CONTENIDO</b>
+  <ol>
+    <li><a href="#inicio">1. Qué es esta app</a></li>
+    <li><a href="#navegacion">2. Cómo moverse</a></li>
+    <li><a href="#semanal">3. Semanal</a></li>
+    <li><a href="#intermedio">4. Intermedio</a></li>
+    <li><a href="#porticos">5. Pórticos</a></li>
+    <li><a href="#avance">6. Avance</a></li>
+    <li><a href="#indicadores">7. Indicadores</a></li>
+    <li><a href="#tareas">8. Tareas frecuentes</a></li>
+    <li><a href="#glosario">9. Glosario</a></li>
+    <li><a href="#faq">10. Preguntas frecuentes</a></li>
+  </ol>
+</nav>
+
+<main>
+<div class="hero">
+  <h1>Manual de uso · Pórticos de Vigilancia</h1>
+  <p>Guía para consultar la programación, el avance en terreno y los indicadores de la instalación de pórticos de vigilancia en la Región de O'Higgins.</p>
+  <div class="acciones">
+    <a class="btn pri" href="./?tour=1">&#x25B6; Ver recorrido guiado</a>
+    <button class="btn" type="button" onclick="window.print()">&#x2B07;&#xFE0E; Descargar PDF</button>
+  </div>
+</div>
+
+<section id="inicio">
+  <h2><span class="n">1</span>Qué es esta app</h2>
+  <p>Es el tablero compartido del proyecto. Reúne en un solo lugar <b>qué se va a hacer</b> (programación semanal y de dos meses), <b>qué se hizo</b> (avance por pórtico, con fotos) y <b>cómo va el proyecto</b> (indicadores). Todos los datos vienen de una planilla central, así que todos ven la misma información.</p>
+  <div class="roles">
+    <div class="rol"><b>&#x1F441;&#xFE0F; ITO, mandante y visitantes</b><p>Pueden ver todo sin clave: programación, estado de cada pórtico, fotos, mapa e indicadores. No pueden modificar nada.</p></div>
+    <div class="rol"><b>&#x1F511; Equipo del proyecto</b><p>Con el PIN de edición pueden registrar avance, subir fotos, programar tareas, marcar cumplimiento y gestionar restricciones.</p></div>
+  </div>
+  <div class="nota">Cada cambio queda anotado en la <b>Bitácora</b> de la planilla con fecha, hora y nombre de quien lo hizo.</div>
+</section>
+
+<section id="navegacion">
+  <h2><span class="n">2</span>Cómo moverse</h2>
+  <p>La app tiene cinco secciones. En celular están en la barra inferior; en computador, en la barra bajo el título.</p>
+  <figure class="ilus">
+    <div class="pest"><span class="on">Semanal</span><span>Intermedio</span><span>Pórticos</span><span>Avance</span><span>Indicadores</span></div>
+    <figcaption>Barra de secciones. La sección activa aparece destacada.</figcaption>
+  </figure>
+  <div class="tabla"><table>
+    <thead><tr><th>Sección</th><th>Para qué sirve</th></tr></thead>
+    <tbody>
+      <tr><td><b>Semanal</b></td><td>Tareas de esta semana, día por día, y el cumplimiento del plan (PPC).</td></tr>
+      <tr><td><b>Intermedio</b></td><td>Programación de las próximas semanas (unos dos meses), para anticipar problemas.</td></tr>
+      <tr><td><b>Pórticos</b></td><td>Listado de los pórticos con su estado, fotos y mapa de ubicación.</td></tr>
+      <tr><td><b>Avance</b></td><td>Qué se ejecutó cada semana, con la última actualización de cada pórtico.</td></tr>
+      <tr><td><b>Indicadores</b></td><td>Resumen del proyecto: avance global, PPC, curva S, causas de atraso y restricciones.</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Botones de la barra superior</h3>
+  <ul class="lista">
+    <li><b>&#x1F4D6; Manual</b>: abre esta guía.</li>
+    <li><b>Resumen ejecutivo</b>: genera una hoja imprimible con el estado del proyecto.</li>
+    <li><b>&#x2600;&#xFE0F; / &#x1F319; Tema</b>: cambia entre modo claro y oscuro.</li>
+  </ul>
+  <div class="nota">En cada sección hay un botón <b>?</b> con una ayuda corta de esa pantalla.</div>
+</section>
+
+<section id="semanal">
+  <h2><span class="n">3</span>Semanal</h2>
+  <p>Muestra el <b>compromiso de la semana</b>: qué partida se hará en qué pórtico y qué día. Las filas son las partidas (Excavación, Emplantillado, etc.) y las columnas, los días.</p>
+  <figure class="ilus">
+    <div class="fila-ilus">
+      <div class="tarjeta"><span class="tag">San Fernando: P157-b</span><div class="t">Hormigón H10</div><div class="m">Resp: Juan · 100%</div></div>
+      <div class="tarjeta"><span class="sg">&#x25CF; sin guardar</span><span class="tag">Chimbarongo: P163</span><div class="m">&#x26A0; Terreno</div></div>
+    </div>
+    <figcaption>Cada tarjeta es una tarea. La etiqueta indica <b>comuna y pórtico</b>; debajo aparecen la observación, el responsable, el % de avance y, si existe, la restricción.</figcaption>
+  </figure>
+  <h3>Cómo leer una tarjeta</h3>
+  <ul class="lista">
+    <li><b>Color</b>: corresponde a la partida.</li>
+    <li><b>&#x25CF; sin guardar</b>: la tarea se modificó en ese equipo y aún no se envió a la planilla. Solo la ve quien la editó.</li>
+    <li><b>&#x26A0; restricción</b>: algo impide ejecutarla (materiales, permisos, terreno…).</li>
+  </ul>
+  <h3>Para el equipo (con PIN)</h3>
+  <ol class="pasos">
+    <li>Toca <b>+</b> (o <b>+ Agregar tarea</b> en celular) en la partida y el día.</li>
+    <li>Elige el pórtico y completa responsable y observación.</li>
+    <li>Al terminar la semana, marca cada tarea como <b>Sí cumplió</b> o <b>No cumplió</b> y, si no se cumplió, su <b>causa</b>.</li>
+    <li>Toca <b>Guardar</b> e ingresa tu nombre y el PIN.</li>
+  </ol>
+  <p>Usa <b>◀ Anterior</b>, <b>Esta semana</b> y <b>Siguiente ▶</b> para moverte entre semanas.</p>
+</section>
+
+<section id="intermedio">
+  <h2><span class="n">4</span>Intermedio</h2>
+  <p>Es la <b>programación de mediano plazo</b>, semana a semana, por unos dos meses. Sirve para ver con anticipación qué viene y detectar a tiempo lo que podría impedirlo.</p>
+  <ul class="lista">
+    <li>En computador se ven todas las semanas; si hay más a la derecha, aparecen los botones <b>‹ ›</b>.</li>
+    <li>En celular se elige la semana con los botones de fecha.</li>
+    <li>Una tarea que dice <b>"! falta autorización…"</b> espera un permiso (por ejemplo, de la DOM).</li>
+  </ul>
+  <h3>Para el equipo (con PIN)</h3>
+  <ol class="pasos">
+    <li>Agrega tareas igual que en el Semanal.</li>
+    <li>Cuando una tarea está lista para ejecutarse, usa <b>Enviar →</b> para pasarla al Semanal.</li>
+    <li><b>Duplicar en sig.</b> copia la tarea a la semana siguiente.</li>
+  </ol>
+</section>
+
+<section id="porticos">
+  <h2><span class="n">5</span>Pórticos</h2>
+  <p>Listado de todos los pórticos con su <b>comuna, ubicación, fotos y estado actual</b>, y un mapa con su posición.</p>
+  <h3>Buscar y filtrar</h3>
+  <ol class="pasos">
+    <li>Escribe en <b>Buscar pórtico o comuna</b>.</li>
+    <li>Usa los filtros <b>Comuna</b> y <b>Estado</b>; se pueden marcar varias opciones.</li>
+    <li>El mapa hace zoom automáticamente a los pórticos filtrados.</li>
+  </ol>
+  <h3>Ver un pórtico</h3>
+  <ul class="lista">
+    <li>Toca la fila: el pórtico se marca en el listado y en el mapa aparece con un <b>anillo rojo</b>.</li>
+    <li>Toca <b>Ubicación</b> para abrirlo en Google Maps.</li>
+    <li>Toca <b>&#x1F4F7;</b> para ver sus fotos.</li>
+    <li>Toca el <b>estado</b> para ver su historial completo.</li>
+  </ul>
+  <figure class="ilus">
+    <div class="chips">
+      <span><i style="background:#fff;border:1.5px solid #0A2240"></i>Sin iniciar</span>
+      <span><i style="background:#D49A6A"></i>Excavación</span>
+      <span><i style="background:#8C949E"></i>Emplantillado</span>
+      <span><i style="background:#2C6B7E"></i>Inst. de Fundación</span>
+      <span><i style="background:#D6A828"></i>Inst. Malla</span>
+      <span><i style="background:#26694B"></i>Relleno</span>
+      <span><i style="background:#7A52AA"></i>Inst. Pórtico</span>
+      <span><i style="background:#B23B3B"></i>Inst. Cámara</span>
+    </div>
+    <figcaption>Colores de estado. El estado de un pórtico es la última partida registrada.</figcaption>
+  </figure>
+  <h3>Registrar avance (equipo, con PIN)</h3>
+  <ol class="pasos">
+    <li>Toca el <b>estado</b> del pórtico.</li>
+    <li>Elige la <b>partida</b>, la <b>fecha</b> y el <b>% de avance</b> (100% = terminada).</li>
+    <li>Agrega una observación y hasta <b>10 fotos</b> (opcional).</li>
+    <li>Toca <b>Guardar avance</b>. Las fotos quedan ordenadas en Drive por comuna, pórtico, partida y fecha.</li>
+  </ol>
+  <div class="nota ojo">Si te equivocas, en el historial del pórtico usa <b>Anular</b>. El registro no se borra: queda marcado como anulado.</div>
+</section>
+
+<section id="avance">
+  <h2><span class="n">6</span>Avance</h2>
+  <p>Arriba muestra <b>cuántos pórticos hay en cada etapa</b>. Debajo, cada semana con los pórticos que tuvieron avance.</p>
+  <ul class="lista">
+    <li>Cada pórtico aparece <b>una vez por semana</b>, con su <b>última actualización</b> de esa semana.</li>
+    <li>Un mismo pórtico puede aparecer en semanas distintas: es su historial.</li>
+    <li>Toca un pórtico para ver su detalle y sus fotos.</li>
+  </ul>
+</section>
+
+<section id="indicadores">
+  <h2><span class="n">7</span>Indicadores</h2>
+  <p>Resumen del estado del proyecto, pensado para el seguimiento con la ITO y el mandante.</p>
+  <div class="tabla"><table>
+    <thead><tr><th>Indicador</th><th>Qué significa</th><th>Cómo leerlo</th></tr></thead>
+    <tbody>
+      <tr><td><b>Avance global</b></td><td>Partidas ejecutadas sobre el total del proyecto.</td><td>Sube a medida que se registra avance.</td></tr>
+      <tr><td><b>Pórticos iniciados</b></td><td>Pórticos con al menos un registro de avance.</td><td>Muestra la extensión del trabajo en terreno.</td></tr>
+      <tr><td><b>PPC</b></td><td>Porcentaje de tareas comprometidas en la semana que se cumplieron.</td><td>Meta: <b>80% o más</b>. Valores bajos indican que se está comprometiendo más de lo que realmente se puede ejecutar.</td></tr>
+      <tr><td><b>Curva S</b></td><td>Partidas programadas vs. ejecutadas en el tiempo.</td><td>Si la línea ejecutada va bajo la programada, hay atraso.</td></tr>
+      <tr><td><b>Causas (Pareto)</b></td><td>Motivos por los que no se cumplieron tareas, de mayor a menor.</td><td>Atacar las primeras causas resuelve la mayor parte del problema.</td></tr>
+      <tr><td><b>Autorizaciones pendientes</b></td><td>Pórticos que esperan un permiso para avanzar.</td><td>Mientras no se liberen, no se puede excavar.</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Restricciones</h3>
+  <p>Son las cosas que <b>impiden avanzar</b> una tarea. Toca <b>▸ Restricciones</b> para desplegar la lista.</p>
+  <ul class="lista">
+    <li><b>Borde cobre</b>: abierta. <b style="color:var(--danger)">Borde rojo</b>: vencida (pasó la fecha comprometida). <b style="color:var(--success)">Borde verde</b>: liberada.</li>
+    <li><b>Ver liberadas</b> muestra el historial de las ya resueltas.</li>
+    <li><b>Marcadas en tareas del programa</b> son autorizaciones pendientes que vienen de la programación.</li>
+  </ul>
+  <h3>Para el equipo (con PIN)</h3>
+  <ol class="pasos">
+    <li>Toca <b>+ Agregar</b> y describe qué impide avanzar.</li>
+    <li>Elige pórtico, tipo, quién la resuelve y la fecha límite.</li>
+    <li>Cuando se resuelva, toca <b>✓ Liberar</b>.</li>
+  </ol>
+</section>
+
+<section id="tareas">
+  <h2><span class="n">8</span>Tareas frecuentes</h2>
+  <h3><span class="num">1</span>Registrar que se terminó una excavación, con fotos</h3>
+  <p>Pórticos → toca el estado del pórtico → Partida: Excavación → 100% → adjunta fotos → <b>Guardar avance</b>.</p>
+  <h3><span class="num">2</span>Programar la semana</h3>
+  <p>Intermedio → revisa la semana → <b>Enviar →</b> en cada tarea lista. Luego, en Semanal, ajusta el día y el responsable → <b>Guardar</b>.</p>
+  <h3><span class="num">3</span>Cerrar la semana</h3>
+  <p>Semanal → en cada tarea marca <b>Sí cumplió</b> o <b>No cumplió</b> (con causa) → <b>Guardar</b>. El PPC se actualiza en Indicadores.</p>
+  <h3><span class="num">4</span>Liberar una autorización</h3>
+  <p>Indicadores → ▸ Restricciones → en "Marcadas en tareas del programa" toca <b>✓ Liberar hoy</b>.</p>
+  <h3><span class="num">5</span>Compartir el estado del proyecto</h3>
+  <p>Toca <b>Resumen ejecutivo</b> en la barra superior e imprime o guarda como PDF. También puedes exportar a Excel desde <b>Más opciones</b> en Semanal o Intermedio.</p>
+</section>
+
+<section id="glosario">
+  <h2><span class="n">9</span>Glosario</h2>
+  <dl class="glosario">
+    <dt>Last Planner®</dt><dd>Método de planificación colaborativa: se compromete solo lo que se puede hacer y se mide si se cumplió.</dd>
+    <dt>Plan intermedio</dt><dd>Programación de las próximas semanas, usada para detectar y resolver restricciones antes de que atrasen la obra.</dd>
+    <dt>Plan semanal</dt><dd>Compromiso de tareas de la semana en curso.</dd>
+    <dt>PPC</dt><dd>Porcentaje de Plan Cumplido: tareas cumplidas ÷ tareas comprometidas en la semana.</dd>
+    <dt>Restricción</dt><dd>Condición que impide ejecutar una tarea: falta de material, permiso, equipo, información, etc.</dd>
+    <dt>Liberar</dt><dd>Dar por resuelta una restricción o autorización.</dd>
+    <dt>Causa de no cumplimiento</dt><dd>Motivo por el que una tarea comprometida no se ejecutó.</dd>
+    <dt>Partida</dt><dd>Etapa de trabajo en un pórtico: Excavación, Emplantillado, Inst. de Fundación, Inst. Malla, Relleno, Inst. Pórtico e Inst. Cámara.</dd>
+    <dt>Curva S</dt><dd>Gráfico del avance acumulado en el tiempo, programado versus real.</dd>
+    <dt>PIN de edición</dt><dd>Clave del equipo para modificar datos. No se necesita para consultar.</dd>
+  </dl>
+</section>
+
+<section id="faq">
+  <h2><span class="n">10</span>Preguntas frecuentes</h2>
+  <details class="faq"><summary>¿Necesito una clave para ver la información?</summary><div>No. Todo se puede consultar libremente. El PIN solo se pide para modificar.</div></details>
+  <details class="faq"><summary>Veo datos antiguos o nombres como "Pórtico 5"</summary><div>La app muestra primero la última copia guardada y luego se actualiza sola. Si no cambia, revisa tu conexión y recarga la página. En celular, cierra la pestaña y vuelve a abrirla.</div></details>
+  <details class="faq"><summary>¿Qué significa "● sin guardar"?</summary><div>La tarjeta se modificó en ese equipo pero no se envió a la planilla. Ábrela y toca <b>Guardar</b>; si no, nadie más verá el cambio.</div></details>
+  <details class="faq"><summary>Me equivoqué al registrar un avance</summary><div>Abre el pórtico y, en su historial, toca <b>Anular</b> en ese registro. Luego registra el correcto.</div></details>
+  <details class="faq"><summary>El PIN no funciona o dice que espere 15 minutos</summary><div>Después de 5 intentos fallidos la edición se bloquea 15 minutos por seguridad. Confirma el PIN con el administrador del proyecto.</div></details>
+  <details class="faq"><summary>¿Dónde quedan las fotos?</summary><div>En Google Drive, ordenadas por comuna, pórtico, partida y fecha. Desde la app se ven tocando <b>&#x1F4F7;</b>.</div></details>
+  <details class="faq"><summary>¿Funciona sin internet?</summary><div>Se puede consultar la última copia descargada, pero para guardar cambios se necesita conexión.</div></details>
+  <details class="faq"><summary>¿Cómo vuelvo a ver el recorrido guiado?</summary><div>Toca <a href="./?tour=1">Ver recorrido guiado</a> al inicio de este manual.</div></details>
+</section>
+
+<p class="pie">GEOMAV · Topografía y visualización · Manual de la app Pórticos de Vigilancia.</p>
+</main>
+</div>
+
+<script>
+/* resalta en el índice la sección visible */
+(function(){
+  if(!("IntersectionObserver" in window)) return;
+  var links = {}; Array.prototype.forEach.call(document.querySelectorAll("nav.indice a"), function(a){ links[a.getAttribute("href").slice(1)] = a; });
+  var io = new IntersectionObserver(function(ents){
+    ents.forEach(function(e){ if(e.isIntersecting){ Object.keys(links).forEach(function(k){ links[k].classList.toggle("on", k === e.target.id); }); } });
+  }, { rootMargin:"-30% 0px -60% 0px" });
+  Array.prototype.forEach.call(document.querySelectorAll("main section[id]"), function(s){ io.observe(s); });
+  /* al imprimir, abrir todas las preguntas */
+  window.addEventListener("beforeprint", function(){ Array.prototype.forEach.call(document.querySelectorAll("details.faq"), function(d){ d.dataset.prev = d.open ? "1" : ""; d.open = true; }); });
+  window.addEventListener("afterprint", function(){ Array.prototype.forEach.call(document.querySelectorAll("details.faq"), function(d){ d.open = d.dataset.prev === "1"; }); });
+})();
+</script>
+</body>
+</html>
