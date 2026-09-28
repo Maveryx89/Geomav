@@ -2953,7 +2953,24 @@ window.PORTICOS_LISTA = (function(){
       };
     });
     Array.prototype.forEach.call(modal.querySelectorAll("[data-anular]"), function(b){
-      b.onclick = function(){ if(confirm("\u00bfAnular este registro de avance?")) guardar({ accion:"anular", id:b.dataset.anular }, num, b); };
+      b.onclick = function(){
+        /* anular siempre pide el PIN, aunque ya est\u00e9 ingresado en la sesi\u00f3n */
+        var li = b.closest("li"); if(!li) return;
+        li.classList.add("pm-editando");
+        li.innerHTML = '<div class="pm-edit"><div class="pm-label" style="color:var(--danger)">Anular registro</div>'
+          + '<p class="pm-f" style="margin:0 0 6px">El registro deja de contar para el estado y los indicadores. Queda en la bit\u00e1cora.</p>'
+          + '<label class="pm-full">PIN de edici\u00f3n<input type="password" class="an-pin" inputmode="numeric" autocomplete="off" maxlength="8"></label>'
+          + '<div class="pm-msg an-msg"></div>'
+          + '<div class="ed-acc"><button type="button" class="pm-guardar an-ok" style="background:var(--danger)">Anular</button><button type="button" class="btn-link an-cancel">Cancelar</button></div></div>';
+        var ip = li.querySelector(".an-pin"); ip.focus();
+        li.querySelector(".an-cancel").onclick = function(){ abrirPortico(num); };
+        li.querySelector(".an-ok").onclick = function(){
+          var m = li.querySelector(".an-msg"), pv = ip.value.trim();
+          if(!pv){ m.textContent = "Ingresa el PIN para anular."; m.className = "pm-msg an-msg err"; ip.focus(); return; }
+          guardar({ accion:"anular", id:b.dataset.anular, __pin:pv }, num, this, null, m);
+        };
+        ip.addEventListener("keydown", function(e){ if(e.key === "Enter") li.querySelector(".an-ok").click(); });
+      };
     });
     /* editar un registro del historial (con PIN) */
     Array.prototype.forEach.call(modal.querySelectorAll("[data-editar]"), function(b){
@@ -3036,7 +3053,7 @@ window.PORTICOS_LISTA = (function(){
   function guardar(body, num, btn, files, msgEl){
     var msg = msgEl || modal.querySelector("#pmMsg");
     var pinInput = modal.querySelector("#pmPin");
-    var pin = getPin() || (pinInput ? pinInput.value.trim() : "");
+    var pin = body.__pin || getPin() || (pinInput ? pinInput.value.trim() : ""); delete body.__pin;
     if(!pin){ msg.textContent = "Ingresa el PIN de edici\u00f3n."; msg.className = "pm-msg err"; if(pinInput) pinInput.focus(); return; }
     var autorInput = modal.querySelector("#pmAutor");
     if(autorInput && autorInput.value.trim()) setAutor(autorInput.value.trim());
