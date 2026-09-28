@@ -851,6 +851,42 @@ section[data-board="intermedio"] .restrictions-panel{ display:none !important; }
 .rs-more{ margin-top:10px; background:none; border:none; padding:4px 0; color:var(--blueprint); font:inherit; font-size:.8rem; font-weight:700; cursor:pointer; }
 .rs-sub{ margin:16px 0 0; padding-top:12px; border-top:1px solid var(--line); font-size:.78rem; font-weight:700; color:var(--ink-soft); }
 @media print{ .rs-box{ display:none !important; } }
+
+/* ===== ayuda contextual, manual y recorrido ===== */
+.manual-btn{ text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
+.manual-btn svg{ width:20px; height:20px; }
+.ay-t{ display:block; font-size:.86rem; margin-bottom:4px; color:var(--ink); }
+.ay-l{ margin:0 0 8px; padding-left:18px; }
+.ay-l li{ margin-bottom:4px; }
+.ay-m{ font-weight:700; color:var(--blueprint); text-decoration:none; }
+.ay-m:hover{ text-decoration:underline; }
+.ayuda-der .ayuda-pop.hint{ left:auto; right:0; }
+.ph-der{ display:inline-flex; align-items:center; gap:8px; flex:none; }
+.ph-der .ayuda > summary{ width:26px; height:26px; font-size:12px; }
+.ind-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.ayuda-fila{ display:none; align-items:center; justify-content:space-between; gap:10px; margin:0 0 8px; font-weight:700; font-size:.9rem; color:var(--ink); }
+body[data-mtab="avance"] .ayuda-avance{ display:flex; }
+@media (max-width:860px){
+  .ayuda-pop.hint{ position:fixed !important; left:12px !important; right:12px !important; top:auto !important; width:auto !important;
+    bottom:calc(84px + env(safe-area-inset-bottom, 0px)); max-height:60vh; overflow:auto; z-index:90; font-size:.9rem; }
+  .ph-der .ayuda > summary{ width:36px; height:36px; }
+  .ayuda-fila{ margin:0 12px 8px; }
+}
+@media print{ .manual-btn, .ayuda-fila, .tour-capa{ display:none !important; } }
+@media (max-width:480px){ #printResumenBtn .rs-lg{ display:none; } }
+/* recorrido guiado */
+.tour-capa{ position:fixed; inset:0; z-index:200; }
+.tour-velo{ position:fixed; inset:0; background:rgba(10,34,64,.62); }
+.tour-hl{ position:fixed; border-radius:12px; box-shadow:0 0 0 9999px rgba(10,34,64,.62), 0 0 0 3px var(--accent); transition:all .25s ease; pointer-events:none; }
+.tour-card{ position:fixed; width:min(340px, calc(100vw - 24px)); background:var(--paper-raised); color:var(--ink); border-radius:12px; padding:16px 16px 12px; box-shadow:0 18px 40px -12px rgba(0,0,0,.5); font-size:.92rem; line-height:1.45; }
+.tour-card h4{ margin:0 0 6px; font-size:1rem; }
+.tour-card p{ margin:0 0 12px; }
+.tour-pie{ display:flex; align-items:center; gap:8px; }
+.tour-pie .tour-n{ flex:1; font-size:.75rem; color:var(--ink-soft); }
+.tour-pie button{ font:inherit; font-size:.85rem; font-weight:700; border-radius:8px; padding:8px 12px; cursor:pointer; border:1px solid var(--line-strong); background:var(--paper-raised); color:var(--ink); }
+.tour-pie .tour-sig{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.tour-pie .tour-saltar{ border:none; background:none; color:var(--ink-soft); padding:8px 4px; }
+.tour-pie button:focus-visible{ outline:2px solid var(--blueprint); outline-offset:2px; }
 </style>
 </head>
 
@@ -866,7 +902,8 @@ section[data-board="intermedio"] .restrictions-panel{ display:none !important; }
       </div>
     </div>
     <span class="spacer"></span>
-    <button class="btn-sm" id="printResumenBtn" type="button">Resumen ejecutivo</button>
+    <a class="theme-toggle manual-btn" id="btnManual" href="manual.html" aria-label="Manual de uso" title="Manual de uso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6.5A2.5 2.5 0 0 0 4 21.5v-2z"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H19"/><path d="M9 7h6M9 11h4"/></svg></a>
+    <button class="btn-sm" id="printResumenBtn" type="button" aria-label="Resumen ejecutivo">Resumen<span class="rs-lg"> ejecutivo</span></button>
     <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema" type="button">
       <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
     </button>
@@ -924,7 +961,7 @@ section[data-board="intermedio"] .restrictions-panel{ display:none !important; }
           <button class="btn-sm" data-action="print">Imprimir</button>
         </div>
       </details>
-      <details class="ayuda"><summary aria-label="Ayuda de esta sección" title="Ayuda">?</summary><div class="ayuda-pop hint">Toca “+” para agregar una tarea y tócala para editarla. Usa <b>Guardar</b> para compartirla.</div></details>
+      <details class="ayuda"><summary aria-label="Ayuda: Plan semanal" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Plan semanal</b><ol class="ay-l"><li>Cada tarjeta es una tarea: la etiqueta indica <b>comuna y pórtico</b>.</li><li>Toca <b>+</b> para agregar una tarea y tócala para editarla.</li><li>Al cierre de semana marca <b>Sí cumplió / No cumplió</b> y la causa.</li><li><b>● sin guardar</b>: el cambio aún no está en la planilla. Toca <b>Guardar</b> (pide PIN).</li><li>Consultar no requiere clave; solo editar.</li></ol><a class="ay-m" href="manual.html#semanal">Ver manual completo &rarr;</a></div></details>
     </div>
 
     <div class="reliability-panel"></div>
@@ -939,7 +976,7 @@ section[data-board="intermedio"] .restrictions-panel{ display:none !important; }
       <div class="board-scroll"><div class="board"></div></div>
       <aside class="porticos-panel" aria-label="Listado de pórticos">
         <div class="porticos-inner">
-          <div class="porticos-head"><div><strong>Listado de pórticos</strong><span class="porticos-sub">Región de O&#39;Higgins · <span class="porticos-sync" id="porticosSync">Conectando…</span></span></div><span class="porticos-count" id="porticosCount"></span></div>
+          <div class="porticos-head"><div><strong>Listado de pórticos</strong><span class="porticos-sub">Región de O&#39;Higgins · <span class="porticos-sync" id="porticosSync">Conectando…</span></span></div><span class="ph-der"><details class="ayuda ayuda-der"><summary aria-label="Ayuda: Pórticos" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Pórticos</b><ol class="ay-l"><li>Busca o filtra por <b>comuna</b> y <b>estado</b>; el mapa hace zoom a lo filtrado.</li><li>Toca una fila para marcar el pórtico en el mapa (anillo rojo).</li><li>Toca <b>Ubicación</b> para abrir Google Maps y <b>📷</b> para ver fotos.</li><li>Toca el <b>estado</b> para ver el historial o registrar avance (con PIN).</li></ol><a class="ay-m" href="manual.html#porticos">Ver manual completo &rarr;</a></div></details><span class="porticos-count" id="porticosCount"></span></span></div>
           <div class="porticos-filtros">
             <input type="search" id="fBuscar" placeholder="Buscar pórtico o comuna" aria-label="Buscar pórtico o comuna" autocomplete="off">
             <details class="msel" id="fComuna"><summary aria-label="Filtrar por comuna"><span class="msel-t">Todas las comunas</span></summary><div class="msel-pop" role="group" aria-label="Comunas"></div></details>
@@ -956,6 +993,7 @@ section[data-board="intermedio"] .restrictions-panel{ display:none !important; }
       <div class="porticos-mapa">
         <div class="edit-bar" id="editBar"></div>
         <button class="btn-sm mapa-toggle" type="button" id="avanceToggle" aria-expanded="false">&#x1F4C5; Avance por semana</button>
+        <div class="ayuda-fila ayuda-avance"><span>Avance por semana</span><details class="ayuda ayuda-der"><summary aria-label="Ayuda: Avance" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Avance</b><ol class="ay-l"><li>Arriba: cuántos pórticos hay en cada etapa.</li><li>Debajo: cada semana con los pórticos que avanzaron.</li><li>Se muestra la <b>última actualización</b> de cada pórtico en esa semana.</li><li>Toca un pórtico para ver su detalle y fotos.</li></ol><a class="ay-m" href="manual.html#avance">Ver manual completo &rarr;</a></div></details></div>
         <div class="avance-wrap" id="avanceWrap" hidden></div>
         <button class="btn-sm mapa-toggle" type="button" id="mapaToggle" aria-expanded="false" style="margin-top:8px">&#x1F5FA;&#xFE0F; Ver mapa de pórticos</button>
         <div class="mapa-wrap" id="mapaWrap" hidden>
@@ -999,7 +1037,7 @@ section[data-board="intermedio"] .restrictions-panel{ display:none !important; }
           <button class="btn-sm" data-action="print">Imprimir</button>
         </div>
       </details>
-      <details class="ayuda"><summary aria-label="Ayuda de esta sección" title="Ayuda">?</summary><div class="ayuda-pop hint">Toca “+” para agregar una tarea y tócala para editarla. Usa <b>Guardar</b> para compartirla.</div></details>
+      <details class="ayuda"><summary aria-label="Ayuda: Plan intermedio" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Plan intermedio</b><ol class="ay-l"><li>Programación de las próximas semanas (~2 meses).</li><li>En celular elige la semana con los botones de fecha; en computador usa <b>‹ ›</b>.</li><li><b>! falta autorización</b>: la tarea espera un permiso.</li><li><b>Enviar →</b> pasa una tarea lista al plan semanal.</li></ol><a class="ay-m" href="manual.html#intermedio">Ver manual completo &rarr;</a></div></details>
     </div>
 
     <div class="restrictions-panel"></div>
@@ -1010,7 +1048,7 @@ section[data-board="intermedio"] .restrictions-panel{ display:none !important; }
 
 
   <section class="ind-block" id="indBlock" aria-label="Indicadores">
-    <div class="section-head"><h2>Indicadores del proyecto</h2></div>
+    <div class="section-head ind-head"><h2>Indicadores del proyecto</h2><details class="ayuda ayuda-der"><summary aria-label="Ayuda: Indicadores" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Indicadores</b><ol class="ay-l"><li><b>PPC</b>: % de tareas comprometidas que se cumplieron (meta 80%).</li><li><b>Curva S</b>: si lo ejecutado va bajo lo programado, hay atraso.</li><li><b>Pareto</b>: causas de atraso, de mayor a menor.</li><li><b>▸ Restricciones</b>: lo que impide avanzar; rojo = vencida.</li></ol><a class="ay-m" href="manual.html#indicadores">Ver manual completo &rarr;</a></div></details></div>
     <div id="restrBox" class="rs-box" aria-label="Restricciones"></div>
     <div id="indBody"></div>
   </section>
@@ -3432,6 +3470,79 @@ window.PORTICOS_LISTA = (function(){
   var orig = window.renderPorticos;
   if(typeof orig === "function"){ window.renderPorticos = function(){ var r = orig.apply(this, arguments); try{ pintar(); }catch(e){} return r; }; }
   pintar();
+})();
+</script>
+<script>
+/* ===== ayuda: cerrar al tocar fuera / abrir de a una ===== */
+(function(){
+  document.addEventListener("click", function(e){
+    Array.prototype.forEach.call(document.querySelectorAll("details.ayuda[open]"), function(d){ if(!d.contains(e.target)) d.open = false; });
+  });
+  document.addEventListener("toggle", function(e){
+    var d = e.target; if(!d.classList || !d.classList.contains("ayuda") || !d.open) return;
+    Array.prototype.forEach.call(document.querySelectorAll("details.ayuda[open]"), function(o){ if(o !== d) o.open = false; });
+  }, true);
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") Array.prototype.forEach.call(document.querySelectorAll("details.ayuda[open]"), function(d){ d.open = false; }); });
+})();
+/* ===== recorrido guiado (primera visita o ?tour=1) ===== */
+(function(){
+  "use strict";
+  var KEY = "porticos-tour-v1";
+  function visible(el){ if(!el) return false; var r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== "hidden"; }
+  function primero(sel){ var l = document.querySelectorAll(sel); for(var i=0;i<l.length;i++){ if(visible(l[i])) return l[i]; } return null; }
+  var PASOS = [
+    { t:"Bienvenido/a", p:"Aquí se sigue la instalación de los p\u00f3rticos de vigilancia: qu\u00e9 se programa, qu\u00e9 se ejecuta y c\u00f3mo va el proyecto. Puedes consultar todo sin clave." },
+    { sel:"#mTabs", t:"Secciones", p:"Semanal e Intermedio: programaci\u00f3n. P\u00f3rticos: listado, fotos y mapa. Avance: lo ejecutado cada semana. Indicadores: el resumen del proyecto." },
+    { sel:".ayuda > summary", t:"Ayuda en cada pantalla", p:"Toca <b>?</b> para ver una explicaci\u00f3n corta de la secci\u00f3n en la que est\u00e1s." },
+    { sel:"#btnManual", t:"Manual completo", p:"Gu\u00eda paso a paso, glosario y preguntas frecuentes. Se puede descargar en PDF." },
+    { sel:"#printResumenBtn", t:"Resumen ejecutivo", p:"Una hoja con el estado del proyecto, lista para imprimir o guardar como PDF." },
+    { t:"\u00bfVas a modificar datos?", p:"Registrar avance, subir fotos o programar tareas requiere el <b>PIN del equipo</b>. Si solo vas a consultar, no necesitas nada m\u00e1s." }
+  ];
+  var capa, hl, card, i = 0, pasos = [];
+  function cerrar(){ try{ localStorage.setItem(KEY, "visto"); }catch(e){} if(capa) capa.remove(); capa = null; window.removeEventListener("resize", ubicar); document.removeEventListener("keydown", teclas); }
+  function teclas(e){ if(e.key === "Escape") cerrar(); else if(e.key === "ArrowRight") ir(i+1); else if(e.key === "ArrowLeft") ir(i-1); }
+  function ubicar(){
+    var s = pasos[i], el = s.el, vw = window.innerWidth, vh = window.innerHeight, c = card.getBoundingClientRect();
+    if(!el){ hl.style.display = "none"; capa.querySelector(".tour-velo").style.display = "block";
+      card.style.left = Math.max(12, (vw - c.width)/2) + "px"; card.style.top = Math.max(12, (vh - c.height)/2) + "px"; return; }
+    capa.querySelector(".tour-velo").style.display = "none"; hl.style.display = "block";
+    var r = el.getBoundingClientRect(), pad = 6;
+    hl.style.left = (r.left - pad) + "px"; hl.style.top = (r.top - pad) + "px"; hl.style.width = (r.width + pad*2) + "px"; hl.style.height = (r.height + pad*2) + "px";
+    var arriba = r.top + r.height/2 > vh/2;
+    var top = arriba ? r.top - pad - 12 - c.height : r.bottom + pad + 12;
+    top = Math.min(Math.max(12, top), vh - c.height - 12);
+    var left = Math.min(Math.max(12, r.left + r.width/2 - c.width/2), vw - c.width - 12);
+    card.style.left = left + "px"; card.style.top = top + "px";
+  }
+  function ir(n){
+    if(n < 0) return; if(n >= pasos.length){ cerrar(); return; }
+    i = n; var s = pasos[i];
+    if(s.el && s.el.scrollIntoView){ var r = s.el.getBoundingClientRect(); if(r.top < 0 || r.bottom > window.innerHeight) s.el.scrollIntoView({ block:"center" }); }
+    card.innerHTML = '<h4>'+s.t+'</h4><p>'+s.p+'</p><div class="tour-pie"><span class="tour-n">'+(i+1)+' de '+pasos.length+'</span>'
+      + (i < pasos.length - 1 ? '<button type="button" class="tour-saltar">Saltar</button>' : '')
+      + (i > 0 ? '<button type="button" class="tour-ant">Anterior</button>' : '')
+      + '<button type="button" class="tour-sig">'+(i === pasos.length - 1 ? 'Listo' : 'Siguiente')+'</button></div>';
+    card.querySelector(".tour-sig").onclick = function(){ ir(i+1); };
+    var a = card.querySelector(".tour-ant"); if(a) a.onclick = function(){ ir(i-1); };
+    var k = card.querySelector(".tour-saltar"); if(k) k.onclick = cerrar;
+    requestAnimationFrame(ubicar);
+    card.querySelector(".tour-sig").focus();
+  }
+  function iniciar(){
+    if(capa) return;
+    pasos = PASOS.map(function(s){ return { t:s.t, p:s.p, el: s.sel ? primero(s.sel) : null, sel:s.sel }; }).filter(function(s){ return !s.sel || s.el; });
+    capa = document.createElement("div"); capa.className = "tour-capa"; capa.setAttribute("role", "dialog"); capa.setAttribute("aria-modal", "true"); capa.setAttribute("aria-label", "Recorrido guiado");
+    capa.innerHTML = '<div class="tour-velo"></div><div class="tour-hl"></div><div class="tour-card"></div>';
+    document.body.appendChild(capa);
+    hl = capa.querySelector(".tour-hl"); card = capa.querySelector(".tour-card");
+    window.addEventListener("resize", ubicar); document.addEventListener("keydown", teclas);
+    ir(0);
+  }
+  window.LP_tour = iniciar;
+  var forzar = /[?&]tour=1\b/.test(location.search), visto = false;
+  try{ visto = localStorage.getItem(KEY) === "visto"; }catch(e){}
+  if(forzar){ try{ history.replaceState(null, "", location.pathname + location.hash); }catch(e){} }
+  if(forzar || !visto) setTimeout(iniciar, forzar ? 400 : 1200);
 })();
 </script>
 </body>
