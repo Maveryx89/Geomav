@@ -680,6 +680,85 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 .tour-pie .tour-sig{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
 .tour-pie .tour-saltar{ border:none; background:none; color:var(--ink-soft); padding:8px 4px; }
 .tour-pie button:focus-visible{ outline:2px solid var(--blueprint); outline-offset:2px; }
+
+/* ===================== Carta Gantt del Plan Maestro ===================== */
+section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scroll, section[data-board="maestro"] .scroll-cue{ display:none !important; }
+.gantt-wrap{ margin:0 16px 18px; }
+.g-add{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.g-scroll{ overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius-md); background:var(--paper-raised); }
+.gantt{ --lw:210px; --mw:52px; display:grid; grid-template-columns:var(--lw) repeat(var(--n), minmax(var(--mw), 1fr)); min-width:max-content; width:100%; font-size:13px; }
+.g-lbl{ position:sticky; left:0; z-index:3; background:var(--paper-raised); border-right:1px solid var(--line-strong); border-bottom:1px solid var(--line); grid-column:1; padding:8px 12px; box-sizing:border-box; min-width:0; }
+.g-corner{ z-index:4; background:var(--paper-sunken); font-size:11px; font-weight:700; letter-spacing:.05em; color:var(--ink-soft); display:flex; align-items:flex-end; text-transform:uppercase; }
+.g-year{ background:var(--paper-sunken); font-size:11px; font-weight:700; color:var(--ink-soft); padding:6px 8px 2px; border-left:1px solid var(--line-strong); letter-spacing:.04em; }
+.g-mes{ position:relative; background:var(--paper-sunken); border-left:1px solid var(--line); border-bottom:1px solid var(--line-strong); padding:2px 4px 6px; text-align:center; font-weight:700; font-size:12px; color:var(--ink); }
+.g-mes.hoy{ color:var(--danger); }
+.g-mes-x{ all:unset; position:absolute; top:0; right:1px; width:16px; height:16px; font-size:9px; line-height:16px; text-align:center; color:var(--ink-soft); opacity:0; cursor:pointer; border-radius:4px; }
+.g-mes:hover .g-mes-x, .g-mes-x:focus-visible{ opacity:.8; }
+.g-fase{ display:flex; align-items:center; gap:8px; background:var(--paper-sunken); font-weight:800; font-size:13px; box-shadow:inset 5px 0 0 #8C949E; }
+.g-fase.stripe-copper{ box-shadow:inset 5px 0 0 var(--accent); } .g-fase.stripe-blueprint{ box-shadow:inset 5px 0 0 var(--blueprint); }
+.g-fase.stripe-success{ box-shadow:inset 5px 0 0 var(--success); } .g-fase.stripe-danger{ box-shadow:inset 5px 0 0 var(--danger); }
+.g-fase-n{ flex:1; min-width:0; outline:none; line-height:1.25; overflow-wrap:anywhere; }
+.g-fase-tools{ display:flex; gap:2px; flex:none; }
+.g-fase-tools button{ all:unset; width:24px; height:24px; text-align:center; line-height:24px; border-radius:6px; font-size:12px; color:var(--ink-soft); cursor:pointer; }
+.g-fase-tools button:first-child{ color:var(--blueprint); font-weight:800; font-size:15px; }
+.g-fase-tools button:hover, .g-fase-tools button:focus-visible{ background:var(--paper-raised); color:var(--ink); }
+.g-act{ all:unset; position:sticky; left:0; z-index:3; grid-column:1; box-sizing:border-box; display:flex; flex-direction:column; justify-content:center; gap:2px; padding:6px 10px 6px 16px; background:var(--paper-raised); border-right:1px solid var(--line-strong); border-bottom:1px solid var(--line); cursor:pointer; min-width:0; }
+.g-act:hover .g-act-n{ color:var(--blueprint); }
+.g-act:focus-visible{ outline:2px solid var(--blueprint); outline-offset:-2px; }
+.g-act-n{ font-weight:600; line-height:1.25; overflow-wrap:anywhere; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; line-clamp:3; overflow:hidden; }
+.g-act-m{ font-size:10.5px; line-height:1.3; color:var(--ink-soft); font-family:var(--font-mono); overflow-wrap:anywhere; }
+.g-track{ position:relative; border-bottom:1px solid var(--line); min-height:48px;
+  background-image:repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px calc(100% / var(--n))); }
+.g-track-fase{ background-color:var(--paper-sunken); min-height:36px; }
+.g-hoy{ position:absolute; top:0; bottom:0; width:2px; margin-left:-1px; background:var(--danger); opacity:.7; z-index:2; pointer-events:none; }
+.g-resumen{ position:absolute; top:50%; height:6px; margin-top:-3px; border-radius:3px; background:var(--c, #8C949E); opacity:.55; }
+.g-bar{ all:unset; position:absolute; top:8px; bottom:8px; min-height:26px; box-sizing:border-box; border-radius:6px; background:color-mix(in srgb, var(--c, #8C949E) 38%, var(--paper-raised)); border:1px solid var(--c, #8C949E); overflow:hidden; cursor:pointer; display:flex; align-items:center; z-index:1; }
+.g-corta .g-bar-t{ display:none; }
+.g-bar:hover{ filter:brightness(.96); } .g-bar:focus-visible{ outline:2px solid var(--ink); outline-offset:1px; }
+.g-prog{ position:absolute; left:0; top:0; bottom:0; background:var(--c, #8C949E); opacity:.85; }
+.g-bar-t{ position:relative; padding:0 8px; font-size:11px; line-height:1.2; font-weight:700; color:var(--ink); overflow:hidden; overflow-wrap:normal; word-break:normal; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; }
+.tone-copper{ --c:var(--accent); } .tone-blueprint{ --c:var(--blueprint); } .tone-success{ --c:var(--success); } .tone-danger{ --c:var(--danger); } .tone-neutral{ --c:#8C949E; } .tone-amber{ --c:#D6A828; } .tone-violet{ --c:#7A52AA; }
+.g-ley{ display:flex; flex-wrap:wrap; gap:6px 16px; align-items:center; margin-top:8px; font-size:12px; color:var(--ink-soft); }
+.g-ley i{ display:inline-block; vertical-align:-2px; margin-right:6px; }
+.g-ley-bar{ width:22px; height:10px; border-radius:3px; border:1px solid #8C949E; background:rgba(140,148,158,.35); }
+.g-ley-prog{ width:22px; height:10px; border-radius:3px; background:#8C949E; }
+.g-ley-hoy{ width:2px; height:12px; background:var(--danger); }
+.g-ley-tip{ margin-left:auto; }
+@media (max-width:860px){
+  .gantt-wrap{ margin:0 12px 16px; }
+  .gantt{ --lw:160px; --mw:38px; font-size:11.5px; }
+  .g-act-m{ font-size:10px; }
+  .g-act{ padding:6px 8px 6px 12px; }
+  .g-act-n{ -webkit-line-clamp:4; line-clamp:4; }
+  .g-lbl, .g-act{ padding-left:10px; padding-right:8px; }
+  .g-fase-tools button:not(:first-child){ display:none; }
+  .g-bar-t{ display:none; }
+  .g-ley-tip{ margin-left:0; }
+}
+/* editor */
+.g-modal{ position:fixed; inset:0; z-index:150; background:rgba(10,34,64,.55); display:flex; align-items:center; justify-content:center; padding:16px; }
+.g-card{ width:min(460px, 100%); max-height:calc(100vh - 32px); overflow:auto; background:var(--paper-raised); color:var(--ink); border-radius:12px; padding:16px; box-shadow:0 20px 50px -12px rgba(0,0,0,.5);
+  display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.g-card-h{ grid-column:1 / -1; display:flex; align-items:center; justify-content:space-between; font-size:1rem; }
+.g-x{ all:unset; width:30px; height:30px; text-align:center; border-radius:8px; cursor:pointer; }
+.g-card label{ display:flex; flex-direction:column; gap:4px; font-size:.75rem; font-weight:700; color:var(--ink-soft); }
+.g-card .g-full{ grid-column:1 / -1; }
+.g-card input, .g-card select{ font:inherit; font-size:.92rem; font-weight:400; color:var(--ink); background:var(--paper); border:1px solid var(--line-strong); border-radius:8px; padding:8px 10px; min-height:40px; box-sizing:border-box; width:100%; }
+.g-msg{ grid-column:1 / -1; margin:0; min-height:1em; font-size:.8rem; color:var(--danger); }
+.g-btns{ grid-column:1 / -1; display:flex; gap:8px; align-items:center; }
+.g-sp{ flex:1; }
+.g-ok{ background:var(--blueprint); color:#fff; border-color:var(--blueprint); }
+@media (max-width:860px){ .g-card input, .g-card select{ font-size:16px; min-height:44px; } .g-modal{ align-items:flex-end; padding:0; } .g-card{ border-radius:14px 14px 0 0; padding-bottom:calc(16px + env(safe-area-inset-bottom,0px)); } }
+@media print{
+  .gantt-wrap{ margin:0; }
+  .g-scroll{ overflow:visible !important; border:none; }
+  .gantt{ --lw:190px; --mw:0px; min-width:0 !important; font-size:10px; }
+  .g-lbl, .g-act{ position:static; }
+  .g-fase-tools, .g-mes-x, .g-ley-tip, .g-modal{ display:none !important; }
+  .g-bar-t{ display:block; font-size:9px; }
+  .g-track{ min-height:30px; } .g-bar{ top:6px; bottom:6px; }
+  .gantt, .g-track, .g-bar, .g-prog, .g-lbl, .g-mes, .g-year{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
 </style>
 </head>
 
@@ -814,7 +893,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
     <div class="board-scroll"><div class="board"></div></div>
   </section>
   <section class="pizarra-block" data-board="maestro">
-    <div class="section-head"><span class="idx">3</span><h2>Plan Maestro &middot; por mes</h2></div>
+    <div class="section-head"><span class="idx">3</span><h2>Plan Maestro &middot; carta Gantt</h2></div>
 
     <div class="title-wrap">
       <div class="title-input" contenteditable="true" data-bind="title" data-placeholder="Nombre del proyecto" aria-label="Título del Plan Maestro"></div>
@@ -829,7 +908,8 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
 
     <div class="toolbar">
       <button class="btn-sm sync-save" type="button" data-sync="guardar" hidden><span aria-hidden="true">&#x2601;</span> Guardar en planilla</button>
-      <button class="btn-sm" data-action="add-category">+ Categoría</button>
+      <button class="btn-sm g-add" type="button" data-gantt="nueva">+ Actividad</button>
+      <button class="btn-sm" data-action="add-category">+ Fase</button>
       <details class="menu-mas">
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
         <div class="menu-pop">
@@ -844,10 +924,11 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
           <button class="btn-sm danger" data-action="reset">Reiniciar tablero</button>
         </div>
       </details>
-      <details class="ayuda"><summary aria-label="Ayuda: Plan maestro" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Plan maestro</b><ol class="ay-l"><li>Cada columna es un <b>mes</b> y cada fila una fase.</li><li>Ingresa mes de inicio y duración → <b>Generar meses</b>.</li><li>Una partida aparece en todos los meses que dura.</li><li>Es la base para armar el plan intermedio.</li></ol><a class="ay-m" href="manual.html#maestro">Ver manual completo &rarr;</a></div></details>
+      <details class="ayuda"><summary aria-label="Ayuda: Plan maestro" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Plan maestro</b><ol class="ay-l"><li>Cada fila es una <b>actividad</b> y su barra muestra en qué meses se ejecuta.</li><li><b>+ Actividad</b>: nombre, fase, mes de inicio y de término.</li><li>Toca una barra o actividad para editarla; el tono más oscuro de la barra es el <b>% de avance</b>.</li><li>La línea vertical marca el <b>mes actual</b>.</li></ol><a class="ay-m" href="manual.html#maestro">Ver manual completo &rarr;</a></div></details>
       <span class="sync-status" aria-live="polite"></span>
     </div>
 
+    <div class="gantt-wrap" aria-label="Carta Gantt del plan maestro"></div>
     <div class="m-view" aria-label="Vista por mes"></div>
     <div class="board-scroll"><div class="board"></div></div>
   </section>
@@ -1586,6 +1667,7 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       if(act && (act.offsetLeft < mc.scrollLeft || act.offsetLeft + act.offsetWidth > mc.scrollLeft + mc.clientWidth)) mc.scrollLeft = act.offsetLeft - 8;
     }
     function render(){
+      if(cfg.mensual){ renderGantt(); return; }
       renderMobile();
       var board = root.querySelector(".board");
       var nWeeks = state.weeks.length, nCats = state.categories.length;
@@ -1644,6 +1726,156 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
       board.innerHTML = html;
       if(cfg.weekly){ renderReliability(); renderChecklist(); } else { renderRestrictions(); }
     }
+
+
+    /* ===================== Carta Gantt (Plan Maestro) ===================== */
+    var gEdit = null;
+    function gClave(n){ return n.ganttId || ("t:" + n.catId + ":" + String(n.text || "").trim().toLowerCase()); }
+    function gActividades(){
+      var idx = {}; state.weeks.forEach(function(w,i){ idx[w.id] = i; });
+      var map = {}, orden = [];
+      state.notes.forEach(function(n){
+        if(!(n.weekId in idx)) return;
+        var k = gClave(n);
+        if(!map[k]){ map[k] = { key:k, catId:n.catId, text:n.text || "", responsable:n.responsable || "", percent:n.percent || "", tone:n.tone, meses:[], notas:[] }; orden.push(k); }
+        map[k].meses.push(idx[n.weekId]); map[k].notas.push(n);
+        if(!map[k].responsable && n.responsable) map[k].responsable = n.responsable;
+        if(map[k].percent === "" && n.percent !== "" && n.percent != null) map[k].percent = n.percent;
+      });
+      return orden.map(function(k){
+        var a = map[k]; a.meses.sort(function(x,y){ return x-y; });
+        var tramos = [], ini = a.meses[0], prev = a.meses[0];
+        for(var i=1;i<=a.meses.length;i++){
+          var m = a.meses[i];
+          if(m === prev || m === prev + 1){ if(m !== undefined) prev = m; continue; }
+          tramos.push([ini, prev]); ini = m; prev = m;
+        }
+        a.tramos = tramos; a.ini = a.meses[0]; a.fin = a.meses[a.meses.length-1];
+        return a;
+      });
+    }
+    function gMesHoy(){
+      var d = new Date(), lbl = MESES_CORTO[d.getMonth()], y = String(d.getFullYear());
+      for(var i=0;i<state.weeks.length;i++){ if(state.weeks[i].label === lbl && String(state.weeks[i].month) === y) return i + (d.getDate()-1)/31; }
+      return -1;
+    }
+    function gNomMes(i){ var w = state.weeks[i]; return w ? w.label + " " + String(w.month).slice(-2) : ""; }
+    function renderGantt(){
+      var box = root.querySelector(".gantt-wrap"); if(!box) return;
+      var N = state.weeks.length;
+      if(!N){ box.innerHTML = '<p class="m-empty">Sin meses. Elige el mes de inicio y toca \u201cGenerar meses\u201d.</p>'; renderGEditor(); return; }
+      var acts = gActividades(), hoy = gMesHoy();
+      var head = '<div class="g-lbl g-corner" style="grid-row:1 / span 2">Actividad</div>';
+      var years = [], y0 = null;
+      state.weeks.forEach(function(w,i){ if(w.month !== y0){ years.push({ y:w.month, ini:i, n:1 }); y0 = w.month; } else years[years.length-1].n++; });
+      years.forEach(function(y){ head += '<div class="g-year" style="grid-row:1; grid-column:'+(2+y.ini)+' / span '+y.n+'">'+escapeHtml(y.y)+'</div>'; });
+      state.weeks.forEach(function(w,i){
+        head += '<div class="g-mes'+(Math.floor(hoy)===i?' hoy':'')+'" style="grid-row:2; grid-column:'+(2+i)+'"><span>'+escapeHtml(w.label)+'</span>'
+          + '<button type="button" class="g-mes-x" data-action="del-week" data-week="'+w.id+'" aria-label="Eliminar mes '+escapeHtml(w.label+" "+w.month)+'">\u2715</button></div>';
+      });
+      var filas = "", row = 3;
+      var pctHoy = hoy >= 0 ? (hoy / N * 100) : -1;
+      var linea = pctHoy >= 0 ? '<i class="g-hoy" style="left:'+pctHoy.toFixed(3)+'%"></i>' : '';
+      state.categories.forEach(function(c){
+        var tone = toneDeCategoria(c.id), lista = acts.filter(function(a){ return a.catId === c.id; });
+        var fi = lista.length ? Math.min.apply(null, lista.map(function(a){ return a.ini; })) : -1;
+        var ff = lista.length ? Math.max.apply(null, lista.map(function(a){ return a.fin; })) : -1;
+        filas += '<div class="g-lbl g-fase stripe-'+tone+'" style="grid-row:'+row+'">'
+          + '<span class="g-fase-n" contenteditable="true" data-bind="cat:'+c.id+':name">'+escapeHtml(c.name)+'</span>'
+          + '<span class="g-fase-tools"><button type="button" data-gantt="nueva" data-cat="'+c.id+'" title="Agregar actividad a esta fase" aria-label="Agregar actividad a '+escapeHtml(c.name)+'">+</button>'
+          + '<button type="button" data-action="move-cat-up" data-cat="'+c.id+'" title="Subir fase">\u2191</button>'
+          + '<button type="button" data-action="move-cat-down" data-cat="'+c.id+'" title="Bajar fase">\u2193</button>'
+          + '<button type="button" data-action="del-category" data-cat="'+c.id+'" title="Eliminar fase">\u2715</button></span></div>'
+          + '<div class="g-track g-track-fase" style="grid-row:'+row+'; grid-column:2 / span '+N+'">' + linea
+          + (fi >= 0 ? '<span class="g-resumen tone-'+tone+'" style="left:'+(fi/N*100)+'%; width:'+((ff-fi+1)/N*100)+'%"></span>' : '') + '</div>';
+        row++;
+        lista.forEach(function(a){
+          var dur = a.meses.length, pct = parseInt(a.percent, 10); if(isNaN(pct)) pct = 0; pct = Math.max(0, Math.min(100, pct));
+          var rango = gNomMes(a.ini) + (a.fin !== a.ini ? " \u2192 " + gNomMes(a.fin) : "");
+          filas += '<button type="button" class="g-lbl g-act" style="grid-row:'+row+'" data-gantt="editar" data-key="'+escapeHtml(a.key)+'">'
+            + '<span class="g-act-n">'+escapeHtml(a.text || "(sin nombre)")+'</span>'
+            + '<span class="g-act-m">'+escapeHtml(rango)+' \u00b7 '+dur+' mes'+(dur===1?'':'es')+(a.responsable ? ' \u00b7 '+escapeHtml(a.responsable) : '')+(pct ? ' \u00b7 '+pct+'%' : '')+'</span></button>';
+          filas += '<div class="g-track" style="grid-row:'+row+'; grid-column:2 / span '+N+'">' + linea;
+          a.tramos.forEach(function(t){
+            var l = t[0]/N*100, wd = (t[1]-t[0]+1)/N*100;
+            filas += '<button type="button" class="g-bar tone-'+(a.tone || tone)+(t[1]===t[0]?' g-corta':'')+'" style="left:'+l.toFixed(3)+'%; width:'+wd.toFixed(3)+'%" data-gantt="editar" data-key="'+escapeHtml(a.key)+'" title="'+escapeHtml((a.text||"")+' \u00b7 '+rango+(pct?' \u00b7 '+pct+'%':''))+'">'
+              + '<span class="g-prog" style="width:'+pct+'%"></span><span class="g-bar-t">'+escapeHtml(a.text || "")+'</span></button>';
+          });
+          filas += '</div>';
+          row++;
+        });
+      });
+      if(!state.categories.length) filas = '<p class="m-empty" style="grid-column:1 / -1">Agrega una fase con <b>+ Fase</b> y luego sus actividades.</p>';
+      var sc = box.querySelector(".g-scroll"), sl = sc ? sc.scrollLeft : null;
+      box.innerHTML = '<div class="g-scroll"><div class="gantt" style="--n:'+N+'">' + head + filas + '</div></div>'
+        + '<div class="g-ley"><span><i class="g-ley-bar"></i>Duración</span><span><i class="g-ley-prog"></i>Avance</span>'+(hoy >= 0 ? '<span><i class="g-ley-hoy"></i>Hoy</span>' : '')+'<span class="g-ley-tip">Toca una barra para editarla</span></div>';
+      var sc2 = box.querySelector(".g-scroll");
+      if(sl !== null) sc2.scrollLeft = sl;
+      else if(hoy >= 0){ requestAnimationFrame(function(){ var g = sc2.querySelector(".gantt"); var lw = (sc2.querySelector(".g-corner") || {}).offsetWidth || 0; var ancho = g.scrollWidth - lw; sc2.scrollLeft = Math.max(0, lw + ancho * hoy / N - lw - 60); }); }
+      renderGEditor();
+    }
+    function renderGEditor(){
+      var ov = document.getElementById("gModal-" + cfg.key);
+      if(!gEdit){ if(ov) ov.remove(); return; }
+      if(!ov){ ov = document.createElement("div"); ov.id = "gModal-" + cfg.key; ov.className = "g-modal"; document.body.appendChild(ov);
+        ov.addEventListener("click", gModalClick); ov.addEventListener("keydown", function(e){ if(e.key === "Escape"){ gEdit = null; renderGEditor(); } }); }
+      var a = gEdit, ops = function(sel){ return state.weeks.map(function(w,i){ return '<option value="'+i+'"'+(i===sel?' selected':'')+'>'+escapeHtml(w.label+' '+w.month)+'</option>'; }).join(""); };
+      var fases = state.categories.map(function(c){ return '<option value="'+c.id+'"'+(c.id===a.catId?' selected':'')+'>'+escapeHtml(c.name)+'</option>'; }).join("");
+      ov.innerHTML = '<div class="g-card" role="dialog" aria-modal="true" aria-label="'+(a.key ? 'Editar' : 'Nueva')+' actividad">'
+        + '<div class="g-card-h"><b>'+(a.key ? 'Editar actividad' : 'Nueva actividad')+'</b><button type="button" class="g-x" data-g="cerrar" aria-label="Cerrar">\u2715</button></div>'
+        + '<label class="g-full">Actividad<input id="gTxt" maxlength="120" value="'+escapeHtml(a.text || "")+'" placeholder="ej. Radier y fundaciones"></label>'
+        + '<label class="g-full">Fase<select id="gFase">'+fases+'</select></label>'
+        + '<label>Desde<select id="gIni">'+ops(a.ini)+'</select></label>'
+        + '<label>Hasta<select id="gFin">'+ops(a.fin)+'</select></label>'
+        + '<label>Responsable<input id="gResp" maxlength="80" value="'+escapeHtml(a.responsable || "")+'" placeholder="Opcional"></label>'
+        + '<label>Avance %<input id="gPct" type="number" min="0" max="100" step="5" inputmode="numeric" value="'+escapeHtml(a.percent === "" || a.percent == null ? "" : a.percent)+'" placeholder="0"></label>'
+        + '<p class="g-msg" id="gMsg" role="alert"></p>'
+        + '<div class="g-btns">'+(a.key ? '<button type="button" class="btn-sm danger" data-g="borrar">Eliminar</button>' : '')
+        + '<span class="g-sp"></span><button type="button" class="btn-sm" data-g="cerrar">Cancelar</button><button type="button" class="btn-sm g-ok" data-g="guardar">Guardar</button></div></div>';
+      setTimeout(function(){ var t = ov.querySelector("#gTxt"); if(t) t.focus(); }, 30);
+    }
+    function gModalClick(e){
+      var ov = e.currentTarget;
+      if(e.target === ov){ gEdit = null; renderGEditor(); return; }
+      var b = e.target.closest("[data-g]"); if(!b) return;
+      var g = b.dataset.g;
+      if(g === "cerrar"){ gEdit = null; renderGEditor(); return; }
+      if(g === "borrar"){
+        if(!confirm("\u00bfEliminar la actividad \u00ab" + (gEdit.text || "") + "\u00bb del plan maestro?")) return;
+        var k = gEdit.key; state.notes = state.notes.filter(function(n){ return gClave(n) !== k; });
+        gEdit = null; saveState(); render(); return;
+      }
+      if(g === "guardar"){
+        var txt = ov.querySelector("#gTxt").value.trim(), cat = ov.querySelector("#gFase").value;
+        var ini = parseInt(ov.querySelector("#gIni").value, 10), fin = parseInt(ov.querySelector("#gFin").value, 10);
+        var resp = ov.querySelector("#gResp").value.trim(), pv = ov.querySelector("#gPct").value.trim(), msg = ov.querySelector("#gMsg");
+        if(!txt){ msg.textContent = "Escribe el nombre de la actividad."; return; }
+        if(!cat){ msg.textContent = "Primero crea una fase con \u201c+ Fase\u201d."; return; }
+        if(fin < ini){ msg.textContent = "El mes de t\u00e9rmino no puede ser anterior al de inicio."; return; }
+        var pct = pv === "" ? "" : String(Math.max(0, Math.min(100, parseInt(pv, 10) || 0)));
+        var gid = (gEdit.key && gEdit.key.indexOf("t:") !== 0) ? gEdit.key : ("g" + uid());
+        if(gEdit.key){ var k2 = gEdit.key; state.notes = state.notes.filter(function(n){ return gClave(n) !== k2; }); }
+        var tone = toneDeCategoria(cat), det = gNomMes(ini) + (fin !== ini ? " \u2192 " + gNomMes(fin) : "") + " \u00b7 " + (fin-ini+1) + " meses";
+        for(var i=ini;i<=fin;i++){
+          state.notes.push({ id:uid(), ganttId:gid, catId:cat, weekId:state.weeks[i].id, text:txt, day:det, percent:pct, tone:tone,
+            responsable:resp, cumplido:null, causa:"", liberada:false, tipoRestriccion:"", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:"" });
+        }
+        gEdit = null; saveState(); render();
+      }
+    }
+    root.addEventListener("click", function(e){
+      var b = e.target.closest("[data-gantt]"); if(!b || !cfg.mensual) return;
+      if(b.dataset.gantt === "nueva"){
+        if(!state.weeks.length){ alert("Primero genera los meses del plan."); return; }
+        if(!state.categories.length){ alert("Primero crea una fase con \u201c+ Fase\u201d."); return; }
+        var h = Math.floor(gMesHoy()); var ini = h >= 0 ? h : 0;
+        gEdit = { key:"", catId: b.dataset.cat || state.categories[0].id, text:"", ini:ini, fin:Math.min(ini+2, state.weeks.length-1), responsable:"", percent:"" };
+      } else {
+        var a = gActividades().filter(function(x){ return x.key === b.dataset.key; })[0]; if(!a) return;
+        gEdit = { key:a.key, catId:a.catId, text:a.text, ini:a.ini, fin:a.fin, responsable:a.responsable, percent:a.percent };
+      }
+      renderGEditor();
+    });
 
     function computePPC(){
       var counted = state.notes.filter(function(n){ return n.cumplido === true || n.cumplido === false; });
@@ -3051,11 +3283,12 @@ footer.app-foot .foot-copy{ font-size:10px; opacity:.75; }
   window.addEventListener("resize", window.LP_cues); window.addEventListener("load", window.LP_cues); window.LP_cues();
 
   /* --- Deshacer tras acciones que reemplazan o borran datos --- */
-  var PELIGRO = '[data-action="reset"],[data-action="del-week"],[data-action="del-category"],[data-action^="load-"],[data-ind="borrar"],[data-ind="historial"],[data-reu="borrar"],[data-reu="historial"]';
+  var PELIGRO = '[data-action="reset"],[data-action="del-week"],[data-action="del-category"],[data-action^="load-"],[data-ind="borrar"],[data-ind="historial"],[data-reu="borrar"],[data-reu="historial"],[data-g="borrar"]';
   function foto(){ var o = {}; try{ for(var i=0;i<localStorage.length;i++){ var k = localStorage.key(i); if(k !== "pizarra-theme") o[k] = localStorage.getItem(k); } }catch(e){} return o; }
   function igual(a, b){ var ka = Object.keys(a), kb = Object.keys(b); if(ka.length !== kb.length) return false; for(var i=0;i<ka.length;i++){ if(a[ka[i]] !== b[ka[i]]) return false; } return true; }
   function texto(el){
     var d = el.dataset;
+    if(d.g === "borrar") return "Actividad eliminada";
     if(d.action === "reset") return "Tablero reiniciado";
     if(d.action === "del-week") return "Columna eliminada";
     if(d.action === "del-category") return "Categor\u00eda eliminada";
