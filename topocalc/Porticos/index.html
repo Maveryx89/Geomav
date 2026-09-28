@@ -470,6 +470,16 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
 .an-ok{ font:inherit; font-weight:700; font-size:.82rem; color:#fff; background:var(--danger); border:none; border-radius:6px; padding:8px 14px; cursor:pointer; }
 .an-ok:disabled{ opacity:.6; cursor:wait; }
 @media (max-width:860px){ .an-pin{ font-size:16px; min-height:40px; } .an-ok{ min-height:44px; } }
+.comp-btn, .ficha-comp, .pm-comp{ all:unset; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; font-size:.95rem; }
+.comp-btn{ background:var(--blueprint-soft); margin-right:6px; }
+.comp-btn:hover{ background:var(--line); }
+.ficha-comp{ background:rgba(255,255,255,.14); margin-right:6px; }
+.pm-comp{ background:var(--paper); border:1px solid var(--line); margin-left:auto; margin-right:6px; }
+.pm-head{ align-items:center; }
+.comp-btn:focus-visible, .ficha-comp:focus-visible, .pm-comp:focus-visible{ outline:2px solid var(--blueprint); }
+.comp-toast{ position:fixed; left:50%; bottom:calc(84px + env(safe-area-inset-bottom, 0px)); transform:translate(-50%, 20px); background:var(--ink); color:var(--paper); font-size:.84rem; font-weight:700; padding:10px 16px; border-radius:999px; box-shadow:0 10px 30px -10px rgba(0,0,0,.5); opacity:0; transition:opacity .2s, transform .2s; z-index:3000; pointer-events:none; }
+.comp-toast.on{ opacity:1; transform:translate(-50%, 0); }
+@media (max-width:860px){ .comp-btn, .ficha-comp, .pm-comp{ width:40px; height:40px; } }
 .pm-pct{ font-size:.7rem; font-weight:700; color:var(--ink); background:var(--paper-sunken); border-radius:999px; padding:1px 7px; }
 .gal-overlay{ position:fixed; inset:0; z-index:2000; background:rgba(6,14,26,.94); display:flex; flex-direction:column; color:#fff; }
 .gal-overlay[hidden]{ display:none; }
@@ -1025,7 +1035,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
       <div class="board-scroll"><div class="board"></div></div>
       <aside class="porticos-panel" aria-label="Listado de pórticos">
         <div class="porticos-inner">
-          <div class="porticos-head"><div><strong>Listado de pórticos</strong><span class="porticos-sub">Región de O&#39;Higgins · <span class="porticos-sync" id="porticosSync">Conectando…</span></span></div><span class="ph-der"><details class="ayuda ayuda-der"><summary aria-label="Ayuda: Pórticos" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Pórticos</b><ol class="ay-l"><li>Busca o filtra por <b>comuna</b> y <b>estado</b>; el mapa hace zoom a lo filtrado.</li><li>Toca una fila para marcar el pórtico en el mapa (anillo rojo).</li><li>Toca <b>Ubicación</b> para abrir Google Maps y <b>📷</b> para ver fotos.</li><li>Toca el <b>estado</b> para ver el historial o registrar avance (con PIN).</li></ol><a class="ay-m" href="manual.html#porticos">Ver manual completo &rarr;</a></div></details><span class="porticos-count" id="porticosCount"></span></span></div>
+          <div class="porticos-head"><div><strong>Listado de pórticos</strong><span class="porticos-sub">Región de O&#39;Higgins · <span class="porticos-sync" id="porticosSync">Conectando…</span></span></div><span class="ph-der"><button type="button" class="comp-btn" id="compVista" title="Compartir esta vista (filtros y p\u00f3rtico seleccionado)" aria-label="Compartir esta vista"><span aria-hidden="true">\ud83d\udd17</span></button><details class="ayuda ayuda-der"><summary aria-label="Ayuda: Pórticos" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Pórticos</b><ol class="ay-l"><li>Busca o filtra por <b>comuna</b> y <b>estado</b>; el mapa hace zoom a lo filtrado.</li><li>Toca una fila para marcar el pórtico en el mapa (anillo rojo).</li><li>Toca <b>Ubicación</b> para abrir Google Maps y <b>📷</b> para ver fotos.</li><li>Toca el <b>estado</b> para ver el historial o registrar avance (con PIN).</li></ol><a class="ay-m" href="manual.html#porticos">Ver manual completo &rarr;</a></div></details><span class="porticos-count" id="porticosCount"></span></span></div>
           <div class="porticos-filtros">
             <input type="search" id="fBuscar" placeholder="Buscar pórtico o comuna" aria-label="Buscar pórtico o comuna" autocomplete="off">
             <details class="msel" id="fComuna"><summary aria-label="Filtrar por comuna"><span class="msel-t">Todas las comunas</span></summary><div class="msel-pop" role="group" aria-label="Comunas"></div></details>
@@ -2617,8 +2627,10 @@ window.PORTICOS_LISTA = (function(){
       sync("\u2713 Datos compartidos \u00b7 " + horaAhora(), "ok");
       window.renderPorticos();
       sincronizarTableros();
+      aplicarURL();
     }).catch(function(){
       sync("Sin conexi\u00f3n \u00b7 mostrando \u00faltima copia", "warn");
+      aplicarURL();
     });
   }
   /* Los tableros se arman desde la planilla compartida, salvo que haya una nota abierta o cambios sin guardar */
@@ -2745,7 +2757,7 @@ window.PORTICOS_LISTA = (function(){
     if(nSel(selEst)){ var st = estadoDe(num, data); if(!selEst[st ? st.name : "__sin"]) return false; }
     return true;
   }
-  function filtroCambio(){ if(mapa) mapa._encuadrado = false; window.renderPorticos(); mapaMovil(false); }
+  function filtroCambio(){ if(mapa) mapa._encuadrado = false; window.renderPorticos(); mapaMovil(false); actualizarURL(); }
   if(fBuscar) fBuscar.addEventListener("input", filtroCambio);
   [[fComuna, selCom], [fEstado, selEst]].forEach(function(par){
     var det = par[0], sel = par[1]; if(!det) return;
@@ -2796,6 +2808,7 @@ window.PORTICOS_LISTA = (function(){
     }
     mapaMovil(!desdeMapa);
     pintarFicha();
+    actualizarURL();
   }
 
   /* ---------- ficha técnica del pórtico (prueba con P31; luego vendrá desde la planilla) ---------- */
@@ -2830,7 +2843,7 @@ window.PORTICOS_LISTA = (function(){
     var estado = st ? chip(st.name) + ' <span class="f-sub">' + subEstado(st) + '</span>' : '<span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar</span>';
     var head = '<div class="ficha-head"><div class="ficha-tit"><strong>Ficha t\u00e9cnica \u00b7 ' + esc(p.nombre) + '</strong><span>' + esc(p.comuna) + (f && f.provincia ? ' \u00b7 ' + esc(f.provincia) : '') + '</span></div>'
       + (f && f.prioridad ? '<span class="prio prio-' + sinTildes(f.prioridad) + '">Prioridad ' + esc(f.prioridad) + '</span>' : '')
-      + '<button type="button" class="ficha-x" aria-label="Cerrar ficha">\u2715</button></div>';
+      + '<button type="button" class="ficha-comp" aria-label="Compartir este p\u00f3rtico" title="Compartir este p\u00f3rtico"><span aria-hidden="true">\ud83d\udd17</span></button><button type="button" class="ficha-x" aria-label="Cerrar ficha">\u2715</button></div>';
     var cuerpo;
     if(!f){
       var mp = tieneCoords(p) ? ' <a class="f-map" href="https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng + '" target="_blank" rel="noopener">Ver mapa</a>' : '';
@@ -2863,7 +2876,80 @@ window.PORTICOS_LISTA = (function(){
     }
     box.innerHTML = head + cuerpo; box.hidden = false;
     box.querySelector(".ficha-x").onclick = function(){ seleccionarPortico(selPortico, false); };
+    box.querySelector(".ficha-comp").onclick = function(){ compartir(urlVista({ soloPortico:true }), "P\u00f3rtico " + p.nombre + " \u00b7 GeoMav"); };
   }
+
+  /* ---------- vista compartible: pestaña, filtros y pórtico en la dirección (#porticos?c=…&e=…&q=…&p=…) ---------- */
+  var urlAplicada = false;
+  var URL0 = leerURL();   /* se lee al abrir, antes de que el cambio de pestaña reescriba la dirección */
+  function paramsVista(opc){
+    opc = opc || {};
+    var ps = [], nom = "";
+    if(selPortico){ lista().forEach(function(x, k){ if(numDe(x, k) === String(selPortico)) nom = x.nombre; }); }
+    if(!opc.soloPortico){
+      if(nSel(selCom)) ps.push("c=" + Object.keys(selCom).map(encodeURIComponent).join(","));
+      if(nSel(selEst)) ps.push("e=" + Object.keys(selEst).map(function(k){ return encodeURIComponent(k === "__sin" ? "sin-iniciar" : k); }).join(","));
+      if(fBuscar && fBuscar.value.trim()) ps.push("q=" + encodeURIComponent(fBuscar.value.trim()));
+    }
+    if(nom) ps.push("p=" + encodeURIComponent(nom));
+    if(opc.historial && nom) ps.push("h=1");
+    return ps.join("&");
+  }
+  function urlVista(opc){
+    var tab = (opc && opc.soloPortico) ? "porticos" : (document.body.getAttribute("data-mtab") || "semanal");
+    var ps = (tab === "porticos" || tab === "mapa") ? paramsVista(opc) : "";
+    return location.origin + location.pathname + "#" + tab + (ps ? "?" + ps : "");
+  }
+  function actualizarURL(){
+    if(!urlAplicada) return;
+    var tab = document.body.getAttribute("data-mtab") || "semanal";
+    var ps = (tab === "porticos" || tab === "mapa") ? paramsVista() : "";
+    try{ history.replaceState(null, "", "#" + tab + (ps ? "?" + ps : "")); }catch(e){}
+  }
+  function leerURL(){
+    var h = (location.hash || "").slice(1), i = h.indexOf("?");
+    var out = { tab: (i >= 0 ? h.slice(0, i) : h).replace(/[^a-z]/g, ""), p:{} };
+    (i >= 0 ? h.slice(i + 1) : "").split("&").forEach(function(kv){ var j = kv.indexOf("="); if(j > 0) out.p[kv.slice(0, j)] = kv.slice(j + 1); });
+    return out;
+  }
+  function aplicarURL(){
+    if(urlAplicada) return;
+    var u = URL0 || leerURL(), p = u.p;
+    var dec = function(s){ try{ return decodeURIComponent(s); }catch(e){ return s; } };
+    if(p.c) p.c.split(",").forEach(function(c){ c = dec(c); if(c) selCom[c] = 1; });
+    if(p.e) p.e.split(",").forEach(function(e){ e = dec(e); if(e) selEst[e === "sin-iniciar" ? "__sin" : e] = 1; });
+    if(p.q && fBuscar) fBuscar.value = dec(p.q);
+    urlAplicada = true;
+    if(p.c || p.e || p.q){ if(mapa) mapa._encuadrado = false; window.renderPorticos(); }
+    if(p.p){
+      var nom = dec(p.p), num = null;
+      lista().forEach(function(x, k){ if(x.nombre === nom) num = numDe(x, k); });
+      if(num){
+        var intentos = 0;
+        (function esperar(){
+          if(!mapa && intentos++ < 25 && (u.tab === "porticos" || u.tab === "mapa")){ setTimeout(esperar, 300); return; }
+          seleccionarPortico(num, false);
+          if(mapa && marcadores[num]) mapa.setView(marcadores[num].getLatLng(), Math.max(mapa.getZoom(), 13));
+          var f = document.getElementById("fichaPortico"); if(f && !f.hidden && f.scrollIntoView && window.matchMedia("(max-width:860px)").matches) setTimeout(function(){ f.scrollIntoView({ behavior:"smooth", block:"start" }); }, 400);
+          if(p.h === "1") setTimeout(function(){ abrirPortico(num); }, 500);
+        })();
+      }
+    }
+    actualizarURL();
+  }
+  function avisoCopia(txt){
+    var t = document.createElement("div"); t.className = "comp-toast"; t.setAttribute("role", "status"); t.textContent = txt;
+    document.body.appendChild(t); setTimeout(function(){ t.classList.add("on"); }, 10);
+    setTimeout(function(){ t.classList.remove("on"); setTimeout(function(){ t.remove(); }, 300); }, 2200);
+  }
+  function compartir(url, titulo){
+    if(navigator.share && window.matchMedia("(max-width:860px)").matches){ navigator.share({ title: titulo, url: url }).catch(function(){}); return; }
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(function(){ avisoCopia("\u2713 Link copiado"); }, function(){ window.prompt("Copia este link:", url); }); }
+    else window.prompt("Copia este link:", url);
+  }
+  window.PORTICOS_compartir = compartir;
+  var bCompVista = document.getElementById("compVista");
+  if(bCompVista) bCompVista.onclick = function(){ compartir(urlVista(), "P\u00f3rticos \u00b7 GeoMav"); };
 
   /* ---------- barra de edición (PIN) ---------- */
   function pintarEditBar(){
@@ -2907,7 +2993,7 @@ window.PORTICOS_LISTA = (function(){
       }).join("") : '<li class="pm-vacio">Sin registros todav\u00eda</li>';
     modal.innerHTML = '<div class="pm-card" role="dialog" aria-modal="true" aria-label="Avance del p\u00f3rtico">'
       + '<div class="pm-head"><div><strong>'+esc(p.nombre)+'</strong><span>'+esc(p.comuna)+'</span></div>'
-      + '<button type="button" class="pm-x" aria-label="Cerrar">\u2715</button></div>'
+      + '<button type="button" class="pm-comp" aria-label="Compartir el historial de este p\u00f3rtico" title="Compartir historial"><span aria-hidden="true">\ud83d\udd17</span></button><button type="button" class="pm-x" aria-label="Cerrar">\u2715</button></div>'
       + '<div class="pm-body">'
       + '<div class="pm-label">Estado actual</div><div>'+(st ? chip(st.name)+' <span class="pm-f">'+subEstado(st)+'</span>' : '<span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar</span>')+'</div>'
       + '<div class="pm-label">Registrar partida ejecutada o comentario</div>'
@@ -2928,6 +3014,7 @@ window.PORTICOS_LISTA = (function(){
     modal.hidden = false;
     setTimeout(function(){ var pp = modal.querySelector("#pmPartida"); if(pp) pp.focus(); }, 30);
     modal.querySelector(".pm-x").onclick = cerrarModal;
+    modal.querySelector(".pm-comp").onclick = function(){ compartir(location.origin + location.pathname + "#porticos?p=" + encodeURIComponent(p.nombre) + "&h=1", "Historial " + p.nombre + " \u00b7 GeoMav"); };
     modal.querySelector("#pmGuardar").onclick = function(){
       var pSel0 = modal.querySelector("#pmPartida").value;
       if(pSel0 === "Prevenci\u00f3n" && !modal.querySelector("#pmObs").value.trim() && !fotosSel.length){
@@ -3444,14 +3531,14 @@ window.PORTICOS_LISTA = (function(){
     if(tab === "indicadores") pintarIndicadores();
     if(tab === "porticos") mapaMovil(true);
     window.scrollTo(0, 0);
-    try{ history.replaceState(null, "", "#" + tab); }catch(e){}
+    if(urlAplicada) actualizarURL(); else { try{ history.replaceState(null, "", "#" + tab); }catch(e){} }
     if(window.LP_cues) window.LP_cues();
   }
   document.body.setAttribute("data-mtab", "semanal");
   function altoTopbar(){ var tb = document.querySelector(".topbar"); if(tb) document.documentElement.style.setProperty("--topbar-h", tb.offsetHeight + "px"); }
   altoTopbar(); window.addEventListener("resize", altoTopbar);
   Array.prototype.forEach.call(document.querySelectorAll("#mTabs [data-mtab]"), function(b){ b.addEventListener("click", function(){ irTab(b.dataset.mtab); }); });
-  (function(){ var h0 = (location.hash || "").slice(1); if(h0 && h0 !== "semanal" && document.querySelector('#mTabs [data-mtab="' + h0.replace(/[^a-z]/g, "") + '"]')) setTimeout(function(){ irTab(h0); }, 0); })();
+  (function(){ var h0 = leerURL().tab; if(h0 && h0 !== "semanal" && document.querySelector('#mTabs [data-mtab="' + h0 + '"]')) setTimeout(function(){ irTab(h0); }, 0); })();
   document.addEventListener("click", function(e){
     var bm = e.target.closest(".menu-pop button"); if(bm){ var dm = bm.closest("details"); if(dm) dm.removeAttribute("open"); return; }
     Array.prototype.forEach.call(document.querySelectorAll("details.menu-mas[open], details.msel[open]"), function(dm){ if(!dm.contains(e.target)) dm.removeAttribute("open"); });
