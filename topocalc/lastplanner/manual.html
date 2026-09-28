@@ -145,7 +145,7 @@ dl.glosario dt{ font-weight:700; background:var(--paper-sunken); }
     <li><a href="#navegacion">2. Cómo moverse</a></li>
     <li><a href="#semanal">3. Semanal</a></li>
     <li><a href="#intermedio">4. Intermedio</a></li>
-    <li><a href="#maestro">5. Plan Maestro</a></li>
+    <li><a href="#maestro">5. Plan Maestro (Gantt)</a></li>
     <li><a href="#indicadores">6. Indicadores</a></li>
     <li><a href="#reunion">7. Reunión</a></li>
     <li><a href="#guardar">8. Guardar y respaldar</a></li>
@@ -175,7 +175,7 @@ dl.glosario dt{ font-weight:700; background:var(--paper-sunken); }
   <div class="tabla"><table>
     <thead><tr><th>Nivel</th><th>Horizonte</th><th>Pregunta que responde</th></tr></thead>
     <tbody>
-      <tr><td><b>Plan Maestro</b></td><td>Toda la obra, por mes</td><td>¿Qué <i>debería</i> hacerse?</td></tr>
+      <tr><td><b>Plan Maestro</b></td><td>Toda la obra, carta Gantt por mes</td><td>¿Qué <i>debería</i> hacerse?</td></tr>
       <tr><td><b>Plan Intermedio</b></td><td>Próximas semanas (~2 meses)</td><td>¿Qué <i>puede</i> hacerse? ¿Qué lo impide?</td></tr>
       <tr><td><b>Plan Semanal</b></td><td>Esta semana, por día</td><td>¿Qué <i>se hará</i>? ¿Se cumplió?</td></tr>
     </tbody>
@@ -231,13 +231,28 @@ dl.glosario dt{ font-weight:700; background:var(--paper-sunken); }
 </section>
 
 <section id="maestro">
-  <h2><span class="n">5</span>Plan Maestro</h2>
-  <p>La visión de <b>toda la obra por mes</b>. Cada columna es un mes y cada fila una fase; una partida aparece en todos los meses que dura.</p>
+  <h2><span class="n">5</span>Plan Maestro · carta Gantt</h2>
+  <p>La visión de <b>toda la obra</b> en formato <b>carta Gantt</b>: cada fila es una actividad y su barra cubre los meses en que se ejecuta. Las actividades se agrupan por <b>fase</b> y cada fase muestra una barra resumen desde su primera hasta su última actividad.</p>
+  <figure class="ilus">
+    <div style="display:grid;grid-template-columns:150px repeat(6,1fr);font-size:12px;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--paper-raised)">
+      <div style="padding:6px 8px;background:var(--paper-sunken);font-weight:700">Actividad</div>
+      <div style="padding:6px 4px;background:var(--paper-sunken);text-align:center;font-weight:700">Ene</div><div style="padding:6px 4px;background:var(--paper-sunken);text-align:center;font-weight:700">Feb</div><div style="padding:6px 4px;background:var(--paper-sunken);text-align:center;font-weight:700">Mar</div><div style="padding:6px 4px;background:var(--paper-sunken);text-align:center;font-weight:700">Abr</div><div style="padding:6px 4px;background:var(--paper-sunken);text-align:center;font-weight:700">May</div><div style="padding:6px 4px;background:var(--paper-sunken);text-align:center;font-weight:700">Jun</div>
+      <div style="padding:6px 8px;border-top:1px solid var(--line)"><b>Excavaciones</b><br><span style="font-size:10.5px;color:var(--ink-soft)">Ene → Feb · 2 meses · 100%</span></div>
+      <div style="grid-column:2 / span 2;margin:8px 0;border-radius:6px;background:#D49A6A;border-top:1px solid var(--line)"></div><div style="grid-column:4 / span 4;border-top:1px solid var(--line)"></div>
+      <div style="padding:6px 8px;border-top:1px solid var(--line)"><b>Moldajes</b><br><span style="font-size:10.5px;color:var(--ink-soft)">Feb → May · 4 meses · 40%</span></div>
+      <div style="border-top:1px solid var(--line)"></div>
+      <div style="grid-column:3 / span 4;margin:8px 0;border-radius:6px;border:1px solid #D49A6A;background:linear-gradient(to right,#D49A6A 40%,rgba(212,154,106,.3) 40%)"></div>
+      <div style="border-top:1px solid var(--line)"></div>
+    </div>
+    <figcaption>La parte más oscura de cada barra es el <b>% de avance</b>. Una línea roja vertical marca el <b>mes actual</b>.</figcaption>
+  </figure>
   <ol class="pasos">
-    <li>Ingresa el mes de inicio y la <b>duración en meses</b>, y toca <b>Generar meses</b>.</li>
-    <li>Agrega o edita partidas tocando <b>+</b> o la nota.</li>
+    <li>Ingresa el <b>mes de inicio</b> y la <b>duración en meses</b>, y toca <b>Generar meses</b>.</li>
+    <li>Crea las fases con <b>+ Fase</b>. Su nombre se edita tocándolo; con ↑ ↓ se reordenan.</li>
+    <li>Toca <b>+ Actividad</b> (o <b>+</b> junto a una fase) y completa: actividad, fase, <b>desde</b>, <b>hasta</b>, responsable y avance %.</li>
+    <li>Toca una <b>barra</b> o el nombre de la actividad para modificar fechas o avance, o para <b>eliminarla</b> (con Deshacer).</li>
   </ol>
-  <p>Es la referencia para armar el Intermedio: lo que el Maestro dice que <i>debería</i> hacerse se revisa ahí para ver si <i>puede</i> hacerse.</p>
+  <p>Es la referencia para armar el Intermedio: lo que el Maestro dice que <i>debería</i> hacerse se revisa ahí para ver si <i>puede</i> hacerse. Se imprime en hoja A3 apaisada y también se puede exportar a Excel.</p>
 </section>
 
 <section id="indicadores">
