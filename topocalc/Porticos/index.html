@@ -457,6 +457,19 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
 .foto-btn small{ font-size:.6rem; font-weight:700; color:var(--blueprint); margin-top:2px; }
 .foto-btn:hover{ background:var(--blueprint-soft); }
 .foto-btn:focus-visible{ outline:2px solid var(--blueprint); }
+.pm-hist li.pm-editando{ display:block; background:var(--paper-sunken); border-radius:8px; padding:8px 10px; border-bottom:none; }
+.pm-edit .pm-label{ margin-top:2px; }
+.ed-acc{ display:flex; align-items:center; gap:14px; margin-top:4px; }
+.ed-acc .pm-guardar{ width:auto; flex:1; }
+.ed-nota{ margin:6px 0 0; }
+.an-box{ flex-basis:100%; margin-top:6px; padding:8px 10px; background:#F7E7E5; border-radius:8px; }
+:root[data-theme="dark"] .an-box{ background:rgba(178,59,59,.18); }
+.an-t{ font-size:.76rem; color:var(--danger); font-weight:700; margin-bottom:6px; }
+.an-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.an-pin{ font:inherit; font-size:.9rem; width:110px; padding:7px 8px; border:1px solid var(--line-strong); border-radius:6px; background:var(--paper); color:var(--ink); }
+.an-ok{ font:inherit; font-weight:700; font-size:.82rem; color:#fff; background:var(--danger); border:none; border-radius:6px; padding:8px 14px; cursor:pointer; }
+.an-ok:disabled{ opacity:.6; cursor:wait; }
+@media (max-width:860px){ .an-pin{ font-size:16px; min-height:40px; } .an-ok{ min-height:44px; } }
 .pm-pct{ font-size:.7rem; font-weight:700; color:var(--ink); background:var(--paper-sunken); border-radius:999px; padding:1px 7px; }
 .gal-overlay{ position:fixed; inset:0; z-index:2000; background:rgba(6,14,26,.94); display:flex; flex-direction:column; color:#fff; }
 .gal-overlay[hidden]{ display:none; }
@@ -2885,10 +2898,11 @@ window.PORTICOS_LISTA = (function(){
     var hist = (d.hist[num] || []).slice().sort(function(a,b){ return (b.fecha+b.registrado).localeCompare(a.fecha+a.registrado); });
     var opts = '<option value="Comentarios">0. Comentarios</option><option value="Prevenci\u00f3n">0. Prevenci\u00f3n</option>' + d.orden.map(function(n,i){ return '<option value="'+esc(n)+'"'+(i===sig?' selected':'')+'>'+(i+1)+'. '+esc(n)+'</option>'; }).join("");
     var histHtml = hist.length ? hist.map(function(a){
-        return '<li>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.obs?'<span class="pm-obs">'+esc(a.obs)+'</span>':'')
+        return '<li data-reg="'+esc(a.id)+'">'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.obs?'<span class="pm-obs">'+esc(a.obs)+'</span>':'')
           +(a.avance !== "" && a.avance != null && !esNota(a.partida) ? '<span class="pm-pct">'+esc(a.avance)+'%</span>' : '')
           +(a.nfotos ? '<button type="button" class="pm-fotos-link" data-galeria="'+esc(a.id)+'">\ud83d\udcf7 '+a.nfotos+' foto'+(a.nfotos===1?'':'s')+'</button>' : '')
           +'<button type="button" class="btn-link" data-addfotos="'+esc(a.id)+'">+ Fotos</button>'
+          +'<button type="button" class="btn-link" data-editar="'+esc(a.id)+'">Editar</button>'
           +'<button type="button" class="btn-link danger" data-anular="'+esc(a.id)+'">Anular</button></li>';
       }).join("") : '<li class="pm-vacio">Sin registros todav\u00eda</li>';
     modal.innerHTML = '<div class="pm-card" role="dialog" aria-modal="true" aria-label="Avance del p\u00f3rtico">'
@@ -2947,7 +2961,60 @@ window.PORTICOS_LISTA = (function(){
       };
     });
     Array.prototype.forEach.call(modal.querySelectorAll("[data-anular]"), function(b){
-      b.onclick = function(){ if(confirm("\u00bfAnular este registro de avance?")) guardar({ accion:"anular", id:b.dataset.anular }, num, b); };
+      /* anular: siempre pide el PIN, aunque ya est\u00e9 ingresado en la sesi\u00f3n */
+      b.onclick = function(){
+        var li = b.closest("li"); if(!li || li.querySelector(".an-box")) return;
+        var box = document.createElement("div"); box.className = "an-box";
+        box.innerHTML = '<div class="an-t">\u00bfAnular este registro? Deja de contar para el estado del p\u00f3rtico.</div>'
+          + '<div class="an-row"><input type="password" class="an-pin" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="PIN" aria-label="PIN de edici\u00f3n">'
+          + '<button type="button" class="an-ok">Anular</button><button type="button" class="btn-link an-no">Cancelar</button></div>'
+          + '<div class="pm-msg an-msg"></div>';
+        li.appendChild(box);
+        var inp = box.querySelector(".an-pin"), m = box.querySelector(".an-msg");
+        inp.focus();
+        box.querySelector(".an-no").onclick = function(){ box.remove(); };
+        var ir = function(){
+          var pin = inp.value.trim();
+          if(!pin){ m.textContent = "Ingresa el PIN para anular."; m.className = "pm-msg an-msg err"; inp.focus(); return; }
+          guardar({ accion:"anular", id:b.dataset.anular, pin:pin }, num, box.querySelector(".an-ok"), null, m);
+        };
+        box.querySelector(".an-ok").onclick = ir;
+        inp.addEventListener("keydown", function(e){ if(e.key === "Enter") ir(); });
+      };
+    });
+    /* editar un registro del historial (con PIN) */
+    Array.prototype.forEach.call(modal.querySelectorAll("[data-editar]"), function(b){
+      b.onclick = function(){
+        var a = hist.find(function(x){ return x.id === b.dataset.editar; }); if(!a) return;
+        var li = b.closest("li");
+        var op = ['Comentarios','Prevenci\u00f3n'].map(function(n){ return '<option value="'+esc(n)+'"'+(a.partida===n?' selected':'')+'>0. '+esc(n)+'</option>'; }).join('')
+          + d.orden.map(function(n,i){ return '<option value="'+esc(n)+'"'+(a.partida===n?' selected':'')+'>'+(i+1)+'. '+esc(n)+'</option>'; }).join('');
+        var avs = ['','100','75','50','25','0'].map(function(v){ return '<option value="'+v+'"'+(String(a.avance || '')===v?' selected':'')+'>'+(v===''?'\u2013':v+'%')+'</option>'; }).join('');
+        li.classList.add("pm-editando");
+        li.innerHTML = '<div class="pm-edit">'
+          + '<div class="pm-label">Editar registro</div>'
+          + '<div class="pm-grid"><label>Partida<select class="ed-part">'+op+'</select></label><label>Fecha<input type="date" class="ed-fecha" value="'+esc(a.fecha)+'"></label></div>'
+          + '<label class="pm-full ed-av-l"'+(esNota(a.partida)?' style="display:none"':'')+'>Avance de la partida<select class="ed-av">'+avs+'</select></label>'
+          + '<label class="pm-full">Observaci\u00f3n<input type="text" class="ed-obs" maxlength="300" value="'+esc(a.obs || '')+'"></label>'
+          + (getPin() ? '' : '<label class="pm-full">PIN de edici\u00f3n<input type="password" class="ed-pin" inputmode="numeric" autocomplete="off" maxlength="8"></label>')
+          + '<div class="pm-msg ed-msg"></div>'
+          + '<div class="ed-acc"><button type="button" class="pm-guardar ed-ok">Guardar cambios</button><button type="button" class="btn-link ed-cancel">Cancelar</button></div>'
+          + (a.nfotos ? '<p class="pm-f ed-nota">Las fotos quedan en su carpeta actual de Drive.</p>' : '')
+          + '</div>';
+        li.querySelector(".ed-part").onchange = function(){ li.querySelector(".ed-av-l").style.display = esNota(this.value) ? "none" : ""; };
+        li.querySelector(".ed-cancel").onclick = function(){ abrirPortico(num); };
+        li.querySelector(".ed-ok").onclick = function(){
+          var part = li.querySelector(".ed-part").value, obs = li.querySelector(".ed-obs").value.trim(), m = li.querySelector(".ed-msg");
+          if(part === "Comentarios" && !obs){ m.textContent = "Escribe el comentario."; m.className = "pm-msg ed-msg err"; return; }
+          if(part === "Prevenci\u00f3n" && !obs && !a.nfotos){ m.textContent = "Para Prevenci\u00f3n escribe una observaci\u00f3n."; m.className = "pm-msg ed-msg err"; return; }
+          var ep = li.querySelector(".ed-pin"), tp = modal.querySelector("#pmPin");
+          if(ep){ if(!ep.value.trim()){ m.textContent = "Ingresa el PIN de edici\u00f3n."; m.className = "pm-msg ed-msg err"; ep.focus(); return; } if(tp) tp.value = ep.value.trim(); }
+          m.textContent = "Guardando\u2026"; m.className = "pm-msg ed-msg";
+          guardar({ accion:"editarRegistro", id:a.id, partida:part, fecha:li.querySelector(".ed-fecha").value, obs:obs,
+                    avance: esNota(part) ? "" : li.querySelector(".ed-av").value }, num, this, null, m);
+        };
+        li.querySelector(".ed-part").focus();
+      };
     });
   }
   /* Reduce cada foto (m\u00e1x. 1600 px, JPEG) antes de subirla */
@@ -2993,10 +3060,10 @@ window.PORTICOS_LISTA = (function(){
     if(!blobs || !blobs.length) return Promise.resolve([]);
     return Promise.all(Array.prototype.slice.call(blobs, 0, 10).map(comprimir)).then(function(a){ return a.filter(Boolean); });
   }
-  function guardar(body, num, btn, files){
-    var msg = modal.querySelector("#pmMsg");
+  function guardar(body, num, btn, files, msgEl){
+    var msg = msgEl || modal.querySelector("#pmMsg");
     var pinInput = modal.querySelector("#pmPin");
-    var pin = getPin() || (pinInput ? pinInput.value.trim() : "");
+    var pin = body.pin || getPin() || (pinInput ? pinInput.value.trim() : "");
     if(!pin){ msg.textContent = "Ingresa el PIN de edici\u00f3n."; msg.className = "pm-msg err"; if(pinInput) pinInput.focus(); return; }
     var autorInput = modal.querySelector("#pmAutor");
     if(autorInput && autorInput.value.trim()) setAutor(autorInput.value.trim());
