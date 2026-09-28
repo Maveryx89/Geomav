@@ -462,6 +462,14 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
 .ed-acc{ display:flex; align-items:center; gap:14px; margin-top:4px; }
 .ed-acc .pm-guardar{ width:auto; flex:1; }
 .ed-nota{ margin:6px 0 0; }
+.an-box{ flex-basis:100%; margin-top:6px; padding:8px 10px; background:#F7E7E5; border-radius:8px; }
+:root[data-theme="dark"] .an-box{ background:rgba(178,59,59,.18); }
+.an-t{ font-size:.76rem; color:var(--danger); font-weight:700; margin-bottom:6px; }
+.an-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.an-pin{ font:inherit; font-size:.9rem; width:110px; padding:7px 8px; border:1px solid var(--line-strong); border-radius:6px; background:var(--paper); color:var(--ink); }
+.an-ok{ font:inherit; font-weight:700; font-size:.82rem; color:#fff; background:var(--danger); border:none; border-radius:6px; padding:8px 14px; cursor:pointer; }
+.an-ok:disabled{ opacity:.6; cursor:wait; }
+@media (max-width:860px){ .an-pin{ font-size:16px; min-height:40px; } .an-ok{ min-height:44px; } }
 .pm-pct{ font-size:.7rem; font-weight:700; color:var(--ink); background:var(--paper-sunken); border-radius:999px; padding:1px 7px; }
 .gal-overlay{ position:fixed; inset:0; z-index:2000; background:rgba(6,14,26,.94); display:flex; flex-direction:column; color:#fff; }
 .gal-overlay[hidden]{ display:none; }
@@ -2953,23 +2961,25 @@ window.PORTICOS_LISTA = (function(){
       };
     });
     Array.prototype.forEach.call(modal.querySelectorAll("[data-anular]"), function(b){
+      /* anular: siempre pide el PIN, aunque ya est\u00e9 ingresado en la sesi\u00f3n */
       b.onclick = function(){
-        /* anular siempre pide el PIN, aunque ya est\u00e9 ingresado en la sesi\u00f3n */
-        var li = b.closest("li"); if(!li) return;
-        li.classList.add("pm-editando");
-        li.innerHTML = '<div class="pm-edit"><div class="pm-label" style="color:var(--danger)">Anular registro</div>'
-          + '<p class="pm-f" style="margin:0 0 6px">El registro deja de contar para el estado y los indicadores. Queda en la bit\u00e1cora.</p>'
-          + '<label class="pm-full">PIN de edici\u00f3n<input type="password" class="an-pin" inputmode="numeric" autocomplete="off" maxlength="8"></label>'
-          + '<div class="pm-msg an-msg"></div>'
-          + '<div class="ed-acc"><button type="button" class="pm-guardar an-ok" style="background:var(--danger)">Anular</button><button type="button" class="btn-link an-cancel">Cancelar</button></div></div>';
-        var ip = li.querySelector(".an-pin"); ip.focus();
-        li.querySelector(".an-cancel").onclick = function(){ abrirPortico(num); };
-        li.querySelector(".an-ok").onclick = function(){
-          var m = li.querySelector(".an-msg"), pv = ip.value.trim();
-          if(!pv){ m.textContent = "Ingresa el PIN para anular."; m.className = "pm-msg an-msg err"; ip.focus(); return; }
-          guardar({ accion:"anular", id:b.dataset.anular, __pin:pv }, num, this, null, m);
+        var li = b.closest("li"); if(!li || li.querySelector(".an-box")) return;
+        var box = document.createElement("div"); box.className = "an-box";
+        box.innerHTML = '<div class="an-t">\u00bfAnular este registro? Deja de contar para el estado del p\u00f3rtico.</div>'
+          + '<div class="an-row"><input type="password" class="an-pin" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="PIN" aria-label="PIN de edici\u00f3n">'
+          + '<button type="button" class="an-ok">Anular</button><button type="button" class="btn-link an-no">Cancelar</button></div>'
+          + '<div class="pm-msg an-msg"></div>';
+        li.appendChild(box);
+        var inp = box.querySelector(".an-pin"), m = box.querySelector(".an-msg");
+        inp.focus();
+        box.querySelector(".an-no").onclick = function(){ box.remove(); };
+        var ir = function(){
+          var pin = inp.value.trim();
+          if(!pin){ m.textContent = "Ingresa el PIN para anular."; m.className = "pm-msg an-msg err"; inp.focus(); return; }
+          guardar({ accion:"anular", id:b.dataset.anular, pin:pin }, num, box.querySelector(".an-ok"), null, m);
         };
-        ip.addEventListener("keydown", function(e){ if(e.key === "Enter") li.querySelector(".an-ok").click(); });
+        box.querySelector(".an-ok").onclick = ir;
+        inp.addEventListener("keydown", function(e){ if(e.key === "Enter") ir(); });
       };
     });
     /* editar un registro del historial (con PIN) */
@@ -3053,7 +3063,7 @@ window.PORTICOS_LISTA = (function(){
   function guardar(body, num, btn, files, msgEl){
     var msg = msgEl || modal.querySelector("#pmMsg");
     var pinInput = modal.querySelector("#pmPin");
-    var pin = body.__pin || getPin() || (pinInput ? pinInput.value.trim() : ""); delete body.__pin;
+    var pin = body.pin || getPin() || (pinInput ? pinInput.value.trim() : "");
     if(!pin){ msg.textContent = "Ingresa el PIN de edici\u00f3n."; msg.className = "pm-msg err"; if(pinInput) pinInput.focus(); return; }
     var autorInput = modal.querySelector("#pmAutor");
     if(autorInput && autorInput.value.trim()) setAutor(autorInput.value.trim());
