@@ -480,6 +480,41 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
 .comp-toast{ position:fixed; left:50%; bottom:calc(84px + env(safe-area-inset-bottom, 0px)); transform:translate(-50%, 20px); background:var(--ink); color:var(--paper); font-size:.84rem; font-weight:700; padding:10px 16px; border-radius:999px; box-shadow:0 10px 30px -10px rgba(0,0,0,.5); opacity:0; transition:opacity .2s, transform .2s; z-index:3000; pointer-events:none; }
 .comp-toast.on{ opacity:1; transform:translate(-50%, 0); }
 @media (max-width:860px){ .comp-btn, .ficha-comp, .pm-comp{ width:40px; height:40px; } }
+
+/* ---------- borrar en grupo ---------- */
+.bg-ov{ position:fixed; inset:0; z-index:1600; background:rgba(10,34,64,.45); display:flex; align-items:center; justify-content:center; padding:16px; }
+.bg-card{ width:100%; max-width:400px; background:var(--paper-raised); color:var(--ink); border-radius:12px; box-shadow:0 20px 50px -12px rgba(0,0,0,.45); overflow:hidden; }
+.bg-h{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#F7E7E5; color:var(--danger); }
+:root[data-theme="dark"] .bg-h{ background:rgba(178,59,59,.2); }
+.bg-x{ all:unset; cursor:pointer; padding:2px 6px; }
+.bg-b{ padding:12px 16px 16px; display:flex; flex-direction:column; gap:8px; }
+.bg-t{ margin:0; font-size:.8rem; color:var(--ink-soft); }
+.bg-b label{ display:flex; flex-direction:column; gap:4px; font-size:.74rem; color:var(--ink-soft); }
+.bg-b select, .bg-b input{ font:inherit; font-size:.88rem; color:var(--ink); background:var(--paper); border:1px solid var(--line-strong); border-radius:6px; padding:7px 8px; }
+.bg-cnt{ font-size:.82rem; color:var(--ink); background:var(--paper-sunken); border-radius:8px; padding:8px 10px; }
+.bg-msg{ min-height:1.1em; font-size:.78rem; color:var(--danger); }
+.bg-acc{ display:flex; align-items:center; gap:14px; }
+.bg-ok{ flex:1; font:inherit; font-weight:700; font-size:.9rem; color:#fff; background:var(--danger); border:none; border-radius:8px; padding:10px; cursor:pointer; }
+.bg-ok:disabled{ opacity:.5; cursor:not-allowed; }
+@media (max-width:860px){ .bg-b select, .bg-b input{ font-size:16px; min-height:42px; } .bg-ok{ min-height:46px; } }
+/* ---------- estado de pórticos en Indicadores ---------- */
+.ep-box{ margin-top:14px; }
+.ep-buscar{ width:100%; box-sizing:border-box; font:inherit; font-size:.84rem; color:var(--ink); background:var(--paper); border:1px solid var(--line-strong); border-radius:6px; padding:7px 9px; margin:4px 0 8px; }
+.ep-lista{ max-height:560px; overflow:auto; border-top:1px solid var(--line); }
+.ep-row{ border-bottom:1px solid var(--line); }
+.ep-row > summary{ list-style:none; cursor:pointer; display:grid; grid-template-columns:90px 110px minmax(0,1fr) 54px; gap:8px; align-items:center; padding:8px 4px; font-size:.8rem; }
+.ep-row > summary::-webkit-details-marker{ display:none; }
+.ep-row > summary::before{ content:"\25B8"; position:absolute; margin-left:-12px; color:var(--blueprint); }
+.ep-row[open] > summary::before{ content:"\25BE"; }
+.ep-row > summary{ position:relative; padding-left:16px; }
+.ep-row > summary:hover{ background:var(--paper-sunken); }
+.ep-n{ font-weight:700; } .ep-c{ color:var(--ink-soft); } .ep-k{ text-align:right; font-size:.7rem; color:var(--ink-soft); }
+.ep-sub{ display:block; font-size:.66rem; color:var(--ink-soft); margin:2px 0 0 4px; }
+.ep-h{ list-style:none; margin:0 0 6px; padding:0 8px 0 18px; }
+.ep-h li{ display:flex; align-items:center; flex-wrap:wrap; gap:6px; padding:5px 0; font-size:.76rem; border-bottom:1px dashed var(--line); }
+.ep-v{ padding:0 18px 6px; } .ep-ir{ margin:2px 0 10px 18px; font-size:.74rem; }
+@media (max-width:860px){ .ep-row > summary{ grid-template-columns:80px minmax(0,1fr) 44px; } .ep-c{ display:none; } .ep-lista{ max-height:none; } }
+
 .pm-pct{ font-size:.7rem; font-weight:700; color:var(--ink); background:var(--paper-sunken); border-radius:999px; padding:1px 7px; }
 .gal-overlay{ position:fixed; inset:0; z-index:2000; background:rgba(6,14,26,.94); display:flex; flex-direction:column; color:#fff; }
 .gal-overlay[hidden]{ display:none; }
@@ -1015,6 +1050,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
         <div class="menu-pop">
           <button class="btn-sm" data-action="add-week">+ Día</button>
           <button class="btn-sm" data-action="add-category">+ Categoría</button>
+          <button class="btn-sm danger" data-action="borrar-grupo"><span aria-hidden="true">&#x1F5D1;&#xFE0F;</span> Borrar tareas&hellip;</button>
           <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
           <button class="btn-sm" data-action="print">Imprimir</button>
@@ -1092,6 +1128,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
         <div class="menu-pop">
           <button class="btn-sm" data-action="add-week">+ Semana</button>
           <button class="btn-sm" data-action="add-category">+ Categoría</button>
+          <button class="btn-sm danger" data-action="borrar-grupo"><span aria-hidden="true">&#x1F5D1;&#xFE0F;</span> Borrar tareas&hellip;</button>
           <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
           <button class="btn-sm" data-action="print">Imprimir</button>
@@ -1882,6 +1919,64 @@ window.PORTICOS_LISTA = (function(){
         + '<div class="causas-body">'+causasHtml+'</div>';
     }
 
+    /* ---------- borrar tareas en grupo: día/semana, partida y mes (combinables) ---------- */
+    function abrirBorrado(){
+      var ov = document.createElement("div"); ov.className = "bg-ov";
+      var colOpts = '<option value="">' + (cfg.weekly ? 'Todos los d\u00edas' : 'Todas las semanas') + '</option>'
+        + state.weeks.map(function(w){ return '<option value="'+w.id+'">'+escapeHtml((cfg.weekly ? '' : 'Lun ') + w.label + ' \u00b7 ' + (w.month || ''))+'</option>'; }).join("");
+      var catOpts = '<option value="">Todas las partidas</option>' + state.categories.map(function(c){ return '<option value="'+c.id+'">'+escapeHtml(c.name)+'</option>'; }).join("");
+      var meses = []; state.weeks.forEach(function(w){ if(w.month && meses.indexOf(w.month) < 0) meses.push(w.month); });
+      ov.innerHTML = '<div class="bg-card" role="dialog" aria-modal="true" aria-label="Borrar tareas">'
+        + '<div class="bg-h"><strong>\ud83d\uddd1\ufe0f Borrar tareas</strong><button type="button" class="bg-x" aria-label="Cerrar">\u2715</button></div>'
+        + '<div class="bg-b"><p class="bg-t">Elige qu\u00e9 borrar. Puedes combinar, por ejemplo una partida en un ' + (cfg.weekly ? 'd\u00eda' : 'mes') + '.</p>'
+        + '<label>' + (cfg.weekly ? 'D\u00eda' : 'Semana') + '<select class="bg-col">' + colOpts + '</select></label>'
+        + (cfg.weekly ? '' : '<label>Mes<select class="bg-mes"><option value="">Todos los meses</option>' + meses.map(function(m){ return '<option>'+escapeHtml(m)+'</option>'; }).join("") + '</select></label>')
+        + '<label>Partida<select class="bg-cat">' + catOpts + '</select></label>'
+        + '<div class="bg-cnt" role="status"></div>'
+        + '<label class="bg-pinl">PIN de edici\u00f3n<input type="password" class="bg-pin" inputmode="numeric" autocomplete="off" maxlength="8"></label>'
+        + '<div class="bg-msg"></div>'
+        + '<div class="bg-acc"><button type="button" class="bg-ok">Borrar</button><button type="button" class="btn-link bg-no">Cancelar</button></div></div></div>';
+      document.body.appendChild(ov);
+      var $ = function(s){ return ov.querySelector(s); };
+      function eleccion(){ return { c: $(".bg-col").value, k: $(".bg-cat").value, m: $(".bg-mes") ? $(".bg-mes").value : "" }; }
+      function seleccion(){
+        var e = eleccion();
+        return state.notes.filter(function(n){
+          if(e.c && n.weekId !== e.c) return false;
+          if(e.k && n.catId !== e.k) return false;
+          if(e.m){ var w = findWeek(n.weekId); if(!w || w.month !== e.m) return false; }
+          return true;
+        });
+      }
+      function actualizar(){
+        var s = seleccion(), rem = s.filter(function(n){ return n.remota; }).length;
+        $(".bg-cnt").innerHTML = s.length
+          ? 'Se borrar\u00e1n <b>' + s.length + '</b> tarea' + (s.length === 1 ? '' : 's') + (rem ? ' \u00b7 <b>' + rem + '</b> est\u00e1' + (rem === 1 ? '' : 'n') + ' en la planilla y se borrar\u00e1' + (rem === 1 ? '' : 'n') + ' para todos.' : ' \u00b7 solo en este equipo.')
+          : 'No hay tareas con esa selecci\u00f3n.';
+        $(".bg-pinl").style.display = rem ? "" : "none";
+        $(".bg-ok").disabled = !s.length;
+      }
+      ["bg-col","bg-cat","bg-mes"].forEach(function(c){ var el = $("." + c); if(el) el.onchange = actualizar; });
+      var cerrar = function(){ ov.remove(); };
+      $(".bg-x").onclick = cerrar; $(".bg-no").onclick = cerrar;
+      ov.addEventListener("click", function(e){ if(e.target === ov) cerrar(); });
+      $(".bg-ok").onclick = function(){
+        var s = seleccion(), e = eleccion(), msg = $(".bg-msg"), btn = this; if(!s.length) return;
+        if(!e.c && !e.k && !e.m && !confirm("Vas a borrar TODAS las tareas de este tablero. \u00bfSeguro?")) return;
+        var rem = s.filter(function(n){ return n.remota; }).map(function(n){ return n.id; });
+        var quitar = function(){ var ids = {}; s.forEach(function(n){ ids[n.id] = 1; }); state.notes = state.notes.filter(function(n){ return !ids[n.id]; }); state.editingNoteId = null; saveState(); render(); cerrar(); };
+        if(!rem.length){ quitar(); return; }
+        var api = window.PORTICOS_API; if(!api){ msg.textContent = "Sin conexi\u00f3n con la planilla."; return; }
+        var pin = $(".bg-pin").value.trim(); if(!pin){ msg.textContent = "Ingresa el PIN."; $(".bg-pin").focus(); return; }
+        if(window.PORTICOS_AUTOR) window.PORTICOS_AUTOR.pedir();
+        btn.disabled = true; msg.textContent = "Borrando " + rem.length + " tarea" + (rem.length === 1 ? "" : "s") + "\u2026";
+        api.enviar({ accion:"borrarNotas", ids: rem, pin: pin }).then(function(j){
+          if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) api.setPin(""); msg.textContent = (j && j.error) || "No se pudo borrar."; btn.disabled = false; return; }
+          api.setPin(pin); quitar(); api.aplicar(j);
+        }).catch(function(){ msg.textContent = "No se recibi\u00f3 confirmaci\u00f3n. Revisa el tablero antes de reintentar."; btn.disabled = false; });
+      };
+      actualizar(); $(".bg-col").focus();
+    }
     var restrAbierto = false;
     function renderRestrictions(){
       var panel = root.querySelector(".restrictions-panel");
@@ -2205,6 +2300,7 @@ window.PORTICOS_LISTA = (function(){
       else if(action === "close-note"){ state.editingNoteId = null; render(); }
       else if(action === "m-col"){ mCol = el.dataset.week; state.editingNoteId = null; render(); }
       else if(action === "liberar-hoy"){ if(window.PORTICOS_API && window.PORTICOS_API.liberar) window.PORTICOS_API.liberar(el.dataset.portico, el); }
+      else if(action === "borrar-grupo"){ abrirBorrado(); }
       else if(action === "toggle-restr"){ restrAbierto = !restrAbierto; renderRestrictions(); }
       else if(action === "save-note"){ var ns = state.notes.find(function(x){return x.id===el.dataset.note;}); if(ns) guardarNotaRemota(ns, el); }
       else if(action === "del-note") delNote(el.dataset.note);
@@ -3275,10 +3371,7 @@ window.PORTICOS_LISTA = (function(){
     var d = ultimoData || calcular();
     var dist = d.orden.map(function(){ return 0; }), sin = 0;
     lista().forEach(function(p,k){ var st = estadoDe(numDe(p,k), d); if(st) dist[st.idx]++; else sin++; });
-    var resumen = '<div class="av-resumen"><div class="pm-label">Estado actual de los '+lista().length+' p\u00f3rticos</div>'
-      + '<div class="av-dist"><span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar <b>'+sin+'</b></span>'
-      + d.orden.map(function(n,i){ var t = window.PARTIDA_TONE[n]; return '<span class="av-it"><i class="dot dot-'+t+'"></i>'+esc(n)+' <b>'+dist[i]+'</b></span>'; }).join("")
-      + '</div></div>';
+    var resumen = '';   /* el estado actual de los pórticos se muestra en Indicadores */
     var sem = {};
     REMOTO.avance.forEach(function(a){ (sem[a.semana] = sem[a.semana] || []).push(a); });
     var keys = Object.keys(sem).sort().reverse();
@@ -3516,8 +3609,42 @@ window.PORTICOS_LISTA = (function(){
         + (dif >= 0 ? '<b style="color:var(--success)">al d\u00eda o adelantado (+'+dif+')</b>' : '<b style="color:var(--danger)">atraso de '+(-dif)+' partidas</b>') + '. Ejecutado = registros de avance al 100%.</p>';
     } else curva += '<p class="pm-vacio">Sin programaci\u00f3n cargada.</p>';
     curva += '</div>';
-    box.innerHTML = cards + '<div class="ind-grid2">' + ppcHtml + par + '</div>' + curva;
+    box.innerHTML = cards + '<div class="ind-grid2">' + ppcHtml + par + '</div>' + curva + estadoPorticosHtml();
   }
+
+  /* estado actual de cada pórtico, con sus tareas realizadas desplegables */
+  var epAbiertos = {}, epBusca = "";
+  function estadoPorticosHtml(){
+    var d = ultimoData || calcular();
+    var dist = d.orden.map(function(){ return 0; }), sin = 0;
+    lista().forEach(function(p,k){ var st = estadoDe(numDe(p,k), d); if(st) dist[st.idx]++; else sin++; });
+    var filas = lista().map(function(p,k){
+      var num = numDe(p,k), st = estadoDe(num, d);
+      if(epBusca && sinTildes(p.nombre + " " + p.comuna).indexOf(sinTildes(epBusca)) < 0) return "";
+      var regs = REMOTO.avance.filter(function(a){ return String(a.portico) === num; }).sort(function(a,b){ return (b.fecha + b.registrado).localeCompare(a.fecha + a.registrado); });
+      var est = st ? chip(st.name) + '<span class="ep-sub">' + subEstado(st) + '</span>' : '<span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar</span>';
+      return '<details class="ep-row" data-ep="'+num+'"'+(epAbiertos[num]?' open':'')+'><summary><span class="ep-n">'+esc(p.nombre)+'</span><span class="ep-c">'+esc(p.comuna)+'</span><span class="ep-e">'+est+'</span><span class="ep-k">'+regs.length+' reg.</span></summary>'
+        + (regs.length ? '<ul class="ep-h">' + regs.map(function(a){
+            return '<li>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.avance!==""&&a.avance!=null&&!esNota(a.partida)?'<span class="pm-pct">'+esc(a.avance)+'%</span>':'')
+              + (a.obs?'<span class="pm-obs">'+esc(a.obs)+'</span>':'')
+              + (a.nfotos?'<button type="button" class="pm-fotos-link" data-galeria="'+esc(a.id)+'">\ud83d\udcf7 '+a.nfotos+'</button>':'')+'</li>';
+          }).join("") + '</ul>' : '<p class="pm-vacio ep-v">Sin tareas registradas.</p>')
+        + '<button type="button" class="btn-link ep-ir" data-epabrir="'+num+'">Abrir historial y registrar \u2192</button></details>';
+    }).join("");
+    return '<div class="ind-box ep-box"><h3>Estado actual de los p\u00f3rticos</h3>'
+      + '<div class="av-dist"><span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar <b>'+sin+'</b></span>'
+      + d.orden.map(function(n,i){ var t = window.PARTIDA_TONE[n]; return '<span class="av-it"><i class="dot dot-'+t+'"></i>'+esc(n)+' <b>'+dist[i]+'</b></span>'; }).join("") + '</div>'
+      + '<input type="search" class="ep-buscar" placeholder="Buscar p\u00f3rtico o comuna" aria-label="Buscar p\u00f3rtico" value="'+esc(epBusca)+'">'
+      + '<div class="ep-lista">' + (filas || '<p class="pm-vacio">Ning\u00fan p\u00f3rtico coincide.</p>') + '</div>'
+      + '<p class="ind-nota">Toca un p\u00f3rtico para ver las tareas realizadas (m\u00e1s reciente primero).</p></div>';
+  }
+  document.addEventListener("toggle", function(e){ var d = e.target; if(d && d.classList && d.classList.contains("ep-row")){ if(d.open) epAbiertos[d.dataset.ep] = 1; else delete epAbiertos[d.dataset.ep]; } }, true);
+  document.addEventListener("click", function(e){ var b = e.target.closest("[data-epabrir]"); if(b) abrirPortico(b.dataset.epabrir); });
+  document.addEventListener("input", function(e){
+    if(!e.target.classList || !e.target.classList.contains("ep-buscar")) return;
+    epBusca = e.target.value; var lst = document.querySelector(".ep-box .ep-lista"); if(!lst) return;
+    var tmp = document.createElement("div"); tmp.innerHTML = estadoPorticosHtml(); var nl = tmp.querySelector(".ep-lista"); if(nl) lst.innerHTML = nl.innerHTML;
+  });
 
   /* ---------- pestañas inferiores (solo celular) ---------- */
   function irTab(tab){
