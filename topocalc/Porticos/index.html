@@ -1953,7 +1953,7 @@ window.PORTICOS_LISTA = (function(){
         $(".bg-cnt").innerHTML = s.length
           ? 'Se borrar\u00e1n <b>' + s.length + '</b> tarea' + (s.length === 1 ? '' : 's') + (rem ? ' \u00b7 <b>' + rem + '</b> est\u00e1' + (rem === 1 ? '' : 'n') + ' en la planilla y se borrar\u00e1' + (rem === 1 ? '' : 'n') + ' para todos.' : ' \u00b7 solo en este equipo.')
           : 'No hay tareas con esa selecci\u00f3n.';
-        $(".bg-pinl").style.display = rem ? "" : "none";
+        $(".bg-pinl").style.display = "";
         $(".bg-ok").disabled = !s.length;
       }
       ["bg-col","bg-cat","bg-mes"].forEach(function(c){ var el = $("." + c); if(el) el.onchange = actualizar; });
@@ -1965,9 +1965,14 @@ window.PORTICOS_LISTA = (function(){
         if(!e.c && !e.k && !e.m && !confirm("Vas a borrar TODAS las tareas de este tablero. \u00bfSeguro?")) return;
         var rem = s.filter(function(n){ return n.remota; }).map(function(n){ return n.id; });
         var quitar = function(){ var ids = {}; s.forEach(function(n){ ids[n.id] = 1; }); state.notes = state.notes.filter(function(n){ return !ids[n.id]; }); state.editingNoteId = null; saveState(); render(); cerrar(); };
-        if(!rem.length){ quitar(); return; }
         var api = window.PORTICOS_API; if(!api){ msg.textContent = "Sin conexi\u00f3n con la planilla."; return; }
         var pin = $(".bg-pin").value.trim(); if(!pin){ msg.textContent = "Ingresa el PIN."; $(".bg-pin").focus(); return; }
+        if(!rem.length){
+          btn.disabled = true; msg.textContent = "Validando PIN\u2026";
+          api.enviar({ accion:"verificar", pin:pin }).then(function(j){ if(j && j.ok){ api.setPin(pin); quitar(); } else { msg.textContent = (j && j.error) || "PIN incorrecto"; btn.disabled = false; } })
+            .catch(function(){ msg.textContent = "Sin conexi\u00f3n: no se pudo validar el PIN."; btn.disabled = false; });
+          return;
+        }
         if(window.PORTICOS_AUTOR) window.PORTICOS_AUTOR.pedir();
         btn.disabled = true; msg.textContent = "Borrando " + rem.length + " tarea" + (rem.length === 1 ? "" : "s") + "\u2026";
         api.enviar({ accion:"borrarNotas", ids: rem, pin: pin }).then(function(j){
@@ -2171,18 +2176,31 @@ window.PORTICOS_LISTA = (function(){
       }
       saveState(); render();
     }
-    function delWeek(id){
+    /* toda eliminaci\u00f3n pide el PIN, aunque ya se haya ingresado en la sesi\u00f3n */
+    function pinEliminar(){ if(window.PORTICOS_AUTOR) window.PORTICOS_AUTOR.pedir(); return (window.prompt("PIN de edici\u00f3n para eliminar:") || "").trim(); }
+    function verificarPin(pin, ok){
+      var api = window.PORTICOS_API; if(!api){ alert("Sin conexi\u00f3n: no se puede validar el PIN."); return; }
+      api.enviar({ accion:"verificar", pin:pin }).then(function(j){ if(j && j.ok){ api.setPin(pin); ok(); } else { if(j && /PIN/.test(j.error || "")) api.setPin(""); alert((j && j.error) || "PIN incorrecto"); } })
+        .catch(function(){ alert("Sin conexi\u00f3n: no se pudo validar el PIN."); });
+    }
+    function delWeek(id, pinOk){
       var has = state.notes.some(function(n){return n.weekId===id;});
       var wl = findWeek(id), nom = wl && wl.label ? "\u00ab" + wl.label + "\u00bb" : "esta columna";
-      if(!confirm(has ? "La columna " + nom + " tiene notas. \u00bfEliminarla junto con sus notas?" : "\u00bfEliminar la columna " + nom + "?")) return;
+      if(!pinOk){
+        if(!confirm(has ? "La columna " + nom + " tiene notas. \u00bfEliminarla junto con sus notas?" : "\u00bfEliminar la columna " + nom + "?")) return;
+        var pw = pinEliminar(); if(!pw) return; verificarPin(pw, function(){ delWeek(id, true); }); return;
+      }
       state.weeks = state.weeks.filter(function(w){return w.id!==id;});
       state.notes = state.notes.filter(function(n){return n.weekId!==id;});
       saveState(); render();
     }
     function addCategory(){ state.categories.push({id:uid(), name:"Nueva categor\u00eda"}); saveState(); render(); }
-    function delCategory(id){
+    function delCategory(id, pinOk){
       var has = state.notes.some(function(n){return n.catId===id;});
-      if(has && !confirm("Esta categor\u00eda tiene notas. \u00bfEliminarla junto con sus notas?")) return;
+      if(!pinOk){
+        if(!confirm(has ? "Esta categor\u00eda tiene notas. \u00bfEliminarla junto con sus notas?" : "\u00bfEliminar esta categor\u00eda?")) return;
+        var pc = pinEliminar(); if(!pc) return; verificarPin(pc, function(){ delCategory(id, true); }); return;
+      }
       state.categories = state.categories.filter(function(c){return c.id!==id;});
       state.notes = state.notes.filter(function(n){return n.catId!==id;});
       saveState(); render();
@@ -2202,11 +2220,15 @@ window.PORTICOS_LISTA = (function(){
         for(var t = 0; t < tas.length; t++){ if(tas[t].offsetParent){ tas[t].focus(); break; } }
       }, 0);
     }
-    function delNote(id){
+    function delNote(id, pinOk){
       var nd = state.notes.find(function(n){ return n.id === id; });
+      if(!pinOk && !(nd && nd.remota)){
+        if(!confirm("\u00bfEliminar esta tarea?")) return;
+        var pl = pinEliminar(); if(!pl) return; verificarPin(pl, function(){ delNote(id, true); }); return;
+      }
       if(nd && nd.remota && window.PORTICOS_API){
         if(!confirm("\u00bfEliminar esta tarea de la programaci\u00f3n compartida? Se borrar\u00e1 para todos.")) return;
-        var api = window.PORTICOS_API, pin = pedirPin(api); if(!pin) return;
+        var api = window.PORTICOS_API, pin = pinEliminar(); if(!pin) return;
         api.enviar({ accion:"borrarNota", pin:pin, id:id }).then(function(j){
           if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) api.setPin(""); alert((j && j.error) || "No se pudo eliminar."); return; }
           api.setPin(pin);
@@ -3307,8 +3329,7 @@ window.PORTICOS_LISTA = (function(){
   function eliminarFoto(btn){
     var id = galIds[galPos]; if(!id) return;
     if(!confirm("\u00bfEliminar esta foto para todos?\nQueda 30 d\u00edas en la papelera de Drive por si necesitas recuperarla.")) return;
-    var pin = getPin();
-    if(!pin){ pedirAutor(); pin = (window.prompt("PIN de edici\u00f3n:") || "").trim(); }
+    pedirAutor(); var pin = (window.prompt("PIN de edici\u00f3n para eliminar la foto:") || "").trim();
     if(!pin) return;
     var msg = gal.querySelector("#galMsg"); btn.disabled = true; if(msg) msg.textContent = "Eliminando\u2026";
     enviar({ accion:"borrarFoto", foto:id, pin:pin }).then(function(j){
