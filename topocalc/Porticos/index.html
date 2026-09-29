@@ -499,6 +499,11 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
 @media (max-width:860px){ .bg-b select, .bg-b input{ font-size:16px; min-height:42px; } .bg-ok{ min-height:46px; } }
 /* ---------- estado de pórticos en Indicadores ---------- */
 .ep-box{ margin-top:14px; }
+.ep-ctrl{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:4px 0 8px; }
+.ep-ctrl .ep-buscar{ flex:1; min-width:160px; margin:0; }
+.ep-ord{ display:flex; align-items:center; gap:6px; font-size:.74rem; color:var(--ink-soft); }
+.ep-orden{ font:inherit; font-size:.82rem; color:var(--ink); background:var(--paper); border:1px solid var(--line-strong); border-radius:6px; padding:6px 8px; }
+@media (max-width:860px){ .ep-ord{ width:100%; } .ep-orden{ flex:1; font-size:16px; min-height:40px; } .ep-ctrl .ep-buscar{ font-size:16px; min-height:40px; } }
 .ep-buscar{ width:100%; box-sizing:border-box; font:inherit; font-size:.84rem; color:var(--ink); background:var(--paper); border:1px solid var(--line-strong); border-radius:6px; padding:7px 9px; margin:4px 0 8px; }
 .ep-lista{ max-height:560px; overflow:auto; border-top:1px solid var(--line); }
 .ep-row{ border-bottom:1px solid var(--line); }
@@ -3634,12 +3639,30 @@ window.PORTICOS_LISTA = (function(){
   }
 
   /* estado actual de cada pórtico, con sus tareas realizadas desplegables */
-  var epAbiertos = {}, epBusca = "";
+  var epAbiertos = {}, epBusca = "", epOrden = "lista";
+  var EP_ORDENES = [["lista","Orden del listado"],["nombre","Nombre (A \u2192 Z)"],["comuna","Comuna"],["mas","M\u00e1s avanzados primero"],["menos","Menos avanzados primero"],["reciente","Actividad m\u00e1s reciente"],["registros","M\u00e1s registros"]];
   function estadoPorticosHtml(){
     var d = ultimoData || calcular();
     var dist = d.orden.map(function(){ return 0; }), sin = 0;
     lista().forEach(function(p,k){ var st = estadoDe(numDe(p,k), d); if(st) dist[st.idx]++; else sin++; });
-    var filas = lista().map(function(p,k){
+    var items = lista().map(function(p,k){
+      var num = numDe(p,k), regs = REMOTO.avance.filter(function(a){ return String(a.portico) === num; });
+      var ult = regs.reduce(function(m, a){ var x = (a.fecha || "") + (a.registrado || ""); return x > m ? x : m; }, "");
+      var st = estadoDe(num, d);
+      return { p:p, k:k, num:num, n:regs.length, ult:ult, nivel: st ? st.idx + (st.avance !== "" && st.avance != null && Number(st.avance) < 100 ? Number(st.avance) / 100 - 1 : 0) : -2 };
+    });
+    var natural = function(a, b){ return String(a).localeCompare(String(b), "es", { numeric:true, sensitivity:"base" }); };
+    var cmp = {
+      nombre: function(a,b){ return natural(a.p.nombre, b.p.nombre); },
+      comuna: function(a,b){ return natural(a.p.comuna, b.p.comuna) || natural(a.p.nombre, b.p.nombre); },
+      mas: function(a,b){ return (b.nivel - a.nivel) || natural(a.p.nombre, b.p.nombre); },
+      menos: function(a,b){ return (a.nivel - b.nivel) || natural(a.p.nombre, b.p.nombre); },
+      reciente: function(a,b){ return b.ult.localeCompare(a.ult) || natural(a.p.nombre, b.p.nombre); },
+      registros: function(a,b){ return (b.n - a.n) || natural(a.p.nombre, b.p.nombre); }
+    }[epOrden];
+    if(cmp) items.sort(cmp);
+    var filas = items.map(function(it){
+      var p = it.p, k = it.k;
       var num = numDe(p,k), st = estadoDe(num, d);
       if(epBusca && sinTildes(p.nombre + " " + p.comuna).indexOf(sinTildes(epBusca)) < 0) return "";
       var regs = REMOTO.avance.filter(function(a){ return String(a.portico) === num; }).sort(function(a,b){ return (b.fecha + b.registrado).localeCompare(a.fecha + a.registrado); });
@@ -3655,12 +3678,18 @@ window.PORTICOS_LISTA = (function(){
     return '<div class="ind-box ep-box"><h3>Estado actual de los p\u00f3rticos</h3>'
       + '<div class="av-dist"><span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar <b>'+sin+'</b></span>'
       + d.orden.map(function(n,i){ var t = window.PARTIDA_TONE[n]; return '<span class="av-it"><i class="dot dot-'+t+'"></i>'+esc(n)+' <b>'+dist[i]+'</b></span>'; }).join("") + '</div>'
-      + '<input type="search" class="ep-buscar" placeholder="Buscar p\u00f3rtico o comuna" aria-label="Buscar p\u00f3rtico" value="'+esc(epBusca)+'">'
+      + '<div class="ep-ctrl"><input type="search" class="ep-buscar" placeholder="Buscar p\u00f3rtico o comuna" aria-label="Buscar p\u00f3rtico" value="'+esc(epBusca)+'">'
+      + '<label class="ep-ord"><span>Ordenar</span><select class="ep-orden" aria-label="Ordenar el listado">' + EP_ORDENES.map(function(o){ return '<option value="'+o[0]+'"'+(o[0]===epOrden?' selected':'')+'>'+o[1]+'</option>'; }).join("") + '</select></label></div>'
       + '<div class="ep-lista">' + (filas || '<p class="pm-vacio">Ning\u00fan p\u00f3rtico coincide.</p>') + '</div>'
       + '<p class="ind-nota">Toca un p\u00f3rtico para ver las tareas realizadas (m\u00e1s reciente primero).</p></div>';
   }
   document.addEventListener("toggle", function(e){ var d = e.target; if(d && d.classList && d.classList.contains("ep-row")){ if(d.open) epAbiertos[d.dataset.ep] = 1; else delete epAbiertos[d.dataset.ep]; } }, true);
   document.addEventListener("click", function(e){ var b = e.target.closest("[data-epabrir]"); if(b) abrirPortico(b.dataset.epabrir); });
+  document.addEventListener("change", function(e){
+    if(!e.target.classList || !e.target.classList.contains("ep-orden")) return;
+    epOrden = e.target.value; var lst = document.querySelector(".ep-box .ep-lista"); if(!lst) return;
+    var tmp = document.createElement("div"); tmp.innerHTML = estadoPorticosHtml(); var nl = tmp.querySelector(".ep-lista"); if(nl) lst.innerHTML = nl.innerHTML;
+  });
   document.addEventListener("input", function(e){
     if(!e.target.classList || !e.target.classList.contains("ep-buscar")) return;
     epBusca = e.target.value; var lst = document.querySelector(".ep-box .ep-lista"); if(!lst) return;
