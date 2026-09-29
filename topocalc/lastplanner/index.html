@@ -795,6 +795,50 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   .lpf-op{ min-height:40px; font-size:.9rem; } .lpf-op input{ width:20px; height:20px; }
 }
 @media print{ .lp-filtros, .lp-share, .restr-toggle{ display:none !important; } }
+
+/* ---------- v5: registros de terreno y visor de fotos ---------- */
+.rg-overlay{ position:fixed; inset:0; z-index:1500; background:rgba(10,34,64,.45); display:flex; align-items:center; justify-content:center; padding:16px; }
+.rg-overlay[hidden]{ display:none; }
+.rg-card{ width:100%; max-width:460px; max-height:calc(100vh - 32px); overflow:auto; background:var(--paper-raised); color:var(--ink); border-radius:12px; box-shadow:0 20px 50px -12px rgba(0,0,0,.45); }
+.rg-head{ position:sticky; top:0; display:flex; align-items:flex-start; gap:10px; padding:14px 16px; background:var(--paper-sunken); border-bottom:1px solid var(--line); z-index:1; }
+.rg-head > div{ flex:1; min-width:0; } .rg-head strong{ display:block; font-size:.98rem; } .rg-head span{ font-size:.76rem; color:var(--ink-soft); }
+.rg-x{ all:unset; cursor:pointer; padding:2px 6px; color:var(--ink-soft); }
+.rg-body{ padding:10px 16px 16px; }
+.rg-lbl{ font-size:.68rem; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft); font-weight:700; margin:12px 0 6px; }
+.rg-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.rg-body label{ display:flex; flex-direction:column; gap:4px; font-size:.74rem; color:var(--ink-soft); }
+.rg-full{ margin-top:8px; }
+.rg-body select, .rg-body input{ font:inherit; font-size:.86rem; color:var(--ink); background:var(--paper); border:1px solid var(--line-strong); border-radius:6px; padding:7px 8px; }
+.rg-thumbs{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; } .rg-thumbs img{ width:56px; height:56px; object-fit:cover; border-radius:6px; }
+.rg-msg{ min-height:1.2em; font-size:.76rem; margin:8px 0 4px; } .rg-msg.err{ color:var(--danger); } .rg-msg.ok{ color:var(--success); font-weight:700; }
+.rg-save{ width:100%; font:inherit; font-weight:700; font-size:.9rem; color:#fff; background:var(--ink); border:none; border-radius:8px; padding:10px; cursor:pointer; }
+.rg-save:disabled{ opacity:.6; cursor:wait; }
+.rg-hist{ list-style:none; margin:0; padding:0; }
+.rg-hist li{ display:flex; align-items:center; flex-wrap:wrap; gap:6px; padding:6px 0; font-size:.78rem; border-bottom:1px dashed var(--line); }
+.rg-hist li.rg-editando{ display:block; background:var(--paper-sunken); border-radius:8px; padding:8px 10px; }
+.rg-chip{ font-size:.7rem; font-weight:700; border-radius:999px; padding:2px 8px; } .rg-av{ background:var(--blueprint-soft); color:var(--blueprint); }
+.rg-com{ background:var(--paper-sunken); color:var(--ink); } .rg-prev{ background:rgba(214,168,40,.22); color:#7A5B00; }
+.rg-f{ font-size:.72rem; color:var(--ink-soft); } .rg-pct{ font-size:.7rem; font-weight:700; background:var(--paper-sunken); border-radius:999px; padding:1px 7px; }
+.rg-obs{ flex-basis:100%; font-size:.74rem; color:var(--ink-soft); font-style:italic; }
+.rg-link{ all:unset; cursor:pointer; font-size:.74rem; font-weight:700; color:var(--blueprint); } .rg-link:hover{ text-decoration:underline; } .rg-danger{ color:var(--danger); }
+.rg-vacio{ color:var(--ink-soft); }
+.rg-pinbox{ flex-basis:100%; margin-top:6px; padding:8px 10px; background:#F7E7E5; border-radius:8px; }
+.rg-pint{ font-size:.76rem; color:var(--danger); font-weight:700; margin-bottom:6px; }
+.rg-pinrow{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.rg-pinrow input{ width:110px; } .rg-pinok{ font:inherit; font-weight:700; font-size:.82rem; color:#fff; background:var(--danger); border:none; border-radius:6px; padding:8px 14px; cursor:pointer; }
+.rg-pinrow .rg-save{ width:auto; flex:1; }
+.gal-overlay{ position:fixed; inset:0; z-index:2000; background:rgba(6,14,26,.94); display:flex; flex-direction:column; color:#fff; }
+.gal-overlay[hidden]{ display:none; }
+.gal-top{ display:flex; align-items:center; gap:10px; padding:calc(10px + env(safe-area-inset-top, 0px)) 14px 10px; }
+.gal-info{ flex:1; font-size:.82rem; font-weight:600; } .gal-drive{ color:#9fd3e0; font-size:.78rem; font-weight:700; text-decoration:none; }
+.gal-x, .gal-del{ all:unset; cursor:pointer; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(255,255,255,.12); font-size:1.1rem; }
+.gal-del{ background:rgba(178,59,59,.35); } .gal-msg{ text-align:center; font-size:.8rem; color:#ffd7d2; min-height:1.1em; }
+.gal-main{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; position:relative; padding:0 8px 16px; }
+.gal-img{ max-width:100%; max-height:100%; object-fit:contain; border-radius:6px; }
+.gal-nav{ all:unset; cursor:pointer; position:absolute; top:50%; transform:translateY(-50%); width:48px; height:48px; display:flex; align-items:center; justify-content:center; font-size:2rem; border-radius:50%; background:rgba(255,255,255,.14); }
+.gal-prev{ left:10px; } .gal-next{ right:10px; }
+@media (max-width:860px){ .rg-body select, .rg-body input{ font-size:16px; min-height:40px; } .rg-grid{ grid-template-columns:1fr; } }
+@media print{ .rg-overlay, .gal-overlay{ display:none !important; } }
 </style>
 </head>
 
@@ -2166,6 +2210,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         + '<div class="note-actions">'
           + '<button data-action="dup-note" data-note="'+note.id+'">Duplicar en sig.</button>'
           + '<button data-action="close-note" data-note="'+note.id+'">Cerrar</button>'
+          + '<button data-action="abrir-registros" data-note="'+note.id+'">\ud83d\udccb Registros'+(window.LP_contarRegistros && window.LP_contarRegistros(note.id) ? ' ('+window.LP_contarRegistros(note.id)+')' : '')+'</button>'
           + '<button class="del" data-action="del-note" data-note="'+note.id+'">Eliminar</button>'
         + '</div></div>';
     }
@@ -2293,6 +2338,10 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         root.style.zoom = ""; root.style.width = "";
       }
       if(action === "add-week") addWeek();
+      else if(action === "abrir-registros"){
+        var nR = state.notes.find(function(x){ return x.id === el.dataset.note; });
+        if(nR && window.LP_abrirRegistros) window.LP_abrirRegistros(cfg.key, nR, (findCat(nR.catId) || {}).name || "");
+      }
       else if(action === "toggle-restr"){ restrAbierto = !restrAbierto; renderRestrictions(); }
       else if(action === "del-week") delWeek(el.dataset.week);
       else if(action === "add-category") addCategory();
@@ -2575,6 +2624,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         var d = new Date(), iso = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
         n.liberada = !!liberar; n.fechaLiberacion = liberar ? iso : ""; saveState(); render();
       },
+      repintar: function(){ render(); },
       nombres: function(campo){ var s = {}; state.notes.forEach(function(n){ var x = String(n[campo] || "").trim(); if(x) s[x] = 1; }); return Object.keys(s); },
       abrirNota: function(id){
         var n = state.notes.find(function(x){ return x.id === id; }); if(!n) return false;
@@ -3298,7 +3348,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
     if(cargando) return cargando;
     cargando = fetch(API, { cache:"no-store" }).then(function(r){ return r.json(); }).then(function(j){
       cargando = null; if(!j || !j.ok) throw new Error((j && j.error) || "error");
-      remoto = j; integrar();
+      remoto = j; if(window.LP_setRegistros) window.LP_setRegistros(j.registros); integrar();
     }).catch(function(){ cargando = null; KEYS.forEach(function(k){ if(!pendiente(k)) estado(k, "Sin conexi\u00f3n con la planilla \u00b7 tus cambios quedan en este equipo", "warn"); }); });
     return cargando;
   }
@@ -3549,6 +3599,183 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   try{ visto = localStorage.getItem(KEY) === "visto"; }catch(e){}
   if(forzar){ try{ history.replaceState(null, "", location.pathname + location.hash); }catch(e){} }
   if(forzar || !visto) setTimeout(iniciar, forzar ? 400 : 1200);
+})();
+</script>
+<script>
+/* ===== v5: registros de terreno por tarea (avance, comentarios, prevención) con fotos en Drive ===== */
+(function(){
+  "use strict";
+  var API = "https://script.google.com/macros/s/AKfycbxpgtBk20PhiH_qWPpLyK-1eGAEqDagCAMf6c-cCW_ZiRwBPc0zE5PBBdzAtD0lCi_P/exec";
+  var SS_PIN = "lastplanner-pin", SS_AUTOR = "lastplanner-autor";
+  var REG = [];
+  function ss(k, v){ try{ if(v === undefined) return sessionStorage.getItem(k) || ""; if(v) sessionStorage.setItem(k, v); else sessionStorage.removeItem(k); }catch(e){} return ""; }
+  function esc(t){ return String(t == null ? "" : t).replace(/[&<>"']/g, function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]; }); }
+  function fmt(f){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f || ""); return m ? m[3]+"-"+m[2]+"-"+m[1] : (f || ""); }
+  function hoy(){ var d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  var TIPOS = [["Avance","Avance"],["Comentarios","0. Comentarios"],["Prevenci\u00f3n","0. Prevenci\u00f3n"]];
+  function chip(t){ return t === "Comentarios" ? '<span class="rg-chip rg-com">\ud83d\udcac Comentario</span>' : (t === "Prevenci\u00f3n" ? '<span class="rg-chip rg-prev">\ud83e\uddba Prevenci\u00f3n</span>' : '<span class="rg-chip rg-av">\ud83d\udcc8 Avance</span>'); }
+  window.LP_setRegistros = function(r){ if(Array.isArray(r)) REG = r; };
+  window.LP_contarRegistros = function(id){ return REG.filter(function(x){ return x.nota === id; }).length; };
+  function enviar(body){
+    body.autor = body.autor || ss(SS_AUTOR) || "Sin nombre";
+    return fetch(API, { method:"POST", body: JSON.stringify(body), redirect:"follow" }).then(function(r){ return r.json(); });
+  }
+  /* ---- fotos: se leen a memoria al elegirlas y se reducen a 1600 px ---- */
+  function leerArchivos(files){
+    return Promise.all(Array.prototype.slice.call(files || [], 0, 10).map(function(f){
+      var p = f.arrayBuffer ? f.arrayBuffer() : new Promise(function(ok, ko){ var fr = new FileReader(); fr.onload = function(){ ok(fr.result); }; fr.onerror = ko; fr.readAsArrayBuffer(f); });
+      return p.then(function(buf){ var b = new Blob([buf], { type: f.type || "image/jpeg" }); b.nombre = f.name || "foto.jpg"; return b; }).catch(function(){ return null; });
+    })).then(function(a){ return a.filter(Boolean); });
+  }
+  function aB64(blob){ return new Promise(function(res){ var fr = new FileReader(); fr.onload = function(){ res(String(fr.result).split(",")[1] || ""); }; fr.onerror = function(){ res(""); }; fr.readAsDataURL(blob); }); }
+  function dibujar(src, w, h, n){ var k = Math.min(1, 1600 / Math.max(w, h)), c = document.createElement("canvas"); c.width = Math.round(w*k); c.height = Math.round(h*k); c.getContext("2d").drawImage(src, 0, 0, c.width, c.height); return { nombre:n, tipo:"image/jpeg", datos:c.toDataURL("image/jpeg", 0.8).split(",")[1] }; }
+  function comprimir(blob){
+    var n = blob.nombre || "foto.jpg";
+    var viaImg = function(){ return new Promise(function(res){ var img = new Image(), u = URL.createObjectURL(blob); img.onload = function(){ try{ res(dibujar(img, img.naturalWidth, img.naturalHeight, n)); }catch(e){ res(null); } URL.revokeObjectURL(u); }; img.onerror = function(){ URL.revokeObjectURL(u); res(null); }; img.src = u; }); };
+    var p = window.createImageBitmap ? createImageBitmap(blob, { imageOrientation:"from-image" }).then(function(bm){ var r = dibujar(bm, bm.width, bm.height, n); if(bm.close) bm.close(); return r; }).catch(viaImg) : viaImg();
+    return p.then(function(r){ if(r && r.datos) return r; if(/^image\/(jpeg|png|webp)$/.test(blob.type) && blob.size <= 9*1024*1024) return aB64(blob).then(function(d){ return d ? { nombre:n, tipo:blob.type, datos:d } : null; }); return null; });
+  }
+  function comprimirTodas(b){ return b && b.length ? Promise.all(Array.prototype.slice.call(b, 0, 10).map(comprimir)).then(function(a){ return a.filter(Boolean); }) : Promise.resolve([]); }
+  /* ---- ventana de registros ---- */
+  var modal = document.createElement("div"); modal.className = "rg-overlay"; modal.hidden = true; document.body.appendChild(modal);
+  modal.addEventListener("click", function(e){ if(e.target === modal) cerrar(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !modal.hidden && gal.hidden) cerrar(); });
+  function cerrar(){ modal.hidden = true; modal.innerHTML = ""; }
+  var ctx = null;
+  function abrir(tablero, nota, fase){
+    ctx = { tablero: tablero, nota: nota, fase: fase };
+    var hist = REG.filter(function(x){ return x.nota === nota.id; }).sort(function(a,b){ return (b.fecha + b.registrado).localeCompare(a.fecha + a.registrado); });
+    var pin = ss(SS_PIN);
+    var avs = ["","100","75","50","25","0"].map(function(v){ return '<option value="'+v+'"'+(v==="100"?' selected':'')+'>'+(v===""?"\u2013":v+"%")+'</option>'; }).join("");
+    modal.innerHTML = '<div class="rg-card" role="dialog" aria-modal="true" aria-label="Registros de la tarea">'
+      + '<div class="rg-head"><div><strong>'+esc(nota.text || "Tarea")+'</strong><span>'+esc(fase)+(nota.zona ? ' \u00b7 '+esc(nota.zona) : '')+'</span></div><button type="button" class="rg-x" aria-label="Cerrar">\u2715</button></div>'
+      + '<div class="rg-body">'
+      + '<div class="rg-lbl">Nuevo registro</div>'
+      + '<div class="rg-grid"><label>Tipo<select id="rgTipo">'+TIPOS.map(function(t){ return '<option value="'+esc(t[0])+'">'+esc(t[1])+'</option>'; }).join("")+'</select></label>'
+      + '<label>Fecha<input type="date" id="rgFecha" value="'+hoy()+'"></label></div>'
+      + '<label class="rg-full" id="rgAvL">Avance<select id="rgAv">'+avs+'</select></label>'
+      + '<label class="rg-full">Observaci\u00f3n<input type="text" id="rgObs" maxlength="500" placeholder="ej. hormigonado OK"></label>'
+      + '<label class="rg-full">\ud83d\udcf7 Fotos (opcional, m\u00e1x. 10)<input type="file" id="rgFotos" accept="image/*" multiple></label><div class="rg-thumbs" id="rgThumbs"></div>'
+      + (pin ? '' : '<div class="rg-grid"><label>Tu nombre<input type="text" id="rgAutor" maxlength="60" value="'+esc(ss(SS_AUTOR))+'"></label><label>PIN<input type="password" id="rgPin" inputmode="numeric" autocomplete="off" maxlength="8"></label></div>')
+      + '<div class="rg-msg" id="rgMsg"></div><button type="button" class="rg-save" id="rgSave">Guardar registro</button>'
+      + '<div class="rg-lbl">Historial de la tarea</div><ul class="rg-hist">'
+      + (hist.length ? hist.map(function(a){
+          return '<li data-reg="'+esc(a.id)+'">'+chip(a.tipo)+'<span class="rg-f">'+fmt(a.fecha)+'</span>'+(a.avance!==''&&a.tipo==='Avance'?'<span class="rg-pct">'+esc(a.avance)+'%</span>':'')
+            +(a.obs?'<span class="rg-obs">'+esc(a.obs)+'</span>':'')+(a.autor?'<span class="rg-f">'+esc(a.autor)+'</span>':'')
+            +(a.nfotos?'<button type="button" class="rg-link" data-gal="'+esc(a.id)+'">\ud83d\udcf7 '+a.nfotos+' foto'+(a.nfotos===1?'':'s')+'</button>':'')
+            +'<button type="button" class="rg-link" data-add="'+esc(a.id)+'">+ Fotos</button><button type="button" class="rg-link" data-edit="'+esc(a.id)+'">Editar</button><button type="button" class="rg-link rg-danger" data-anular="'+esc(a.id)+'">Anular</button></li>';
+        }).join("") : '<li class="rg-vacio">Sin registros todav\u00eda</li>') + '</ul></div></div>';
+    modal.hidden = false;
+    var fotosSel = [];
+    modal.querySelector(".rg-x").onclick = cerrar;
+    modal.querySelector("#rgTipo").onchange = function(){ modal.querySelector("#rgAvL").style.display = this.value === "Avance" ? "" : "none"; };
+    modal.querySelector("#rgFotos").onchange = function(){
+      var th = modal.querySelector("#rgThumbs"), bS = modal.querySelector("#rgSave"); th.textContent = "Leyendo fotos\u2026"; bS.disabled = true;
+      leerArchivos(this.files).then(function(b){ fotosSel = b; bS.disabled = false; th.innerHTML = b.map(function(x){ return '<img alt="" src="'+URL.createObjectURL(x)+'">'; }).join(""); });
+    };
+    modal.querySelector("#rgSave").onclick = function(){
+      var tipo = modal.querySelector("#rgTipo").value, obs = modal.querySelector("#rgObs").value.trim(), m = modal.querySelector("#rgMsg");
+      if(tipo === "Comentarios" && !obs){ return aviso(m, "Escribe el comentario."); }
+      if(tipo === "Prevenci\u00f3n" && !obs && !fotosSel.length){ return aviso(m, "Para Prevenci\u00f3n escribe una observaci\u00f3n o adjunta fotos."); }
+      mandar({ accion:"registrar", tablero: ctx.tablero, nota: nota.id, tarea: nota.text || "", fase: fase, zona: nota.zona || "", tipo: tipo,
+               fecha: modal.querySelector("#rgFecha").value, avance: tipo === "Avance" ? modal.querySelector("#rgAv").value : "", obs: obs }, this, m, fotosSel);
+    };
+    modal.querySelectorAll("[data-gal]").forEach(function(b){ b.onclick = function(){ abrirGaleria(b.dataset.gal); }; });
+    modal.querySelectorAll("[data-add]").forEach(function(b){ b.onclick = function(){
+      var inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.multiple = true;
+      inp.onchange = function(){ if(inp.files.length) leerArchivos(inp.files).then(function(bl){ mandar({ accion:"agregarFotos", id: b.dataset.add }, b, modal.querySelector("#rgMsg"), bl); }); };
+      inp.click(); }; });
+    modal.querySelectorAll("[data-anular]").forEach(function(b){ b.onclick = function(){ cajaPin(b.closest("li"), "\u00bfAnular este registro?", "Anular", function(pin, m, btn){ mandar({ accion:"anular", id: b.dataset.anular, pin: pin }, btn, m); }); }; });
+    modal.querySelectorAll("[data-edit]").forEach(function(b){ b.onclick = function(){ editar(b.closest("li"), hist.find(function(x){ return x.id === b.dataset.edit; })); }; });
+  }
+  function aviso(m, t, ok){ m.textContent = t; m.className = "rg-msg" + (ok ? " ok" : " err"); }
+  function credencial(){
+    var pi = modal.querySelector("#rgPin"), au = modal.querySelector("#rgAutor");
+    if(au && au.value.trim()) ss(SS_AUTOR, au.value.trim());
+    return ss(SS_PIN) || (pi ? pi.value.trim() : "");
+  }
+  function mandar(body, btn, m, fotos){
+    var pin = body.pin || credencial();
+    if(!pin){ var pi = modal.querySelector("#rgPin"); if(pi) pi.focus(); return aviso(m, "Ingresa el PIN."); }
+    body.pin = pin; btn.disabled = true; aviso(m, fotos && fotos.length ? "Preparando fotos\u2026" : "Guardando\u2026", true); m.className = "rg-msg";
+    comprimirTodas(fotos).then(function(f){ if(f.length){ body.fotos = f; aviso(m, "Subiendo " + f.length + " foto" + (f.length===1?"":"s") + "\u2026", true); m.className = "rg-msg"; } else if(fotos && fotos.length) throw new Error("fotos"); return enviar(body); })
+      .then(function(j){
+        if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) ss(SS_PIN, ""); btn.disabled = false; return aviso(m, (j && j.error) || "No se pudo guardar."); }
+        if(!body.pin || body.accion !== "anular") ss(SS_PIN, pin); else if(!ss(SS_PIN)) ss(SS_PIN, pin);
+        REG = j.registros || REG; abrir(ctx.tablero, ctx.nota, ctx.fase);
+        var m2 = modal.querySelector("#rgMsg"); if(m2) aviso(m2, "\u2713 Guardado para todos", true);
+        refrescarNotas();
+      }).catch(function(err){ btn.disabled = false; aviso(m, err && err.message === "fotos" ? "No se pudieron leer las fotos. Vuelve a elegirlas." : "No se recibi\u00f3 confirmaci\u00f3n. Revisa el historial antes de reintentar."); });
+  }
+  function refrescarNotas(){ var B = window.PIZARRA_BOARDS || {}; ["semanal","intermedio"].forEach(function(k){ if(B[k] && B[k].repintar) B[k].repintar(); }); }
+  function cajaPin(li, texto, boton, alOk){
+    if(!li || li.querySelector(".rg-pinbox")) return;
+    var box = document.createElement("div"); box.className = "rg-pinbox";
+    box.innerHTML = '<div class="rg-pint">'+esc(texto)+'</div><div class="rg-pinrow"><input type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="PIN" aria-label="PIN"><button type="button" class="rg-pinok">'+esc(boton)+'</button><button type="button" class="rg-link rg-pinno">Cancelar</button></div><div class="rg-msg"></div>';
+    li.appendChild(box);
+    var inp = box.querySelector("input"), m = box.querySelector(".rg-msg"); inp.focus();
+    box.querySelector(".rg-pinno").onclick = function(){ box.remove(); };
+    var ir = function(){ if(!inp.value.trim()) return aviso(m, "Ingresa el PIN."); alOk(inp.value.trim(), m, box.querySelector(".rg-pinok")); };
+    box.querySelector(".rg-pinok").onclick = ir; inp.addEventListener("keydown", function(e){ if(e.key === "Enter") ir(); });
+  }
+  function editar(li, a){
+    if(!li || !a) return;
+    var avs = ["","100","75","50","25","0"].map(function(v){ return '<option value="'+v+'"'+(String(a.avance||"")===v?' selected':'')+'>'+(v===""?"\u2013":v+"%")+'</option>'; }).join("");
+    li.classList.add("rg-editando");
+    li.innerHTML = '<div class="rg-grid"><label>Tipo<select class="e-tipo">'+TIPOS.map(function(t){ return '<option value="'+esc(t[0])+'"'+(a.tipo===t[0]?' selected':'')+'>'+esc(t[1])+'</option>'; }).join("")+'</select></label><label>Fecha<input type="date" class="e-fecha" value="'+esc(a.fecha)+'"></label></div>'
+      + '<label class="rg-full e-avl"'+(a.tipo==="Avance"?'':' style="display:none"')+'>Avance<select class="e-av">'+avs+'</select></label>'
+      + '<label class="rg-full">Observaci\u00f3n<input type="text" class="e-obs" maxlength="500" value="'+esc(a.obs)+'"></label>'
+      + (ss(SS_PIN) ? '' : '<label class="rg-full">PIN<input type="password" class="e-pin" inputmode="numeric" autocomplete="off" maxlength="8"></label>')
+      + '<div class="rg-msg e-msg"></div><div class="rg-pinrow"><button type="button" class="rg-save e-ok">Guardar cambios</button><button type="button" class="rg-link e-no">Cancelar</button></div>';
+    li.querySelector(".e-tipo").onchange = function(){ li.querySelector(".e-avl").style.display = this.value === "Avance" ? "" : "none"; };
+    li.querySelector(".e-no").onclick = function(){ abrir(ctx.tablero, ctx.nota, ctx.fase); };
+    li.querySelector(".e-ok").onclick = function(){
+      var t = li.querySelector(".e-tipo").value, o = li.querySelector(".e-obs").value.trim(), m = li.querySelector(".e-msg"), ep = li.querySelector(".e-pin");
+      if(t === "Comentarios" && !o) return aviso(m, "Escribe el comentario.");
+      var body = { accion:"editarRegistro", id:a.id, tipo:t, fecha: li.querySelector(".e-fecha").value, avance: t === "Avance" ? li.querySelector(".e-av").value : "", obs:o };
+      if(ep){ if(!ep.value.trim()) return aviso(m, "Ingresa el PIN."); body.pin = ep.value.trim(); }
+      mandar(body, this, m);
+    };
+  }
+  /* ---- visor de fotos ---- */
+  var gal = document.createElement("div"); gal.className = "gal-overlay"; gal.hidden = true; gal.setAttribute("role","dialog"); gal.setAttribute("aria-modal","true"); document.body.appendChild(gal);
+  var gIds = [], gPos = 0, gReg = null;
+  function src(id, w){ return "https://drive.google.com/thumbnail?id=" + encodeURIComponent(id) + "&sz=w" + (w || 1600); }
+  window.__lpFotoAlt = function(img, id, w){ img.onerror = null; img.src = "https://lh3.googleusercontent.com/d/" + encodeURIComponent(id) + "=w" + (w || 1600); };
+  function pintarGal(){
+    var id = gIds[gPos];
+    gal.innerHTML = '<div class="gal-top"><span class="gal-info">'+esc((gReg.tarea || "") + " \u00b7 " + (gReg.tipo === "Comentarios" ? "Comentario" : gReg.tipo) + " \u00b7 " + fmt(gReg.fecha))+' \u00b7 '+(gPos+1)+' de '+gIds.length+'</span>'
+      + (gReg.fotosUrl ? '<a class="gal-drive" href="'+esc(gReg.fotosUrl)+'" target="_blank" rel="noopener">Drive</a>' : '')
+      + '<button type="button" class="gal-del" aria-label="Eliminar esta foto"><span aria-hidden="true">\ud83d\uddd1\ufe0f</span></button><button type="button" class="gal-x" aria-label="Cerrar">\u2715</button></div><div class="gal-msg"></div>'
+      + '<div class="gal-main">'+(gIds.length>1?'<button type="button" class="gal-nav gal-prev" aria-label="Anterior">\u2039</button>':'')
+      + '<img class="gal-img" alt="Foto" src="'+src(id)+'" onerror="window.__lpFotoAlt(this,\''+esc(id)+'\',1600)">'
+      + (gIds.length>1?'<button type="button" class="gal-nav gal-next" aria-label="Siguiente">\u203a</button>':'')+'</div>';
+    gal.querySelector(".gal-x").onclick = function(){ gal.hidden = true; gal.innerHTML = ""; };
+    var p = gal.querySelector(".gal-prev"), n = gal.querySelector(".gal-next");
+    if(p) p.onclick = function(){ gPos = (gPos - 1 + gIds.length) % gIds.length; pintarGal(); };
+    if(n) n.onclick = function(){ gPos = (gPos + 1) % gIds.length; pintarGal(); };
+    gal.querySelector(".gal-del").onclick = function(){
+      if(!confirm("\u00bfEliminar esta foto para todos?\nQueda 30 d\u00edas en la papelera de Drive.")) return;
+      var pin = ss(SS_PIN) || (window.prompt("PIN de edici\u00f3n:") || "").trim(); if(!pin) return;
+      var m = gal.querySelector(".gal-msg"); m.textContent = "Eliminando\u2026";
+      enviar({ accion:"borrarFoto", foto: id, pin: pin }).then(function(j){
+        if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) ss(SS_PIN, ""); m.textContent = (j && j.error) || "No se pudo eliminar."; return; }
+        ss(SS_PIN, pin); REG = j.registros || REG; gIds.splice(gPos, 1);
+        if(!gIds.length){ gal.hidden = true; gal.innerHTML = ""; } else { if(gPos >= gIds.length) gPos = gIds.length - 1; pintarGal(); }
+        abrir(ctx.tablero, ctx.nota, ctx.fase);
+      }).catch(function(){ m.textContent = "No se recibi\u00f3 confirmaci\u00f3n."; });
+    };
+  }
+  function abrirGaleria(regId){
+    gReg = REG.find(function(x){ return x.id === regId; }); if(!gReg) return;
+    gIds = (gReg.fotos || []).slice(); gPos = 0; if(!gIds.length) return;
+    gal.hidden = false; pintarGal();
+  }
+  var tx = null;
+  gal.addEventListener("touchstart", function(e){ tx = e.touches[0].clientX; }, { passive:true });
+  gal.addEventListener("touchend", function(e){ if(tx === null || gIds.length < 2) return; var dx = e.changedTouches[0].clientX - tx; tx = null; if(Math.abs(dx) > 50){ gPos = (gPos + (dx < 0 ? 1 : -1) + gIds.length) % gIds.length; pintarGal(); } });
+  document.addEventListener("keydown", function(e){ if(gal.hidden) return; if(e.key === "Escape"){ gal.hidden = true; gal.innerHTML = ""; e.stopPropagation(); } else if(e.key === "ArrowLeft" && gIds.length > 1){ gPos = (gPos - 1 + gIds.length) % gIds.length; pintarGal(); } else if(e.key === "ArrowRight" && gIds.length > 1){ gPos = (gPos + 1) % gIds.length; pintarGal(); } }, true);
+  window.LP_abrirRegistros = abrir;
 })();
 </script>
 </body>
