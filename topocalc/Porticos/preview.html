@@ -515,8 +515,14 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
 .rv-carga{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:.9rem; opacity:.8; pointer-events:none; }
 .av-ind{ margin-top:14px; } .av-ind .avance-wrap{ max-height:none; overflow:visible; border:0; box-shadow:none; padding:0; margin:0; background:none; }
 .t-short{ display:none; }
+.m-tabs button span.t-l span{ font-size:inherit !important; line-height:inherit !important; }
 @media screen and (min-width:861px){ .rv-block{ max-width:1720px; margin:0 auto; padding:18px 28px 40px; box-sizing:border-box; } .rv-frame{ max-height:calc(100vh - var(--topbar-h, 70px) - 150px); max-width:calc((100vh - var(--topbar-h, 70px) - 150px) * 16 / 9); margin:0 auto; } }
 @media (max-width:860px){ .rv-block{ padding:10px 10px 20px; } .rv-frame{ aspect-ratio:9 / 16; max-height:calc(100vh - 150px); max-width:calc((100vh - 150px) * 9 / 16); margin:0 auto; } .t-full{ display:none; } .t-short{ display:inline; } }
+@media (max-width:860px) and (orientation:landscape){
+  /* celular girado: el visor pasa a 16:9 y ocupa el ancho disponible */
+  .rv-frame{ aspect-ratio:16 / 9; max-width:calc((100vh - 110px) * 16 / 9); max-height:calc(100vh - 110px); }
+  .rv-head{ display:none; }
+}
 @media print{ .rv-block{ display:none !important; } }
 
 .ep-ctrl{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:4px 0 8px; }
