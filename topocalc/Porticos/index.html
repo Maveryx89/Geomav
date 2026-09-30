@@ -499,6 +499,11 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
 @media (max-width:860px){ .bg-b select, .bg-b input{ font-size:16px; min-height:42px; } .bg-ok{ min-height:46px; } }
 /* ---------- estado de pórticos en Indicadores ---------- */
 .ep-box{ margin-top:14px; }
+.porticos-table th.th-tipo, .porticos-table td.tipo{ width:38px; text-align:center; padding-left:2px; padding-right:2px; }
+.tipo-b{ display:inline-flex; align-items:center; justify-content:center; min-width:22px; height:22px; border-radius:6px; font-weight:800; font-size:.78rem; }
+.tipo-L{ background:var(--blueprint-soft); color:var(--blueprint); } .tipo-T{ background:rgba(212,154,106,.2); color:#9A5B2A; }
+.tipo-cambio{ box-shadow:inset 0 0 0 1.5px var(--accent); } .tipo-b sup{ font-size:.6rem; margin-left:1px; }
+.tipo-nd{ color:var(--ink-soft); } .ep-t{ text-align:center; }
 .ep-ctrl{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:4px 0 8px; }
 .ep-ctrl .ep-buscar{ flex:1; min-width:160px; margin:0; }
 .ep-ord{ display:flex; align-items:center; gap:6px; font-size:.74rem; color:var(--ink-soft); }
@@ -507,7 +512,7 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
 .ep-buscar{ width:100%; box-sizing:border-box; font:inherit; font-size:.84rem; color:var(--ink); background:var(--paper); border:1px solid var(--line-strong); border-radius:6px; padding:7px 9px; margin:4px 0 8px; }
 .ep-lista{ max-height:560px; overflow:auto; border-top:1px solid var(--line); }
 .ep-row{ border-bottom:1px solid var(--line); }
-.ep-row > summary{ list-style:none; cursor:pointer; display:grid; grid-template-columns:90px 110px minmax(0,1fr) 54px; gap:8px; align-items:center; padding:8px 4px; font-size:.8rem; }
+.ep-row > summary{ list-style:none; cursor:pointer; display:grid; grid-template-columns:70px 26px 72px minmax(0,1fr) 50px; gap:8px; align-items:center; padding:8px 4px; font-size:.8rem; }
 .ep-row > summary::-webkit-details-marker{ display:none; }
 .ep-row > summary::before{ content:"\25B8"; position:absolute; margin-left:-12px; color:var(--blueprint); }
 .ep-row[open] > summary::before{ content:"\25BE"; }
@@ -518,7 +523,7 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
 .ep-h{ list-style:none; margin:0 0 6px; padding:0 8px 0 18px; }
 .ep-h li{ display:flex; align-items:center; flex-wrap:wrap; gap:6px; padding:5px 0; font-size:.76rem; border-bottom:1px dashed var(--line); }
 .ep-v{ padding:0 18px 6px; } .ep-ir{ margin:2px 0 10px 18px; font-size:.74rem; }
-@media (max-width:860px){ .ep-row > summary{ grid-template-columns:80px minmax(0,1fr) 44px; } .ep-c{ display:none; } .ep-lista{ max-height:none; } }
+@media (max-width:860px){ .ep-row > summary{ grid-template-columns:70px 28px minmax(0,1fr) 44px; } .ep-c{ display:none; } .ep-lista{ max-height:none; } }
 
 .pm-pct{ font-size:.7rem; font-weight:700; color:var(--ink); background:var(--paper-sunken); border-radius:999px; padding:1px 7px; }
 .gal-overlay{ position:fixed; inset:0; z-index:2000; background:rgba(6,14,26,.94); display:flex; flex-direction:column; color:#fff; }
@@ -795,10 +800,12 @@ body:not([data-mtab="porticos"]) #fichaPortico{ display:none !important; }
 .porticos-count{ font-size:.72rem; font-weight:700; color:var(--blueprint); background:var(--blueprint-soft); border-radius:999px; padding:2px 8px; white-space:nowrap; }
 .porticos-scroll{ flex:1; min-height:0; overflow:auto; -webkit-overflow-scrolling:touch; }
 .porticos-table{ width:100%; border-collapse:collapse; font-size:.8rem; color:var(--ink); }
-.porticos-table th{ position:sticky; top:0; z-index:1; background:var(--paper-raised); text-align:left; font-size:.68rem; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); padding:8px 10px; border-bottom:1px solid var(--line-strong); }
-.porticos-table td{ padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+.porticos-table th{ position:sticky; top:0; z-index:1; background:var(--paper-raised); text-align:left; font-size:.68rem; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); padding:8px 5px; border-bottom:1px solid var(--line-strong); }
+.porticos-table td{ padding:7px 5px; border-bottom:1px solid var(--line); vertical-align:top; }
 .porticos-table td.n{ width:30px; color:var(--ink-soft); font-family:var(--font-mono); font-size:.72rem; }
 .porticos-table td.comuna, .porticos-table td.ubic{ color:var(--ink-soft); }
+.porticos-table td.comuna{ white-space:nowrap; }
+.porticos-table th:first-child, .porticos-table td:first-child{ padding-left:10px; }
 .porticos-table td.ubic{ font-size:.74rem; }
 .porticos-table .ubic-link{ color:var(--blueprint); font-weight:600; text-decoration:none; }
 .porticos-table .ubic-link:hover{ text-decoration:underline; }
@@ -1082,7 +1089,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
       <div class="board-scroll"><div class="board"></div></div>
       <aside class="porticos-panel" aria-label="Listado de pórticos">
         <div class="porticos-inner">
-          <div class="porticos-head"><div><strong>Listado de pórticos</strong><span class="porticos-sub">Región de O&#39;Higgins · <span class="porticos-sync" id="porticosSync">Conectando…</span></span></div><span class="ph-der"><button type="button" class="comp-btn" id="compVista" title="Compartir esta vista (filtros y p\u00f3rtico seleccionado)" aria-label="Compartir esta vista"><span aria-hidden="true">\ud83d\udd17</span></button><details class="ayuda ayuda-der"><summary aria-label="Ayuda: Pórticos" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Pórticos</b><ol class="ay-l"><li>Busca o filtra por <b>comuna</b> y <b>estado</b>; el mapa hace zoom a lo filtrado.</li><li>Toca una fila para marcar el pórtico en el mapa (anillo rojo).</li><li>Toca <b>Ubicación</b> para abrir Google Maps y <b>📷</b> para ver fotos.</li><li>Toca el <b>estado</b> para ver el historial o registrar avance (con PIN).</li></ol><a class="ay-m" href="manual.html#porticos">Ver manual completo &rarr;</a></div></details><span class="porticos-count" id="porticosCount"></span></span></div>
+          <div class="porticos-head"><div><strong>Listado de pórticos</strong><span class="porticos-sub">Región de O&#39;Higgins · <span class="porticos-sync" id="porticosSync">Conectando…</span></span></div><span class="ph-der"><button type="button" class="comp-btn" id="compVista" title="Compartir esta vista (filtros y pórtico seleccionado)" aria-label="Compartir esta vista"><span aria-hidden="true">&#x1F517;</span></button><details class="ayuda ayuda-der"><summary aria-label="Ayuda: Pórticos" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Pórticos</b><ol class="ay-l"><li>Busca o filtra por <b>comuna</b> y <b>estado</b>; el mapa hace zoom a lo filtrado.</li><li>Toca una fila para marcar el pórtico en el mapa (anillo rojo).</li><li>Toca <b>Ubicación</b> para abrir Google Maps y <b>📷</b> para ver fotos.</li><li>Toca el <b>estado</b> para ver el historial o registrar avance (con PIN).</li></ol><a class="ay-m" href="manual.html#porticos">Ver manual completo &rarr;</a></div></details><span class="porticos-count" id="porticosCount"></span></span></div>
           <div class="porticos-filtros">
             <input type="search" id="fBuscar" placeholder="Buscar pórtico o comuna" aria-label="Buscar pórtico o comuna" autocomplete="off">
             <details class="msel" id="fComuna"><summary aria-label="Filtrar por comuna"><span class="msel-t">Todas las comunas</span></summary><div class="msel-pop" role="group" aria-label="Comunas"></div></details>
@@ -1090,7 +1097,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
           </div>
           <div class="porticos-scroll">
             <table class="porticos-table">
-              <thead><tr><th>Nombre pórtico</th><th>Comuna</th><th>Ubicación</th><th class="th-fotos" aria-label="Fotos">📷</th><th>Estado</th></tr></thead>
+              <thead><tr><th>Nombre pórtico</th><th class="th-tipo" title="Tipo de pórtico (L o T)">Tipo</th><th>Comuna</th><th>Ubicación</th><th class="th-fotos" aria-label="Fotos">📷</th><th>Estado</th></tr></thead>
               <tbody id="porticosBody"></tbody>
             </table>
           </div>
@@ -2903,6 +2910,21 @@ window.PORTICOS_LISTA = (function(){
     });
   });
 
+  /* tipo de pórtico (L o T) según la ficha técnica: manda la propuesta si existe */
+  /* nombres de comuna abreviados para el listado (el nombre completo queda al pasar el mouse) */
+  var COMUNA_CORTA = { "San Fernando":"S. Fdo.", "Santa Cruz":"Sta. Cruz", "Chimbarongo":"Chimb.", "Nancagua":"Nanc.", "Palmilla":"Palm.",
+    "Peralillo":"Peral.", "Placilla":"Plac.", "Pumanque":"Pum.", "Chépica":"Chép.", "Lolol":"Lolol", "La Estrella":"La Estr.",
+    "Litueche":"Litu.", "Marchigüe":"March.", "Navidad":"Navid.", "Paredones":"Pared.", "Pichilemu":"Pichil." };
+  function comunaCorta(c){ c = String(c || ""); return COMUNA_CORTA[c] || (c.length > 8 ? c.slice(0, 6) + "." : c); }
+  function tipoPortico(nombre){
+    var f = (typeof FICHAS !== "undefined" && FICHAS) ? FICHAS[nombre] : null; if(!f) return null;
+    var m = /tipo\s*([LT])\b/i.exec(f.infraProp || ""), l = /tipo\s*([LT])\b/i.exec(f.infraLic || "");
+    return m ? { t: m[1].toUpperCase(), antes: l && l[1].toUpperCase() !== m[1].toUpperCase() ? l[1].toUpperCase() : "" } : (l ? { t: l[1].toUpperCase(), antes: "" } : null);
+  }
+  function tipoHtml(nombre){
+    var x = tipoPortico(nombre); if(!x) return '<span class="tipo-nd">\u2013</span>';
+    return '<span class="tipo-b tipo-' + x.t + (x.antes ? ' tipo-cambio' : '') + '" title="' + (x.antes ? 'Propuesto Tipo ' + x.t + ' (licitaci\u00f3n: Tipo ' + x.antes + ')' : 'P\u00f3rtico Tipo ' + x.t) + '">' + x.t + (x.antes ? '<sup>*</sup>' : '') + '</span>';
+  }
   window.renderPorticos = function(){
     var data = calcular(); ultimoData = data;
     llenarFiltros(data);
@@ -2912,10 +2934,10 @@ window.PORTICOS_LISTA = (function(){
       if(!pasaFiltro(p, num, data)) return "";
       visibles++;
       var nf = fotosDePortico(num).length;
-      return '<tr data-num="'+num+'" class="'+(String(num) === String(selPortico) ? 'sel' : '')+'"><td>'+esc(p.nombre)+'</td><td class="comuna">'+esc(p.comuna)+'</td><td class="ubic">'+ubicHtml(p)+'</td>'
+      return '<tr data-num="'+num+'" class="'+(String(num) === String(selPortico) ? 'sel' : '')+'"><td>'+esc(p.nombre)+'</td><td class="tipo">'+tipoHtml(p.nombre)+'</td><td class="comuna" title="'+esc(p.comuna)+'">'+esc(comunaCorta(p.comuna))+'</td><td class="ubic">'+ubicHtml(p)+'</td>'
         + '<td class="fotos">'+(nf ? '<button type="button" class="foto-btn" data-galport="'+num+'" aria-label="Ver '+nf+' foto'+(nf===1?'':'s')+' de '+esc(p.nombre)+'">\ud83d\udcf7<small>'+nf+'</small></button>' : '')+'</td>'
         + '<td class="estado">'+estadoHtml(num, data)+'</td></tr>';
-    }).join("") || '<tr><td colspan="5" class="pm-vacio" style="padding:14px">Ning\u00fan p\u00f3rtico coincide con el filtro.</td></tr>';
+    }).join("") || '<tr><td colspan="6" class="pm-vacio" style="padding:14px">Ning\u00fan p\u00f3rtico coincide con el filtro.</td></tr>';
     var cnt = document.getElementById("porticosCount"); if(cnt) cnt.textContent = hayFiltro() ? (visibles + " de " + lista().length + " p\u00f3rticos") : (lista().length + " p\u00f3rticos");
     pintarMapa(); pintarAvance(); pintarEditBar();
     if(document.body.getAttribute("data-mtab") === "indicadores") pintarIndicadores();
@@ -3708,7 +3730,7 @@ window.PORTICOS_LISTA = (function(){
       if(epBusca && sinTildes(p.nombre + " " + p.comuna).indexOf(sinTildes(epBusca)) < 0) return "";
       var regs = REMOTO.avance.filter(function(a){ return String(a.portico) === num; }).sort(function(a,b){ return (b.fecha + b.registrado).localeCompare(a.fecha + a.registrado); });
       var est = st ? chip(st.name) + '<span class="ep-sub">' + subEstado(st) + '</span>' : '<span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar</span>';
-      return '<details class="ep-row" data-ep="'+num+'"'+(epAbiertos[num]?' open':'')+'><summary><span class="ep-n">'+esc(p.nombre)+'</span><span class="ep-c">'+esc(p.comuna)+'</span><span class="ep-e">'+est+'</span><span class="ep-k">'+regs.length+' reg.</span></summary>'
+      return '<details class="ep-row" data-ep="'+num+'"'+(epAbiertos[num]?' open':'')+'><summary><span class="ep-n">'+esc(p.nombre)+'</span><span class="ep-t">'+tipoHtml(p.nombre)+'</span><span class="ep-c" title="'+esc(p.comuna)+'">'+esc(comunaCorta(p.comuna))+'</span><span class="ep-e">'+est+'</span><span class="ep-k">'+regs.length+' reg.</span></summary>'
         + (regs.length ? '<ul class="ep-h">' + regs.map(function(a){
             return '<li>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.avance!==""&&a.avance!=null&&!esNota(a.partida)?'<span class="pm-pct">'+esc(a.avance)+'%</span>':'')
               + (a.obs?'<span class="pm-obs">'+esc(a.obs)+'</span>':'')
