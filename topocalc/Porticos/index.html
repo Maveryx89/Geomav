@@ -596,7 +596,11 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
   .estado-btn{ padding:6px 2px; }
   .hint{ display:none; }
   /* en celular no se necesitan: fechas, navegación de semanas, cargar desde planilla, respaldo */
-  .pizarra-block .dategen, .toolbar > [data-action="cargar-planilla"], .sync-bar{ display:none !important; }
+  .pizarra-block .dategen > :not(.nav-semanas), .toolbar > [data-action="cargar-planilla"], .sync-bar{ display:none !important; }
+  /* navegación de semanas también en el celular */
+  .pizarra-block .dategen{ padding:8px 12px 0; }
+  .pizarra-block .nav-semanas{ display:grid; grid-template-columns:1fr 1.15fr 1fr; gap:6px; width:100%; margin-left:0; }
+  .pizarra-block .nav-semanas .btn-sm{ display:flex; align-items:center; justify-content:center; gap:4px; padding:8px 4px; font-size:.82rem; white-space:nowrap; }
   .m-chip-add{ border-style:dashed; color:var(--blueprint); }
   .m-chip-add span{ font-size:1.2rem; line-height:1; }
   body[data-mtab] .pizarra-block{ display:none; }
