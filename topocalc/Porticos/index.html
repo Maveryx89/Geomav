@@ -504,6 +504,27 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
 .tipo-L{ background:var(--blueprint-soft); color:var(--blueprint); } .tipo-T{ background:rgba(212,154,106,.2); color:#9A5B2A; }
 .tipo-cambio{ box-shadow:inset 0 0 0 1.5px var(--accent); } .tipo-b sup{ font-size:.6rem; margin-left:1px; }
 .tipo-nd{ color:var(--ink-soft); } .ep-t{ text-align:center; }
+
+/* ---------- recorrido virtual ---------- */
+.rv-block{ display:none; padding:14px 16px 30px; width:100%; box-sizing:border-box; align-self:stretch; }
+body[data-mtab="recorrido"] .rv-block{ display:block; }
+.rv-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; }
+.rv-ext{ font-size:.78rem; font-weight:700; color:var(--blueprint); text-decoration:none; }
+.rv-frame{ position:relative; width:100%; aspect-ratio:16 / 9; background:#0A2240; border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow); }
+.rv-frame iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+.rv-carga{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:.9rem; opacity:.8; pointer-events:none; }
+.av-ind{ margin-top:14px; } .av-ind .avance-wrap{ max-height:none; overflow:visible; border:0; box-shadow:none; padding:0; margin:0; background:none; }
+.t-short{ display:none; }
+.m-tabs button span.t-l span{ font-size:inherit !important; line-height:inherit !important; }
+@media screen and (min-width:861px){ .rv-block{ max-width:1720px; margin:0 auto; padding:18px 28px 40px; box-sizing:border-box; } .rv-frame{ max-height:calc(100vh - var(--topbar-h, 70px) - 150px); max-width:calc((100vh - var(--topbar-h, 70px) - 150px) * 16 / 9); margin:0 auto; } }
+@media (max-width:860px){ .rv-block{ padding:10px 10px 20px; } .rv-frame{ aspect-ratio:9 / 16; max-height:calc(100vh - 150px); max-width:calc((100vh - 150px) * 9 / 16); margin:0 auto; } .t-full{ display:none; } .t-short{ display:inline; } }
+@media (max-width:860px) and (orientation:landscape){
+  /* celular girado: el visor pasa a 16:9 y ocupa el ancho disponible */
+  .rv-frame{ aspect-ratio:16 / 9; max-width:calc((100vh - 110px) * 16 / 9); max-height:calc(100vh - 110px); }
+  .rv-head{ display:none; }
+}
+@media print{ .rv-block{ display:none !important; } }
+
 .ep-ctrl{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:4px 0 8px; }
 .ep-ctrl .ep-buscar{ flex:1; min-width:160px; margin:0; }
 .ep-ord{ display:flex; align-items:center; gap:6px; font-size:.74rem; color:var(--ink-soft); }
@@ -1029,7 +1050,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
     <button type="button" data-mtab="semanal" class="on" aria-current="page"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6M9 4a1 1 0 0 0-1 1v1h8V5a1 1 0 0 0-1-1M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/><path d="M9 11h6M9 15h4"/></svg><span class="t-l">Semanal</span></button>
     <button type="button" data-mtab="intermedio"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="1.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4M7 13.5h4M13 16.5h4"/></svg><span class="t-l">Intermedio</span></button>
     <button type="button" data-mtab="porticos"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg><span class="t-l">Pórticos</span></button>
-    <button type="button" data-mtab="avance"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M5 16l4.5-5 3.5 3 6-7"/><path d="M15 7h4v4"/></svg><span class="t-l">Avance</span></button>
+    <button type="button" data-mtab="recorrido" title="Recorrido virtual"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="12" rx="9" ry="4.2"/><path d="M12 3a9 9 0 0 1 0 18M12 3a9 9 0 0 0 0 18"/><path d="M18.5 15.2l1.6 1.2-1.9.6"/></svg><span class="t-l"><span class="t-full">Recorrido virtual</span><span class="t-short">Recorrido</span></span></button>
     <button type="button" data-mtab="indicadores"><svg class="tab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V8M17 16v-6"/></svg><span class="t-l">Indicadores</span></button>
   </nav>
   <div class="proyecto-head">
@@ -1109,9 +1130,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
       </aside>
       <div class="porticos-mapa">
         <div class="edit-bar" id="editBar"></div>
-        <button class="btn-sm mapa-toggle" type="button" id="avanceToggle" aria-expanded="false">&#x1F4C5; Avance por semana</button>
-        <div class="ayuda-fila ayuda-avance"><span>Avance por semana</span><details class="ayuda ayuda-der"><summary aria-label="Ayuda: Avance" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Avance</b><ol class="ay-l"><li>Arriba: cuántos pórticos hay en cada etapa.</li><li>Debajo: cada semana con los pórticos que avanzaron.</li><li>Se muestra la <b>última actualización</b> de cada pórtico en esa semana.</li><li>Toca un pórtico para ver su detalle y fotos.</li></ol><a class="ay-m" href="manual.html#avance">Ver manual completo &rarr;</a></div></details></div>
-        <div class="avance-wrap" id="avanceWrap" hidden></div>
+
         <button class="btn-sm mapa-toggle" type="button" id="mapaToggle" aria-expanded="false" style="margin-top:8px">&#x1F5FA;&#xFE0F; Ver mapa de pórticos</button>
         <div class="mapa-wrap" id="mapaWrap" hidden>
           <div class="mapa-info" id="mapaInfo">Región de O&#39;Higgins</div>
@@ -1170,6 +1189,13 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
     <div class="section-head ind-head"><h2>Indicadores del proyecto</h2><details class="ayuda ayuda-der"><summary aria-label="Ayuda: Indicadores" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Indicadores</b><ol class="ay-l"><li><b>PPC</b>: % de tareas comprometidas que se cumplieron (meta 80%).</li><li><b>Curva S</b>: si lo ejecutado va bajo lo programado, hay atraso.</li><li><b>Pareto</b>: causas de atraso, de mayor a menor.</li><li><b>▸ Restricciones</b>: lo que impide avanzar; rojo = vencida.</li></ol><a class="ay-m" href="manual.html#indicadores">Ver manual completo &rarr;</a></div></details></div>
     <div id="restrBox" class="rs-box" aria-label="Restricciones"></div>
     <div id="indBody"></div>
+    <div class="ind-box av-ind"><h3>Avance por semana</h3><div class="avance-wrap" id="avanceWrap"></div></div>
+  </section>
+
+  <section class="rv-block" id="rvBlock" aria-label="Recorrido virtual">
+    <div class="section-head rv-head"><h2>Recorrido virtual</h2><a class="rv-ext" href="https://porticos-region-ohhiggins.netlify.app/" target="_blank" rel="noopener">Abrir aparte &#8599;</a></div>
+    <div class="rv-frame"><iframe id="rvIframe" title="Recorrido virtual de los pórticos" data-src="https://porticos-region-ohhiggins.netlify.app/" allow="fullscreen; accelerometer; gyroscope; magnetometer; xr-spatial-tracking; autoplay" allowfullscreen loading="lazy"></iframe>
+      <div class="rv-carga" id="rvCarga">Cargando recorrido&hellip;</div></div>
   </section>
 
   <div class="print-summary" id="printSummary"></div>
@@ -3771,7 +3797,8 @@ window.PORTICOS_LISTA = (function(){
       if(on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     });
     if((tab === "mapa" || (tab === "porticos" && window.matchMedia && window.matchMedia("(min-width:861px)").matches)) && btnMapa && wrapMapa){ if(wrapMapa.hidden) btnMapa.click(); else if(mapa) setTimeout(function(){ mapa.invalidateSize(); mapa._encuadrado = false; pintarMapa(); }, 60); }
-    if(tab === "avance" && btnAv && wrapAv && wrapAv.hidden) btnAv.click();
+    if(tab === "recorrido"){ var rf = document.getElementById("rvIframe"); if(rf && !rf.getAttribute("src")){ rf.onload = function(){ var c = document.getElementById("rvCarga"); if(c) c.remove(); }; rf.setAttribute("src", rf.dataset.src); } }
+    if(tab === "indicadores") pintarAvance();
     if(tab === "indicadores") pintarIndicadores();
     if(tab === "porticos") mapaMovil(true);
     window.scrollTo(0, 0);
