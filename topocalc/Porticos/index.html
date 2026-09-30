@@ -761,6 +761,12 @@ body:not([data-mtab="porticos"]) #fichaPortico{ display:none !important; }
 .f-comp td:first-child{ font-size:.7rem; color:var(--ink-soft); font-weight:600; }
 .f-ley{ margin:8px 0 0; font-size:.7rem; color:var(--ink-soft); }
 .f-estado{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; } .f-sub{ font-size:.74rem; color:var(--ink-soft); }
+.f-es td:first-child{ width:38%; }
+.f-cob td{ white-space:nowrap; } .f-cob small{ color:var(--ink-soft); font-weight:500; }
+.cob-b{ display:inline-block; min-width:38px; text-align:center; border-radius:999px; padding:1px 7px; font-weight:800; }
+.cob-ok{ color:#26694B; } .cob-med{ color:#8A6A00; } .cob-bajo{ color:var(--danger); }
+.cob-b.cob-ok{ background:#E3F1EA; } .cob-b.cob-med{ background:#F8EDC6; } .cob-b.cob-bajo{ background:#F7E7E5; }
+.cob-mejor td{ background:rgba(44,107,126,.07); } .cob-star{ color:var(--accent); }
 .f-ul{ margin:2px 0 0; padding-left:18px; } .f-ul li{ margin:2px 0; }
 .f-vacia{ margin:8px 0 0; font-size:.78rem; color:var(--ink-soft); }
 @media screen and (min-width:861px){ .f-grid{ grid-template-columns:repeat(4, minmax(0,1fr)); } .f-grid-1{ grid-template-columns:minmax(0,1fr); } }
@@ -2936,7 +2942,7 @@ window.PORTICOS_LISTA = (function(){
 
   /* ---------- ficha técnica del pórtico (prueba con P31; luego vendrá desde la planilla) ---------- */
   /* ---------- fichas técnicas (hoja "Fichas" de la planilla; copia incluida por si no hay conexión) ---------- */
-  var FICHA_COLS = ["provincia", "zona", "coordLic", "coordProp", "dmProp", "distCoord", "prioridad", "justificacion", "detallesLoc", "infraLic", "infraProp", "pistasEnt", "pistasSal", "conexion", "poste", "dmPoste", "ruta", "rutaBcn", "categoria", "objetid", "clasificacion", "camino", "lado", "alturaBrazo", "largoBrazo", "fundacion", "distCerco", "distEje", "distBorde"];
+  var FICHA_COLS = ["provincia", "zona", "coordLic", "coordProp", "dmProp", "distCoord", "prioridad", "justificacion", "detallesLoc", "infraLic", "infraProp", "pistasEnt", "pistasSal", "conexion", "poste", "dmPoste", "ruta", "rutaBcn", "categoria", "objetid", "clasificacion", "camino", "lado", "alturaBrazo", "largoBrazo", "fundacion", "distCerco", "distEje", "distBorde", "fechaRev", "permiso", "alturaPoste", "camara", "orientacion", "suelo", "obras", "acceso", "ctxE", "ctxS", "lprE", "lprS", "capE", "capS", "cobClaro", "cobEntel", "cobMovistar", "cobWom", "altInst", "distLectura"];
   function fichasDesdeFilas(filas){
     var o = {};
     (filas || []).forEach(function(r){ if(!r || !r[0]) return; var f = {}; FICHA_COLS.forEach(function(c, i){ f[c] = r[i + 1] == null ? "" : String(r[i + 1]); }); o[String(r[0]).trim()] = f; });
@@ -2957,6 +2963,38 @@ window.PORTICOS_LISTA = (function(){
   function vf(v, u){ return (v === "" || v == null) ? '<span class="f-nd">\u2014</span>' : esc(v) + (u ? ' <small>' + u + '</small>' : ''); }
   function par(et, v, u){ return '<div class="f-par"><dt>' + et + '</dt><dd>' + vf(v, u) + '</dd></div>'; }
   function linkMapa(coord){ var d = dmsDec(coord); return d ? ' <a class="f-map" href="https://www.google.com/maps/search/?api=1&query=' + d[0].toFixed(6) + ',' + d[1].toFixed(6) + '" target="_blank" rel="noopener">Ver mapa</a>' : ''; }
+  /* tabla entrada/salida y pruebas de cobertura (ficha técnica de ubicación) */
+  function hayAlgo(f, ks){ return ks.some(function(k){ return f[k] !== "" && f[k] != null; }); }
+  function secGeneral(f){
+    if(!hayAlgo(f, ["fechaRev","permiso","alturaPoste","camara"])) return "";
+    return '<div class="f-sec"><h4>Antecedentes generales</h4><div class="f-grid">' + par('Fecha de revisi\u00f3n', f.fechaRev) + par('Permiso', f.permiso) + par('Altura de poste', f.alturaPoste, 'm') + par('C\u00e1mara (marca/modelo)', f.camara) + '</div></div>';
+  }
+  function secEmplaz(f){
+    if(!hayAlgo(f, ["orientacion","suelo","obras","acceso"])) return "";
+    return '<div class="f-sec"><h4>Emplazamiento</h4><div class="f-grid">' + par('Orientaci\u00f3n', f.orientacion) + par('Materialidad de suelo', f.suelo) + par('Obras existentes', f.obras) + par('Acceso orientado', f.acceso) + '</div></div>';
+  }
+  function secCamaras(f){
+    if(!hayAlgo(f, ["ctxE","ctxS","lprE","lprS","capE","capS","altInst","distLectura"])) return "";
+    var fila = function(t, a, b){ return '<tr><td>'+t+'</td><td>'+vf(a)+'</td><td>'+vf(b)+'</td></tr>'; };
+    return '<div class="f-sec"><h4>C\u00e1maras e instalaci\u00f3n</h4>'
+      + '<table class="f-comp f-es"><thead><tr><th></th><th>Entrada</th><th>Salida</th></tr></thead><tbody>'
+      + fila('Pistas', f.pistasEnt, f.pistasSal) + fila('C\u00e1maras de contexto', f.ctxE, f.ctxS) + fila('C\u00e1maras LPR', f.lprE, f.lprS) + fila('Captura de patente', f.capE, f.capS)
+      + '</tbody></table><div class="f-grid" style="margin-top:8px">' + par('Altura de brazo (instalaci\u00f3n)', f.altInst, 'm') + par('Distancia de lectura', f.distLectura, 'm') + '</div></div>';
+  }
+  function secCobertura(f){
+    var ops = [["Claro", f.cobClaro], ["Entel", f.cobEntel], ["Movistar", f.cobMovistar], ["WOM", f.cobWom]];
+    if(!ops.some(function(o){ return o[1]; })) return "";
+    var num = function(s){ var n = parseFloat(String(s || "").replace(",", ".")); return isFinite(n) ? n : null; };
+    var datos = ops.map(function(o){ var p = String(o[1] || "").split("/").map(function(x){ return x.trim(); }); return { op:o[0], raw:String(o[1] || ""), b:p[0], s:p[1], pi:p[2], j:p[3], bn: p.length >= 2 ? num(p[0]) : null }; });
+    var mejor = null; datos.forEach(function(d){ if(d.bn != null && (!mejor || d.bn > mejor.bn)) mejor = d; });
+    var nivel = function(n){ return n == null ? "" : (n >= 50 ? "cob-ok" : (n >= 10 ? "cob-med" : "cob-bajo")); };
+    return '<div class="f-sec"><h4>Pruebas de cobertura</h4><table class="f-comp f-cob"><thead><tr><th>Operador</th><th>Bajada</th><th>Subida</th><th>Ping</th><th>Jitter</th></tr></thead><tbody>'
+      + datos.map(function(d){
+          if(d.bn == null) return '<tr><td>'+d.op+'</td><td colspan="4" class="f-nd">'+esc(d.raw || "Sin registro")+'</td></tr>';
+          return '<tr'+(d === mejor ? ' class="cob-mejor"' : '')+'><td>'+d.op+(d === mejor ? ' <span class="cob-star" title="Mejor bajada">\u2605</span>' : '')+'</td>'
+            + '<td><span class="cob-b '+nivel(d.bn)+'">'+esc(d.b)+'</span> <small>Mbps</small></td><td>'+esc(d.s || "\u2014")+' <small>Mbps</small></td><td>'+esc(d.pi || "\u2014")+' <small>ms</small></td><td>'+esc(d.j || "\u2014")+' <small>ms</small></td></tr>';
+        }).join("") + '</tbody></table><p class="f-ley">Bajada: <b class="cob-ok">\u2265 50</b> buena \u00b7 <b class="cob-med">10\u201350</b> media \u00b7 <b class="cob-bajo">&lt; 10</b> baja (Mbps)</p></div>';
+  }
   function pintarFicha(){
     var box = document.getElementById("fichaPortico"); if(!box) return;
     if(!selPortico){ box.hidden = true; box.innerHTML = ""; return; }
@@ -2981,6 +3019,7 @@ window.PORTICOS_LISTA = (function(){
           + (!f.coordLic && tieneCoords(p) ? par('Coordenadas', p.lat.toFixed(6) + ', ' + p.lng.toFixed(6)).replace('</dd>', ' <a class="f-map" href="https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng + '" target="_blank" rel="noopener">Ver mapa</a></dd>') : '') + '</div>'
           + (f.coordLic || f.coordProp ? '<table class="f-comp"><thead><tr><th>Coordenadas</th><th>Original (LIC)</th><th>Propuesta (PROP)</th></tr></thead><tbody>'
           + '<tr><td></td><td>' + vf(f.coordLic) + linkMapa(f.coordLic) + '</td><td>' + vf(f.coordProp) + linkMapa(f.coordProp) + '</td></tr></tbody></table>' : '') + '</div>'
+        + secGeneral(f) + secEmplaz(f)
         + '<div class="f-sec"><h4>Prioridad y diagn\u00f3stico</h4><div class="f-grid f-grid-1">'
           + par('Prioridad de revisi\u00f3n', f.prioridad) + '<div class="f-par"><dt>Justificaci\u00f3n de cambio</dt><dd>' + vineta(f.justificacion) + '</dd></div>' + '<div class="f-par"><dt>Detalles nueva localizaci\u00f3n</dt><dd>' + vineta(f.detallesLoc) + '</dd></div>' + '</div>'
           + '<p class="f-ley"><b>Alto:</b> problemas de georreferencia \u00b7 <b>Medio:</b> revisi\u00f3n de terreno \u00b7 <b>Bajo:</b> detalles menores o nulos</p></div>'
@@ -2988,8 +3027,10 @@ window.PORTICOS_LISTA = (function(){
           + '<table class="f-comp"><thead><tr><th></th><th>Licitaci\u00f3n (LIC)</th><th>Propuesta (PROP)</th></tr></thead><tbody>'
           + '<tr><td>Infraestructura</td><td>' + vf(f.infraLic) + '</td><td>' + vf(f.infraProp) + '</td></tr></tbody></table>'
           + '<div class="f-grid">' + par('N\u00b0 pistas entrada', f.pistasEnt) + par('N\u00b0 pistas salida', f.pistasSal) + '</div></div>'
+        + secCamaras(f)
         + '<div class="f-sec"><h4>Empalme el\u00e9ctrico</h4><div class="f-grid">'
           + par('Tipo conexi\u00f3n a\u00e9rea', f.conexion) + par('N\u00b0 poste', f.poste) + par('DM del poste', f.dmPoste, 'm') + '</div></div>'
+        + secCobertura(f)
         + '<div class="f-sec"><h4>Datos viales</h4><div class="f-grid">'
           + par('Ruta / Rol red vial', f.ruta) + par('Ruta / Rol BCN', f.rutaBcn) + par('Categor\u00eda', f.categoria) + par('Objetid', f.objetid)
           + par('Clasificaci\u00f3n', f.clasificacion) + par('Nombre del camino', f.camino) + '</div></div>'
