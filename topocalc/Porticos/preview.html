@@ -757,6 +757,8 @@ body[data-mtab="indicadores"] .ind-block{ display:block; }
 .msel-op:hover{ background:var(--paper-sunken); }
 .msel-op input{ width:16px; height:16px; accent-color:var(--blueprint); margin:0; }
 .msel-op .dot{ width:9px; height:9px; border-radius:50%; flex:none; }
+.msel-info{ font-size:.7rem; color:var(--ink-soft); padding:4px 6px 6px; border-bottom:1px solid var(--line); margin-bottom:4px; }
+.ep-acum{ margin:2px 0 8px; }
 .msel-clear{ all:unset; cursor:pointer; display:block; width:100%; box-sizing:border-box; text-align:center; font-size:.74rem; font-weight:700; color:var(--blueprint); padding:6px; margin-top:4px; border-top:1px solid var(--line); }
 .porticos-table tbody tr[data-num]{ cursor:pointer; }
 .porticos-table tbody tr.sel td{ background:rgba(224,36,94,.10) !important; }
@@ -2915,6 +2917,8 @@ window.PORTICOS_LISTA = (function(){
     if(fEstado){
       var ops = [["__sin", "Sin iniciar", "dot-blanco"]].concat(data.orden.map(function(n){ return [n, n, "dot-" + window.PARTIDA_TONE[n]]; }));
       llaveEst = armarPop(fEstado, ops, selEst, llaveEst);
+      var pe = fEstado.querySelector(".msel-pop");
+      if(pe && !pe.querySelector(".msel-info")) pe.insertAdjacentHTML("afterbegin", '<div class="msel-info">Cada partida incluye los p\u00f3rticos que ya la pasaron.</div>');
       fEstado.querySelector(".msel-t").textContent = textoSel(selEst, "Todos los estados", "estados", function(k){ return k === "__sin" ? "Sin iniciar" : k; });
       fEstado.classList.toggle("on", nSel(selEst) > 0);
     }
@@ -2924,7 +2928,15 @@ window.PORTICOS_LISTA = (function(){
     var q0 = fBuscar ? sinTildes(fBuscar.value.trim()) : "";
     if(q0 && sinTildes(p.nombre + " " + p.comuna).indexOf(q0) < 0) return false;
     if(nSel(selCom) && !selCom[p.comuna]) return false;
-    if(nSel(selEst)){ var st = estadoDe(num, data); if(!selEst[st ? st.name : "__sin"]) return false; }
+    if(nSel(selEst)){
+      /* acumulado: una partida incluye los pórticos que ya la pasaron (ej. Excavación = todos los que llegaron a Excavación o más) */
+      var st = estadoDe(num, data), ok = false;
+      Object.keys(selEst).forEach(function(k){
+        if(k === "__sin"){ if(!st) ok = true; }
+        else { var ki = data.orden.indexOf(k); if(st && ki >= 0 && st.idx >= ki) ok = true; }
+      });
+      if(!ok) return false;
+    }
     return true;
   }
   function filtroCambio(){ if(mapa) mapa._encuadrado = false; window.renderPorticos(); mapaMovil(false); actualizarURL(); }
@@ -3750,7 +3762,7 @@ window.PORTICOS_LISTA = (function(){
   function estadoPorticosHtml(){
     var d = ultimoData || calcular();
     var dist = d.orden.map(function(){ return 0; }), sin = 0;
-    lista().forEach(function(p,k){ var st = estadoDe(numDe(p,k), d); if(st) dist[st.idx]++; else sin++; });
+    lista().forEach(function(p,k){ var st = estadoDe(numDe(p,k), d); if(st){ for(var x = 0; x <= st.idx; x++) dist[x]++; } else sin++; });
     var items = lista().map(function(p,k){
       var num = numDe(p,k), regs = REMOTO.avance.filter(function(a){ return String(a.portico) === num; });
       var ult = regs.reduce(function(m, a){ var x = (a.fecha || "") + (a.registrado || ""); return x > m ? x : m; }, "");
@@ -3784,6 +3796,7 @@ window.PORTICOS_LISTA = (function(){
     return '<div class="ind-box ep-box'+(epCerrado?' ep-cerrado':'')+'"><button type="button" class="ep-toggle" aria-expanded="'+(epCerrado?'false':'true')+'"><span class="ep-caret" aria-hidden="true">'+(epCerrado?'\u25b8':'\u25be')+'</span><span class="ep-tit">Estado actual de los p\u00f3rticos</span><span class="ep-tot">'+lista().length+' p\u00f3rticos</span></button><div class="ep-cuerpo"'+(epCerrado?' hidden':'')+'>'
       + '<div class="av-dist"><span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar <b>'+sin+'</b></span>'
       + d.orden.map(function(n,i){ var t = window.PARTIDA_TONE[n]; return '<span class="av-it"><i class="dot dot-'+t+'"></i>'+esc(n)+' <b>'+dist[i]+'</b></span>'; }).join("") + '</div>'
+      + '<p class="ind-nota ep-acum">Conteo acumulado: cada partida cuenta los p\u00f3rticos que ya la ejecutaron, aunque hayan avanzado a la siguiente.</p>'
       + '<div class="ep-ctrl"><input type="search" class="ep-buscar" placeholder="Buscar p\u00f3rtico o comuna" aria-label="Buscar p\u00f3rtico" value="'+esc(epBusca)+'">'
       + '<label class="ep-ord"><span>Ordenar</span><select class="ep-orden" aria-label="Ordenar el listado">' + EP_ORDENES.map(function(o){ return '<option value="'+o[0]+'"'+(o[0]===epOrden?' selected':'')+'>'+o[1]+'</option>'; }).join("") + '</select></label></div>'
       + '<div class="ep-lista">' + (filas || '<p class="pm-vacio">Ning\u00fan p\u00f3rtico coincide.</p>') + '</div>'
