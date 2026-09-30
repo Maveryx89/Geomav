@@ -512,7 +512,7 @@ button.pm-fotos-link:hover{ text-decoration:underline; }
 .ep-buscar{ width:100%; box-sizing:border-box; font:inherit; font-size:.84rem; color:var(--ink); background:var(--paper); border:1px solid var(--line-strong); border-radius:6px; padding:7px 9px; margin:4px 0 8px; }
 .ep-lista{ max-height:560px; overflow:auto; border-top:1px solid var(--line); }
 .ep-row{ border-bottom:1px solid var(--line); }
-.ep-row > summary{ list-style:none; cursor:pointer; display:grid; grid-template-columns:80px 30px 110px minmax(0,1fr) 54px; gap:8px; align-items:center; padding:8px 4px; font-size:.8rem; }
+.ep-row > summary{ list-style:none; cursor:pointer; display:grid; grid-template-columns:70px 26px 72px minmax(0,1fr) 50px; gap:8px; align-items:center; padding:8px 4px; font-size:.8rem; }
 .ep-row > summary::-webkit-details-marker{ display:none; }
 .ep-row > summary::before{ content:"\25B8"; position:absolute; margin-left:-12px; color:var(--blueprint); }
 .ep-row[open] > summary::before{ content:"\25BE"; }
@@ -800,10 +800,12 @@ body:not([data-mtab="porticos"]) #fichaPortico{ display:none !important; }
 .porticos-count{ font-size:.72rem; font-weight:700; color:var(--blueprint); background:var(--blueprint-soft); border-radius:999px; padding:2px 8px; white-space:nowrap; }
 .porticos-scroll{ flex:1; min-height:0; overflow:auto; -webkit-overflow-scrolling:touch; }
 .porticos-table{ width:100%; border-collapse:collapse; font-size:.8rem; color:var(--ink); }
-.porticos-table th{ position:sticky; top:0; z-index:1; background:var(--paper-raised); text-align:left; font-size:.68rem; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); padding:8px 10px; border-bottom:1px solid var(--line-strong); }
-.porticos-table td{ padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+.porticos-table th{ position:sticky; top:0; z-index:1; background:var(--paper-raised); text-align:left; font-size:.68rem; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); padding:8px 5px; border-bottom:1px solid var(--line-strong); }
+.porticos-table td{ padding:7px 5px; border-bottom:1px solid var(--line); vertical-align:top; }
 .porticos-table td.n{ width:30px; color:var(--ink-soft); font-family:var(--font-mono); font-size:.72rem; }
 .porticos-table td.comuna, .porticos-table td.ubic{ color:var(--ink-soft); }
+.porticos-table td.comuna{ white-space:nowrap; }
+.porticos-table th:first-child, .porticos-table td:first-child{ padding-left:10px; }
 .porticos-table td.ubic{ font-size:.74rem; }
 .porticos-table .ubic-link{ color:var(--blueprint); font-weight:600; text-decoration:none; }
 .porticos-table .ubic-link:hover{ text-decoration:underline; }
@@ -2909,6 +2911,11 @@ window.PORTICOS_LISTA = (function(){
   });
 
   /* tipo de pórtico (L o T) según la ficha técnica: manda la propuesta si existe */
+  /* nombres de comuna abreviados para el listado (el nombre completo queda al pasar el mouse) */
+  var COMUNA_CORTA = { "San Fernando":"S. Fdo.", "Santa Cruz":"Sta. Cruz", "Chimbarongo":"Chimb.", "Nancagua":"Nanc.", "Palmilla":"Palm.",
+    "Peralillo":"Peral.", "Placilla":"Plac.", "Pumanque":"Pum.", "Chépica":"Chép.", "Lolol":"Lolol", "La Estrella":"La Estr.",
+    "Litueche":"Litu.", "Marchigüe":"March.", "Navidad":"Navid.", "Paredones":"Pared.", "Pichilemu":"Pichil." };
+  function comunaCorta(c){ c = String(c || ""); return COMUNA_CORTA[c] || (c.length > 8 ? c.slice(0, 6) + "." : c); }
   function tipoPortico(nombre){
     var f = (typeof FICHAS !== "undefined" && FICHAS) ? FICHAS[nombre] : null; if(!f) return null;
     var m = /tipo\s*([LT])\b/i.exec(f.infraProp || ""), l = /tipo\s*([LT])\b/i.exec(f.infraLic || "");
@@ -2927,7 +2934,7 @@ window.PORTICOS_LISTA = (function(){
       if(!pasaFiltro(p, num, data)) return "";
       visibles++;
       var nf = fotosDePortico(num).length;
-      return '<tr data-num="'+num+'" class="'+(String(num) === String(selPortico) ? 'sel' : '')+'"><td>'+esc(p.nombre)+'</td><td class="tipo">'+tipoHtml(p.nombre)+'</td><td class="comuna">'+esc(p.comuna)+'</td><td class="ubic">'+ubicHtml(p)+'</td>'
+      return '<tr data-num="'+num+'" class="'+(String(num) === String(selPortico) ? 'sel' : '')+'"><td>'+esc(p.nombre)+'</td><td class="tipo">'+tipoHtml(p.nombre)+'</td><td class="comuna" title="'+esc(p.comuna)+'">'+esc(comunaCorta(p.comuna))+'</td><td class="ubic">'+ubicHtml(p)+'</td>'
         + '<td class="fotos">'+(nf ? '<button type="button" class="foto-btn" data-galport="'+num+'" aria-label="Ver '+nf+' foto'+(nf===1?'':'s')+' de '+esc(p.nombre)+'">\ud83d\udcf7<small>'+nf+'</small></button>' : '')+'</td>'
         + '<td class="estado">'+estadoHtml(num, data)+'</td></tr>';
     }).join("") || '<tr><td colspan="6" class="pm-vacio" style="padding:14px">Ning\u00fan p\u00f3rtico coincide con el filtro.</td></tr>';
@@ -3723,7 +3730,7 @@ window.PORTICOS_LISTA = (function(){
       if(epBusca && sinTildes(p.nombre + " " + p.comuna).indexOf(sinTildes(epBusca)) < 0) return "";
       var regs = REMOTO.avance.filter(function(a){ return String(a.portico) === num; }).sort(function(a,b){ return (b.fecha + b.registrado).localeCompare(a.fecha + a.registrado); });
       var est = st ? chip(st.name) + '<span class="ep-sub">' + subEstado(st) + '</span>' : '<span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar</span>';
-      return '<details class="ep-row" data-ep="'+num+'"'+(epAbiertos[num]?' open':'')+'><summary><span class="ep-n">'+esc(p.nombre)+'</span><span class="ep-t">'+tipoHtml(p.nombre)+'</span><span class="ep-c">'+esc(p.comuna)+'</span><span class="ep-e">'+est+'</span><span class="ep-k">'+regs.length+' reg.</span></summary>'
+      return '<details class="ep-row" data-ep="'+num+'"'+(epAbiertos[num]?' open':'')+'><summary><span class="ep-n">'+esc(p.nombre)+'</span><span class="ep-t">'+tipoHtml(p.nombre)+'</span><span class="ep-c" title="'+esc(p.comuna)+'">'+esc(comunaCorta(p.comuna))+'</span><span class="ep-e">'+est+'</span><span class="ep-k">'+regs.length+' reg.</span></summary>'
         + (regs.length ? '<ul class="ep-h">' + regs.map(function(a){
             return '<li>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.avance!==""&&a.avance!=null&&!esNota(a.partida)?'<span class="pm-pct">'+esc(a.avance)+'%</span>':'')
               + (a.obs?'<span class="pm-obs">'+esc(a.obs)+'</span>':'')
