@@ -525,6 +525,38 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
 }
 @media print{ .rv-block{ display:none !important; } }
 
+
+/* ---------- filtros de pizarra ---------- */
+.lp-filtros{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:10px 16px 2px; }
+.lpf{ position:relative; }
+.lpf > summary{ list-style:none; cursor:pointer; font-size:.78rem; font-weight:600; color:var(--ink); background:var(--paper-raised); border:1px solid var(--line-strong); border-radius:999px; padding:6px 26px 6px 12px; white-space:nowrap; position:relative; max-width:220px; overflow:hidden; text-overflow:ellipsis; }
+.lpf > summary::-webkit-details-marker{ display:none; }
+.lpf > summary::after{ content:""; position:absolute; right:10px; top:50%; width:6px; height:6px; border-right:1.6px solid var(--ink-soft); border-bottom:1.6px solid var(--ink-soft); transform:translateY(-70%) rotate(45deg); }
+.lpf.on > summary{ border-color:var(--blueprint); background:var(--blueprint-soft); color:var(--blueprint); }
+.lpf-pop{ position:absolute; z-index:45; top:calc(100% + 4px); left:0; min-width:200px; max-width:300px; max-height:320px; overflow:auto; background:var(--paper-raised); border:1px solid var(--line); border-radius:8px; box-shadow:0 12px 28px -10px rgba(0,0,0,.35); padding:6px; }
+.lpf-op{ display:flex; align-items:center; gap:8px; padding:6px; font-size:.8rem; color:var(--ink); border-radius:6px; cursor:pointer; }
+.lpf-op:hover{ background:var(--paper-sunken); } .lpf-op input{ width:16px; height:16px; margin:0; accent-color:var(--blueprint); }
+.lpf-dot{ width:9px; height:9px; border-radius:50%; flex:none; }
+.lpf-dot.stripe-copper{ background:var(--accent); } .lpf-dot.stripe-neutral{ background:#8C949E; } .lpf-dot.stripe-blueprint{ background:var(--blueprint); } .lpf-dot.stripe-amber{ background:#D6A828; }
+.lpf-dot.stripe-success{ background:var(--success); } .lpf-dot.stripe-violet{ background:#7A52AA; } .lpf-dot.stripe-danger{ background:var(--danger); }
+.lpf-clear{ all:unset; cursor:pointer; display:block; width:100%; box-sizing:border-box; text-align:center; font-size:.74rem; font-weight:700; color:var(--blueprint); padding:6px; margin-top:4px; border-top:1px solid var(--line); }
+.lpf-all{ all:unset; cursor:pointer; font-size:.76rem; font-weight:700; color:var(--danger); padding:4px 6px; } .lpf-cnt{ font-size:.74rem; color:var(--ink-soft); }
+@media (max-width:860px){ .lp-filtros{ padding:8px 12px 0; } .lpf > summary{ font-size:.82rem; min-height:36px; display:flex; align-items:center; }
+  .lpf-pop{ position:fixed; left:12px; right:12px; top:auto; bottom:calc(76px + env(safe-area-inset-bottom, 0px)); max-width:none; max-height:55vh; } .lpf-op{ min-height:40px; font-size:.9rem; } }
+/* ---------- ruta, bitácora e informe ---------- */
+.ru-h{ background:var(--blueprint-soft) !important; color:var(--blueprint) !important; } .bi-h{ background:var(--paper-sunken) !important; color:var(--ink) !important; }
+.ru-ol{ margin:4px 0; padding-left:22px; font-size:.84rem; } .ru-ol li{ padding:3px 0; } .ru-ol span{ color:var(--ink-soft); font-size:.76rem; }
+.ru-links{ display:flex; flex-direction:column; gap:8px; }
+.ru-btn{ display:block; text-align:center; font-weight:700; font-size:.88rem; color:#fff; background:var(--blueprint); border-radius:8px; padding:10px; text-decoration:none; }
+.bi-card{ max-width:620px !important; } .bi-q{ font:inherit; font-size:.88rem; padding:7px 9px; border:1px solid var(--line-strong); border-radius:6px; background:var(--paper); color:var(--ink); }
+.bi-n{ font-size:.74rem; color:var(--ink-soft); } .bi-l{ list-style:none; margin:0; padding:0; max-height:60vh; overflow:auto; border-top:1px solid var(--line); }
+.bi-l li{ padding:7px 2px; border-bottom:1px solid var(--line); } .bi-t{ display:flex; justify-content:space-between; gap:8px; font-size:.8rem; } .bi-t span{ color:var(--ink-soft); font-size:.72rem; white-space:nowrap; }
+.bi-d{ font-size:.76rem; color:var(--ink-soft); white-space:pre-wrap; overflow-wrap:anywhere; margin-top:2px; } .bi-alerta .bi-t b{ color:var(--danger); }
+.ind-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; } .ind-acc{ display:flex; gap:8px; margin-left:auto; }
+.par-acc{ margin-top:10px; padding-top:8px; border-top:1px dashed var(--line); } .par-acc-t{ font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); margin-bottom:4px; }
+.par-acc ul{ list-style:none; margin:0; padding:0; } .par-acc li{ font-size:.76rem; padding:4px 0; border-bottom:1px solid var(--line); }
+@media (max-width:860px){ .ind-acc{ width:100%; margin-left:0; } .ind-acc .btn-sm{ flex:1; } }
+
 .ep-ctrl{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:4px 0 8px; }
 .ep-ctrl .ep-buscar{ flex:1; min-width:160px; margin:0; }
 .ep-ord{ display:flex; align-items:center; gap:6px; font-size:.74rem; color:var(--ink-soft); }
@@ -1192,7 +1224,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 
 
   <section class="ind-block" id="indBlock" aria-label="Indicadores">
-    <div class="section-head ind-head"><h2>Indicadores del proyecto</h2><details class="ayuda ayuda-der"><summary aria-label="Ayuda: Indicadores" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Indicadores</b><ol class="ay-l"><li><b>PPC</b>: % de tareas comprometidas que se cumplieron (meta 80%).</li><li><b>Curva S</b>: si lo ejecutado va bajo lo programado, hay atraso.</li><li><b>Pareto</b>: causas de atraso, de mayor a menor.</li><li><b>▸ Restricciones</b>: lo que impide avanzar; rojo = vencida.</li></ol><a class="ay-m" href="manual.html#indicadores">Ver manual completo &rarr;</a></div></details></div>
+    <div class="section-head ind-head"><h2>Indicadores del proyecto</h2><div class="ind-acc"><button type="button" class="btn-sm" id="btnInforme"><span aria-hidden="true">&#x1F4C4;</span> Informe semanal</button><button type="button" class="btn-sm" id="btnBitacora"><span aria-hidden="true">&#x1F4DC;</span> Bitácora</button></div><details class="ayuda ayuda-der"><summary aria-label="Ayuda: Indicadores" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Indicadores</b><ol class="ay-l"><li><b>PPC</b>: % de tareas comprometidas que se cumplieron (meta 80%).</li><li><b>Curva S</b>: si lo ejecutado va bajo lo programado, hay atraso.</li><li><b>Pareto</b>: causas de atraso, de mayor a menor.</li><li><b>▸ Restricciones</b>: lo que impide avanzar; rojo = vencida.</li></ol><a class="ay-m" href="manual.html#indicadores">Ver manual completo &rarr;</a></div></details></div>
     <div id="restrBox" class="rs-box" aria-label="Restricciones"></div>
     <div id="indBody"></div>
     <div class="ind-box av-ind"><h3>Avance por semana</h3><div class="avance-wrap" id="avanceWrap"></div></div>
@@ -1612,7 +1644,7 @@ window.PORTICOS_LISTA = (function(){
         if(cfg.weekly){ if(dias < 0 || dias >= weeks.length) return; col = weeks[dias]; }
         else { if(dias < 0 || dias >= 7 * nsem || fallo) return; col = weeks[Math.floor(dias / 7)]; }
         var n = { id: r.id || uid(), catId:cid, weekId:col.id, text:"", day:"", portico:String(r.portico || ""), percent: String(r.avance || ""), tone: PARTIDA_TONE[r.partida] || "neutral",
-          responsable: r.responsable || "", cumplido:null, causa:"", liberada:false, tipoRestriccion: r.restriccion || "", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:"",
+          responsable: r.responsable || "", cumplido:null, causa:"", accion: r.accion || "", liberada:false, tipoRestriccion: r.restriccion || "", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:"",
           fecha: r.fecha, autorizacion: r.autorizacion || "", estadoOrig: r.estado || "Programado", remota: !!r.id, pendiente:false };
         var txt = r.obs ? String(r.obs) : "";   /* la comuna ya va en la etiqueta del pórtico */
         if(cfg.weekly){
@@ -1680,7 +1712,7 @@ window.PORTICOS_LISTA = (function(){
       else estado = String(note.percent) === "100" ? "Ejecutado" : (note.estadoOrig && !/^ejecutado/i.test(note.estadoOrig) ? note.estadoOrig : "Programado");
       var aut = note.autorizacion || (note.tipoRestriccion === "Administrativos" && note.respLiberacion ? "Pendiente: " + note.respLiberacion : "S\u00ed");
       var body = { accion:"guardarNota", pin:pin, nota:{ id:note.id, fecha:fecha, portico:Number(note.portico), nombre:info.nombre, comuna:info.comuna, partida:cat.name,
-        estado:estado, autorizacion:aut, obs:note.text || "", responsable:note.responsable || "", avance:String(note.percent || ""), restriccion:note.tipoRestriccion || "", causa:note.causa || "" } };
+        estado:estado, autorizacion:aut, obs:note.text || "", responsable:note.responsable || "", avance:String(note.percent || ""), restriccion:note.tipoRestriccion || "", causa:note.causa || "", accion:note.accion || "" } };
       btn.disabled = true; btn.textContent = "Guardando\u2026";
       api.enviar(body).then(function(j){
         if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) api.setPin(""); alert((j && j.error) || "No se pudo guardar."); btn.disabled = false; btn.textContent = "Guardar"; return; }
@@ -1695,7 +1727,86 @@ window.PORTICOS_LISTA = (function(){
 
     function findCat(id){ return state.categories.find(function(c){return c.id===id;}); }
     function findWeek(id){ return state.weeks.find(function(w){return w.id===id;}); }
-    function notesIn(catId, weekId){ return state.notes.filter(function(n){ return n.catId===catId && n.weekId===weekId; }); }
+    /* ---------- ruta del día en Google Maps (Semanal) ---------- */
+    function coordsPortico(num){
+      var l = window.PORTICOS_LISTA || [], s = String(num);
+      for(var i=0;i<l.length;i++){ if(String(l[i].num || (i+1)) === s && isFinite(l[i].lat) && isFinite(l[i].lng) && l[i].lat !== null) return l[i]; }
+      return null;
+    }
+    function ordenarRuta(pts){
+      if(pts.length < 3) return pts.slice();
+      var d = function(a,b){ var x = (a.lat-b.lat), y = (a.lng-b.lng) * Math.cos(a.lat*Math.PI/180); return Math.sqrt(x*x+y*y); };
+      var mejor = null, mejorL = Infinity;
+      pts.forEach(function(ini){
+        var rest = pts.filter(function(p){ return p !== ini; }), ruta = [ini], L = 0;
+        while(rest.length){ var u = ruta[ruta.length-1], k = 0; for(var i=1;i<rest.length;i++){ if(d(u,rest[i]) < d(u,rest[k])) k = i; } L += d(u,rest[k]); ruta.push(rest.splice(k,1)[0]); }
+        if(L < mejorL){ mejorL = L; mejor = ruta; }
+      });
+      return mejor;
+    }
+    function abrirRuta(){
+      var ov = document.createElement("div"); ov.className = "bg-ov";
+      var colIni = (typeof mCol !== "undefined" && mCol && findWeek(mCol)) ? mCol : colPorDefecto();
+      ov.innerHTML = '<div class="bg-card ru-card" role="dialog" aria-modal="true" aria-label="Ruta del d\u00eda"><div class="bg-h ru-h"><strong>\ud83d\uddfa\ufe0f Ruta del d\u00eda</strong><button type="button" class="bg-x" aria-label="Cerrar">\u2715</button></div>'
+        + '<div class="bg-b"><label>D\u00eda<select class="ru-dia">' + state.weeks.map(function(w){ return '<option value="'+w.id+'"'+(w.id===colIni?' selected':'')+'>'+escapeHtml(w.label + ' \u00b7 ' + (w.month || ''))+'</option>'; }).join("") + '</select></label>'
+        + '<div class="ru-lista"></div><p class="bg-t">El orden se calcula para recorrer los p\u00f3rticos con el menor trayecto. La ruta parte desde tu ubicaci\u00f3n actual.</p><div class="ru-links"></div></div></div>';
+      document.body.appendChild(ov);
+      var cerrar = function(){ ov.remove(); };
+      ov.querySelector(".bg-x").onclick = cerrar; ov.addEventListener("click", function(e){ if(e.target === ov) cerrar(); });
+      function pintarR(){
+        var col = ov.querySelector(".ru-dia").value, vistos = {}, pts = [], sin = [];
+        state.notes.filter(function(n){ return n.weekId === col && n.portico; }).forEach(function(n){
+          if(vistos[n.portico]) return; vistos[n.portico] = 1;
+          var c = coordsPortico(n.portico); if(c) pts.push({ lat:+c.lat, lng:+c.lng, nombre:c.nombre, comuna:c.comuna }); else sin.push(nombrePortico(n.portico));
+        });
+        var ruta = ordenarRuta(pts);
+        ov.querySelector(".ru-lista").innerHTML = ruta.length ? '<ol class="ru-ol">' + ruta.map(function(p){ return '<li><b>'+escapeHtml(p.nombre)+'</b> <span>'+escapeHtml(p.comuna || "")+'</span></li>'; }).join("") + '</ol>' + (sin.length ? '<p class="bg-t">Sin coordenadas: ' + escapeHtml(sin.join(", ")) + '</p>' : '')
+          : '<p class="bg-t">No hay p\u00f3rticos programados ese d\u00eda.</p>';
+        var tramos = [], TAM = 10;
+        for(var i=0;i<ruta.length;i+=TAM) tramos.push(ruta.slice(i, i+TAM));
+        ov.querySelector(".ru-links").innerHTML = tramos.map(function(t, k){
+          var ll = function(p){ return p.lat.toFixed(6) + "," + p.lng.toFixed(6); };
+          var url = "https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=" + ll(t[t.length-1])
+            + (t.length > 1 ? "&waypoints=" + encodeURIComponent(t.slice(0, -1).map(ll).join("|")) : "")
+            + (k > 0 ? "&origin=" + ll(tramos[k-1][tramos[k-1].length-1]) : "");
+          return '<a class="ru-btn" href="'+url+'" target="_blank" rel="noopener">\ud83d\udccd Abrir en Google Maps' + (tramos.length > 1 ? ' \u00b7 tramo ' + (k+1) + ' de ' + tramos.length : '') + ' (' + t.length + ' p\u00f3rtico' + (t.length===1?'':'s') + ')</a>';
+        }).join("");
+      }
+      ov.querySelector(".ru-dia").onchange = pintarR; pintarR();
+    }
+    /* ---------- filtros de la pizarra: responsable y partida (selección múltiple) ---------- */
+    var filtroP = { resp:{}, part:{} }, barraP = null, llaveP = "";
+    function hayFiltroP(){ return Object.keys(filtroP.resp).length || Object.keys(filtroP.part).length; }
+    function pasaFiltroP(n){
+      if(Object.keys(filtroP.part).length && !filtroP.part[n.catId]) return false;
+      if(Object.keys(filtroP.resp).length && !filtroP.resp[String(n.responsable || "").trim() || "__sin"]) return false;
+      return true;
+    }
+    function renderFiltrosP(){
+      if(!barraP){
+        var ref = root.querySelector(".m-view") || root.querySelector(".board-scroll"); if(!ref) return;
+        barraP = document.createElement("div"); barraP.className = "lp-filtros";
+        ref.parentNode.insertBefore(barraP, ref);
+        barraP.addEventListener("change", function(e){ var cb = e.target; if(!cb || cb.type !== "checkbox") return; var g = filtroP[cb.dataset.g]; if(cb.checked) g[cb.value] = 1; else delete g[cb.value]; render(); });
+        barraP.addEventListener("click", function(e){ var b = e.target.closest("[data-limpiar]"); if(!b) return; if(b.dataset.limpiar === "todo"){ filtroP = { resp:{}, part:{} }; } else filtroP[b.dataset.limpiar] = {}; llaveP = ""; render(); });
+        document.addEventListener("click", function(e){ Array.prototype.forEach.call(barraP.querySelectorAll("details[open]"), function(d){ if(!d.contains(e.target)) d.removeAttribute("open"); }); });
+      }
+      var resps = {}; state.notes.forEach(function(n){ resps[String(n.responsable || "").trim() || "__sin"] = 1; });
+      var ordR = Object.keys(resps).sort(function(a,b){ return a === "__sin" ? 1 : b === "__sin" ? -1 : a.localeCompare(b, "es"); });
+      var grupos = [["resp","Responsables", ordR.map(function(r){ return [r, r === "__sin" ? "(sin responsable)" : r]; })],
+                    ["part","Partidas", state.categories.map(function(c){ return [c.id, c.name, "stripe-" + (toneForCat(c.id) || "neutral")]; })]];
+      var abiertos = {}; Array.prototype.forEach.call(barraP.querySelectorAll("details[open]"), function(d){ abiertos[d.dataset.g] = 1; });
+      var llave = JSON.stringify(grupos) + JSON.stringify(filtroP);
+      if(llave === llaveP) return; llaveP = llave;
+      barraP.innerHTML = grupos.map(function(g){
+        var sel = filtroP[g[0]], n = Object.keys(sel).length;
+        var txt = !n ? g[1] + ": todos" : (n === 1 ? (g[2].filter(function(o){ return sel[o[0]]; }).map(function(o){ return o[1]; })[0] || "1") : g[1] + " (" + n + ")");
+        return '<details class="lpf'+(n?' on':'')+'" data-g="'+g[0]+'"'+(abiertos[g[0]]?' open':'')+'><summary>'+escapeHtml(txt)+'</summary><div class="lpf-pop">'
+          + g[2].map(function(o){ return '<label class="lpf-op"><input type="checkbox" data-g="'+g[0]+'" value="'+escapeHtml(o[0])+'"'+(sel[o[0]]?' checked':'')+'>'+(o[2]?'<i class="lpf-dot '+o[2]+'"></i>':'')+'<span>'+escapeHtml(o[1])+'</span></label>'; }).join("")
+          + '<button type="button" class="lpf-clear" data-limpiar="'+g[0]+'">Limpiar</button></div></details>';
+      }).join("") + (hayFiltroP() ? '<button type="button" class="lpf-all" data-limpiar="todo">\u2715 Quitar filtros</button><span class="lpf-cnt">' + state.notes.filter(pasaFiltroP).length + ' de ' + state.notes.length + ' tareas</span>' : '');
+    }
+    function notesIn(catId, weekId){ return state.notes.filter(function(n){ return n.catId===catId && n.weekId===weekId && pasaFiltroP(n); }); }
     function exportExcel(){
       if(typeof ExcelJS === "undefined"){
         window.LP_cargarExcel().then(exportExcel, function(){
@@ -1880,6 +1991,8 @@ window.PORTICOS_LISTA = (function(){
       box.innerHTML = '<div class="m-chips">'+chips+'</div>' + grupos;
     }
     function render(){
+      renderFiltrosP();
+      if(cfg.weekly && !root.querySelector('[data-action="ruta"]')){ var tb0 = root.querySelector(".toolbar"); if(tb0) tb0.insertAdjacentHTML("afterbegin", '<button class="btn-sm ru-abrir" data-action="ruta" title="Ruta en Google Maps con los p\u00f3rticos del d\u00eda"><span aria-hidden="true">&#x1F5FA;&#xFE0F;</span> Ruta del d\u00eda</button>'); }
       renderMobile();
       var board = root.querySelector(".board");
       var nWeeks = state.weeks.length, nCats = state.categories.length;
@@ -2164,7 +2277,8 @@ window.PORTICOS_LISTA = (function(){
               + '<button class="tri'+(note.cumplido===false?' active-no':'')+'" data-action="set-cumplido" data-note="'+note.id+'" data-value="0">No cumpli\u00f3</button>'
               + '<button class="tri'+(note.cumplido===null?' active-neu':'')+'" data-action="set-cumplido" data-note="'+note.id+'" data-value="">Pendiente</button>'
             + '</div></div></div>'
-          + (note.cumplido===false ? '<div class="field-row"><div class="field-col"><label>Causa de no cumplimiento</label><select data-bind-select="note:'+note.id+':causa">'+causaOptions+'</select></div></div>' : '');
+          + (note.cumplido===false ? '<div class="field-row"><div class="field-col"><label>Causa de no cumplimiento</label><select data-bind-select="note:'+note.id+':causa">'+causaOptions+'</select></div></div>'
+              + '<div class="field-row"><div class="field-col"><label>\u00bfPor qu\u00e9? / Acci\u00f3n correctiva</label><input type="text" maxlength="200" data-bind="note:'+note.id+':accion" value="'+escapeHtml(note.accion || "")+'" placeholder="ej. faltaron moldajes \u2192 pedirlos el viernes"></div></div>' : '');
       } else {
         var tipoOptions = '<option value="">\u2013</option>' + RESTRICCION_TIPOS.map(function(t){
           return '<option value="'+t+'"'+(t===note.tipoRestriccion?' selected':"")+'>'+t+'</option>';
@@ -2377,6 +2491,7 @@ window.PORTICOS_LISTA = (function(){
       else if(action === "m-col"){ mCol = el.dataset.week; state.editingNoteId = null; render(); }
       else if(action === "liberar-hoy"){ if(window.PORTICOS_API && window.PORTICOS_API.liberar) window.PORTICOS_API.liberar(el.dataset.portico, el); }
       else if(action === "borrar-grupo"){ abrirBorrado(); }
+      else if(action === "ruta"){ abrirRuta(); }
       else if(action === "toggle-restr"){ restrAbierto = !restrAbierto; renderRestrictions(); }
       else if(action === "save-note"){ var ns = state.notes.find(function(x){return x.id===el.dataset.note;}); if(ns) guardarNotaRemota(ns, el); }
       else if(action === "del-note") delNote(el.dataset.note);
@@ -3711,7 +3826,11 @@ window.PORTICOS_LISTA = (function(){
     var par = '<div class="ind-box"><h3>Causas de no cumplimiento (Pareto)</h3>' + (lst.length ? '<div class="ind-pareto">' + lst.map(function(x){
         acum += x.n;
         return '<div class="par-row'+(x.k === "__" ? ' sin' : '')+'"><span class="par-t">'+esc(x.t)+'</span><span class="par-bar"><i style="width:'+(100 * x.n / maxN)+'%"></i></span><span class="par-n">'+x.n+'</span><span class="par-a">'+Math.round(100 * acum / nNo)+'%</span></div>';
-      }).join("") + '</div><p class="ind-nota">'+nNo+' tareas no cumplidas \u00b7 la columna derecha es el % acumulado. Asigna la causa en cada nota \u201cNo cumpli\u00f3\u201d del Semanal y gu\u00e1rdala.</p>'
+      }).join("") + '</div>' + (function(){
+        var acc = prog.filter(function(r){ return /^no ejecutado/i.test(r.estado || "") && String(r.accion || "").trim(); }).sort(function(a,b){ return a.fecha < b.fecha ? 1 : -1; }).slice(0, 5);
+        if(!acc.length) return "";
+        return '<div class="par-acc"><div class="par-acc-t">Acciones correctivas recientes</div><ul>' + acc.map(function(r){ return '<li><b>'+esc(r.nombre || r.portico)+'</b> \u00b7 '+fmt(r.fecha)+(r.causa && lbl[r.causa] ? ' \u00b7 <i>'+esc(lbl[r.causa])+'</i>' : '')+'<br>\u2192 '+esc(r.accion)+'</li>'; }).join("") + '</ul></div>';
+      })() + '<p class="ind-nota">'+nNo+' tareas no cumplidas \u00b7 la columna derecha es el % acumulado. Asigna la causa en cada nota \u201cNo cumpli\u00f3\u201d del Semanal y gu\u00e1rdala.</p>'
       : '<p class="pm-vacio">No hay tareas marcadas como \u201cNo cumpli\u00f3\u201d.</p>') + '</div>';
     /* curva S: partidas programadas vs ejecutadas, acumuladas por semana */
     var planK = {};
@@ -3813,6 +3932,89 @@ window.PORTICOS_LISTA = (function(){
     if(!e.target.classList || !e.target.classList.contains("ep-buscar")) return;
     epBusca = e.target.value; var lst = document.querySelector(".ep-box .ep-lista"); if(!lst) return;
     var tmp = document.createElement("div"); tmp.innerHTML = estadoPorticosHtml(); var nl = tmp.querySelector(".ep-lista"); if(nl) lst.innerHTML = nl.innerHTML;
+  });
+
+  /* ---------- informe semanal (PDF desde el navegador) ---------- */
+  function generarInforme(lunIso){
+    var finIso = sumarDias(lunIso, 6), d = ultimoData || calcular();
+    try{ pintarIndicadores(); }catch(e){}
+    var ib = document.getElementById("indBody");
+    var cards = ib && ib.querySelector(".ind-cards") ? ib.querySelector(".ind-cards").outerHTML : "";
+    var svgs = ib ? ib.querySelectorAll(".ind-svg") : [];
+    var ppc = svgs[0] ? svgs[0].outerHTML : "", curva = svgs[1] ? svgs[1].outerHTML : "";
+    var nombres = {}; lista().forEach(function(p,k){ nombres[numDe(p,k)] = p; });
+    var regs = REMOTO.avance.filter(function(a){ return a.fecha >= lunIso && a.fecha <= finIso; }).sort(function(a,b){ return (a.fecha + a.registrado).localeCompare(b.fecha + b.registrado); });
+    var fotos = []; regs.forEach(function(a){ (a.fotos || []).forEach(function(id){ if(fotos.length < 6) fotos.push({ id:id, t:(nombres[String(a.portico)] || {}).nombre + " \u00b7 " + (a.partida === "Comentarios" ? "Comentario" : a.partida) + " \u00b7 " + fmt(a.fecha) }); }); });
+    var rs = (window.RESTR_REMOTAS || []).filter(function(r){ return r.estado !== "Liberada"; });
+    var aut = {}; (window.PROGRAMACION || []).forEach(function(r){ if(/^pendiente/i.test(r.autorizacion || "") && !/^ejecutado/i.test(r.estado || "")){ var k = String(r.portico); if(!aut[k] || r.fecha < aut[k].fecha) aut[k] = { p: (nombres[k] || {}).nombre || r.nombre, c: r.comuna, q: String(r.autorizacion).replace(/^pendiente:?\s*/i, ""), fecha: r.fecha }; } });
+    var autL = Object.keys(aut).map(function(k){ return aut[k]; }).sort(function(a,b){ return a.fecha < b.fecha ? -1 : 1; });
+    /* mapa esquemático con el estado de cada pórtico */
+    var pts = lista().filter(tieneCoords); var la = pts.map(function(p){ return p.lat; }), lo = pts.map(function(p){ return p.lng; });
+    var mnA = Math.min.apply(null, la), mxA = Math.max.apply(null, la), mnO = Math.min.apply(null, lo), mxO = Math.max.apply(null, lo);
+    var W = 330, H = 300, k = Math.min((W - 20) / ((mxO - mnO) || 1), (H - 20) / ((mxA - mnA) || 1));
+    var mapa = '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="max-height:300px;background:#F4F3EF;border-radius:8px">' + lista().map(function(p, i){
+      if(!tieneCoords(p)) return ""; var st = estadoDe(numDe(p, i), d), t = st ? window.PARTIDA_TONE[st.name] : null;
+      var x = 10 + (p.lng - mnO) * k, y = H - 10 - (p.lat - mnA) * k;
+      return '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="4.5" fill="'+(t ? TONE_HEX[t] : "#fff")+'" stroke="'+(t ? "#fff" : "#0A2240")+'" stroke-width="1.4"><title>'+esc(p.nombre)+'</title></circle>';
+    }).join("") + '</svg>';
+    var ley = '<div class="ley"><span><i style="background:#fff;border:1.4px solid #0A2240"></i>Sin iniciar</span>' + d.orden.map(function(n){ return '<span><i style="background:'+TONE_HEX[window.PARTIDA_TONE[n]]+'"></i>'+esc(n)+'</span>'; }).join("") + '</div>';
+    var css = 'body{font:11px/1.35 Inter,Arial,sans-serif;color:#0A2240;margin:0;padding:18px 22px}h1{font-size:17px;margin:0}h2{font-size:12px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.04em;color:#2C6B7E;border-bottom:1.5px solid #2C6B7E;padding-bottom:2px}'
+      + '.sub{color:#5a6472;margin:2px 0 10px}.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:3px 5px;border-bottom:1px solid #e3e1da;vertical-align:top}th{font-size:10px;color:#5a6472}'
+      + '.ind-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.ind-card{border:1px solid #e3e1da;border-radius:8px;padding:8px}.ind-card .ind-k{font-size:9px;text-transform:uppercase;color:#5a6472;font-weight:700}.ind-card b{display:block;font-size:20px}.ind-card small{color:#5a6472}'
+      + 'svg text{font-family:Arial}.ind-grid{stroke:#e3e1da}.ind-ax{font-size:10px;fill:#5a6472}.ind-val{font-size:10px;font-weight:700}.ind-meta{stroke:#B23B3B;stroke-dasharray:5 4}.ind-meta-t{fill:#B23B3B;font-size:10px}.ind-hoy{stroke:#5a6472;stroke-dasharray:3 3}.ind-plan{fill:none;stroke:#9aa3ad;stroke-width:2.5;stroke-dasharray:6 4}.ind-real{fill:none;stroke:#2C6B7E;stroke-width:3}.ind-real-p{fill:#2C6B7E}'
+      + '.ley{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:4px;font-size:9.5px}.ley i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px;vertical-align:middle}'
+      + '.fotos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.fotos figure{margin:0}.fotos img{width:100%;height:120px;object-fit:cover;border-radius:6px}.fotos figcaption{font-size:9px;color:#5a6472}'
+      + '.pie{margin-top:14px;font-size:9px;color:#5a6472;text-align:right}.btn{position:fixed;top:10px;right:10px;padding:8px 14px;background:#0A2240;color:#fff;border:0;border-radius:6px;font-weight:700;cursor:pointer}@media print{.btn{display:none}body{padding:0}}@page{size:A4;margin:12mm}';
+    var html = '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Informe semanal P\u00f3rticos ' + fmt(lunIso) + '</title><style>'+css+'</style></head><body>'
+      + '<button class="btn" onclick="window.print()">Imprimir / Guardar PDF</button>'
+      + '<h1>Informe semanal de avance \u00b7 P\u00f3rticos de Vigilancia</h1><div class="sub">Regi\u00f3n de O\'Higgins \u00b7 semana del ' + fmt(lunIso) + ' al ' + fmt(finIso) + ' \u00b7 generado el ' + fmt(hoyISO()) + '</div>'
+      + cards
+      + '<div class="g2"><div><h2>Cumplimiento del plan (PPC)</h2>' + ppc + '</div><div><h2>Curva S</h2>' + curva + '</div></div>'
+      + '<div class="g2"><div><h2>Estado de los p\u00f3rticos</h2>' + mapa + ley + '</div><div><h2>Avance de la semana (' + regs.length + ')</h2>'
+      + (regs.length ? '<table><tr><th>Fecha</th><th>P\u00f3rtico</th><th>Partida</th><th>%</th><th>Obs.</th></tr>' + regs.map(function(a){ return '<tr><td>'+fmt(a.fecha)+'</td><td>'+esc((nombres[String(a.portico)] || {}).nombre || a.portico)+'</td><td>'+esc(a.partida === "Comentarios" ? "Comentario" : a.partida)+'</td><td>'+(a.avance !== "" && a.avance != null ? esc(a.avance)+'%' : '')+'</td><td>'+esc(a.obs || "")+'</td></tr>'; }).join("") + '</table>' : '<p>Sin registros de avance esta semana.</p>')
+      + '</div></div>'
+      + '<h2>Restricciones activas</h2>' + ((rs.length || autL.length) ? '<table><tr><th>Restricci\u00f3n</th><th>P\u00f3rtico</th><th>Responsable</th><th>Compromiso / programado</th></tr>'
+          + rs.map(function(r){ return '<tr><td>'+esc(r.descripcion)+'</td><td>'+esc(r.portico ? ((nombres[String(r.portico)] || {}).nombre || r.portico) : "")+'</td><td>'+esc(r.responsable || "")+'</td><td>'+fmt(r.compromiso)+(r.compromiso && r.compromiso < hoyISO() ? ' <b style="color:#B23B3B">vencida</b>' : '')+'</td></tr>'; }).join("")
+          + autL.map(function(x){ return '<tr><td>Autorizaci\u00f3n pendiente: '+esc(x.q)+'</td><td>'+esc(x.p)+'</td><td>'+esc(x.q)+'</td><td>'+fmt(x.fecha)+(x.fecha < hoyISO() ? ' <b style="color:#B23B3B">vencida</b>' : '')+'</td></tr>'; }).join("") + '</table>' : '<p>Sin restricciones activas.</p>')
+      + (fotos.length ? '<h2>Fotos del per\u00edodo</h2><div class="fotos">' + fotos.map(function(f){ return '<figure><img src="https://drive.google.com/thumbnail?id='+encodeURIComponent(f.id)+'&sz=w600" onerror="this.onerror=null;this.src=\'https://lh3.googleusercontent.com/d/'+encodeURIComponent(f.id)+'=w600\'"><figcaption>'+esc(f.t)+'</figcaption></figure>'; }).join("") + '</div>' : '')
+      + '<div class="pie">GeoMav \u00b7 geomav.me/topocalc/Porticos</div></body></html>';
+    var w = window.open("", "_blank");
+    if(!w){ alert("El navegador bloque\u00f3 la ventana del informe. Permite las ventanas emergentes para geomav.me."); return; }
+    w.document.open(); w.document.write(html); w.document.close();
+    setTimeout(function(){ try{ w.focus(); w.print(); }catch(e){} }, 1800);
+  }
+  function abrirInforme(){
+    var lun = lunesIso(hoyISO());
+    var v = window.prompt("Informe semanal: escribe cualquier fecha de la semana (dd-mm-aaaa).\nDeja la fecha propuesta para la semana actual.", fmt(lun));
+    if(v === null) return;
+    var m = /^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/.exec(String(v).trim());
+    generarInforme(m ? lunesIso(m[3] + "-" + m[2].padStart(2,"0") + "-" + m[1].padStart(2,"0")) : lun);
+  }
+  /* ---------- bitácora de cambios (requiere PIN) ---------- */
+  function abrirBitacora(){
+    pedirAutor(); var pin = (window.prompt("PIN de edici\u00f3n para ver la bit\u00e1cora:") || "").trim(); if(!pin) return;
+    enviar({ accion:"leerBitacora", pin:pin }).then(function(j){
+      if(!j || !j.ok){ alert((j && j.error) || "No se pudo leer la bit\u00e1cora."); return; }
+      setPin(pin);
+      var filas = j.bitacora || [];
+      var ov = document.createElement("div"); ov.className = "bg-ov";
+      ov.innerHTML = '<div class="bg-card bi-card" role="dialog" aria-modal="true" aria-label="Bit\u00e1cora"><div class="bg-h bi-h"><strong>\ud83d\udcdc Bit\u00e1cora de cambios</strong><button type="button" class="bg-x" aria-label="Cerrar">\u2715</button></div>'
+        + '<div class="bg-b"><input type="search" class="bi-q" placeholder="Buscar (p\u00f3rtico, autor, acci\u00f3n\u2026)"><div class="bi-n"></div><ul class="bi-l"></ul></div></div>';
+      document.body.appendChild(ov);
+      var cerrar = function(){ ov.remove(); };
+      ov.querySelector(".bg-x").onclick = cerrar; ov.addEventListener("click", function(e){ if(e.target === ov) cerrar(); });
+      function pintarB(){
+        var t = sinTildes(ov.querySelector(".bi-q").value.trim());
+        var f = filas.filter(function(r){ return !t || sinTildes(r.fecha + " " + r.accion + " " + r.autor + " " + r.detalle).indexOf(t) >= 0; });
+        ov.querySelector(".bi-n").textContent = f.length + " de " + filas.length + " cambios (m\u00e1s reciente primero)";
+        ov.querySelector(".bi-l").innerHTML = f.slice(0, 200).map(function(r){ return '<li class="'+(/PIN incorrecto/.test(r.accion) ? 'bi-alerta' : '')+'"><div class="bi-t"><b>'+esc(r.accion)+'</b><span>'+esc(r.fecha)+' \u00b7 '+esc(r.autor)+'</span></div><div class="bi-d">'+esc(r.detalle)+'</div></li>'; }).join("");
+      }
+      ov.querySelector(".bi-q").addEventListener("input", pintarB); pintarB();
+    }).catch(function(){ alert("Sin conexi\u00f3n: no se pudo leer la bit\u00e1cora."); });
+  }
+  document.addEventListener("click", function(e){
+    if(e.target.closest("#btnInforme")) abrirInforme();
+    else if(e.target.closest("#btnBitacora")) abrirBitacora();
   });
 
   /* ---------- pestañas inferiores (solo celular) ---------- */
