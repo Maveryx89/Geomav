@@ -1700,27 +1700,60 @@ window.PORTICOS_LISTA = (function(){
       if(window.PORTICOS_AUTOR) window.PORTICOS_AUTOR.pedir();
       p = window.prompt("PIN de edici\u00f3n para guardar en la planilla compartida:"); return (p || "").trim();
     }
-    function guardarNotaRemota(note, btn){
-      var api = window.PORTICOS_API; if(!api){ alert("No hay conexi\u00f3n con la planilla."); return; }
-      if(!note.portico){ alert("Selecciona el p\u00f3rtico antes de guardar."); return; }
-      var cat = findCat(note.catId); if(!cat || !PARTIDA_TONE[cat.name]){ alert("La partida de esta nota no es v\u00e1lida."); return; }
-      var fecha = fechaDeNota(note); if(!fecha){ alert("No se pudo determinar la fecha de la nota."); return; }
-      var pin = pedirPin(api); if(!pin) return;
+    function cuerpoNota(note){
+      if(!note.portico) return { error:"Selecciona el pórtico antes de guardar." };
+      var cat = findCat(note.catId); if(!cat || !PARTIDA_TONE[cat.name]) return { error:"La partida de esta nota no es válida." };
+      var fecha = fechaDeNota(note); if(!fecha) return { error:"No se pudo determinar la fecha de la nota." };
       var info = datosPortico(note.portico);
       var estado;
       if(cfg.weekly) estado = note.cumplido === true ? "Ejecutado" : (note.cumplido === false ? "No ejecutado" : "Programado");
       else estado = String(note.percent) === "100" ? "Ejecutado" : (note.estadoOrig && !/^ejecutado/i.test(note.estadoOrig) ? note.estadoOrig : "Programado");
-      var aut = note.autorizacion || (note.tipoRestriccion === "Administrativos" && note.respLiberacion ? "Pendiente: " + note.respLiberacion : "S\u00ed");
-      var body = { accion:"guardarNota", pin:pin, nota:{ id:note.id, fecha:fecha, portico:Number(note.portico), nombre:info.nombre, comuna:info.comuna, partida:cat.name,
+      var aut = note.autorizacion || (note.tipoRestriccion === "Administrativos" && note.respLiberacion ? "Pendiente: " + note.respLiberacion : "Sí");
+      return { fecha:fecha, nota:{ id:note.id, fecha:fecha, portico:Number(note.portico), nombre:info.nombre, comuna:info.comuna, partida:cat.name,
         estado:estado, autorizacion:aut, obs:note.text || "", responsable:note.responsable || "", avance:String(note.percent || ""), restriccion:note.tipoRestriccion || "", causa:note.causa || "", accion:note.accion || "" } };
-      btn.disabled = true; btn.textContent = "Guardando\u2026";
+    }
+    function guardarNotaRemota(note, btn){
+      var api = window.PORTICOS_API; if(!api){ alert("No hay conexión con la planilla."); return; }
+      var c = cuerpoNota(note); if(c.error){ alert(c.error); return; }
+      var fecha = c.fecha;
+      var pin = pedirPin(api); if(!pin) return;
+      if(api.rapido && api.rapido(pin)){
+        /* guardado instantáneo: la nota queda lista y se envía por detrás */
+        note.pendiente = false; note.remota = true; note.fecha = fecha;
+        state.editingNoteId = null; saveState();
+        api.encolarNotas([c.nota], pin); render(); return;
+      }
+      var body = { accion:"guardarNota", pin:pin, nota:c.nota };
+      btn.disabled = true; btn.textContent = "Guardando…";
       api.enviar(body).then(function(j){
         if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) api.setPin(""); alert((j && j.error) || "No se pudo guardar."); btn.disabled = false; btn.textContent = "Guardar"; return; }
         api.setPin(pin);
         note.pendiente = false; note.remota = true; note.fecha = fecha;
         state.editingNoteId = null; saveState();
         api.aplicar(j); render();
-      }).catch(function(){ alert("Sin conexi\u00f3n: la nota no se guard\u00f3."); btn.disabled = false; btn.textContent = "Guardar"; });
+      }).catch(function(){ alert("Sin conexión: la nota no se guardó."); btn.disabled = false; btn.textContent = "Guardar"; });
+    }
+    /* Guarda de una vez todas las tareas con cambios pendientes del tablero */
+    function guardarTodo(btn){
+      var api = window.PORTICOS_API; if(!api){ alert("No hay conexión con la planilla."); return; }
+      var ok = [], malas = 0;
+      state.notes.filter(function(n){ return n.pendiente; }).forEach(function(n){ var c = cuerpoNota(n); if(c.error) malas++; else ok.push({ note:n, c:c }); });
+      if(!ok.length){ alert(malas ? "Las tareas pendientes aún no tienen pórtico: elige el pórtico en cada una antes de guardar." : "No hay cambios pendientes."); return; }
+      if(malas && !confirm(malas + (malas === 1 ? " tarea no tiene" : " tareas no tienen") + " pórtico y quedará" + (malas === 1 ? "" : "n") + " sin guardar. ¿Guardar las otras " + ok.length + "?")) return;
+      var pin = pedirPin(api); if(!pin) return;
+      var notas = ok.map(function(x){ return x.c.nota; });
+      var listo = function(){ ok.forEach(function(x){ x.note.pendiente = false; x.note.remota = true; x.note.fecha = x.c.fecha; }); state.editingNoteId = null; saveState(); };
+      if(api.rapido && api.rapido(pin)){ listo(); api.encolarNotas(notas, pin); render(); return; }
+      btn.disabled = true; btn.textContent = "Guardando " + notas.length + "…";
+      var deAUna = function(i, ult){ if(i >= notas.length) return Promise.resolve(ult); return api.enviar({ accion:"guardarNota", pin:pin, nota:notas[i] }).then(function(j){ if(!j || !j.ok) throw (j || {}); return deAUna(i + 1, j); }); };
+      ((api.v2 && api.v2()) ? api.enviar({ accion:"guardarNotas", pin:pin, notas:notas }) : deAUna(0, null)).then(function(j){
+        if(!j || !j.ok) throw (j || {});
+        api.setPin(pin); listo(); api.aplicar(j); render();
+      }).catch(function(j){
+        if(j && j.error){ if(/PIN/.test(j.error)) api.setPin(""); alert(j.error); }
+        else alert("No se recibió confirmación. Revisa el tablero en unos segundos antes de reintentar.");
+        btn.disabled = false; render();
+      });
     }
     var state = loadState();
     state.notes.forEach(function(n){ var tt = toneForCat(n.catId); if(tt) n.tone = tt; });
@@ -1993,6 +2026,12 @@ window.PORTICOS_LISTA = (function(){
     function render(){
       renderFiltrosP();
       if(cfg.weekly && !root.querySelector('[data-action="ruta"]')){ var tb0 = root.querySelector(".toolbar"); if(tb0) tb0.insertAdjacentHTML("afterbegin", '<button class="btn-sm ru-abrir" data-action="ruta" title="Ruta en Google Maps con los p\u00f3rticos del d\u00eda"><span aria-hidden="true">&#x1F5FA;&#xFE0F;</span> Ruta del d\u00eda</button>'); }
+      (function(){
+        var tbG = root.querySelector(".toolbar"), bG = root.querySelector('[data-action="guardar-todo"]');
+        var nP = state.notes.filter(function(n){ return n.pendiente; }).length;
+        if(tbG && !bG){ tbG.insertAdjacentHTML("afterbegin", '<button class="btn-sm gt-btn" data-action="guardar-todo" title="Guarda en la planilla todas las tareas con cambios pendientes, en un solo env\u00edo"></button>'); bG = root.querySelector('[data-action="guardar-todo"]'); }
+        if(bG){ bG.style.display = nP ? "" : "none"; bG.disabled = false; bG.textContent = "\ud83d\udcbe Guardar todo (" + nP + ")"; }
+      })();
       renderMobile();
       var board = root.querySelector(".board");
       var nWeeks = state.weeks.length, nCats = state.categories.length;
@@ -2231,7 +2270,9 @@ window.PORTICOS_LISTA = (function(){
           if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%");
         }
         return '<div class="note note-'+note.tone+'" style="'+extraStyle+'" data-action="open-note" data-note="'+note.id+'">'
-          + (note.pendiente ? '<div class="pend-tag" title="Cambios sin guardar en la planilla">\u25cf sin guardar</div>' : "")
+          + (note.pendiente ? '<div class="pend-tag" title="Cambios sin guardar en la planilla">\u25cf sin guardar</div>'
+              : ((window.PORTICOS_PEND || {})[note.id] === "error" ? '<div class="pend-tag" title="No se pudo guardar: usa Reintentar en el aviso inferior">\u26a0 no se guard\u00f3</div>'
+              : ((window.PORTICOS_PEND || {})[note.id] ? '<div class="pend-tag env" title="Envi\u00e1ndose a la planilla">\u23f3 guardando\u2026</div>' : "")))
           + (note.portico ? '<div class="portico-tag tag-'+note.tone+'">'+escapeHtml(etiquetaPortico(note.portico))+'</div>' : "")
           + ((textoNota(note) || badge || !note.portico) ? '<div class="txt">'+badge+escapeHtml(textoNota(note) || (note.portico ? "" : "Nueva tarea"))+'</div>' : "")
           + (metaBits.length ? '<div class="meta"><span>'+metaBits.join(" \u00b7 ")+'</span></div>' : "")
@@ -2493,6 +2534,7 @@ window.PORTICOS_LISTA = (function(){
       else if(action === "borrar-grupo"){ abrirBorrado(); }
       else if(action === "ruta"){ abrirRuta(); }
       else if(action === "toggle-restr"){ restrAbierto = !restrAbierto; renderRestrictions(); }
+      else if(action === "guardar-todo"){ guardarTodo(el); }
       else if(action === "save-note"){ var ns = state.notes.find(function(x){return x.id===el.dataset.note;}); if(ns) guardarNotaRemota(ns, el); }
       else if(action === "del-note") delNote(el.dataset.note);
       else if(action === "dup-note") dupNote(el.dataset.note);
@@ -2874,6 +2916,30 @@ window.PORTICOS_LISTA = (function(){
 })();
 </script>
 
+<style>
+/* ---- guardado en segundo plano ---- */
+.note .pend-tag.env{ color:#8A6A00; }
+.pm-pend{ font-size:.68rem; font-weight:700; color:#8A6A00; background:#FFF4CC; border-radius:999px; padding:1px 7px; white-space:nowrap; }
+.pm-pend.err{ color:#fff; background:var(--danger, #B23B3B); }
+.pm-hist li.pm-espera{ opacity:.85; }
+.cola-box{ position:fixed; left:12px; bottom:12px; z-index:2100; width:max-content; max-width:min(360px, calc(100vw - 24px)); background:#0A2240; color:#fff; border-radius:12px; padding:9px 12px; font-size:.8rem; line-height:1.3; box-shadow:0 6px 24px rgba(0,0,0,.35); display:flex; flex-direction:column; gap:6px; }
+.cola-box[hidden]{ display:none; }
+.cola-l{ font-weight:700; }
+.cola-bar{ height:4px; border-radius:2px; background:rgba(255,255,255,.25); overflow:hidden; min-width:180px; }
+.cola-bar i{ display:block; height:100%; background:#7CD992; transition:width .3s; }
+.cola-e{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:rgba(255,255,255,.12); border-radius:8px; padding:6px 8px; }
+.cola-e span{ flex:1 1 170px; }
+.cola-e button{ font:inherit; font-weight:700; border:0; border-radius:6px; padding:5px 9px; cursor:pointer; }
+.cola-e .re{ background:#fff; color:#0A2240; }
+.cola-e .de{ background:transparent; color:#fff; text-decoration:underline; }
+.toolbar .gt-btn{ background:#0A2240; color:#fff; border-color:#0A2240; font-weight:700; }
+@media (max-width:860px){
+  .cola-box{ bottom:calc(74px + env(safe-area-inset-bottom, 0px)); }
+  /* en el teléfono el botón queda flotando sobre la barra inferior: siempre a mano */
+  .toolbar .gt-btn{ position:fixed; right:12px; bottom:calc(74px + env(safe-area-inset-bottom, 0px)); z-index:70; padding:12px 16px; font-size:.9rem; border-radius:999px; box-shadow:0 6px 20px rgba(0,0,0,.3); }
+}
+@media print{ .cola-box{ display:none !important; } }
+</style>
 <script>
 /* ===== Listado de pórticos + avance compartido (Google Sheet vía Apps Script) ===== */
 (function(){
@@ -2891,33 +2957,192 @@ window.PORTICOS_LISTA = (function(){
   function setPin(p){ try{ if(p) sessionStorage.setItem(SS_PIN, p); else sessionStorage.removeItem(SS_PIN); }catch(e){} }
 
   /* ---------- datos remotos ---------- */
-  function aplicarRemoto(j){
+  var DATOS = null;          /* última copia recibida de la planilla */
+  var COLA = [];             /* guardados en curso: se muestran de inmediato y se envían por detrás */
+  var API_V2 = false;        /* el script entrega versión de datos y respuestas livianas */
+  var desfasado = false, laneDatos = false, laneFotos = false, fichasRef = null, cargando = null, colaN = 0;
+  function clon(a){ return (a || []).map(function(x){ var o = {}; for(var k in x) o[k] = x[k]; return o; }); }
+  function nuevoId(){
+    if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c){ var r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16); });
+  }
+  /* Une una respuesta del servidor (completa o solo la parte que cambió) con la copia local */
+  function fusionar(j){
     if(!j || !j.ok) return;
-    if(Array.isArray(j.porticos) && j.porticos.length){
-      window.PORTICOS_LISTA = j.porticos.slice().sort(function(a,b){ return a.num-b.num; }).map(function(p){
-        return { num:p.num, nombre:p.nombre, comuna:p.comuna, ubicacion:"Ubicaci\u00f3n " + p.nombre, lat:p.lat, lng:p.lng };
+    if(!DATOS) DATOS = { ok:true };
+    var local = DATOS.version || "";
+    ["porticos","avance","programacion","fichas","restricciones","partidas"].forEach(function(k){ if(Array.isArray(j[k])) DATOS[k] = j[k]; });
+    if(j.registro && Array.isArray(DATOS.avance)) DATOS.avance.forEach(function(a){
+      if(a.id === j.registro.id){ a.fotos = j.registro.fotos || []; a.nfotos = j.registro.nfotos || 0; a.fotosUrl = j.registro.fotosUrl || ""; }
+    });
+    if(j.version){
+      API_V2 = true;
+      if(!j.parcial){ DATOS.version = j.version; DATOS.fecha = Date.now(); if(j.fichasVer && Array.isArray(j.fichas)) DATOS.fichasVer = j.fichasVer; }
+      else if(!local || j.previa === local) DATOS.version = j.version;
+      else desfasado = true;      /* otra persona guardó entre medio: se vuelve a descargar todo */
+    } else if(Array.isArray(j.porticos)){ DATOS.version = ""; DATOS.fecha = Date.now(); }
+  }
+  /* Arma lo que se muestra: la copia de la planilla + los cambios que aún se están guardando */
+  function proyectar(){
+    var D = DATOS || {};
+    if(Array.isArray(D.porticos) && D.porticos.length){
+      window.PORTICOS_LISTA = D.porticos.slice().sort(function(a,b){ return a.num-b.num; }).map(function(p){
+        return { num:p.num, nombre:p.nombre, comuna:p.comuna, ubicacion:"Ubicación " + p.nombre, lat:p.lat, lng:p.lng };
       });
     }
-    REMOTO.avance = Array.isArray(j.avance) ? j.avance : [];
-    if(Array.isArray(j.programacion)) window.PROGRAMACION = j.programacion;
-    if(Array.isArray(j.fichas) && j.fichas.length){ var fx = fichasDesdeFilas(j.fichas); if(Object.keys(fx).length) FICHAS = fx; }
-    window.RESTR_REMOTAS = Array.isArray(j.restricciones) ? j.restricciones : null;
+    var av = clon(D.avance), hayNotas = COLA.some(function(t){ return t.accion === "guardarNota"; });
+    var pr = Array.isArray(D.programacion) ? clon(D.programacion) : (hayNotas ? [] : null), pend = {};
+    COLA.forEach(function(t){
+      try{ if(t.parche) t.parche(av, pr, t); }catch(e){}
+      if(t.accion === "guardarNota") pend[t.body.nota.id] = t.estado === "error" ? "error" : "1";
+    });
+    REMOTO.avance = av;
+    if(pr) window.PROGRAMACION = pr;
+    window.PORTICOS_PEND = pend;
+    if(Array.isArray(D.fichas) && D.fichas.length && D.fichas !== fichasRef){ fichasRef = D.fichas; var fx = fichasDesdeFilas(D.fichas); if(Object.keys(fx).length) FICHAS = fx; }
+    window.RESTR_REMOTAS = Array.isArray(D.restricciones) ? D.restricciones : null;
   }
+  function aplicarRemoto(j){ if(!j || !j.ok) return; fusionar(j); proyectar(); }
+  function guardarCopia(){ try{ if(DATOS) localStorage.setItem(LS_CACHE, JSON.stringify(DATOS)); }catch(e){} }
+  function refrescarModal(){ if(!modal.hidden && modal._refrescar){ try{ modal._refrescar(); }catch(e){} } }
+  function pintarTodo(){ window.renderPorticos(); sincronizarTableros(); refrescarModal(); }
   function sync(txt, cls){ var el = document.getElementById("porticosSync"); if(el){ el.textContent = txt; el.className = "porticos-sync " + (cls||""); } }
   function horaAhora(){ var d = new Date(); return String(d.getDate()).padStart(2,"0")+"-"+String(d.getMonth()+1).padStart(2,"0")+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
-  function cargar(){
-    sync("Sincronizando\u2026", "");
-    return fetch(API, { cache:"no-store" }).then(function(r){ return r.json(); }).then(function(j){
-      if(!j.ok) throw new Error(j.error || "error");
-      aplicarRemoto(j);
-      try{ localStorage.setItem(LS_CACHE, JSON.stringify(j)); }catch(e){}
-      sync("\u2713 Datos compartidos \u00b7 " + horaAhora(), "ok");
-      window.renderPorticos();
-      sincronizarTableros();
-      aplicarURL();
-    }).catch(function(){
-      sync("Sin conexi\u00f3n \u00b7 mostrando \u00faltima copia", "warn");
-      aplicarURL();
+  function recibir(j){
+    if(!j || !j.ok) throw new Error((j && j.error) || "error");
+    aplicarRemoto(j); guardarCopia();
+    sync("✓ Datos compartidos · " + horaAhora(), "ok");
+    pintarTodo();
+  }
+  function descargar(conFichas){
+    if(!DATOS || !Array.isArray(DATOS.fichas) || !DATOS.fichas.length) conFichas = true;
+    return fetch(API + (conFichas ? "" : "?sin=fichas"), { cache:"no-store" }).then(function(r){ return r.json(); }).then(recibir);
+  }
+  /* Sincronización liviana: primero pregunta si cambió algo; solo entonces descarga (y las fichas, solo si cambiaron) */
+  function cargar(forzar){
+    if(cargando) return cargando;
+    if(!forzar && COLA.some(function(t){ return t.estado === "enviando"; })) return Promise.resolve();
+    sync("Sincronizando…", "");
+    var viejo = !DATOS || !DATOS.version || !DATOS.fecha || (Date.now() - DATOS.fecha > 30 * 60000);
+    var p = (forzar || viejo) ? descargar(true)
+      : fetch(API + "?v=1", { cache:"no-store" }).then(function(r){ return r.json(); }).then(function(j){
+          if(!j || !j.ok) throw new Error("error");
+          if(Array.isArray(j.porticos)) return recibir(j);            /* script anterior: entrega todo de una vez */
+          if(j.version === DATOS.version && j.fichasVer === DATOS.fichasVer){ desfasado = false; sync("✓ Datos compartidos · " + horaAhora(), "ok"); return; }
+          desfasado = false;
+          return descargar(j.fichasVer !== DATOS.fichasVer);
+        });
+    cargando = p.then(function(){ cargando = null; aplicarURL(); }, function(){
+      cargando = null; sync("Sin conexión · mostrando última copia", "warn"); aplicarURL();
+    });
+    return cargando;
+  }
+
+  /* ---------- cola de guardado en segundo plano ---------- */
+  var colaBox = document.createElement("div");
+  colaBox.className = "cola-box"; colaBox.hidden = true; colaBox.setAttribute("role", "status"); colaBox.setAttribute("aria-live", "polite");
+  document.body.appendChild(colaBox);
+  function pintarCola(){
+    if(!COLA.length){ colaBox.hidden = true; colaBox.innerHTML = ""; return; }
+    var act = COLA.filter(function(t){ return t.estado !== "error"; }), err = COLA.filter(function(t){ return t.estado === "error"; });
+    var datos = act.filter(function(t){ return t.tipo !== "fotos"; }), fotos = act.filter(function(t){ return t.tipo === "fotos"; }), h = "";
+    if(datos.length) h += '<div class="cola-l">⏳ Guardando ' + (datos.length === 1 ? '1 cambio' : datos.length + ' cambios') + '…</div>';
+    if(fotos.length){
+      var tot = 0, he = 0; fotos.forEach(function(f){ tot += f.items.length; he += f.items.filter(function(i){ return i.ok; }).length; });
+      h += '<div class="cola-l">📷 Subiendo fotos · ' + he + ' de ' + tot + '</div><div class="cola-bar"><i style="width:' + Math.round(he / tot * 100) + '%"></i></div>';
+    }
+    err.forEach(function(t){
+      h += '<div class="cola-e"><span>⚠ ' + esc(t.etiqueta || "Cambio") + ': ' + esc(t.error || "no se guardó") + '</span>'
+        + '<button type="button" class="re" data-re="' + t.uid + '">Reintentar</button><button type="button" class="de" data-de="' + t.uid + '">Descartar</button></div>';
+    });
+    colaBox.innerHTML = h; colaBox.hidden = false;
+  }
+  colaBox.addEventListener("click", function(e){
+    var b = e.target.closest("[data-re],[data-de]"); if(!b) return;
+    var id = Number(b.dataset.re || b.dataset.de), t = COLA.filter(function(x){ return x.uid === id; })[0]; if(!t) return;
+    if(b.dataset.de){
+      if(!confirm("¿Descartar este cambio? No quedará guardado en la planilla.")) return;
+      COLA = COLA.filter(function(x){ return x !== t; });
+    } else {
+      if(t.pinMalo){
+        var p = (window.prompt("PIN de edición:") || "").trim(); if(!p) return;
+        COLA.forEach(function(x){ if(x.pinMalo){ x.pinMalo = false; x.pin = p; if(x.body) x.body.pin = p; x.estado = "espera"; x.error = ""; } });
+      }
+      t.estado = "espera"; t.error = "";
+    }
+    proyectar(); pintarTodo(); pintarCola(); bombear();
+  });
+  window.addEventListener("beforeunload", function(e){ if(COLA.length){ e.preventDefault(); e.returnValue = ""; } });
+  function tarea(t, sinBombear){
+    t.uid = ++colaN; t.estado = "espera"; if(t.body && !t.pin) t.pin = t.body.pin;
+    COLA.push(t);
+    if(!sinBombear) alEncolar();
+    return t;
+  }
+  function alEncolar(){ proyectar(); pintarTodo(); pintarCola(); sync("Guardando…", ""); bombear(); }
+  function finCola(){
+    proyectar(); guardarCopia(); pintarTodo(); pintarCola();
+    var mm = modal.hidden ? null : modal.querySelector("#pmMsg");
+    if(mm && /Se est\u00e1 guardando|se est\u00e1n subiendo/.test(mm.textContent) && !COLA.some(function(t){ return t.estado !== "error"; })){
+      var hayErr = COLA.length > 0;
+      mm.textContent = hayErr ? "\u26a0 Un cambio no se guard\u00f3: usa Reintentar en el aviso de abajo." : "\u2713 Guardado para todos"; mm.className = "pm-msg " + (hayErr ? "err" : "ok");
+    }
+    if(!COLA.some(function(t){ return t.estado !== "error"; })){
+      sync(COLA.length ? "⚠ Hay cambios sin guardar" : "✓ Guardado · " + horaAhora(), COLA.length ? "warn" : "ok");
+      if(desfasado) setTimeout(cargar, 300);
+    }
+    bombear();
+  }
+  function fallar(lote, txt, esPin){
+    if(esPin){ setPin(""); pintarEditBar(); lote = COLA.filter(function(x){ return x.estado !== "error" && x.pin === lote[0].pin; }); }
+    lote.forEach(function(x){ x.estado = "error"; x.error = txt; x.pinMalo = !!esPin; });
+    avisoCopia("⚠ " + txt);
+  }
+  function bombear(){
+    if(!laneDatos){
+      var t = COLA.filter(function(x){ return x.tipo !== "fotos" && x.estado === "espera"; })[0];
+      if(t){
+        /* varias tareas de la programación en espera viajan juntas, en un solo envío */
+        var lote = (t.accion === "guardarNota" && API_V2) ? COLA.filter(function(x){ return x.accion === "guardarNota" && x.estado === "espera" && x.pin === t.pin; }) : [t];
+        var body = lote.length > 1 ? { accion:"guardarNotas", pin:t.pin, notas: lote.map(function(x){ return x.body.nota; }) } : t.body;
+        laneDatos = true; lote.forEach(function(x){ x.estado = "enviando"; }); pintarCola();
+        (API_V2 ? enviarSeguro(body, 2) : enviarCrudo(body)).then(function(j){
+          laneDatos = false;
+          if(!j || !j.ok){ fallar(lote, (j && j.error) || "No se pudo guardar", !!(j && /PIN/.test(j.error || ""))); return; }
+          setPin(t.pin); pintarEditBar();
+          COLA = COLA.filter(function(x){ return lote.indexOf(x) < 0; });
+          fusionar(j);
+          lote.forEach(function(x){ if(x.alExito){ try{ x.alExito(j); }catch(e){} } });
+        }, function(){ laneDatos = false; fallar(lote, "Sin conexión: no se guardó", false); }).then(finCola);
+      }
+    }
+    if(!laneFotos){
+      var f = COLA.filter(function(x){ return x.tipo === "fotos" && x.estado === "espera"; })[0];
+      if(f) subirTarea(f);
+    }
+  }
+  /* Fotos: de a una por envío (dos en paralelo), con avance visible. Cada foto lleva una clave: reintentar no la duplica. */
+  function subirTarea(f){
+    laneFotos = true; f.estado = "enviando"; pintarCola();
+    var pend = f.items.filter(function(i){ return !i.ok; }), cortar = false, ultimo = "";
+    function una(){
+      var it = pend.shift(); if(!it || cortar) return Promise.resolve();
+      return comprimir(it.b).then(function(ft){
+        if(!ft){ ultimo = "no se pudo leer una foto"; return; }
+        return enviarSeguro({ accion:"agregarFotos", id:f.regId, pin:f.pin, fotos:[ft], clave:it.clave, orden:it.i + 1, breve:1 }, 2).then(function(j){
+          if(!j || !j.ok){ ultimo = (j && j.error) || "no se pudo subir"; if(j && /PIN|encontrado|Demasiados/.test(j.error || "")){ cortar = true; f.pinMalo = /PIN/.test(j.error); } return; }
+          it.ok = true; it.b = null; setPin(f.pin); fusionar(j);
+          proyectar(); window.renderPorticos(); refrescarModal(); pintarCola();
+        });
+      }).catch(function(){ ultimo = "sin conexión"; }).then(una);
+    }
+    /* la primera va sola (crea la carpeta en Drive y confirma el PIN); el resto, de a dos */
+    una().then(function(){ return Promise.all([una(), una()]); }).then(function(){
+      laneFotos = false;
+      var faltan = f.items.filter(function(i){ return !i.ok; }).length;
+      if(!faltan){ COLA = COLA.filter(function(x){ return x !== f; }); avisoCopia("✓ " + f.items.length + " foto" + (f.items.length === 1 ? " subida" : "s subidas")); }
+      else { f.estado = "error"; f.error = (faltan === 1 ? "falta 1 foto" : "faltan " + faltan + " fotos") + " (" + ultimo + ")"; if(f.pinMalo){ setPin(""); pintarEditBar(); } avisoCopia("⚠ " + f.error); }
+      finCola();
     });
   }
   /* Los tableros se arman desde la planilla compartida, salvo que haya una nota abierta o cambios sin guardar */
@@ -2944,11 +3169,21 @@ window.PORTICOS_LISTA = (function(){
     enviar: function(body){ return enviar(body); },
     getPin: function(){ return getPin(); },
     setPin: function(p){ setPin(p); pintarEditBar(); },
+    v2: function(){ return API_V2; },
+    /* guardado instantáneo: solo con el script nuevo y con el PIN ya confirmado en esta sesión */
+    rapido: function(pin){ return API_V2 && !!pin && pin === getPin(); },
+    encolarNotas: function(notas, pin){
+      notas.forEach(function(n){
+        tarea({ accion:"guardarNota", etiqueta:(n.nombre || "Tarea") + " · " + n.partida, body:{ accion:"guardarNota", pin:pin, nota:n },
+          parche: function(av, pr){ if(!pr) return; var o = {}; for(var k in n) o[k] = n[k]; var i = -1; pr.forEach(function(r, x){ if(r.id === n.id) i = x; }); if(i >= 0) pr[i] = o; else pr.push(o); } }, true);
+      });
+      alEncolar();
+    },
     aplicar: function(j){
-      aplicarRemoto(j);
-      try{ localStorage.setItem(LS_CACHE, JSON.stringify(j)); }catch(e){}
-      sync("\u2713 Guardado \u00b7 " + horaAhora(), "ok");
+      aplicarRemoto(j); guardarCopia();
+      sync("✓ Guardado · " + horaAhora(), "ok");
       window.renderPorticos(); sincronizarTableros();
+      if(desfasado) setTimeout(cargar, 300);
     }
   };
   var SS_AUTOR = "porticos-autor";
@@ -2961,13 +3196,25 @@ window.PORTICOS_LISTA = (function(){
     return a;
   }
   window.PORTICOS_AUTOR = { get: getAutor, set: setAutor, pedir: pedirAutor };
-  function enviar(body){
+  function enviarCrudo(body){
     if(!body.autor) body.autor = getAutor() || "Sin nombre";
-    /* sin reintento autom\u00e1tico: si la respuesta se pierde pero el servidor s\u00ed guard\u00f3, reintentar duplicar\u00eda el registro */
-    return fetch(API, { method:"POST", body: JSON.stringify(body), redirect:"follow" }).then(function(r){ return r.json(); })
-      .catch(function(err){ setTimeout(cargar, 1500); throw err; });
+    body.liviano = 1;      /* el script nuevo responde solo lo que cambió */
+    return fetch(API, { method:"POST", body: JSON.stringify(body), redirect:"follow" }).then(function(r){ return r.json(); });
   }
-  try{ var c = JSON.parse(localStorage.getItem(LS_CACHE) || "null"); if(c){ aplicarRemoto(c); setTimeout(sincronizarTableros, 0); } }catch(e){}
+  function enviar(body){
+    /* sin reintento automático: si la respuesta se pierde pero el servidor sí guardó, reintentar duplicaría el registro */
+    return enviarCrudo(body).catch(function(err){ setTimeout(cargar, 1500); throw err; });
+  }
+  /* Con reintento: solo para envíos que el script nuevo reconoce como repetidos (llevan ID o clave propia) */
+  function enviarSeguro(body, intentos){
+    var n = 0, espera = function(ms){ return new Promise(function(ok){ setTimeout(ok, ms); }); };
+    function ir(){
+      return enviarCrudo(body).then(function(j){ if(j && j.ocupado && n < intentos){ n++; return espera(1500).then(ir); } return j; },
+        function(err){ if(n < intentos){ n++; return espera(1500 * n).then(ir); } throw err; });
+    }
+    return ir();
+  }
+  try{ var c = JSON.parse(localStorage.getItem(LS_CACHE) || "null"); if(c && c.ok){ DATOS = c; API_V2 = !!c.version; proyectar(); setTimeout(sincronizarTableros, 0); } }catch(e){}
 
   /* ---------- estado oficial: partida más avanzada registrada ---------- */
   function calcular(){
@@ -3285,6 +3532,7 @@ window.PORTICOS_LISTA = (function(){
     actualizarURL();
   }
   function avisoCopia(txt){
+    Array.prototype.forEach.call(document.querySelectorAll(".comp-toast"), function(x){ x.remove(); });
     var t = document.createElement("div"); t.className = "comp-toast"; t.setAttribute("role", "status"); t.textContent = txt;
     document.body.appendChild(t); setTimeout(function(){ t.classList.add("on"); }, 10);
     setTimeout(function(){ t.classList.remove("on"); setTimeout(function(){ t.remove(); }, 300); }, 2200);
@@ -3330,19 +3578,23 @@ window.PORTICOS_LISTA = (function(){
     var sig = st ? Math.min(st.idx + 1, d.orden.length - 1) : 0;
     var hist = (d.hist[num] || []).slice().sort(function(a,b){ return (b.fecha+b.registrado).localeCompare(a.fecha+a.registrado); });
     var opts = '<option value="Comentarios">0. Comentarios</option><option value="Prevenci\u00f3n">0. Prevenci\u00f3n</option>' + d.orden.map(function(n,i){ return '<option value="'+esc(n)+'"'+(i===sig?' selected':'')+'>'+(i+1)+'. '+esc(n)+'</option>'; }).join("");
-    var histHtml = hist.length ? hist.map(function(a){
-        return '<li data-reg="'+esc(a.id)+'">'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.obs?'<span class="pm-obs">'+esc(a.obs)+'</span>':'')
+    var hacerHist = function(){ return hist.length ? hist.map(function(a){
+        return '<li data-reg="'+esc(a.id)+'"'+(a._pend?' class="pm-espera"':'')+'>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.obs?'<span class="pm-obs">'+esc(a.obs)+'</span>':'')
           +(a.avance !== "" && a.avance != null && !esNota(a.partida) ? '<span class="pm-pct">'+esc(a.avance)+'%</span>' : '')
+          +(a._pend ? '<span class="pm-pend'+(a._pend==="error"?' err':'')+'">'+(a._pend==="error"?'\u26a0 sin guardar':'\u23f3 guardando\u2026')+'</span>' : '')
           +(a.nfotos ? '<button type="button" class="pm-fotos-link" data-galeria="'+esc(a.id)+'">\ud83d\udcf7 '+a.nfotos+' foto'+(a.nfotos===1?'':'s')+'</button>' : '')
-          +'<button type="button" class="btn-link" data-addfotos="'+esc(a.id)+'">+ Fotos</button>'
-          +'<button type="button" class="btn-link" data-editar="'+esc(a.id)+'">Editar</button>'
-          +'<button type="button" class="btn-link danger" data-anular="'+esc(a.id)+'">Anular</button></li>';
-      }).join("") : '<li class="pm-vacio">Sin registros todav\u00eda</li>';
+          +(a._sub ? '<span class="pm-pend'+(a._subErr?' err':'')+'">\ud83d\udcf7 '+esc(a._sub)+'</span>' : '')
+          +(a._pend || (a._sub && !a._subErr) ? '' : '<button type="button" class="btn-link" data-addfotos="'+esc(a.id)+'">+ Fotos</button>')
+          +(a._pend ? '' : '<button type="button" class="btn-link" data-editar="'+esc(a.id)+'">Editar</button>'
+          +'<button type="button" class="btn-link danger" data-anular="'+esc(a.id)+'">Anular</button>')+'</li>';
+      }).join("") : '<li class="pm-vacio">Sin registros todav\u00eda</li>'; };
+    var estadoTxt = function(){ return st ? chip(st.name)+' <span class="pm-f">'+subEstado(st)+'</span>' : '<span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar</span>'; };
+    var histHtml = hacerHist();
     modal.innerHTML = '<div class="pm-card" role="dialog" aria-modal="true" aria-label="Avance del p\u00f3rtico">'
       + '<div class="pm-head"><div><strong>'+esc(p.nombre)+'</strong><span>'+esc(p.comuna)+'</span></div>'
       + '<button type="button" class="pm-comp" aria-label="Compartir el historial de este p\u00f3rtico" title="Compartir historial"><span aria-hidden="true">\ud83d\udd17</span></button><button type="button" class="pm-x" aria-label="Cerrar">\u2715</button></div>'
       + '<div class="pm-body">'
-      + '<div class="pm-label">Estado actual</div><div>'+(st ? chip(st.name)+' <span class="pm-f">'+subEstado(st)+'</span>' : '<span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar</span>')+'</div>'
+      + '<div class="pm-label">Estado actual</div><div id="pmEstado">'+estadoTxt()+'</div>'
       + '<div class="pm-label">Registrar partida ejecutada o comentario</div>'
       + '<div class="pm-grid"><label>Partida<select id="pmPartida">'+opts+'</select></label>'
       + '<label>Fecha de ejecuci\u00f3n<input type="date" id="pmFecha" value="'+hoyISO()+'"></label></div>'
@@ -3387,6 +3639,7 @@ window.PORTICOS_LISTA = (function(){
           + (blobs.length < Math.min(total, 10) ? '<span class="pm-f">Algunas fotos no se pudieron leer</span>' : '');
       });
     };
+    var enlazar = function(){
     Array.prototype.forEach.call(modal.querySelectorAll("[data-addfotos]"), function(b){
       b.onclick = function(){
         var inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.multiple = true;
@@ -3450,6 +3703,18 @@ window.PORTICOS_LISTA = (function(){
         li.querySelector(".ed-part").focus();
       };
     });
+    };
+    enlazar();
+    /* refresca solo el historial y el estado (sin tocar el formulario ni las fotos elegidas) */
+    modal._refrescar = function(){
+      if(modal.dataset.num !== num || modal.querySelector(".pm-editando, .an-box")) return;
+      d = ultimoData || calcular(); st = estadoDe(num, d);
+      hist = (d.hist[num] || []).slice().sort(function(a,b){ return (b.fecha+b.registrado).localeCompare(a.fecha+a.registrado); });
+      var ul = modal.querySelector(".pm-hist"), es = modal.querySelector("#pmEstado");
+      if(ul) ul.innerHTML = hacerHist();
+      if(es) es.innerHTML = estadoTxt();
+      enlazar();
+    };
   }
   /* Reduce cada foto (m\u00e1x. 1600 px, JPEG) antes de subirla */
   /* Las fotos se leen UNA vez a memoria al elegirlas: en Android los archivos de la galer\u00eda/nube
@@ -3494,33 +3759,89 @@ window.PORTICOS_LISTA = (function(){
     if(!blobs || !blobs.length) return Promise.resolve([]);
     return Promise.all(Array.prototype.slice.call(blobs, 0, 10).map(comprimir)).then(function(a){ return a.filter(Boolean); });
   }
+  function etiquetaReg(num, partida){
+    var nom = ""; lista().forEach(function(p,k){ if(numDe(p,k) === String(num)) nom = p.nombre; });
+    return (nom || ("Pórtico " + num)) + (partida ? " · " + partida : "");
+  }
+  function tareaFotos(regId, num, blobs, pin, partida){
+    return tarea({ tipo:"fotos", regId:regId, num:num, pin:pin, etiqueta: etiquetaReg(num, partida) + " · fotos",
+      items: blobs.map(function(b, i){ return { b:b, i:i, clave:nuevoId(), ok:false }; }),
+      parche: function(av, pr, t){
+        var a = av.filter(function(x){ return x.id === regId; })[0]; if(!a) return;
+        var he = t.items.filter(function(x){ return x.ok; }).length, falta = t.items.length - he;
+        a._subErr = t.estado === "error";
+        a._sub = a._subErr ? (falta === 1 ? "falta 1 foto" : "faltan " + falta + " fotos") : "subiendo " + he + "/" + t.items.length;
+      } });
+  }
+  function lunesISO(f){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f || ""); if(!m) return ""; var d = new Date(+m[1], +m[2]-1, +m[3]); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
   function guardar(body, num, btn, files, msgEl){
     var msg = msgEl || modal.querySelector("#pmMsg");
     var pinInput = modal.querySelector("#pmPin");
     var pin = body.pin || getPin() || (pinInput ? pinInput.value.trim() : "");
-    if(!pin){ msg.textContent = "Ingresa el PIN de edici\u00f3n."; msg.className = "pm-msg err"; if(pinInput) pinInput.focus(); return; }
+    if(!pin){ msg.textContent = "Ingresa el PIN de edición."; msg.className = "pm-msg err"; if(pinInput) pinInput.focus(); return; }
     var autorInput = modal.querySelector("#pmAutor");
     if(autorInput && autorInput.value.trim()) setAutor(autorInput.value.trim());
     body.pin = pin; body.autor = getAutor() || "Sin nombre";
-    btn.disabled = true; msg.textContent = (files && files.length) ? "Preparando fotos\u2026" : "Guardando\u2026"; msg.className = "pm-msg";
-    comprimirTodas(files).then(function(fotos){
-      if(fotos.length){ body.fotos = fotos; msg.textContent = "Subiendo " + fotos.length + " foto" + (fotos.length===1?"":"s") + "\u2026"; }
-      else if(files && files.length){ throw new Error("fotos"); }
-      return enviar(body);
+    var blobs = Array.prototype.slice.call(files || [], 0, 10);
+    var rec = REMOTO.avance.filter(function(a){ return a.id === body.id; })[0];
+
+    /* ---- script nuevo: las fotos suben en segundo plano, una por una ---- */
+    if(API_V2 && body.accion === "agregarFotos"){
+      if(!blobs.length){ avisoCopia("No se pudieron leer las fotos. Vuelve a elegirlas."); return; }
+      tareaFotos(body.id, num, blobs, pin, rec && rec.partida); return;
+    }
+    /* ---- guardado instantáneo: PIN ya confirmado en esta sesión ---- */
+    if(API_V2 && pin === getPin() && /^(registrar|editarRegistro|anular)$/.test(body.accion)){
+      var t = { accion: body.accion, body: body };
+      var marca = function(tt){ return tt.estado === "error" ? "error" : "1"; };
+      if(body.accion === "registrar"){
+        body.id = nuevoId(); if(blobs.length) body.conFotos = 1;
+        var ah = new Date(), f0 = /^\d{4}-\d{2}-\d{2}$/.test(body.fecha || "") ? body.fecha : hoyISO();
+        var r0 = { id: body.id, registrado: hoyISO() + "T" + String(ah.getHours()).padStart(2,"0") + ":" + String(ah.getMinutes()).padStart(2,"0"), semana: lunesISO(f0),
+          portico: Number(num), partida: body.partida, fecha: f0, obs: String(body.obs || "").slice(0, 300), fotosUrl:"", nfotos:0, avance: String(body.avance == null ? "" : body.avance), fotos:[] };
+        t.etiqueta = etiquetaReg(num, body.partida);
+        t.parche = function(av, pr, tt){ var o = clon([r0])[0]; o._pend = marca(tt); if(blobs.length) o._sub = blobs.length + (blobs.length === 1 ? " foto por subir" : " fotos por subir"); av.push(o); };
+        t.alExito = function(){ if(blobs.length) tareaFotos(body.id, num, blobs, pin, body.partida); };
+      } else if(body.accion === "editarRegistro"){
+        t.etiqueta = etiquetaReg(num, body.partida) + " (edición)";
+        t.parche = function(av, pr, tt){
+          var a = av.filter(function(x){ return x.id === body.id; })[0]; if(!a) return;
+          a.partida = body.partida; if(/^\d{4}-\d{2}-\d{2}$/.test(body.fecha || "")){ a.fecha = body.fecha; a.semana = lunesISO(body.fecha); }
+          a.obs = body.obs || ""; a.avance = String(body.avance == null ? "" : body.avance); a._pend = marca(tt);
+        };
+      } else {
+        t.etiqueta = etiquetaReg(num, rec && rec.partida) + " (anular)";
+        t.parche = function(av){ for(var i = av.length - 1; i >= 0; i--) if(av[i].id === body.id) av.splice(i, 1); };
+      }
+      tarea(t);
+      abrirPortico(num);
+      var m3 = modal.querySelector("#pmMsg"); if(m3){ m3.textContent = "✓ Listo. Se está guardando en la planilla…"; m3.className = "pm-msg ok"; }
+      return;
+    }
+
+    /* ---- primer guardado de la sesión (hay que confirmar el PIN) o script anterior: espera la respuesta ---- */
+    var aparte = API_V2 && blobs.length > 0;      /* el registro se guarda primero; las fotos suben después */
+    if(API_V2 && body.accion === "registrar"){ body.id = nuevoId(); if(aparte) body.conFotos = 1; }
+    btn.disabled = true; msg.textContent = (!aparte && blobs.length) ? "Preparando fotos…" : "Guardando…"; msg.className = "pm-msg";
+    (aparte ? Promise.resolve([]) : comprimirTodas(files)).then(function(fotos){
+      if(fotos.length){ body.fotos = fotos; msg.textContent = "Subiendo " + fotos.length + " foto" + (fotos.length===1?"":"s") + "…"; }
+      else if(!aparte && files && files.length){ throw new Error("fotos"); }
+      return API_V2 ? enviarSeguro(body, 2) : enviar(body);
     }).then(function(j){
       if(!j.ok){
         if(/PIN/.test(j.error || "")) setPin("");
         msg.textContent = j.error || "No se pudo guardar."; msg.className = "pm-msg err"; btn.disabled = false; pintarEditBar(); return;
       }
       setPin(pin);
-      aplicarRemoto(j);
-      try{ localStorage.setItem(LS_CACHE, JSON.stringify(j)); }catch(e){}
-      sync("\u2713 Guardado \u00b7 " + horaAhora(), "ok");
+      aplicarRemoto(j); guardarCopia();
+      sync("✓ Guardado · " + horaAhora(), "ok");
       window.renderPorticos();
       abrirPortico(num);
-      var m2 = modal.querySelector("#pmMsg"); if(m2){ m2.textContent = "\u2713 Guardado para todos"; m2.className = "pm-msg ok"; }
+      if(aparte) tareaFotos(body.id, num, blobs, pin, body.partida);
+      var m2 = modal.querySelector("#pmMsg"); if(m2){ m2.textContent = aparte ? "✓ Guardado para todos. Las fotos se están subiendo…" : "✓ Guardado para todos"; m2.className = "pm-msg ok"; }
+      if(desfasado) setTimeout(cargar, 300);
     }).catch(function(err){
-      msg.textContent = (err && err.message === "fotos") ? "No se pudieron leer las fotos. Vuelve a elegirlas desde la Galer\u00eda o la c\u00e1mara." : "No se recibi\u00f3 confirmaci\u00f3n. Revisa el historial en unos segundos antes de reintentar (puede haberse guardado).";
+      msg.textContent = (err && err.message === "fotos") ? "No se pudieron leer las fotos. Vuelve a elegirlas desde la Galería o la cámara." : "No se recibió confirmación. Revisa el historial en unos segundos antes de reintentar (puede haberse guardado).";
       msg.className = "pm-msg err"; btn.disabled = false;
     });
   }
@@ -4043,6 +4364,7 @@ window.PORTICOS_LISTA = (function(){
     Array.prototype.forEach.call(document.querySelectorAll("details.menu-mas[open], details.msel[open]"), function(dm){ if(!dm.contains(e.target)) dm.removeAttribute("open"); });
   });
 
+  fichasRef = null; proyectar();     /* las fichas guardadas en este equipo reemplazan a las de f\u00e1brica */
   window.renderPorticos();
   cargar();
   document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") cargar(); });
