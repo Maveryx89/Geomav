@@ -1096,27 +1096,12 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
     <div class="proyecto-sub" contenteditable="true" id="proySub" data-placeholder="Subtítulo / obra / cliente" role="textbox" aria-label="Subtítulo del proyecto"></div>
   </div>
 
-  <details class="sync-bar respaldo-det">
-    <summary class="sync-lbl">Respaldo del equipo</summary>
-    <div class="respaldo-body">
-      <button class="btn-sm" id="exportarBtn" type="button">Exportar pizarra</button>
-      <button class="btn-sm" id="importarBtn" type="button">Importar pizarra</button>
-      <input type="file" id="importarFile" accept=".json,application/json" hidden>
-      <span class="sync-hint">Copia local en archivo. Lo guardado con PIN ya queda en la planilla.</span>
-    </div>
-  </details>
 
   <section class="pizarra-block" data-board="semanal">
     <div class="section-head"><span class="idx">1</span><h2>Semanal &middot; lunes a viernes</h2></div>
 
-    <div class="title-wrap">
-      <div class="title-input" contenteditable="true" role="textbox" aria-label="Título del tablero" data-bind="title" data-placeholder="Nombre del proyecto"></div>
-      <div class="subtitle-input" contenteditable="true" role="textbox" aria-label="Subtítulo del tablero" data-bind="subtitle" data-placeholder="Subtítulo / obra / cliente"></div>
-    </div>
-
     <div class="dategen">
-      <div class="fld"><label>Fecha de inicio (lunes)</label><input type="date" class="fecha-inicio"></div>
-      <button class="btn-sm" data-action="generar-fechas">Generar fechas</button>
+      <div class="fld"><label>Ir a la semana del</label><input type="date" class="fecha-inicio" aria-label="Ir a la semana de una fecha"></div>
       <div class="nav-semanas">
         <button class="btn-sm" data-action="semana-ant" aria-label="Semana anterior"><span aria-hidden="true">&#9664;</span> Anterior</button>
         <button class="btn-sm" data-action="semana-hoy">Esta semana</button>
@@ -1125,12 +1110,10 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
     </div>
 
     <div class="toolbar">
-      <button class="btn-sm" data-action="cargar-planilla"><span aria-hidden="true">&#x27F3;</span> Cargar desde planilla</button>
       <details class="menu-mas">
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
         <div class="menu-pop">
           <button class="btn-sm" data-action="add-week">+ Día</button>
-          <button class="btn-sm" data-action="add-category">+ Categoría</button>
           <button class="btn-sm danger" data-action="borrar-grupo"><span aria-hidden="true">&#x1F5D1;&#xFE0F;</span> Borrar tareas&hellip;</button>
           <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
@@ -1139,13 +1122,6 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
       </details>
       <details class="ayuda"><summary aria-label="Ayuda: Plan semanal" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Plan semanal</b><ol class="ay-l"><li>Cada tarjeta es una tarea: la etiqueta indica <b>comuna y pórtico</b>.</li><li>Toca <b>+</b> para agregar una tarea y tócala para editarla.</li><li>Al cierre de semana marca <b>Sí cumplió / No cumplió</b> y la causa.</li><li><b>● sin guardar</b>: el cambio aún no está en la planilla. Toca <b>Guardar</b> (pide PIN).</li><li>Consultar no requiere clave; solo editar.</li></ol><a class="ay-m" href="manual.html#semanal">Ver manual completo &rarr;</a></div></details>
     </div>
-
-    <div class="reliability-panel"></div>
-
-    <details class="checklist-details">
-      <summary>Rutina de reunión semanal (Last Planner® System)</summary>
-      <div class="checklist-panel"></div>
-    </details>
 
     <div class="m-view" aria-label="Vista por día"></div>
     <div class="semanal-layout">
@@ -1184,15 +1160,8 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
   <section class="pizarra-block" data-board="intermedio">
     <div class="section-head"><span class="idx">2</span><h2>Intermedio &middot; 2 meses</h2></div>
 
-    <div class="title-wrap">
-      <div class="title-input" contenteditable="true" role="textbox" aria-label="Título del tablero" data-bind="title" data-placeholder="Nombre del proyecto"></div>
-      <div class="subtitle-input" contenteditable="true" role="textbox" aria-label="Subtítulo del tablero" data-bind="subtitle" data-placeholder="Subtítulo / obra / cliente"></div>
-    </div>
-
     <div class="dategen">
-      <div class="fld"><label>Fecha de inicio (lunes)</label><input type="date" class="fecha-inicio"></div>
-    <div class="fld"><label>Duración (semanas)</label><input type="number" class="duracion-semanas" min="1" max="52" value="9"></div>
-      <button class="btn-sm" data-action="generar-fechas">Generar fechas</button>
+      <div class="fld"><label>Ir a la semana del</label><input type="date" class="fecha-inicio" aria-label="Ir a la semana de una fecha"></div>
       <div class="nav-semanas">
         <button class="btn-sm" data-action="semana-ant" aria-label="Semana anterior"><span aria-hidden="true">&#9664;</span> Anterior</button>
         <button class="btn-sm" data-action="semana-hoy">Esta semana</button>
@@ -1201,12 +1170,10 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
     </div>
 
     <div class="toolbar">
-      <button class="btn-sm" data-action="cargar-planilla"><span aria-hidden="true">&#x27F3;</span> Cargar desde planilla</button>
       <details class="menu-mas">
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
         <div class="menu-pop">
           <button class="btn-sm" data-action="add-week">+ Semana</button>
-          <button class="btn-sm" data-action="add-category">+ Categoría</button>
           <button class="btn-sm danger" data-action="borrar-grupo"><span aria-hidden="true">&#x1F5D1;&#xFE0F;</span> Borrar tareas&hellip;</button>
           <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
@@ -1215,8 +1182,6 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
       </details>
       <details class="ayuda"><summary aria-label="Ayuda: Plan intermedio" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Plan intermedio</b><ol class="ay-l"><li>Programación de las próximas semanas (~2 meses).</li><li>En celular elige la semana con los botones de fecha; en computador usa <b>‹ ›</b>.</li><li><b>! falta autorización</b>: la tarea espera un permiso.</li><li><b>Enviar →</b> pasa una tarea lista al plan semanal.</li></ol><a class="ay-m" href="manual.html#intermedio">Ver manual completo &rarr;</a></div></details>
     </div>
-
-    <div class="restrictions-panel"></div>
 
     <div class="m-view" aria-label="Vista por semana"></div>
     <div class="board-scroll"><div class="board"></div></div>
@@ -1260,33 +1225,24 @@ window.PORTICOS_LISTA = (function(){
 
   var BOARDS = {};
 
+  /* Todas las causas hist\u00f3ricas (para leer registros antiguos e indicadores)\u2026 */
   var CAUSAS = [
-    ["A","Mala planificación"],["B","Terminación de un trabajo anterior"],
-    ["C","Terminación de un trabajo anterior propio"],["D","Falta de información"],
-    ["E","Cambios en el diseño"],["F","Ausencia no planificada"],
-    ["G","Falta de personal"],["H","Falta de materiales, equipos, andamios, etc."],
-    ["I","Cambios del cliente"],["J","Falta de supervisión"],
-    ["K","Estimación incorrecta de tiempo"],["L","Requerimientos externos al proyecto"],
-    ["M","Condiciones meteorológicas"],["N","Condiciones inseguras de trabajo"],
-    ["O","Mala definición del proyecto"],["P","Mala calidad o retrabajo / no conformidad"],
-    ["Q","Rendimiento inferior al esperado"],["R","Malas condiciones del entorno"],
-    ["S","Cierre por vacaciones / abandono de la obra"],["T","Reorganización de tareas"],
-    ["U","Avería de maquinaria"],["V","Otras"]
+    ["A","Mala planificaci\u00f3n"],["B","Trabajo anterior sin terminar"],
+    ["C","Terminaci\u00f3n de un trabajo anterior propio"],["D","Falta de informaci\u00f3n"],
+    ["E","Cambios en el dise\u00f1o"],["F","Ausencia no planificada"],
+    ["G","Falta de personal"],["H","Falta o falla de materiales / equipos"],
+    ["I","Cambios del cliente"],["J","Falta de supervisi\u00f3n"],
+    ["K","Estimaci\u00f3n incorrecta de tiempo"],["L","Permisos o autorizaciones externas"],
+    ["M","Clima"],["N","Condiciones inseguras de trabajo"],
+    ["O","Mala definici\u00f3n del proyecto"],["P","Mala calidad o retrabajo / no conformidad"],
+    ["Q","Rendimiento inferior al esperado"],["R","Terreno o acceso"],
+    ["S","Cierre por vacaciones / abandono de la obra"],["T","Reorganizaci\u00f3n de tareas"],
+    ["U","Aver\u00eda de maquinaria"],["V","Otras"]
   ];
+  /* \u2026y las que se ofrecen al marcar \u201cNo cumpli\u00f3\u201d (las que aplican a los p\u00f3rticos) */
+  var CAUSAS_USO = ["A","B","G","H","L","M","R","V"];
   var RESTRICCION_TIPOS = ["Contratos","Inspeccion","Materiales","Terreno","Equipos","Informacion y diseno","Administrativos","Mano de obra","Seguridad"];
-  var MEETING_ITEMS = [
-    "Evaluar la cantidad real de trabajo realizado frente a lo planificado (PPC)",
-    "Analizar la causa raíz de las NO Conformidades",
-    "Tomar acciones para mitigar las Razones de No Cumplimiento",
-    "Actualizar el Plan Intermedio: que actividades nuevas entran al plan",
-    "Actualizar listado de restricciones",
-    "Actualizar cronograma y nueva fecha de terminacion",
-    "Promover nuevas acciones de mejora para recuperar o adelantar el plan",
-    "Determinar nuevo Inventario de Trabajo Ejecutable (ITE)",
-    "Definir plan de producción para la siguiente semana",
-    "Actualizar el Plan de Acción y diagrama de Pareto",
-    "Revisión de indicadores generales de la obra (avance, seguridad, calidad, etc.)"
-  ];
+  var MEETING_ITEMS = [];   /* (la rutina de reuni\u00f3n se retir\u00f3; se conserva vac\u00edo por compatibilidad con copias guardadas) */
 
   var CURANIPE_WEEKDEFS = [
     ["6","Octubre"],["13","Octubre"],["20","Octubre"],["27","Octubre"],
@@ -1870,9 +1826,8 @@ window.PORTICOS_LISTA = (function(){
               if(n.percent !== "" && n.percent !== null && n.percent !== undefined) line += " (" + n.percent + "%)";
               if(n.cumplido === true) line = "\u2713 " + line;
               else if(n.cumplido === false) line = "\u2717 " + line;
-            } else if(n.tipoRestriccion){
-              line += " [" + n.tipoRestriccion + (n.liberada ? ", liberada" : ", abierta") + "]";
             }
+            var rx = restrDe(n); if(rx.length) line += " [\u26a0 " + rx.map(function(x){ return x.t; }).join("; ") + "]";
             return line;
           });
           row.push(cellLines.join("\n"));
@@ -2049,23 +2004,18 @@ window.PORTICOS_LISTA = (function(){
       monthGroups().forEach(function(g){
         var col = 2 + g.startIndex;
         html += '<div class="cell month-head" style="grid-row:1; grid-column:'+col+' / span '+g.span+';">'
-          + '<span contenteditable="true" data-bind="month:'+g.startIndex+'" data-placeholder="Mes">'+escapeHtml(g.month)+'</span></div>';
+          + '<span>'+escapeHtml(g.month)+'</span></div>';
       });
       state.weeks.forEach(function(w, i){
         var col = 2+i;
         html += '<div class="cell week-head" style="grid-row:2; grid-column:'+col+';">'
-          + '<span class="lbl" contenteditable="true" data-bind="week:'+w.id+':label" data-placeholder="Semana">'+escapeHtml(w.label)+'</span>'
+          + '<span class="lbl">'+escapeHtml(w.label)+'</span>'
           + '<button class="week-x" data-action="del-week" data-week="'+w.id+'" title="Eliminar columna" aria-label="Eliminar columna '+escapeHtml(w.label||'')+'">\u2715</button></div>';
       });
       state.categories.forEach(function(cat, ci){
         var row = 3+ci;
         html += '<div class="cell row-label'+(toneForCat(cat.id)?' stripe-'+toneForCat(cat.id):'')+'" style="grid-row:'+row+'; grid-column:1;">'
-          + '<div class="name" contenteditable="true" data-bind="cat:'+cat.id+':name">'+escapeHtml(cat.name)+'</div>'
-          + '<div class="row-tools">'
-            + '<button data-action="move-cat-up" data-cat="'+cat.id+'" title="Subir">\u2191</button>'
-            + '<button data-action="move-cat-down" data-cat="'+cat.id+'" title="Bajar">\u2193</button>'
-            + '<button data-action="del-category" data-cat="'+cat.id+'" title="Eliminar">\u2715</button>'
-          + '</div></div>';
+          + '<div class="name">'+escapeHtml(cat.name)+'</div></div>';
         state.weeks.forEach(function(w, wi){
           var col = 2+wi;
           var notesHere = notesIn(cat.id, w.id);
@@ -2088,7 +2038,6 @@ window.PORTICOS_LISTA = (function(){
         });
       });
       board.innerHTML = html;
-      if(cfg.weekly){ renderReliability(); renderChecklist(); } else { renderRestrictions(); }
     }
 
     function computePPC(){
@@ -2097,35 +2046,6 @@ window.PORTICOS_LISTA = (function(){
       return { total: counted.length, done: done, pct: counted.length ? Math.round(done/counted.length*100) : null };
     }
 
-    function renderReliability(){
-      var panel = root.querySelector(".reliability-panel");
-      if(!panel) return;
-      var ppc = computePPC();
-      var histAll = state.ppcHistory.concat(ppc.total ? [{label:"Actual", pct: ppc.pct, done: ppc.done, total: ppc.total}] : []);
-      var bars = histAll.slice(-10).map(function(h){
-        var h2 = Math.max(4, h.pct);
-        var cls = h.pct >= 85 ? "bar-ok" : (h.pct >= 60 ? "bar-mid" : "bar-bad");
-        return '<div class="ppc-bar-wrap"><div class="ppc-bar '+cls+'" style="height:'+h2+'%"></div><span class="ppc-bar-lbl">'+h.pct+'%</span><span class="ppc-bar-week">'+escapeHtml(h.label)+'</span></div>';
-      }).join("");
-      var causasArr = Object.keys(state.causas).map(function(k){ return {code:k, count:state.causas[k]}; }).filter(function(x){return x.count>0;});
-      causasArr.sort(function(a,b){ return b.count-a.count; });
-      var maxC = causasArr.length ? causasArr[0].count : 1;
-      var causasHtml = causasArr.slice(0,5).map(function(c){
-        var label = (CAUSAS.find(function(x){return x[0]===c.code;})||["",c.code])[1];
-        var w = Math.round((c.count/maxC)*100);
-        return '<div class="causa-row"><span class="causa-lbl">'+c.code+'. '+escapeHtml(label)+'</span><div class="causa-bar-track"><div class="causa-bar-fill" style="width:'+w+'%"></div></div><span class="causa-n">'+c.count+'</span></div>';
-      }).join("") || '<div class="causa-row empty">A\u00fan no hay causas registradas.</div>';
-
-      panel.innerHTML = '<div class="rel-head">Confiabilidad del plan (PPC)</div>'
-        + '<div class="rel-body">'
-          + '<div class="ppc-now"><span class="ppc-num'+(ppc.pct===null?' vacio':'')+'">'+(ppc.pct===null?"Sin evaluar":ppc.pct+"%")+'</span><span class="ppc-sub">'+(ppc.pct===null?(state.notes.length?'Hay '+state.notes.length+' tareas en el tablero, ninguna marcada como Cumplido / No cumpli\u00f3 todav\u00eda.':'Sin tareas planificadas esta semana.'):ppc.done+' de '+ppc.total+' tareas comprometidas esta semana')+'</span></div>'
-          + '<div class="ppc-chart">'+(bars || '<span class="ppc-sub">Marca tareas como Cumplido / No cumpli\u00f3 para ver el indicador.</span>')+'</div>'
-        + '</div>'
-        + '<div class="causas-head">Principales causas de no cumplimiento</div>'
-        + '<div class="causas-body">'+causasHtml+'</div>';
-    }
-
-    /* ---------- borrar tareas en grupo: día/semana, partida y mes (combinables) ---------- */
     function abrirBorrado(){
       var ov = document.createElement("div"); ov.className = "bg-ov";
       var colOpts = '<option value="">' + (cfg.weekly ? 'Todos los d\u00edas' : 'Todas las semanas') + '</option>'
@@ -2188,48 +2108,37 @@ window.PORTICOS_LISTA = (function(){
       };
       actualizar(); $(".bg-col").focus();
     }
-    var restrAbierto = false;
-    function renderRestrictions(){
-      var panel = root.querySelector(".restrictions-panel");
-      if(!panel) return;
-      var rows = state.notes.filter(function(n){ return n.tipoRestriccion; });
-      rows.sort(function(a,b){ return (a.liberada?1:0) - (b.liberada?1:0); });
-      if(!rows.length){
-        panel.innerHTML = '<div class="rel-head">Registro de restricciones</div><div class="causa-row empty">No hay restricciones registradas. \u00c1brelas desde cada nota (tipo de restricci\u00f3n).</div>';
-        return;
-      }
-      var trs = rows.map(function(n){
-        var w = findWeek(n.weekId);
-        var estado = n.liberada ? '<span class="estado-ok">Liberada</span>' : '<span class="estado-abierta">Abierta</span>';
-        return '<tr>'
-          + '<td>'+(w?escapeHtml(w.month+" "+w.label):"")+'</td>'
-          + '<td>'+(n.portico?escapeHtml(nombrePortico(n.portico)):"")+'</td>'
-          + '<td>'+escapeHtml(n.text||"(sin descripci\u00f3n)")+'</td>'
-          + '<td>'+escapeHtml(n.tipoRestriccion)+'</td>'
-          + '<td>'+escapeHtml(n.respLiberacion||n.responsable||"")+'</td>'
-          + '<td>'+escapeHtml(n.fechaCompromiso||"")+'</td>'
-          + '<td>'+escapeHtml(n.fechaLiberacion||"")+'</td>'
-          + '<td>'+estado+'</td>'
-          + '<td>'+(!n.liberada && /^pendiente/i.test(n.autorizacion || "") && n.portico ? '<button type="button" class="btn-sm lib-btn" data-action="liberar-hoy" data-portico="'+escapeHtml(n.portico)+'">\u2713 Liberar hoy</button>' : '')+'</td>'
-        + '</tr>';
-      }).join("");
-      panel.innerHTML = '<button type="button" class="restr-toggle" data-action="toggle-restr" aria-expanded="'+(restrAbierto?'true':'false')+'">'
-          + '<span class="restr-caret">'+(restrAbierto?'\u25be':'\u25b8')+'</span> Registro de restricciones <span class="restr-count">'+rows.filter(function(r){return !r.liberada;}).length+' abiertas / '+rows.length+' totales</span></button>'
-        + (restrAbierto ? '<div class="restr-table-wrap"><table class="restr-table"><thead><tr>'
-          + '<th>Semana</th><th>P\u00f3rtico</th><th>Actividad</th><th>Tipo</th><th>Responsable</th><th>Compromiso</th><th>Liberaci\u00f3n real</th><th>Estado</th><th></th>'
-        + '</tr></thead><tbody>'+trs+'</tbody></table></div>' : '');
+    /* Restricciones abiertas que afectan a una tarea: registro compartido (por p\u00f3rtico), autorizaci\u00f3n pendiente
+       y la marca antigua que algunas tareas traen desde la planilla. Solo lectura: se gestionan en el registro. */
+    function restrDe(note){
+      var out = [], s = String(note.portico || "");
+      if(s) (window.RESTR_REMOTAS || []).forEach(function(r){
+        if(r.estado !== "Liberada" && String(r.portico) === s) out.push({ k:"reg", t:String(r.descripcion || ""), resp:r.responsable || "", comp:r.compromiso || "" });
+      });
+      var pendAut = !note.liberada && /^pendiente/i.test(note.autorizacion || "");
+      if(pendAut) out.push({ k:"aut", t:"Autorizaci\u00f3n pendiente: " + String(note.autorizacion).replace(/^pendiente:?\s*/i, "") });
+      else if(note.tipoRestriccion && !note.liberada) out.push({ k:"marca", t:"Marcada en la tarea: " + note.tipoRestriccion });
+      return out;
     }
-
-    function renderChecklist(){
-      var panel = root.querySelector(".checklist-panel");
-      if(!panel) return;
-      var items = MEETING_ITEMS.map(function(txt, i){
-        var checked = state.checklist[i];
-        return '<li class="'+(checked?'done':'')+'"><button class="check-box" data-action="toggle-check" data-idx="'+i+'" aria-label="Marcar">'+(checked?'\u2713':'')+'</button><span>'+escapeHtml(txt)+'</span></li>';
-      }).join("");
-      panel.innerHTML = '<ol class="checklist-list">'+items+'</ol>';
+    function restrLinea(note){
+      var rs = restrDe(note); if(!rs.length) return "";
+      return '<div class="rs-linea" title="Restricci\u00f3n abierta">\u26a0 ' + escapeHtml(rs[0].t) + (rs.length > 1 ? ' (+' + (rs.length - 1) + ')' : '') + '</div>';
     }
-
+    function fechaCorta(iso){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ""); return m ? m[3] + "-" + m[2] : ""; }
+    function restrBloque(note){
+      var rs = restrDe(note), puedeAgregar = !cfg.weekly;
+      if(!rs.length && !puedeAgregar) return "";
+      var h = rs.map(function(r){
+        var sub = [r.resp ? "Resuelve: " + r.resp : "", r.comp ? "antes del " + fechaCorta(r.comp) : ""].filter(String).join(" \u00b7 ");
+        return '<div class="rs-nl">\u26a0 ' + escapeHtml(r.t) + (sub ? '<small>' + escapeHtml(sub) + '</small>' : '') + '</div>';
+      }).join("") || '<span class="rs-nv">Sin restricciones abiertas para este p\u00f3rtico.</span>';
+      var bt = '';
+      if(puedeAgregar) bt += '<button type="button" class="btn-sm" data-action="nueva-restr" data-note="'+note.id+'"'+(note.portico ? '' : ' disabled title="Elige primero el p\u00f3rtico"')+'>\uff0b Restricci\u00f3n</button>';
+      if(rs.some(function(r){ return r.k === "aut"; }) && note.portico) bt += '<button type="button" class="btn-sm" data-action="liberar-hoy" data-portico="'+escapeHtml(note.portico)+'">\u2713 Liberar hoy</button>';
+      if(rs.some(function(r){ return r.k === "marca"; })) bt += '<button type="button" class="btn-sm" data-action="quitar-marca" data-note="'+note.id+'" title="Quita la marca antigua de esta tarea">Quitar marca</button>';
+      if(rs.length) bt += '<button type="button" class="btn-sm" data-action="ver-restr">Ver registro</button>';
+      return '<div class="field-row"><div class="field-col"><label>Restricciones</label><div class="rs-nota">' + h + (bt ? '<div class="rs-nb">' + bt + '</div>' : '') + '</div></div></div>';
+    }
     function nombrePortico(num){
       var l = window.PORTICOS_LISTA || [], s = String(num);
       for(var i=0;i<l.length;i++){ if(String(l[i].num || (i+1)) === s) return l[i].nombre; }
@@ -2262,11 +2171,9 @@ window.PORTICOS_LISTA = (function(){
           if(note.cumplido === true) badge = '<span class="badge-ok" title="Cumplido">\u2713</span>';
           else if(note.cumplido === false) badge = '<span class="badge-no" title="No cumplido">\u2715</span>';
           if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%");
-          if(note.tipoRestriccion) metaBits.push("\u26a0 " + escapeHtml(note.tipoRestriccion));
         } else {
-          if(note.tipoRestriccion){
-            badge = note.liberada ? '<span class="badge-ok" title="Restricci\u00f3n liberada">\u2713</span>' : '<span class="badge-warn" title="Restricci\u00f3n abierta">!</span>';
-          }
+          if(restrDe(note).length) badge = '<span class="badge-warn" title="Restricci\u00f3n abierta">!</span>';
+          else if(note.liberada) badge = '<span class="badge-ok" title="Restricci\u00f3n liberada">\u2713</span>';
           if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%");
         }
         return '<div class="note note-'+note.tone+'" style="'+extraStyle+'" data-action="open-note" data-note="'+note.id+'">'
@@ -2276,6 +2183,7 @@ window.PORTICOS_LISTA = (function(){
           + (note.portico ? '<div class="portico-tag tag-'+note.tone+'">'+escapeHtml(etiquetaPortico(note.portico))+'</div>' : "")
           + ((textoNota(note) || badge || !note.portico) ? '<div class="txt">'+badge+escapeHtml(textoNota(note) || (note.portico ? "" : "Nueva tarea"))+'</div>' : "")
           + (metaBits.length ? '<div class="meta"><span>'+metaBits.join(" \u00b7 ")+'</span></div>' : "")
+          + restrLinea(note)
           + '</div>';
       }
       var catOptions = state.categories.map(function(c){
@@ -2288,10 +2196,6 @@ window.PORTICOS_LISTA = (function(){
         var num = String(pt.num || (k+1));
         return '<option value="'+num+'"'+(String(note.portico||"")===num?' selected':"")+'>'+escapeHtml(pt.nombre)+'</option>';
       }).join("");
-      var swatches = toneForCat(note.catId) ? '<span class="tone-fijo">Color fijo de la partida</span>' : TONES.map(function(tone){
-        return '<button class="swatch note-'+tone+(tone===note.tone?' active':"")+'" data-action="set-tone" data-note="'+note.id+'" data-tone="'+tone+'" aria-label="Color"></button>';
-      }).join("");
-
       var lpsFields = "";
       var pctOptions = '<option value="">\u2013</option>' + ["0","25","50","75","100"].map(function(v){
         return '<option value="'+v+'"'+(String(note.percent)===v?' selected':"")+'>'+v+'%</option>';
@@ -2305,13 +2209,13 @@ window.PORTICOS_LISTA = (function(){
         return '<option value="'+t+'"'+(t===note.tipoRestriccion?' selected':"")+'>'+t+'</option>';
       }).join("");
       if(cfg.weekly){
-        var causaOptions = '<option value="">\u2013</option>' + CAUSAS.map(function(c){
-          return '<option value="'+c[0]+'"'+(c[0]===note.causa?' selected':"")+'>'+c[0]+'. '+escapeHtml(c[1])+'</option>';
+        var causaOptions = '<option value="">\u2013</option>' + CAUSAS.filter(function(c){ return CAUSAS_USO.indexOf(c[0]) >= 0 || c[0] === note.causa; }).map(function(c){
+          return '<option value="'+c[0]+'"'+(c[0]===note.causa?' selected':"")+'>'+escapeHtml(c[1])+'</option>';
         }).join("");
         lpsFields = '<div class="field-row">'
           + '<div class="field-col"><label>Responsable</label><select data-bind-select="note:'+note.id+':responsable">'+respOptions+'</select></div>'
           + '</div>'
-          + '<div class="field-row"><div class="field-col"><label>Tipo de restricci\u00f3n</label><select data-bind-select="note:'+note.id+':tipoRestriccion">'+tipoOptionsW+'</select></div></div>'
+          + restrBloque(note)
           + '<div class="field-row"><div class="field-col"><label>Cumplimiento (PPC)</label>'
             + '<div class="tri-btns">'
               + '<button class="tri'+(note.cumplido===true?' active-ok':'')+'" data-action="set-cumplido" data-note="'+note.id+'" data-value="1">S\u00ed cumpli\u00f3</button>'
@@ -2326,27 +2230,9 @@ window.PORTICOS_LISTA = (function(){
         }).join("");
         lpsFields = '<div class="field-row">'
           + '<div class="field-col"><label>Responsable</label><select data-bind-select="note:'+note.id+':responsable">'+respOptions+'</select></div>'
-          + '<div class="field-col"><label>Tipo de restricci\u00f3n</label><select data-bind-select="note:'+note.id+':tipoRestriccion">'+tipoOptions+'</select></div>'
           + '</div>'
-          + (note.tipoRestriccion ? (
-            '<div class="field-row">'
-              + '<div class="field-col"><label>Responsable liberaci\u00f3n</label><input type="text" data-bind="note:'+note.id+':respLiberacion" value="'+escapeHtml(note.respLiberacion)+'"></div>'
-              + '<div class="field-col"><label>Fecha compromiso</label><input type="date" data-bind="note:'+note.id+':fechaCompromiso" value="'+escapeHtml(note.fechaCompromiso)+'"></div>'
-            + '</div>'
-            + '<div class="field-row">'
-              + '<div class="field-col"><label>Fecha real liberaci\u00f3n</label><input type="date" data-bind="note:'+note.id+':fechaLiberacion" value="'+escapeHtml(note.fechaLiberacion)+'"></div>'
-              + '<div class="field-col"><label>\u00bfLiberada?</label>'
-                + '<div class="tri-btns">'
-                  + '<button class="tri'+(note.liberada?' active-ok':'')+'" data-action="set-liberada" data-note="'+note.id+'" data-value="1">S\u00ed</button>'
-                  + '<button class="tri'+(!note.liberada?' active-no':'')+'" data-action="set-liberada" data-note="'+note.id+'" data-value="0">No</button>'
-                + '</div></div>'
-            + '</div>'
-            ) : '')
-          + '<div class="field-row send-row"><div class="field-col"><label>Enviar a Plan Semanal</label>'
-            + '<select class="send-target-select" data-note="'+note.id+'">'+(BOARDS.semanal ? BOARDS.semanal.getWeeksOptionsHtml() : '')+'</select></div>'
-            + '<button data-action="send-to-semanal" data-note="'+note.id+'" style="align-self:flex-end;">'+(note.enviadoSemanal ? '\u21bb Reenviar' : 'Enviar \u2192')+'</button>'
-            + (note.enviadoSemanal ? '<span class="sent-tag">\u2713 Enviada</span>' : '')
-          + '</div>';
+          + restrBloque(note)
+          ;
       }
 
       return '<div class="note editing note-'+note.tone+'" data-note="'+note.id+'">'
@@ -2362,7 +2248,6 @@ window.PORTICOS_LISTA = (function(){
           + '<div class="field-col"><label>Avance %</label><select data-bind-select="note:'+note.id+':percent">'+pctOptions+'</select></div>'
         + '</div>'
         + lpsFields
-        + '<div class="swatches">'+swatches+'</div>'
         + '<div class="note-actions">'
           + '<button class="save" data-action="save-note" data-note="'+note.id+'">Guardar</button>'
           + '<button data-action="dup-note" data-note="'+note.id+'">Duplicar en sig.</button>'
@@ -2401,23 +2286,6 @@ window.PORTICOS_LISTA = (function(){
       }
       state.weeks = state.weeks.filter(function(w){return w.id!==id;});
       state.notes = state.notes.filter(function(n){return n.weekId!==id;});
-      saveState(); render();
-    }
-    function addCategory(){ state.categories.push({id:uid(), name:"Nueva categor\u00eda"}); saveState(); render(); }
-    function delCategory(id, pinOk){
-      var has = state.notes.some(function(n){return n.catId===id;});
-      if(!pinOk){
-        if(!confirm(has ? "Esta categor\u00eda tiene notas. \u00bfEliminarla junto con sus notas?" : "\u00bfEliminar esta categor\u00eda?")) return;
-        var pc = pinEliminar(); if(!pc) return; verificarPin(pc, function(){ delCategory(id, true); }); return;
-      }
-      state.categories = state.categories.filter(function(c){return c.id!==id;});
-      state.notes = state.notes.filter(function(n){return n.catId!==id;});
-      saveState(); render();
-    }
-    function moveCat(id, dir){
-      var idx = state.categories.findIndex(function(c){return c.id===id;});
-      var j = idx+dir; if(j<0 || j>=state.categories.length) return;
-      var tmp = state.categories[idx]; state.categories[idx] = state.categories[j]; state.categories[j] = tmp;
       saveState(); render();
     }
     function addNote(catId, weekId){
@@ -2522,10 +2390,6 @@ window.PORTICOS_LISTA = (function(){
       }
       if(action === "add-week") addWeek();
       else if(action === "del-week") delWeek(el.dataset.week);
-      else if(action === "add-category") addCategory();
-      else if(action === "del-category") delCategory(el.dataset.cat);
-      else if(action === "move-cat-up") moveCat(el.dataset.cat, -1);
-      else if(action === "move-cat-down") moveCat(el.dataset.cat, 1);
       else if(action === "add-note") addNote(el.dataset.cat, el.dataset.week);
       else if(action === "open-note"){ state.editingNoteId = el.dataset.note; render(); }
       else if(action === "close-note"){ state.editingNoteId = null; render(); }
@@ -2533,15 +2397,13 @@ window.PORTICOS_LISTA = (function(){
       else if(action === "liberar-hoy"){ if(window.PORTICOS_API && window.PORTICOS_API.liberar) window.PORTICOS_API.liberar(el.dataset.portico, el); }
       else if(action === "borrar-grupo"){ abrirBorrado(); }
       else if(action === "ruta"){ abrirRuta(); }
-      else if(action === "toggle-restr"){ restrAbierto = !restrAbierto; renderRestrictions(); }
       else if(action === "guardar-todo"){ guardarTodo(el); }
+      else if(action === "nueva-restr"){ var nr = state.notes.find(function(x){ return x.id === el.dataset.note; }); if(nr && nr.portico && window.PORTICOS_RESTR) window.PORTICOS_RESTR.nueva(nr.portico); }
+      else if(action === "ver-restr"){ if(window.PORTICOS_RESTR) window.PORTICOS_RESTR.ver(); }
+      else if(action === "quitar-marca"){ var nq = state.notes.find(function(x){ return x.id === el.dataset.note; }); if(nq){ nq.tipoRestriccion = ""; nq.pendiente = true; saveState(); render(); } }
       else if(action === "save-note"){ var ns = state.notes.find(function(x){return x.id===el.dataset.note;}); if(ns) guardarNotaRemota(ns, el); }
       else if(action === "del-note") delNote(el.dataset.note);
       else if(action === "dup-note") dupNote(el.dataset.note);
-      else if(action === "set-tone"){
-        var n = state.notes.find(function(x){return x.id===el.dataset.note;});
-        if(n){ n.tone = el.dataset.tone; n.pendiente = true; saveState(); render(); }
-      }
       else if(action === "set-cumplido"){
         var n2 = state.notes.find(function(x){return x.id===el.dataset.note;});
         if(n2){
@@ -2554,27 +2416,6 @@ window.PORTICOS_LISTA = (function(){
           saveState(); render();
         }
       }
-      else if(action === "set-liberada"){
-        var n3 = state.notes.find(function(x){return x.id===el.dataset.note;});
-        if(n3){ n3.liberada = (el.dataset.value === "1"); saveState(); render(); }
-      }
-      else if(action === "send-to-semanal"){
-        var n4 = state.notes.find(function(x){return x.id===el.dataset.note;});
-        var sel = el.parentElement.querySelector(".send-target-select");
-        if(n4 && sel && sel.value && BOARDS.semanal){
-          var catN = findCat(n4.catId);
-          BOARDS.semanal.addExternalNote(sel.value, {
-            text: n4.text, day: n4.day, portico: n4.portico || "", responsable: n4.respLiberacion || n4.responsable || "",
-            tone: "blueprint", categoryName: catN ? catN.name : ""
-          });
-          n4.enviadoSemanal = true; saveState(); render();
-        }
-      }
-      else if(action === "toggle-check"){
-        var idx = parseInt(el.dataset.idx,10);
-        state.checklist[idx] = !state.checklist[idx];
-        saveState(); render();
-      }
       else if(action === "load-curanipe"){
         if(confirm("Esto reemplaza este tablero por el plan Curanipe (Octubre a Enero) transcrito del PDF. \u00bfContinuar?")){
           state = curanipeSeed(); saveState(); render(); syncHeader();
@@ -2585,42 +2426,10 @@ window.PORTICOS_LISTA = (function(){
           state = porticosSeed(); saveState(); render(); syncHeader();
         }
       }
-      else if(action === "cargar-planilla"){
-        var prog = window.PROGRAMACION;
-        if(!prog || !prog.length){ alert("La planilla todav\u00eda no entrega programaci\u00f3n (revisa la hoja \u201cProgramaci\u00f3n\u201d o espera la sincronizaci\u00f3n)."); return; }
-        var fiP = root.querySelector(".fecha-inicio").value;
-        var stP = fiP ? parseInputDate(fiP) : (state.inicio ? parseInputDate(state.inicio) : new Date());
-        if(state.notes.length>0 && !confirm("Esto reemplaza este tablero con la programaci\u00f3n de la planilla (desde la semana del " + fmtDMY(inicioSemana(stP)) + "). \u00bfContinuar?")) return;
-        cargarProgramacion(prog, stP);
-      }
       else if(action === "semana-ant" || action === "semana-sig" || action === "semana-hoy"){
         var base = state.inicio ? parseInputDate(state.inicio) : new Date();
         var destino = action === "semana-hoy" ? new Date() : addDays(base, action === "semana-ant" ? -7 : 7);
         if(!irASemana(destino)) alert("A\u00fan no se carga la programaci\u00f3n de la planilla. Espera unos segundos.");
-      }
-      else if(action === "generar-fechas"){
-        var fi = root.querySelector(".fecha-inicio").value;
-        if(!fi){ alert("Ingresa la fecha de inicio."); return; }
-        if(irASemana(parseInputDate(fi))) return;
-        if(state.notes.length>0 && !confirm("Esto reemplaza las columnas actuales por las nuevas fechas y borra las notas ya cargadas en este tablero (las categor\u00edas se mantienen). \u00bfContinuar?")) return;
-        if(cfg.weekly){
-          var ppcPrev = computePPC();
-          if(ppcPrev.total > 0){
-            var lbl = (state.weeks[0] ? (state.weeks[0].month + " " + state.weeks[0].label) : "Semana anterior");
-            state.ppcHistory.push({label: lbl, pct: ppcPrev.pct, done: ppcPrev.done, total: ppcPrev.total});
-            if(state.ppcHistory.length > 20) state.ppcHistory = state.ppcHistory.slice(-20);
-          }
-        }
-        var start = mondayOf(parseInputDate(fi));
-        state.inicio = isoFecha(inicioSemana(parseInputDate(fi)));
-        if(cfg.weekly){ state.weeks = generarDiasSemana(start); }
-        else {
-          var durEl = root.querySelector(".duracion-semanas");
-          var count = parseInt(durEl.value,10) || 9;
-          state.weeks = generarSemanasIntermedio(start, count);
-        }
-        state.notes = [];
-        saveState(); render();
       }
       else if(action === "export-excel"){ exportExcel(); }
       else if(action === "print"){
@@ -2679,17 +2488,14 @@ window.PORTICOS_LISTA = (function(){
       }
     });
 
-    if(!cfg.weekly){
-
-      var durInput = root.querySelector(".duracion-semanas");
-      root.querySelector(".fecha-inicio").addEventListener("change", function(){
+    /* elegir una fecha lleva a esa semana de la programaci\u00f3n (historial o futuro) */
+    (function(){
+      var fiNav = root.querySelector(".fecha-inicio"); if(!fiNav) return;
+      fiNav.addEventListener("change", function(){
         if(!this.value) return;
-        var start = mondayOf(parseInputDate(this.value));
-        var end = new Date(start); end.setMonth(end.getMonth()+2);
-        var count = Math.max(1, Math.round((end-start)/(7*24*3600*1000)));
-        durInput.value = count;
+        if(!irASemana(parseInputDate(this.value))) alert("A\u00fan no se carga la programaci\u00f3n de la planilla. Espera unos segundos.");
       });
-    }
+    })();
 
     function syncHeader(){
       var t = root.querySelector('[data-bind="title"]'); if(t) t.textContent = state.title || "";
@@ -2724,6 +2530,7 @@ window.PORTICOS_LISTA = (function(){
       cargarProgramacion: function(prog){ cargarProgramacion(prog, state.inicio ? parseInputDate(state.inicio) : new Date()); },
       puedeSincronizar: function(){ return !state.editingNoteId && !state.notes.some(function(n){ return n.pendiente; }); },
       repintar: function(){ if(!state.editingNoteId) render(); },
+      refrescar: function(){ render(); },
       getNotes: function(){
         return state.notes.map(function(n){ var c = findCat(n.catId); return { portico: n.portico || "", cat: c ? c.name : "", cumplido: n.cumplido, percent: n.percent }; });
       },
@@ -2752,15 +2559,23 @@ window.PORTICOS_LISTA = (function(){
           causasArr.sort(function(a,b){ return b.count-a.count; });
           return { title: state.title, subtitle: state.subtitle, weekly:true, ppc:ppc, ppcHistory: state.ppcHistory, causas: causasArr };
         } else {
-          var rows = state.notes.filter(function(n){ return n.tipoRestriccion; });
-          var abiertas = rows.filter(function(n){ return !n.liberada; });
+          /* restricciones: registro compartido (planilla) + autorizaciones y marcas que traen las tareas */
+          var reg = window.RESTR_REMOTAS || [], abReg = reg.filter(function(r){ return r.estado !== "Liberada"; });
+          var lista = abReg.map(function(r){
+            return { semana: r.portico !== "" && r.portico != null ? nombrePortico(r.portico) : "General", texto: r.descripcion || "", tipo: r.tipo || "", responsable: r.responsable || "", compromiso: r.compromiso || "" };
+          });
+          var vistos = {};
+          state.notes.forEach(function(n){
+            restrDe(n).forEach(function(x){
+              if(x.k === "reg") return;
+              var k = n.portico + "|" + x.t; if(vistos[k]) return; vistos[k] = 1;
+              lista.push({ semana: n.portico ? nombrePortico(n.portico) : "", texto: x.t, tipo: x.k === "aut" ? "Administrativos" : (n.tipoRestriccion || ""), responsable: n.respLiberacion || "", compromiso: "" });
+            });
+          });
           return {
             title: state.title, subtitle: state.subtitle, weekly:false,
-            totalRestricciones: rows.length, abiertas: abiertas.length, cerradas: rows.length-abiertas.length,
-            listaAbiertas: abiertas.map(function(n){
-              var w = findWeek(n.weekId);
-              return { semana: w?(w.month+" "+w.label):"", texto:n.text||"", tipo:n.tipoRestriccion, responsable:n.respLiberacion||n.responsable||"", compromiso:n.fechaCompromiso||"" };
-            })
+            totalRestricciones: lista.length + (reg.length - abReg.length), abiertas: lista.length, cerradas: reg.length - abReg.length,
+            listaAbiertas: lista
           };
         }
       }
@@ -2870,53 +2685,21 @@ window.PORTICOS_LISTA = (function(){
   if(resumenBtn) resumenBtn.addEventListener("click", buildResumenPrintable);
 })();
 </script>
-<script>
-/* ===== Respaldo: exportar / importar la pizarra completa (Semanal + Intermedio) ===== */
-(function(){
-  "use strict";
-  var CLAVES = ["pizarra-fund-semanal-v1", "pizarra-fund-intermedio-v1", "pizarra-fund-porticos-estado-v1"];
-  var hoy = function(){ var d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
-  var esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-  document.getElementById("exportarBtn").addEventListener("click", function(){
-    var data = {};
-    CLAVES.forEach(function(k){ try{ var v = localStorage.getItem(k); if(v) data[k] = v; }catch(e){} });
-    var json = JSON.stringify({ app:"pizarra-fundaciones-geomav", version:1, exportado:new Date().toISOString(), data:data });
-    var nombre = "porticos-" + hoy() + ".json";
-    var blob = new Blob([json], { type:"application/json" });
-    var file = null; try{ file = new File([blob], nombre, { type:"application/json" }); }catch(e){}
-    // En celular: menú Compartir (WhatsApp, Drive, correo…). En PC: descarga directa.
-    if(esMovil && file && navigator.canShare && navigator.canShare({ files:[file] })){
-      navigator.share({ files:[file], title:"Programaci\u00f3n de P\u00f3rticos de Vigilancia" }).catch(function(){});
-      return;
-    }
-    var a = document.createElement("a");
-    a.href = URL.createObjectURL(blob); a.download = nombre;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
-  });
-
-  var inp = document.getElementById("importarFile");
-  document.getElementById("importarBtn").addEventListener("click", function(){ inp.value = ""; inp.click(); });
-  inp.addEventListener("change", function(){
-    var f = inp.files && inp.files[0]; if(!f) return;
-    var r = new FileReader();
-    r.onload = function(){
-      var obj; try{ obj = JSON.parse(r.result); }catch(e){ alert("El archivo no es una pizarra válida."); return; }
-      if(!obj || obj.app !== "pizarra-fundaciones-geomav" || !obj.data){ alert("El archivo no es una pizarra de GeoMav."); return; }
-      var fecha = obj.exportado ? new Date(obj.exportado).toLocaleString("es-CL") : "fecha desconocida";
-      if(!confirm("Se reemplazará la pizarra de este equipo por la del archivo (exportada el " + fecha + ").\n\n¿Continuar?")) return;
-      try{
-        CLAVES.forEach(function(k){ if(typeof obj.data[k] === "string"){ JSON.parse(obj.data[k]); localStorage.setItem(k, obj.data[k]); } });
-      }catch(e){ alert("No se pudo importar: el archivo está dañado."); return; }
-      location.reload();
-    };
-    r.readAsText(f);
-  });
-})();
-</script>
 
 <style>
+/* ---- restricciones en las tarjetas (solo lectura; se gestionan en el registro) ---- */
+.note .rs-linea{ margin-top:4px; font-size:10.5px; font-weight:700; line-height:1.25; color:var(--danger, #B23B3B); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.rs-nota{ display:flex; flex-direction:column; gap:6px; padding:8px 10px; border:1px dashed var(--line-strong); border-radius:8px; background:var(--paper); font-family:var(--font-body, inherit); }
+.rs-nota .rs-nl{ font-size:.82rem; font-weight:600; color:var(--ink); line-height:1.3; }
+.rs-nota .rs-nl small{ display:block; font-weight:400; color:var(--ink-soft); }
+.rs-nota .rs-nv{ font-size:.8rem; color:var(--ink-soft); }
+.rs-nota .rs-nb{ display:flex; flex-wrap:wrap; gap:6px; }
+.rs-nota .rs-nb button{ font-size:.8rem; }
+.rs-modal{ max-width:460px; }
+.rs-modal .rs-mh{ background:var(--paper-sunken); color:var(--ink); }
+.rs-modal .rs-form{ grid-template-columns:1fr; border:0; padding:0; margin:0; background:transparent; }
+.rs-modal .bg-msg{ font-size:.82rem; color:var(--danger, #B23B3B); min-height:1em; }
+@media (max-width:860px){ .m-notes .note .rs-linea{ font-size:.68rem; } }
 /* ---- guardado en segundo plano ---- */
 .note .pend-tag.env{ color:#8A6A00; }
 .pm-pend{ font-size:.68rem; font-weight:700; color:#8A6A00; background:#FFF4CC; border-radius:999px; padding:1px 7px; white-space:nowrap; }
@@ -4475,18 +4258,18 @@ window.PORTICOS_LISTA = (function(){
       var k = r.portico + "|" + (pend ? "aut" : r.restriccion); if(vistos[k]) return false; vistos[k] = 1; return true;
     });
   }
-  function formHtml(r){
-    r = r || {};
+  function formHtml(r, pre){
+    r = r || {}; pre = pre || "rs";
     var ops = '<option value="">General (sin p\u00f3rtico)</option>' + lista().map(function(p, k){
       var n = String(p.num || (k+1)); return '<option value="'+n+'"'+(String(r.portico) === n ? ' selected' : '')+'>'+esc(p.nombre)+(p.comuna ? ' \u00b7 '+esc(p.comuna) : '')+'</option>';
     }).join("");
     var tipos = TIPOS.map(function(t){ return '<option value="'+t[0]+'"'+(r.tipo === t[0] ? ' selected' : '')+'>'+t[1]+'</option>'; }).join("");
     return '<div class="rs-form" role="group" aria-label="'+(r.id ? 'Editar' : 'Nueva')+' restricci\u00f3n">'
-      + '<label class="full">\u00bfQu\u00e9 impide avanzar?<input id="rsDesc" maxlength="280" placeholder="ej. Falta permiso municipal para excavar" value="'+esc(r.descripcion)+'"></label>'
-      + '<label>P\u00f3rtico<select id="rsPort">'+ops+'</select></label>'
-      + '<label>Tipo<select id="rsTipo">'+tipos+'</select></label>'
-      + '<label>Qui\u00e9n la resuelve<input id="rsResp" maxlength="80" placeholder="Nombre o empresa" value="'+esc(r.responsable)+'"></label>'
-      + '<label>Resolver antes del<input id="rsComp" type="date" value="'+esc(r.compromiso)+'"></label>'
+      + '<label class="full">\u00bfQu\u00e9 impide avanzar?<input id="'+pre+'Desc" maxlength="280" placeholder="ej. Falta permiso municipal para excavar" value="'+esc(r.descripcion)+'"></label>'
+      + '<label>P\u00f3rtico<select id="'+pre+'Port">'+ops+'</select></label>'
+      + '<label>Tipo<select id="'+pre+'Tipo">'+tipos+'</select></label>'
+      + '<label>Qui\u00e9n la resuelve<input id="'+pre+'Resp" maxlength="80" placeholder="Nombre o empresa" value="'+esc(r.responsable)+'"></label>'
+      + '<label>Resolver antes del<input id="'+pre+'Comp" type="date" value="'+esc(r.compromiso)+'"></label>'
       + '<div class="rs-btns"><button type="button" class="btn-sm" data-rs="cancelar">Cancelar</button><button type="button" class="btn-sm rs-ok" data-rs="guardar">'+(r.id ? 'Guardar cambios' : 'Agregar restricci\u00f3n')+'</button></div></div>';
   }
   function itemHtml(r){
@@ -4538,6 +4321,39 @@ window.PORTICOS_LISTA = (function(){
     if(formAbierto){ var f = box.querySelector("#rsDesc"); if(f && !f.value) setTimeout(function(){ f.focus(); }, 30); }
   }
   function buscar(id){ return (datos() || []).filter(function(r){ return r.id === id; })[0]; }
+  /* Ventana para agregar una restricci\u00f3n desde una tarjeta del Intermedio, con el p\u00f3rtico ya elegido */
+  function abrirModal(portico){
+    var api = window.PORTICOS_API; if(!api){ alert("No hay conexi\u00f3n con la planilla."); return; }
+    if(!Array.isArray(datos())){ alert("El registro de restricciones a\u00fan no est\u00e1 disponible. Espera la sincronizaci\u00f3n e intenta de nuevo."); return; }
+    var ov = document.createElement("div"); ov.className = "bg-ov";
+    ov.innerHTML = '<div class="bg-card rs-modal" role="dialog" aria-modal="true" aria-label="Nueva restricci\u00f3n"><div class="bg-h rs-mh"><strong>\uff0b Restricci\u00f3n \u00b7 ' + esc(nombreP(portico)) + '</strong><button type="button" class="bg-x" aria-label="Cerrar">\u2715</button></div>'
+      + '<div class="bg-b">' + formHtml({ portico: portico }, "rm") + '<div class="bg-msg" role="status"></div></div></div>';
+    document.body.appendChild(ov);
+    var $ = function(q){ return ov.querySelector(q); }, cerrar = function(){ ov.remove(); };
+    $(".bg-x").onclick = cerrar; ov.addEventListener("click", function(e){ if(e.target === ov) cerrar(); });
+    $('[data-rs="cancelar"]').onclick = cerrar;
+    $('[data-rs="guardar"]').onclick = function(){
+      var btn = this, msg = $(".bg-msg"), desc = $("#rmDesc").value.trim();
+      if(!desc){ msg.textContent = "Escribe qu\u00e9 impide avanzar."; $("#rmDesc").focus(); return; }
+      var pin = pedirPin(api); if(!pin) return;
+      btn.disabled = true; btn.textContent = "Guardando\u2026"; msg.textContent = "";
+      api.enviar({ accion:"guardarRestriccion", pin:pin, restriccion:{ id:"", descripcion:desc, portico:$("#rmPort").value, tipo:$("#rmTipo").value,
+        responsable:$("#rmResp").value.trim(), compromiso:$("#rmComp").value, estado:"Abierta" } }).then(function(j){
+        if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) api.setPin(""); msg.textContent = (j && j.error) || "No se pudo guardar."; btn.disabled = false; btn.textContent = "Agregar restricci\u00f3n"; return; }
+        api.setPin(pin); api.aplicar(j); cerrar();
+        var bs = window.PIZARRA_BOARDS || {}; ["semanal","intermedio"].forEach(function(k){ if(bs[k] && bs[k].refrescar) bs[k].refrescar(); });
+      }).catch(function(){ msg.textContent = "No se recibi\u00f3 confirmaci\u00f3n. Revisa el registro antes de reintentar."; btn.disabled = false; btn.textContent = "Agregar restricci\u00f3n"; });
+    };
+    setTimeout(function(){ $("#rmDesc").focus(); }, 30);
+  }
+  window.PORTICOS_RESTR = {
+    nueva: abrirModal,
+    ver: function(){
+      setDesplegado(true); pintar();
+      var t = document.querySelector('#mTabs [data-mtab="indicadores"]'); if(t) t.click();
+      setTimeout(function(){ if(box.scrollIntoView) box.scrollIntoView({ behavior:"smooth", block:"start" }); }, 150);
+    }
+  };
   box.addEventListener("click", function(e){
     var b = e.target.closest("[data-rs]"); if(!b) return;
     var a = b.dataset.rs, r = b.dataset.id ? buscar(b.dataset.id) : null;
