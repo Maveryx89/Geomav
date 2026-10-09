@@ -481,6 +481,52 @@ footer.app-foot .foot-copy{font-size:10px; opacity:.75;}
 #printArea .pr-results{ background:#EDEBE4; border-radius:6px; padding:2px 14px; }
 #printArea .pr-signoff{ margin-top:18px; padding-top:10px; border-top:1px solid #E2E4E8; display:flex; justify-content:space-between; font-size:10.5px; color:#606F83; }
 #printArea .pr-signoff .box{ border-top:1px solid #0A2240; width:200px; padding-top:4px; text-align:center; margin-top:26px; }
+
+/* ===================== INFORME DE VERIFICACIÓN (chequeos de instrumentos) ===================== */
+.vr-datos summary{ cursor:pointer; font-weight:600; color:var(--ink); }
+.vr-datos .vr-sub{ font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); margin:12px 0 2px; }
+.vr-datos .vr-chk{ display:flex; align-items:center; gap:8px; padding:4px 0; font-size:13px; }
+@page vr{ size:letter; margin:11mm 10mm; }
+@media print{ body.vr-printing > *:not(#printArea){ display:none !important; } }
+#printArea.vr{ page:vr; font-family:Arial,Helvetica,sans-serif; color:#0A2240; font-size:10.5px; line-height:1.3; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+#printArea.vr .vr-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+#printArea.vr .vr-brand{ display:flex; align-items:center; gap:8px; width:36%; }
+#printArea.vr .vr-brand img{ width:40px; height:40px; }
+#printArea.vr .vr-brand b{ display:block; font-size:24px; line-height:1; }
+#printArea.vr .vr-brand i{ display:block; font-style:normal; font-weight:700; font-size:12px; color:#2C6B7E; }
+#printArea.vr .vr-brand small{ display:block; font-size:8px; color:#606F83; }
+#printArea.vr .vr-marca{ flex:1; text-align:center; font-weight:700; font-size:22px; }
+#printArea.vr .vr-right{ width:36%; text-align:right; font-weight:700; }
+#printArea.vr .vr-right u{ display:block; font-size:13px; margin-top:6px; }
+#printArea.vr .vr-line{ border-bottom:2px solid #D49A6A; margin:6px 0 8px; }
+#printArea.vr table{ width:100%; border-collapse:collapse; }
+#printArea.vr .vr-meta td{ padding:1.5px 4px; font-size:10px; vertical-align:top; }
+#printArea.vr .vr-meta td.k{ font-weight:700; white-space:nowrap; }
+#printArea.vr .vr-ley{ font-weight:700; font-size:9px; margin:6px 0 7px; }
+#printArea.vr .vr-sec{ border:1px solid #0A2240; background:#EEF1F5; text-align:center; font-weight:700; font-size:11px; padding:3px 0; margin-top:7px; }
+#printArea.vr .vr-box{ border:1px solid #0A2240; border-top:0; padding:5px 8px; }
+#printArea.vr .vr-box p{ margin:1px 0; }
+#printArea.vr .vr-cols{ display:flex; border:1px solid #0A2240; border-top:0; }
+#printArea.vr .vr-cols > div{ flex:1; padding:5px 8px; border-right:1px solid #0A2240; font-size:9.5px; }
+#printArea.vr .vr-cols > div:last-child{ border-right:0; }
+#printArea.vr .vr-cols h4{ margin:0 0 3px; font-size:10.5px; }
+#printArea.vr .vr-t th{ background:#EEF1F5; border:1px solid #9AA5B4; padding:3px 5px; font-size:9px; }
+#printArea.vr .vr-t td{ border:1px solid #9AA5B4; padding:3px 5px; font-size:9.5px; }
+#printArea.vr .vr-t td.c, #printArea.vr .vr-t th.c{ text-align:center; }
+#printArea.vr .vr-t td.err{ font-weight:700; color:#B8743A; font-size:10.5px; }
+#printArea.vr .vr-ok{ color:#2E7D4F; font-weight:700; }
+#printArea.vr .vr-bad{ color:#B3261E; font-weight:700; }
+#printArea.vr .vr-na{ color:#8A96A6; }
+#printArea.vr .vr-gap{ height:5px; }
+#printArea.vr .vr-diag{ display:flex; gap:8px; justify-content:center; align-items:center; border:1px solid #0A2240; border-top:0; padding:3px; min-height:90px; }
+#printArea.vr .vr-diag svg{ max-height:150px; max-width:48%; width:auto; height:auto; flex:1 1 0; }
+#printArea.vr .vr-diag:has(> svg:only-child) svg{ max-width:70%; }
+#printArea.vr .vr-met{ font-size:9px; border:1px solid #0A2240; border-top:0; padding:4px 8px; }
+#printArea.vr .vr-nota{ font-size:8px; color:#606F83; margin:6px 0 4px; }
+#printArea.vr .vr-firmas{ display:flex; justify-content:space-between; margin-top:4px; }
+#printArea.vr .vr-firmas div{ width:42%; text-align:center; border-top:1px solid #0A2240; padding-top:3px; margin-top:26px; font-weight:700; }
+#printArea.vr .vr-firmas small{ display:block; font-weight:400; color:#606F83; font-size:8.5px; min-height:11px; }
+#printArea.vr .vr-foot{ border-top:2px solid #D49A6A; margin-top:6px; padding-top:3px; text-align:center; font-weight:700; font-size:8.5px; color:#2C6B7E; }
 @media print{
   html,body{ background:#fff !important; color:#0A2240 !important; }
   body *{ visibility:hidden; }
@@ -2266,6 +2312,131 @@ function toolShell(id, blurb, bodyHtml, glosKeys){
   wireToolActions(id);
 }
 
+
+/* ===================== INFORME DE VERIFICACIÓN (chequeos de instrumentos) ===================== */
+/* Informe tipo "certificado" (carta) para Chequeo de Nivel, de Teodolito y de Estación Total.
+   Recalcula desde los campos del formulario con las mismas funciones calcNivelDosEstacas /
+   calcDosCaras / calcConstanteEDM, y suma datos opcionales (cliente, equipo, condiciones). */
+const VR_TOOLS = ['chequeoNivel','chequeoTeodolito','chequeoEstacion'];
+const VR_CFG = {
+  chequeoNivel:{tipo:'Nivel', base:['Condición física','Niveles (circular)','Tornillos','Compensador']},
+  chequeoTeodolito:{tipo:'Teodolito', base:['Condición física','Nivel tubular / esférico','Tornillos','Plomada óptica / láser']},
+  chequeoEstacion:{tipo:'Estación total', base:['Condición física','Nivel tubular / esférico','Tornillos','Plomada óptica / láser']}
+};
+const VR_APAR = ['Color','Limpieza','Estuche y accesorios'];
+const VR_SAVE = ['cliente','rut','operador','lugar'];
+function vrEsc(x){ return String(x==null?'':x).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function vrDatosHtml(toolId){
+  let sv = {}; try{ sv = JSON.parse(localStorage.getItem('topocalc_vr')||'{}'); }catch(e){}
+  const t = (id,label)=>`<div class="field-row"><label for="vr_${id}">${label}</label><input type="text" id="vr_${id}" value="${vrEsc(sv[id]||'')}"></div>`;
+  const chk = (p,arr)=>arr.map((x,i)=>`<label class="vr-chk"><input type="checkbox" id="vr_${p}${i}"> ${x}</label>`).join('');
+  return `<div class="field-card"><details class="vr-datos"><summary>Datos del informe (opcional)</summary>
+    <p class="tool-blurb" style="margin:8px 0 0;">Estos datos solo se usan al presionar “Exportar informe”. Lo que dejes en blanco aparece como “—”.</p>
+    <div class="vr-sub">Cliente</div>${t('cliente','Otorgado a')}${t('rut','RUT')}
+    <div class="vr-sub">Equipo</div>${t('marca','Marca')}${t('modelo','Modelo')}${t('serie','N° de serie')}${t('caract','Características (aumento, precisión…)')}
+    <div class="vr-sub">Condiciones</div>${t('lugar','Lugar')}${t('temp','Temperatura (°C)')}${t('hum','Humedad relativa (%)')}${t('operador','Operador / responsable')}
+    <div class="vr-sub">Revisión visual (marca lo que está OK)</div>${chk('b',VR_CFG[toolId].base)}${chk('a',VR_APAR)}
+  </details></div>`;
+}
+function vrWire(){
+  VR_SAVE.forEach(id=>{
+    const el = document.getElementById('vr_'+id);
+    if(!el) return;
+    el.addEventListener('input', ()=>{
+      try{
+        const sv = JSON.parse(localStorage.getItem('topocalc_vr')||'{}');
+        sv[id] = el.value; localStorage.setItem('topocalc_vr', JSON.stringify(sv));
+      }catch(e){}
+    });
+  });
+}
+/* Devuelve el HTML del informe o {error:'...'} si faltan datos */
+function buildInformeVerificacion(toolId){
+  const cfg = VR_CFG[toolId];
+  const g = id=>{ const e=document.getElementById(id); return e?e.value.trim():''; };
+  const ck = id=>{ const e=document.getElementById(id); return !!(e && e.checked); };
+  const dash = x=> x ? vrEsc(x) : '—';
+  const sg = (v,d)=> (v>=0?'+':'−')+fmtNum(Math.abs(v),d);
+  const okTd = ok=>`<td class="c ${ok?'vr-ok':'vr-bad'}">${ok?'CONFORME':'AJUSTAR EQUIPO'}</td>`;
+  if(!document.querySelector('.tool-view .results')) return {error:'Completa el formulario y presiona Calcular antes de exportar.'};
+  let leyenda, proc, datos, resultados, calib, metodo, diagramas = [];
+  const c = (t,cls)=>`<td class="c${cls?' '+cls:''}">${t}</td>`;
+  const hdr = arr=>`<tr>${arr.map(h=>`<th class="c">${h}</th>`).join('')}</tr>`;
+  document.querySelectorAll('.tool-view .plot-wrap svg').forEach(sv=>diagramas.push(sv.outerHTML));
+  if(toolId==='chequeoNivel'){
+    const D=val('cn_D'), d=val('cn_d'), a1=val('cn_a1'), b1=val('cn_b1'), a2=val('cn_a2'), b2=val('cn_b2');
+    if([D,d,a1,b1,a2,b2].some(isNaN) || D<=0 || d<0 || d>=D) return {error:'Revisa las lecturas y distancias antes de exportar.'};
+    const r = calcNivelDosEstacas(a1,b1,a2,b2,D,d);
+    leyenda = 'GEOMAV VERIFICA EL ERROR DE COLIMACIÓN DEL NIVEL MEDIANTE LA PRUEBA DE LAS DOS ESTACAS, SEGÚN LAS TOLERANCIAS INDICADAS EN ESTE INFORME';
+    proc = 'Prueba de las dos estacas';
+    calib = [['Horizontalidad (colimación)', r.ok]];
+    datos = `<table class="vr-t">${hdr(['POSICIÓN','DISTANCIA NIVEL–A','LECTURA EN A','LECTURA EN B','DESNIVEL A–B'])}
+      <tr><td>1 — nivel centrado entre A y B (D = ${fmtNum(D,3)} m)</td>${c(fmtNum(D/2,3)+' m')}${c(fmtNum(a1,4)+' m')}${c(fmtNum(b1,4)+' m')}${c('<b>'+fmtNum(r.dhTrue,4)+' m</b>')}</tr>
+      <tr><td>2 — nivel cerca de A</td>${c(fmtNum(d,3)+' m')}${c(fmtNum(a2,4)+' m')}${c(fmtNum(b2,4)+' m')}${c('<b>'+fmtNum(r.dhApp,4)+' m</b>')}</tr></table>`;
+    resultados = `<table class="vr-t">${hdr(['ENSAYO','VALOR PATRÓN (POS. 1)','VALOR LEÍDO (POS. 2)','ERROR','TOLERANCIA','RESULTADO'])}
+      <tr><td>Desnivel A–B</td>${c(fmtNum(r.dhTrue,4)+' m')}${c(fmtNum(r.dhApp,4)+' m')}${c(sg(r.errMM30,1)+' mm / 30 m','err')}${c('≤ 3 mm / 30 m')}${okTd(r.ok)}</tr>
+      <tr><td>Lectura correcta en B (para ajustar)</td>${c('—')}${c(fmtNum(r.bCorrecta,4)+' m')}${c('—')}${c('—')}${c('—')}</tr></table>`;
+    metodo = 'Prueba de las dos estacas: posición 1 con el nivel centrado entre A y B (el error de colimación se anula y da el desnivel verdadero); posición 2 con el nivel junto a A.<br>e = [(a2 − b2) − (a1 − b1)] / (dA2 − dB2) &nbsp;·&nbsp; Error a 30 m = e × 30 000 mm &nbsp;·&nbsp; Lectura correcta en B = a2 − (a1 − b1)';
+  } else {
+    const p = toolId==='chequeoEstacion' ? 'ce' : 'ct';
+    const hzFL=readAngleField(p+'_hzfl'), hzFR=readAngleField(p+'_hzfr'), zFL=readAngleField(p+'_zfl'), zFR=readAngleField(p+'_zfr');
+    if([hzFL,hzFR,zFL,zFR].some(isNaN)) return {error:'Completa las cuatro lecturas de ambas caras antes de exportar.'};
+    const r = calcDosCaras(hzFL,hzFR,zFL,zFR);
+    let E = null;
+    if(p==='ce'){
+      const ab=val('ce_ab'), bc=val('ce_bc'), ac=val('ce_ac');
+      if([ab,bc,ac].some(isNaN)) return {error:'Completa las tres distancias del EDM antes de exportar.'};
+      E = Object.assign({ab,bc,ac}, calcConstanteEDM(ab,bc,ac));
+    }
+    leyenda = E ? 'GEOMAV VERIFICA LA COLIMACIÓN HORIZONTAL, EL ÍNDICE VERTICAL Y LA CONSTANTE ADITIVA DEL EDM DEL EQUIPO, SEGÚN LAS TOLERANCIAS INDICADAS EN ESTE INFORME'
+                : 'GEOMAV VERIFICA LA COLIMACIÓN HORIZONTAL Y EL ÍNDICE VERTICAL DEL EQUIPO POR EL MÉTODO DE LAS DOS CARAS, SEGÚN LAS TOLERANCIAS INDICADAS EN ESTE INFORME';
+    proc = E ? 'Dos caras (CI / CD) + EDM' : 'Dos caras (CI / CD)';
+    calib = [['Colimación horizontal (C)', r.okC], ['Índice vertical (i)', r.okI]];
+    if(E) calib.push(['Constante EDM (K)', E.ok]);
+    datos = `<table class="vr-t">${hdr(['LECTURA','CARA IZQUIERDA (CI)','CARA DERECHA (CD)','DIFERENCIA'])}
+      <tr><td>Horizontal a la mira (Hz)</td>${c(fmtAngle(hzFL))}${c(fmtAngle(hzFR))}${c('CD − CI − 180° = '+sg(2*r.Csec,1)+'"')}</tr>
+      <tr><td>Vertical cenital a la mira (Z)</td>${c(fmtAngle(zFL))}${c(fmtAngle(zFR))}${c('CI + CD − 360° = '+sg(2*r.isec,1)+'"')}</tr>
+      ${E?`<tr><td>Línea base A–B–C (EDM)</td>${c('AB = '+fmtNum(E.ab,4)+' m')}${c('BC = '+fmtNum(E.bc,4)+' m')}${c('AC = '+fmtNum(E.ac,4)+' m')}</tr>`:''}</table>`;
+    resultados = `<table class="vr-t">${hdr(['ENSAYO','VALOR PATRÓN','VALOR LEÍDO','ERROR','TOLERANCIA','RESULTADO'])}
+      <tr><td>Colimación horizontal (C)</td>${c('CD = CI + 180°')}${c('Hz medio: '+fmtAngle(r.hzMean))}${c(sg(r.Csec,1)+'"','err')}${c('≤ 20"')}${okTd(r.okC)}</tr>
+      <tr><td>Índice vertical (i)</td>${c('CI + CD = 360°')}${c('Z corregido: '+fmtAngle(r.zMean))}${c(sg(r.isec,1)+'"','err')}${c('≤ 20"')}${okTd(r.okI)}</tr>
+      ${E?`<tr><td>Constante aditiva EDM (K)</td>${c('AB + BC = AC')}${c(fmtNum(E.ab+E.bc,4)+' m (AB+BC)')}${c(sg(E.K*1000,1)+' mm','err')}${c('≤ 5 mm')}${okTd(E.ok)}</tr>`:''}</table>`;
+    metodo = 'Dos caras apuntando al mismo punto: C = (Hz_CD − Hz_CI − 180°) / 2 &nbsp;·&nbsp; i = (Z_CI + Z_CD − 360°) / 2.'+(E?' Constante del EDM sobre línea base A–B–C colineal: K = (AB + BC) − AC.':'')+'<br>Valores corregidos: Hz medio = Hz_CI + C &nbsp;·&nbsp; Z corregido = Z_CI − i.';
+  }
+  const items = (arr)=>arr.map(([t,ok])=>`<p>${t} &nbsp;<b class="${ok?'vr-ok':'vr-bad'}">${ok?'OK':'AJUSTAR'}</b></p>`).join('');
+  const chk = (p,arr)=>arr.map((t,i)=>`<p>${t} &nbsp;<b class="${ck('vr_'+p+i)?'vr-ok':'vr-na'}">${ck('vr_'+p+i)?'OK':'—'}</b></p>`).join('');
+  const hoy = new Date(), pad = n=>String(n).padStart(2,'0');
+  const iso = dt=>`${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
+  const prox = new Date(hoy.getFullYear(), hoy.getMonth()+6, Math.min(hoy.getDate(), 28));
+  const nInf = `TB-${hoy.getFullYear()}${pad(hoy.getMonth()+1)}${pad(hoy.getDate())}-${pad(hoy.getHours())}${pad(hoy.getMinutes())}`;
+  const equipo = [cfg.tipo, g('vr_marca'), g('vr_modelo')].filter(Boolean).map(vrEsc).join(' ');
+  const logo = document.querySelector('.brand-logo');
+  const caractLines = [`<p>Tipo: ${cfg.tipo}</p>`, g('vr_marca')||g('vr_modelo') ? `<p>Marca / modelo: ${dash([g('vr_marca'),g('vr_modelo')].filter(Boolean).join(' '))}</p>` : '', `<p>N° de serie: ${dash(g('vr_serie'))}</p>`, g('vr_caract')?`<p>${vrEsc(g('vr_caract'))}</p>`:''].join('');
+  return `<div class="vr-top">
+      <div class="vr-brand">${logo?`<img src="${logo.src}" alt="GEOMAV">`:''}<div><b>GEOMAV</b><i>Topo de Bolsillo</i><small>Cálculos topográficos y geodésicos</small></div></div>
+      <div class="vr-marca">${vrEsc(g('vr_marca')).toUpperCase()}</div>
+      <div class="vr-right">AÑO: ${hoy.getFullYear()}<br>N° Informe - ${nInf}<u>INFORME DE VERIFICACIÓN</u></div>
+    </div><div class="vr-line"></div>
+    <table class="vr-meta"><tr><td class="k">OTORGADO A:</td><td>${dash(g('vr_cliente'))}</td><td class="k">RUT:</td><td>${dash(g('vr_rut'))}</td></tr>
+      <tr><td class="k">EQUIPO:</td><td>${equipo}</td><td class="k">FECHA DE EMISIÓN:</td><td>${iso(hoy)}</td></tr>
+      <tr><td class="k">SERIE:</td><td>${dash(g('vr_serie'))}</td><td class="k">PROCEDIMIENTO:</td><td>${proc}</td></tr></table>
+    <div class="vr-ley">${leyenda}</div>
+    <div class="vr-sec">CARACTERÍSTICAS DEL EQUIPO</div><div class="vr-box">${caractLines}</div>
+    <div class="vr-sec">VERIFICACIÓN DEL EQUIPO</div>
+    <div class="vr-cols"><div><h4>BASE</h4>${chk('b',cfg.base)}</div><div><h4>CALIBRACIÓN</h4>${items(calib)}</div><div><h4>APARIENCIA VISIBLE</h4>${chk('a',VR_APAR)}</div></div>
+    <div class="vr-sec">RESULTADOS DE LA VERIFICACIÓN</div><div class="vr-gap"></div>${datos}<div class="vr-gap"></div>${resultados}
+    ${diagramas.length?`<div class="vr-sec">DIAGRAMA</div><div class="vr-diag">${diagramas.join('')}</div>`:''}
+    <div class="vr-sec">CONDICIONES DE LA VERIFICACIÓN</div>
+    <table class="vr-meta"><tr><td class="k">LUGAR:</td><td>${dash(g('vr_lugar'))}</td><td class="k">TEMPERATURA:</td><td>${g('vr_temp')?vrEsc(g('vr_temp'))+' °C':'—'}</td></tr>
+      <tr><td class="k">OPERADOR:</td><td>${dash(g('vr_operador'))}</td><td class="k">HUMEDAD REL.:</td><td>${g('vr_hum')?vrEsc(g('vr_hum'))+' %':'—'}</td></tr></table>
+    <div class="vr-sec">METODOLOGÍA Y CÁLCULO</div><div class="vr-met">${metodo}</div>
+    <table class="vr-meta" style="margin-top:5px;"><tr><td class="k">FECHA DE VERIFICACIÓN:</td><td><b>${iso(hoy)}</b></td><td class="k">PRÓXIMA VERIFICACIÓN (SUGERIDA):</td><td><b>${iso(prox)}</b></td></tr></table>
+    <div class="vr-nota">DATOS: ESTA VERIFICACIÓN DE CAMPO SE REALIZÓ CON LAS LECTURAS INGRESADAS EN TOPO DE BOLSILLO (GEOMAV) Y NO REEMPLAZA UNA CALIBRACIÓN DE LABORATORIO ACREDITADA. ES RESPONSABILIDAD DEL CLIENTE EL ADECUADO CUIDADO Y TRANSPORTE DEL EQUIPO.</div>
+    <b style="font-size:9.5px;">ENTREGUÉ CONFORME:</b>
+    <div class="vr-firmas"><div>Firma responsable<small>${vrEsc(g('vr_operador'))}</small></div><div>Timbre / Visación<small></small></div></div>
+    <div class="vr-foot">GEOMAV · Talca, Región del Maule · geomav.me/topocalc</div>`;
+}
+
 /* ===================== EXPORTAR INFORME / COMPARTIR CAPTURA (genérico) ===================== */
 /* Recorre el formulario y los resultados ya en pantalla de la herramienta actual (sin
    volver a calcular nada) para armar el mismo tipo de informe que usamos en la revisión
@@ -2324,6 +2495,17 @@ function wireToolActions(toolId){
   if(!exportBtn) return;
 
   exportBtn.addEventListener('click', ()=>{
+    if(VR_TOOLS.includes(toolId)){
+      const vr = buildInformeVerificacion(toolId);
+      if(vr.error){ msg.textContent = vr.error; return; }
+      msg.textContent = '';
+      let pa = document.getElementById('printArea');
+      if(!pa){ pa = document.createElement('div'); pa.id='printArea'; document.body.appendChild(pa); }
+      pa.className = 'vr'; pa.innerHTML = vr; document.body.classList.add('vr-printing');
+      window.addEventListener('afterprint', ()=>{ pa.className=''; document.body.classList.remove('vr-printing'); }, {once:true});
+      window.print();
+      return;
+    }
     const data = collectToolReportData();
     if(!data || (!data.resultBlocks.length && !data.diagrams.length)){
       msg.textContent = 'Completa el formulario y presiona Calcular antes de exportar.';
@@ -6348,8 +6530,9 @@ function renderChequeoNivel(){
     ${fieldRow('Lectura en mira B, b2 (m)','cn_b2',1.381)}
     <button class="btn" id="btnCN" type="button">Calcular</button>
     <div id="resCN"></div>
-  </div>`;
+  </div>${vrDatosHtml('chequeoNivel')}`;
   toolShell('chequeoNivel','Prueba de las dos estacas: determina el error de colimación de un nivel (línea de fe no horizontal) comparando el desnivel A–B medido desde el centro con el medido desde cerca de una de las miras.', body, []);
+  vrWire();
   document.getElementById('btnCN').addEventListener('click', ()=>{
     const D=val('cn_D'), d=val('cn_d'), a1=val('cn_a1'), b1=val('cn_b1'), a2=val('cn_a2'), b2=val('cn_b2');
     const box=document.getElementById('resCN');
@@ -6378,8 +6561,9 @@ function renderChequeoTeodolito(){
     ${angleFieldHTML('ct_zfr', 270.4450, 'Lectura vertical (cenital) a la mira, CD')}
     <button class="btn" id="btnCT" type="button">Calcular</button>
     <div id="resCT"></div>
-  </div>`;
+  </div>${vrDatosHtml('chequeoTeodolito')}`;
   toolShell('chequeoTeodolito','Chequeo por dos caras (CI/CD) apuntando al mismo punto: el error de colimación horizontal debe ser cercano a 0 (CD debería ser CI+180°) y el error de índice vertical también cercano a 0 (CI+CD debería sumar 360°).', body, ['CI','CD','ZI','ZD','C','i']);
+  vrWire();
   document.getElementById('btnCT').addEventListener('click', ()=>{
     const hzFL=readAngleField('ct_hzfl'), hzFR=readAngleField('ct_hzfr'), zFL=readAngleField('ct_zfl'), zFR=readAngleField('ct_zfr');
     const box=document.getElementById('resCT');
@@ -6413,8 +6597,9 @@ function renderChequeoEstacion(){
     ${fieldRow('Distancia medida A–C (m)','ce_ac',100.0175)}
     <button class="btn" id="btnCE" type="button">Calcular</button>
     <div id="resCE"></div>
-  </div>`;
+  </div>${vrDatosHtml('chequeoEstacion')}`;
   toolShell('chequeoEstacion','Chequeo completo de una estación total: colimación horizontal e índice vertical por dos caras (igual que en un teodolito), más la constante aditiva del EDM a partir de tres puntos colineales A, B y C medidos con el propio instrumento (K=(AB+BC)−AC, sin necesidad de una línea base externa calibrada).', body, ['CI','CD','ZI','ZD','C','i','EDM','K']);
+  vrWire();
   document.getElementById('btnCE').addEventListener('click', ()=>{
     const hzFL=readAngleField('ce_hzfl'), hzFR=readAngleField('ce_hzfr'), zFL=readAngleField('ce_zfl'), zFR=readAngleField('ce_zfr');
     const ab=val('ce_ab'), bc=val('ce_bc'), ac=val('ce_ac');
