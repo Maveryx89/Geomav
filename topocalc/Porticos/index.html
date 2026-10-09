@@ -1063,6 +1063,19 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .tour-pie .tour-saltar{ border:none; background:none; color:var(--ink-soft); padding:8px 4px; }
 .tour-pie button:focus-visible{ outline:2px solid var(--blueprint); outline-offset:2px; }
 </style>
+<style id="partida-trazado">
+/* partida "Trazado": 8º color fijo (celeste) */
+:root{ --note-sky: rgba(63,143,196,.18); --stripe-sky:#3F8FC4; }
+:root[data-theme="dark"]{ --note-sky: rgba(110,176,224,.20); --stripe-sky:#6EB0E0; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --note-sky: rgba(110,176,224,.20); --stripe-sky:#6EB0E0; } }
+.note-sky{ background:var(--note-sky); }
+.row-label.stripe-sky{ box-shadow:inset 5px 0 0 var(--stripe-sky); }
+.lpf-dot.stripe-sky{ background:#3F8FC4; }
+.m-group.stripe-sky{ border-left-color:var(--stripe-sky); }
+.dot-sky{ background:var(--stripe-sky); }
+.note .portico-tag.tag-sky{ background:var(--stripe-sky); color:#fff; }
+.note.editing.note-sky{ background:var(--note-sky); }
+</style>
 </head>
 
 <body>
@@ -1469,10 +1482,10 @@ window.PORTICOS_LISTA = (function(){
   ];
   var MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
   var DIAS = ["Lun","Mar","Mi\u00e9","Jue","Vie"];
-  var TONES = ["copper","blueprint","success","danger","neutral","amber","violet"];
+  var TONES = ["copper","blueprint","success","danger","neutral","amber","violet","sky"];
   /* Color fijo por partida: al elegir la partida, la nota toma su color automaticamente */
   var PARTIDA_TONE = {
-    "Excavaci\u00f3n":"copper", "Emplantillado":"neutral", "Inst. de Fundaci\u00f3n":"blueprint",
+    "Trazado":"sky", "Excavaci\u00f3n":"copper", "Emplantillado":"neutral", "Inst. de Fundaci\u00f3n":"blueprint",
     "Inst. Malla":"amber", "Relleno":"success", "Inst. P\u00f3rtico":"violet", "Inst. C\u00e1mara":"danger"
   };
   window.PARTIDA_TONE = PARTIDA_TONE;
@@ -1510,7 +1523,7 @@ window.PORTICOS_LISTA = (function(){
     var LS_KEY = cfg.storageKey;
 
     function defaultCategories(){
-      return ["Excavaci\u00f3n","Emplantillado","Inst. de Fundaci\u00f3n","Inst. Malla","Relleno","Inst. P\u00f3rtico","Inst. C\u00e1mara"]
+      return ["Trazado","Excavaci\u00f3n","Emplantillado","Inst. de Fundaci\u00f3n","Inst. Malla","Relleno","Inst. P\u00f3rtico","Inst. C\u00e1mara"]
         .map(function(n){ return {id:uid(), name:n}; });
     }
     function defaultState(){
@@ -1804,7 +1817,7 @@ window.PORTICOS_LISTA = (function(){
         return;
       }
       /* Mismos colores que la pizarra en pantalla: tonos de las notas + fondo de encabezados/categor\u00edas */
-      var TONE_ARGB = { copper: "FFF6E8DE", blueprint: "FFEAF0F2", success: "FFE3F1EA", danger: "FFF7E7E5", neutral: "FFEDEBE4", amber: "FFF8EDC6", violet: "FFEDE6F4" };
+      var TONE_ARGB = { copper: "FFF6E8DE", blueprint: "FFEAF0F2", success: "FFE3F1EA", danger: "FFF7E7E5", neutral: "FFEDEBE4", amber: "FFF8EDC6", violet: "FFEDE6F4", sky: "FFE1EEF8" };
       var HEAD_ARGB = "FFEDEBE4";
       var INK_ARGB = "FF0A2240";
       var BORDER_ARGB = "FFE2E4E8";
@@ -3758,7 +3771,7 @@ window.PORTICOS_LISTA = (function(){
   }
 
   /* ===== Mapa de pórticos (Leaflet, se carga solo al abrirlo) ===== */
-  var TONE_HEX = { copper:"#D49A6A", neutral:"#8C949E", blueprint:"#2C6B7E", amber:"#D6A828", success:"#26694B", violet:"#7A52AA", danger:"#B23B3B" };
+  var TONE_HEX = { copper:"#D49A6A", neutral:"#8C949E", blueprint:"#2C6B7E", amber:"#D6A828", success:"#26694B", violet:"#7A52AA", sky:"#3F8FC4", danger:"#B23B3B" };
   var SIN_INICIAR_HEX = "#FFFFFF"; /* todos parten en blanco y avanzan con el color de su partida */
   var OHIGGINS = [[-35.02,-72.06],[-33.83,-69.98]];
   var mapa = null, capa = null;
