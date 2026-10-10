@@ -840,6 +840,49 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
 @media (max-width:860px){ .rg-body select, .rg-body input{ font-size:16px; min-height:40px; } .rg-grid{ grid-template-columns:1fr; } }
 @media print{ .rg-overlay, .gal-overlay{ display:none !important; } }
 </style>
+<style>
+/* ===== v6: navegaci\u00f3n de semanas, solo lectura, restricciones, avisos inferiores ===== */
+.nav-semanas{ display:flex; gap:6px; flex-wrap:wrap; }
+.vista-banner{ margin:10px 16px 0; padding:10px 14px; border-radius:var(--radius-md); background:#FFF4CC; color:#5C4600; border:1px solid #E8D27A; display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; font-size:.86rem; }
+.vista-banner[hidden]{ display:none; }
+.solo-lectura .board .add-note, .solo-lectura .m-add, .solo-lectura .week-x, .solo-lectura .m-chip-add, .solo-lectura .sync-save, .solo-lectura .menu-mas{ display:none !important; }
+.note .rs-linea{ margin-top:4px; font-size:10.5px; font-weight:700; line-height:1.25; color:var(--danger, #B42318); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.note .acc-linea{ margin-top:3px; font-size:10.5px; font-style:italic; color:var(--ink-soft); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.rs-nota{ display:flex; flex-direction:column; gap:6px; padding:8px 10px; border:1px dashed var(--line-strong, #c9c6bd); border-radius:8px; background:var(--paper); }
+.rs-nota .rs-nl{ font-size:.82rem; font-weight:600; color:var(--ink); line-height:1.3; }
+.rs-nota .rs-nl small{ display:block; font-weight:400; color:var(--ink-soft); }
+.rs-nota .rs-nv{ font-size:.8rem; color:var(--ink-soft); }
+.rs-nota .rs-nb{ display:flex; flex-wrap:wrap; gap:6px; }
+.rg-pend{ font-size:.68rem; font-weight:700; color:#8A6A00; background:#FFF4CC; border-radius:999px; padding:1px 7px; white-space:nowrap; }
+.rg-pend.err{ color:#fff; background:var(--danger, #B42318); }
+.rg-hist li.rg-espera{ opacity:.85; }
+.sel-box label{ display:flex; flex-direction:column; gap:4px; margin-top:10px; font-size:.78rem; font-weight:700; color:var(--ink-soft); }
+.sel-box label input, .sel-box label select{ font:inherit; font-size:.92rem; font-weight:400; color:var(--ink); background:var(--paper-raised); border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
+.sel-box .bg-res{ font-size:.82rem; margin:10px 0 0; }
+.bit-box{ max-width:min(900px, 96vw); }
+.bit-box .bit-q{ width:100%; box-sizing:border-box; font:inherit; padding:8px 10px; border:1px solid var(--line); border-radius:8px; margin:6px 0 8px; }
+.bit-wrap{ max-height:60vh; overflow:auto; border:1px solid var(--line); border-radius:8px; }
+.bit-t{ width:100%; border-collapse:collapse; font-size:.78rem; }
+.bit-t th, .bit-t td{ text-align:left; padding:5px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+.bit-t th{ position:sticky; top:0; background:var(--paper-sunken, #f4f3ef); }
+.acc-lista{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
+.acc-lista li{ display:flex; flex-wrap:wrap; gap:4px 10px; font-size:.84rem; padding:6px 0; border-bottom:1px solid var(--line); }
+.acc-lista li span{ color:var(--ink-soft); } .acc-lista li em{ flex-basis:100%; } .acc-lista li em.falta{ color:var(--danger, #B42318); }
+.ind-svg .s-plan{ fill:none; stroke:#9aa3ad; stroke-width:2.5; stroke-dasharray:6 4; }
+.ind-svg .s-real{ fill:none; stroke:var(--blueprint, #2C6B7E); stroke-width:3; }
+.ind-ley .k.s-plan{ border-top:2.5px dashed #9aa3ad; } .ind-ley .k.s-real{ border-top:3px solid var(--blueprint, #2C6B7E); }
+.cola-box{ position:fixed; left:12px; bottom:12px; z-index:2100; width:max-content; max-width:min(380px, calc(100vw - 24px)); background:#0A2240; color:#fff; border-radius:12px; padding:9px 12px; font-size:.8rem; line-height:1.3; box-shadow:0 6px 24px rgba(0,0,0,.35); display:flex; flex-direction:column; gap:6px; }
+.cola-box[hidden]{ display:none; }
+.cola-l{ font-weight:700; display:flex; flex-direction:column; gap:5px; }
+.cola-bar{ height:4px; border-radius:2px; background:rgba(255,255,255,.25); overflow:hidden; min-width:180px; }
+.cola-bar i{ display:block; height:100%; background:#7CD992; transition:width .3s; }
+.cola-e{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:rgba(255,255,255,.12); border-radius:8px; padding:6px 8px; }
+.cola-e span{ flex:1 1 170px; }
+.cola-e button{ font:inherit; font-weight:700; border:0; border-radius:6px; padding:5px 9px; cursor:pointer; }
+.cola-e .re{ background:#fff; color:#0A2240; } .cola-e .de{ background:transparent; color:#fff; text-decoration:underline; }
+@media (max-width:860px){ .cola-box{ bottom:calc(74px + env(safe-area-inset-bottom, 0px)); } .nav-semanas .btn-sm{ flex:1 1 auto; } }
+@media print{ .cola-box, .vista-banner{ display:none !important; } }
+</style>
 </head>
 
 <body>
@@ -856,7 +899,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
     <span class="spacer"></span>
     <a class="theme-toggle manual-btn" id="btnManual" href="manual.html" aria-label="Manual de uso" title="Manual de uso"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6.5A2.5 2.5 0 0 0 4 21.5v-2z"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H19"/><path d="M9 7h6M9 11h4"/></svg></a>
     <button class="btn-sm" id="printResumenBtn" type="button" aria-label="Resumen ejecutivo">Resumen<span class="rs-lg"> ejecutivo</span></button>
-    <button class="theme-toggle lp-share" id="lpShare" type="button" aria-label="Compartir esta vista" title="Compartir (pesta\u00f1a y tarea abierta)"><span aria-hidden="true">\ud83d\udd17</span></button>
+    <button class="theme-toggle lp-share" id="lpShare" type="button" aria-label="Compartir esta vista" title="Compartir (pesta&ntilde;a y tarea abierta)"><span aria-hidden="true">&#x1F517;</span></button>
     <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema" type="button">
       <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
     </button>
@@ -894,18 +937,24 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
     </div>
 
     <div class="dategen">
-      <div class="fld"><label>Fecha de inicio (lunes)</label><input type="date" class="fecha-inicio"></div>
-      <button class="btn-sm" data-action="generar-fechas">Generar fechas</button>
+      <div class="nav-semanas">
+        <button class="btn-sm" data-action="semana-ant" aria-label="Semana anterior"><span aria-hidden="true">&#9664;</span> Anterior</button>
+        <button class="btn-sm" data-action="semana-hoy">Esta semana</button>
+        <button class="btn-sm" data-action="semana-sig" aria-label="Semana siguiente">Siguiente <span aria-hidden="true">&#9654;</span></button>
+      </div>
+      <div class="fld"><label>Ir a la semana del</label><input type="date" class="ir-semana" aria-label="Ir a la semana de una fecha"></div>
     </div>
+    <div class="vista-banner" hidden></div>
 
     <div class="toolbar">
       <button class="btn-sm sync-save" type="button" data-sync="guardar" hidden><span aria-hidden="true">&#x2601;</span> Guardar en planilla</button>
-      <button class="btn-sm" data-action="add-category">+ Categoría</button>
       <details class="menu-mas">
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
         <div class="menu-pop">
           <button class="btn-sm" data-action="cerrar-semana">Cerrar semana (registrar en Indicadores)</button>
+          <button class="btn-sm" data-action="traer-intermedio">&#x1F4E5; Traer tareas del Intermedio</button>
           <button class="btn-sm" data-action="add-week">+ Día</button>
+          <button class="btn-sm danger" data-action="borrar-grupo"><span aria-hidden="true">&#x1F5D1;&#xFE0F;</span> Borrar tareas&hellip;</button>
           <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
           <button class="btn-sm" data-action="print">Imprimir</button>
@@ -942,18 +991,21 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
     </div>
 
     <div class="dategen">
-      <div class="fld"><label>Fecha de inicio (lunes)</label><input type="date" class="fecha-inicio"></div>
-    <div class="fld"><label>Duración (semanas)</label><input type="number" class="duracion-semanas" min="1" max="52" value="9"></div>
-      <button class="btn-sm" data-action="generar-fechas">Generar fechas</button>
+      <div class="nav-semanas">
+        <button class="btn-sm" data-action="semana-ant" aria-label="Correr una semana atrás"><span aria-hidden="true">&#9664;</span> Anterior</button>
+        <button class="btn-sm" data-action="semana-hoy">Esta semana</button>
+        <button class="btn-sm" data-action="semana-sig" aria-label="Correr una semana adelante">Siguiente <span aria-hidden="true">&#9654;</span></button>
+      </div>
+      <div class="fld"><label>Partir en la semana del</label><input type="date" class="ir-semana" aria-label="Partir el Intermedio en la semana de una fecha"></div>
     </div>
 
     <div class="toolbar">
       <button class="btn-sm sync-save" type="button" data-sync="guardar" hidden><span aria-hidden="true">&#x2601;</span> Guardar en planilla</button>
-      <button class="btn-sm" data-action="add-category">+ Categoría</button>
       <details class="menu-mas">
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
         <div class="menu-pop">
           <button class="btn-sm" data-action="add-week">+ Semana</button>
+          <button class="btn-sm danger" data-action="borrar-grupo"><span aria-hidden="true">&#x1F5D1;&#xFE0F;</span> Borrar tareas&hellip;</button>
           <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
           <button class="btn-sm" data-action="print">Imprimir</button>
@@ -967,8 +1019,6 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       <details class="ayuda"><summary aria-label="Ayuda: Plan intermedio" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Plan intermedio</b><ol class="ay-l"><li>Ingresa fecha de inicio y <b>duración en semanas</b> → <b>Generar fechas</b>.</li><li>En cada nota registra la <b>restricción</b>, quién la libera y la fecha compromiso.</li><li>Resuelta la restricción: <b>¿Liberada? → Sí</b>.</li><li><b>Enviar →</b> pasa la tarea lista al Semanal.</li></ol><a class="ay-m" href="manual.html#intermedio">Ver manual completo &rarr;</a></div></details>
       <span class="sync-status" aria-live="polite"></span>
     </div>
-
-    <div class="restrictions-panel"></div>
 
     <div class="m-view" aria-label="Vista por semana"></div>
     <div class="board-scroll"><div class="board"></div></div>
@@ -1017,6 +1067,8 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
     <div class="section-head"><span class="idx">4</span><h2>Indicadores &middot; PPC, causas y subcontratos</h2></div>
     <div class="toolbar">
       <button class="btn-sm sync-save" type="button" data-sync="guardar" hidden><span aria-hidden="true">&#x2601;</span> Guardar en planilla</button>
+      <button class="btn-sm" type="button" data-ind="informe"><span aria-hidden="true">&#x1F4C4;</span> Informe semanal</button>
+      <button class="btn-sm" type="button" data-ind="bitacora"><span aria-hidden="true">&#x1F4DC;</span> Bit&aacute;cora</button>
       <details class="menu-mas">
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
         <div class="menu-pop">
@@ -1519,11 +1571,221 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         return parsed;
       }catch(e){ return defaultState(); }
     }
-    function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} if(window.LP_SYNC) window.LP_SYNC.cambio(cfg.key); }
+    function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(vista ? vista.backup : state)); }catch(e){} if(window.LP_SYNC) window.LP_SYNC.cambio(cfg.key); }
     var state = loadState();
 
     function findCat(id){ return state.categories.find(function(c){return c.id===id;}); }
     function findWeek(id){ return state.weeks.find(function(w){return w.id===id;}); }
+    /* ===== v6: fechas de las columnas, semanas guardadas (solo lectura), restricciones del registro ===== */
+    var vista = null;     /* {inicio, backup, info}: semana guardada que se está viendo */
+    function isoD(d){ return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
+    function lunesISO(d){ return isoD(mondayOf(new Date(d.getFullYear(), d.getMonth(), d.getDate()))); }
+    function fmtCorta(iso){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ""); return m ? m[3] + "-" + m[2] + "-" + m[1] : ""; }
+    /* fecha de una columna a partir de su etiqueta ("Lun 5" / "5") y su mes; el año, el más cercano a la referencia */
+    function fechaEtiqueta(w, ref){
+      var dd = parseInt(String(w && w.label || "").replace(/\D+/g, ""), 10), mm = MESES.indexOf(w && w.month);
+      if(!dd || mm < 0) return null;
+      ref = ref || new Date(); var mejor = null;
+      [ref.getFullYear() - 1, ref.getFullYear(), ref.getFullYear() + 1].forEach(function(y){ var d = new Date(y, mm, dd); if(!mejor || Math.abs(d - ref) < Math.abs(mejor - ref)) mejor = d; });
+      return mejor;
+    }
+    function inicioDe(st){
+      if(st.inicio && /^\d{4}-\d{2}-\d{2}$/.test(st.inicio)) return st.inicio;
+      var d = fechaEtiqueta(st.weeks[0]); return d ? lunesISO(d) : lunesISO(new Date());
+    }
+    function fechasCols(st){
+      var ini = parseInputDate(inicioDe(st));
+      return st.weeks.map(function(w, i){ return isoD(addDays(ini, cfg.weekly ? i : i * 7)); });
+    }
+    function real(){ return vista ? vista.backup : state; }
+    function catNombre(n, st){ var c = (st || state).categories.find(function(x){ return x.id === n.catId; }); return c ? c.name : ""; }
+    function restrDe(note){
+      var out = [], txt = String(note.text || "").trim().toLowerCase(), fase = catNombre(note);
+      var reg = (window.LP_REU && window.LP_REU.lista) ? window.LP_REU.lista() : [];
+      reg.forEach(function(r){
+        if(r.ok) return;
+        var liga = (r.nota && r.nota === note.id) || (txt && String(r.partida || "").trim().toLowerCase() === txt && (!r.fase || r.fase === fase));
+        if(liga) out.push({ k:"reg", t:String(r.desc || ""), resp:r.resp || "", req:r.req || "" });
+      });
+      if(note.tipoRestriccion && !note.liberada) out.push({ k:"marca", t:"Marcada en la tarea: " + note.tipoRestriccion, resp:note.respLiberacion || "", req:note.fechaCompromiso || "" });
+      return out;
+    }
+    function restrLinea(note){
+      var rs = restrDe(note); if(!rs.length) return "";
+      return '<div class="rs-linea" title="Restricción abierta">⚠ ' + escapeHtml(rs[0].t) + (rs.length > 1 ? ' (+' + (rs.length - 1) + ')' : '') + '</div>';
+    }
+    function restrBloque(note){
+      var rs = restrDe(note), puede = !cfg.weekly;
+      if(!rs.length && !puede) return "";
+      var h = rs.map(function(r){
+        var sub = [r.resp ? "Resuelve: " + r.resp : "", r.req ? "para el " + fmtCorta(r.req) : ""].filter(String).join(" · ");
+        return '<div class="rs-nl">⚠ ' + escapeHtml(r.t) + (sub ? '<small>' + escapeHtml(sub) + '</small>' : '') + '</div>';
+      }).join("") || '<span class="rs-nv">Sin restricciones abiertas para esta tarea.</span>';
+      var bt = '';
+      if(puede) bt += '<button type="button" class="btn-sm" data-action="nueva-restr" data-note="'+note.id+'"'+(String(note.text || "").trim() ? '' : ' disabled title="Escribe primero la tarea"')+'>＋ Restricción</button>';
+      if(rs.some(function(r){ return r.k === "marca"; }) && puede) bt += '<button type="button" class="btn-sm" data-action="pasar-registro" data-note="'+note.id+'" title="Lleva la restricción marcada en la tarea al registro de la Reunión">Pasar al registro</button>';
+      if(rs.length) bt += '<button type="button" class="btn-sm" data-action="ver-restr">Ver registro</button>';
+      return '<div class="field-row"><div class="field-col"><label>Restricciones</label><div class="rs-nota">' + h + (bt ? '<div class="rs-nb">' + bt + '</div>' : '') + '</div></div></div>';
+    }
+    /* toda eliminación pide el PIN (se valida en el servidor) */
+    function conPin(cb){
+      var p = (window.prompt("PIN de edición para eliminar:") || "").trim(); if(!p) return;
+      var api = window.LP_SYNC && window.LP_SYNC.api; if(!api){ cb(p); return; }
+      var autor = ""; try{ autor = sessionStorage.getItem("lastplanner-autor") || ""; }catch(e){}
+      fetch(api, { method:"POST", body: JSON.stringify({ accion:"verificar", pin:p, autor: autor || "Sin nombre" }), redirect:"follow" }).then(function(r){ return r.json(); }).then(function(j){
+        if(j && j.ok){ try{ sessionStorage.setItem("lastplanner-pin", p); }catch(e){} cb(p); } else alert((j && j.error) || "PIN incorrecto");
+      }).catch(function(){ alert("Sin conexión: no se pudo validar el PIN."); });
+    }
+    function guardarYa(){ if(window.LP_SYNC && window.LP_SYNC.guardar) setTimeout(function(){ window.LP_SYNC.guardar(cfg.key); }, 50); }
+    function aviso(t){ if(window.LP_AVISOS) window.LP_AVISOS.flash(t); else alert(t); }
+
+    /* ---- semanas: ver una semana guardada (solo lectura) o armar la siguiente ---- */
+    function construir(meta, notas, base){
+      var weeks = (meta.columnas || []).map(function(c){ return {id:uid(), label:String(c[0]), month:String(c[1] || "")}; });
+      var categories = (meta.categorias || []).map(function(n){ return {id:uid(), name:String(n)}; });
+      return { title: base.title, subtitle: base.subtitle, weeks: weeks, categories: categories, editingNoteId: null,
+        notes: (notas || []).filter(function(n){ return categories[n.cat] && weeks[n.col]; }).map(function(n){
+          return { id: n.id || uid(), catId: categories[n.cat].id, weekId: weeks[n.col].id, text: n.tarea, day: n.detalle || "",
+            percent: (n.avance === "" || n.avance == null) ? "" : n.avance, tone: n.color || "neutral", responsable: n.responsable || "",
+            cumplido: n.cumplido === true ? true : (n.cumplido === false ? false : null), causa: n.causa || "", accion: n.accion || "",
+            liberada: !!n.liberada, tipoRestriccion: n.tipoRestriccion || "", respLiberacion: n.respLiberacion || "", fechaCompromiso: n.fechaCompromiso || "", fechaLiberacion: n.fechaLiberacion || "",
+            zona: n.zona || "", supervisor: n.supervisor || "", real: (n.real === "" || n.real == null) ? "" : n.real };
+        }), ppcHistory: [], causas: {}, checklist: [] };
+    }
+    function pintarBanner(){
+      var b = root.querySelector(".vista-banner"); if(!b) return;
+      root.classList.toggle("solo-lectura", !!vista);
+      if(!vista){ b.hidden = true; b.innerHTML = ""; return; }
+      b.hidden = false;
+      b.innerHTML = '<span>📖 <b>Semana del ' + fmtCorta(vista.inicio) + '</b> · copia guardada' + (vista.info ? ' por ' + escapeHtml(vista.info) : '') + ' · solo lectura</span>'
+        + '<button type="button" class="btn-sm" data-action="vista-salir">Volver a la semana actual</button>';
+    }
+    function salirVista(){ if(!vista) return; state = vista.backup; vista = null; mCol = null; render(); }
+    function verSemana(iso){
+      var h = window.LP_SYNC && window.LP_SYNC.historial ? window.LP_SYNC.historial() : null;
+      if(!h){ aviso("Para ver semanas anteriores hay que actualizar el script de la planilla."); return; }
+      if(!h.some(function(x){ return x.tablero === "semanal" && x.semana === iso; })){
+        aviso("No hay copia guardada de la semana del " + fmtCorta(iso) + ". Las copias se guardan cada vez que guardas el Semanal en la planilla."); return;
+      }
+      aviso("Cargando la semana del " + fmtCorta(iso) + "…");
+      window.LP_SYNC.semana(iso).then(function(j){
+        if(!j || !j.ok){ aviso((j && j.error) || "No se pudo cargar esa semana."); return; }
+        var backup = vista ? vista.backup : state;
+        var ns = construir(j.meta || {}, j.notas || [], backup); ns.inicio = iso;
+        vista = { inicio: iso, backup: backup, info: [j.autor, j.actualizado].filter(String).join(" el ") };
+        state = ns; state.editingNoteId = null; mCol = null; render();
+      }).catch(function(){ aviso("Sin conexión: no se pudo cargar esa semana."); });
+    }
+    function irSemana(destIso){
+      if(cfg.weekly){
+        var cur = inicioDe(real());
+        if(destIso === cur){ if(vista) salirVista(); else aviso("Ya estás en la semana del " + fmtCorta(cur) + "."); return; }
+        var h = (window.LP_SYNC && window.LP_SYNC.historial && window.LP_SYNC.historial()) || [];
+        var hay = h.some(function(x){ return x.tablero === "semanal" && x.semana === destIso; });
+        if(destIso < cur || hay){ verSemana(destIso); return; }
+        if(vista) salirVista();
+        iniciarSemana(destIso);
+      } else moverVentana(destIso);
+    }
+    function distribuir(lista, weeks, categories){
+      var turno = {}, notes = [];
+      lista.forEach(function(t){
+        var c = categories.find(function(x){ return x.name === t.cat; });
+        if(!c){ c = {id:uid(), name:t.cat || "Sin fase"}; categories.push(c); }
+        var k = turno[c.id] || 0; turno[c.id] = k + 1;
+        notes.push({ id: uid(), catId: c.id, weekId: weeks[t.dia != null ? t.dia : (k % weeks.length)].id, text: t.text, day: t.day || "", percent: t.percent == null ? "" : t.percent,
+          tone: t.tone || "neutral", responsable: t.responsable || "", cumplido: null, causa: "", accion: "", liberada:false, tipoRestriccion:"", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:"",
+          zona: t.zona || "", supervisor: t.supervisor || "", real: "" });
+      });
+      return notes;
+    }
+    function iniciarSemana(destIso){
+      var inter = (BOARDS.intermedio && BOARDS.intermedio.tareasDeSemana) ? BOARDS.intermedio.tareasDeSemana(destIso) : [];
+      var noCump = state.notes.filter(function(n){ return n.cumplido === false && String(n.text || "").trim(); });
+      var pend = window.LP_SYNC && window.LP_SYNC.pendiente && window.LP_SYNC.pendiente("semanal");
+      var msg = "Armar la semana del " + fmtCorta(destIso) + ":\n• " + inter.length + " tarea" + (inter.length === 1 ? "" : "s") + " del Intermedio para esa semana\n• "
+        + noCump.length + " tarea" + (noCump.length === 1 ? "" : "s") + " no cumplida" + (noCump.length === 1 ? "" : "s") + " de esta semana (se reprograman)"
+        + "\n\nLa semana actual queda en el historial (◀ Anterior) con lo último que se guardó en la planilla."
+        + (pend ? "\n\n⚠ Esta semana tiene cambios sin guardar: guárdala antes para que el historial quede completo." : "")
+        + "\nRecuerda «Cerrar semana» para registrar el PPC en Indicadores.\n\n¿Continuar?";
+      if(!confirm(msg)) return;
+      var weeks = generarDiasSemana(parseInputDate(destIso));
+      var categories = state.categories.map(function(c){ return {id:uid(), name:c.name}; });
+      var lista = noCump.map(function(n){ return { text:n.text, cat:catNombre(n), day:"Reprogramada", responsable:n.responsable, zona:n.zona, supervisor:n.supervisor, tone:n.tone, percent:n.percent, dia:0 }; }).concat(inter);
+      state = { title: state.title, subtitle: state.subtitle, weeks: weeks, categories: categories, notes: distribuir(lista, weeks, categories),
+        editingNoteId: null, inicio: destIso, ppcHistory: state.ppcHistory || [], causas: {}, checklist: MEETING_ITEMS.map(function(){ return false; }) };
+      mCol = null; saveState(); render(); syncHeader();
+      aviso("Semana del " + fmtCorta(destIso) + " armada · " + state.notes.length + " tareas. Revisa el día de cada una y guarda en la planilla.");
+    }
+    function traerIntermedio(){
+      var cur = inicioDe(state), inter = (BOARDS.intermedio && BOARDS.intermedio.tareasDeSemana) ? BOARDS.intermedio.tareasDeSemana(cur) : [];
+      var ya = {}; state.notes.forEach(function(n){ ya[catNombre(n) + "|" + String(n.text || "").trim().toLowerCase()] = 1; });
+      var nuevas = inter.filter(function(t){ return !ya[t.cat + "|" + String(t.text || "").trim().toLowerCase()]; });
+      if(!nuevas.length){ aviso("No hay tareas nuevas del Intermedio para la semana del " + fmtCorta(cur) + "."); return; }
+      if(!confirm("Agregar " + nuevas.length + " tarea" + (nuevas.length === 1 ? "" : "s") + " del Intermedio de la semana del " + fmtCorta(cur) + "?")) return;
+      state.notes = state.notes.concat(distribuir(nuevas, state.weeks, state.categories));
+      saveState(); render(); aviso(nuevas.length + " tareas agregadas. Revisa el día de cada una y guarda en la planilla.");
+    }
+    /* Intermedio: mueve la ventana de semanas sin perder las tareas que siguen dentro */
+    function moverVentana(destIso){
+      var n = state.weeks.length || 9, viejas = fechasCols(state), ini = parseInputDate(destIso);
+      if(inicioDe(state) === destIso){ aviso("El Intermedio ya parte el " + fmtCorta(destIso) + "."); return; }
+      var weeks = generarSemanasIntermedio(ini, n), fuera = 0, mover = [];
+      state.notes.forEach(function(nt){
+        var idx = state.weeks.findIndex(function(w){ return w.id === nt.weekId; }); if(idx < 0) return;
+        var k = Math.round((parseInputDate(viejas[idx]) - ini) / (7 * 864e5));
+        if(k >= 0 && k < n) mover.push([nt, weeks[k].id]); else fuera++;
+      });
+      if(fuera && !confirm(fuera + " tarea" + (fuera === 1 ? " queda" : "s quedan") + " fuera de las " + n + " semanas desde el " + fmtCorta(destIso) + " y se quitará" + (fuera === 1 ? "" : "n") + " del Intermedio. ¿Continuar?")) return;
+      state.weeks = weeks; state.inicio = destIso;
+      state.notes = mover.map(function(x){ x[0].weekId = x[1]; return x[0]; });
+      state.editingNoteId = null; mCol = null; saveState(); render();
+      aviso("Intermedio desde el " + fmtCorta(destIso) + (fuera ? " · " + fuera + " tareas fuera de la ventana" : "") + ". Guarda en la planilla para compartirlo.");
+    }
+    function tareasDeSemana(iso){
+      var f = fechasCols(state), idx = f.indexOf(iso); if(idx < 0) return [];
+      var wid = state.weeks[idx].id;
+      return state.notes.filter(function(n){ return n.weekId === wid && String(n.text || "").trim(); }).map(function(n){
+        return { text:n.text, cat:catNombre(n), day:n.day, responsable:n.responsable, zona:n.zona, supervisor:n.supervisor, tone:n.tone, percent:n.percent };
+      });
+    }
+    /* ---- borrar tareas en grupo (columna, fase y mes, combinables) con PIN ---- */
+    function abrirBorrado(){
+      var ov = document.createElement("div"); ov.className = "sel-overlay";
+      var meses = {}; state.weeks.forEach(function(w){ if(w.month) meses[w.month] = 1; });
+      var op = function(v, t){ return '<option value="'+escapeHtml(v)+'">'+escapeHtml(t)+'</option>'; };
+      ov.innerHTML = '<div class="sel-box" role="dialog" aria-modal="true" aria-label="Borrar tareas"><h3>🗑️ Borrar tareas</h3>'
+        + '<label>' + (cfg.weekly ? 'Día' : 'Semana') + '<select class="bg-col">' + op("", "Todas") + state.weeks.map(function(w){ return op(w.id, (w.month ? w.month + " · " : "") + w.label); }).join("") + '</select></label>'
+        + '<label>Fase<select class="bg-cat">' + op("", "Todas") + state.categories.map(function(c){ return op(c.id, c.name); }).join("") + '</select></label>'
+        + '<label>Mes<select class="bg-mes">' + op("", "Todos") + Object.keys(meses).map(function(m){ return op(m, m); }).join("") + '</select></label>'
+        + '<p class="bg-res"></p><label>PIN de edición<input type="password" class="bg-pin" inputmode="numeric" autocomplete="off" maxlength="8"></label>'
+        + '<div class="sel-msg"></div><div class="sel-actions"><button type="button" class="btn-sm" data-b="no">Cancelar</button><button type="button" class="btn-sm sel-ok danger" data-b="si">Borrar</button></div></div>';
+      document.body.appendChild(ov);
+      var $ = function(q){ return ov.querySelector(q); }, cerrar = function(){ ov.remove(); };
+      function sel(){
+        var c = $(".bg-col").value, k = $(".bg-cat").value, m = $(".bg-mes").value;
+        return state.notes.filter(function(n){ var w = findWeek(n.weekId); return (!c || n.weekId === c) && (!k || n.catId === k) && (!m || (w && w.month === m)); });
+      }
+      function act(){ var n = sel().length; $(".bg-res").textContent = n ? "Se borrarán " + n + " tarea" + (n === 1 ? "" : "s") + " de este tablero (y de la planilla al guardar)." : "No hay tareas con esa selección."; }
+      [".bg-col", ".bg-cat", ".bg-mes"].forEach(function(q){ $(q).onchange = act; }); act();
+      ov.addEventListener("click", function(e){
+        var b = e.target.dataset && e.target.dataset.b; if(e.target === ov || b === "no"){ cerrar(); return; }
+        if(b !== "si") return;
+        var s = sel(), pin = $(".bg-pin").value.trim(), msg = $(".sel-msg"); if(!s.length) return;
+        if(!$(".bg-col").value && !$(".bg-cat").value && !$(".bg-mes").value && !confirm("Vas a borrar TODAS las tareas de este tablero. ¿Seguro?")) return;
+        if(!pin){ msg.textContent = "Ingresa el PIN."; msg.className = "sel-msg err"; $(".bg-pin").focus(); return; }
+        var api = window.LP_SYNC && window.LP_SYNC.api; if(!api){ msg.textContent = "Sin conexión con la planilla."; return; }
+        e.target.disabled = true; msg.textContent = "Validando PIN…"; msg.className = "sel-msg";
+        fetch(api, { method:"POST", body: JSON.stringify({ accion:"verificar", pin:pin }), redirect:"follow" }).then(function(r){ return r.json(); }).then(function(j){
+          if(!j || !j.ok){ msg.textContent = (j && j.error) || "PIN incorrecto"; msg.className = "sel-msg err"; e.target.disabled = false; return; }
+          try{ sessionStorage.setItem("lastplanner-pin", pin); }catch(er){}
+          var ids = {}; s.forEach(function(n){ ids[n.id] = 1; });
+          state.notes = state.notes.filter(function(n){ return !ids[n.id]; }); state.editingNoteId = null;
+          saveState(); render(); cerrar(); aviso(s.length + " tareas borradas · guardando en la planilla…"); guardarYa();
+        }).catch(function(){ msg.textContent = "Sin conexión: no se pudo validar el PIN."; msg.className = "sel-msg err"; e.target.disabled = false; });
+      });
+      $(".bg-col").focus();
+    }
     function opcPct(v){
       var s = (v === "" || v == null) ? "" : String(v), lst = [0,10,20,25,30,40,50,60,70,75,80,90,100].map(String);
       if(s && lst.indexOf(s) < 0) lst.push(s);
@@ -1844,23 +2106,18 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       monthGroups().forEach(function(g){
         var col = 2 + g.startIndex;
         html += '<div class="cell month-head" style="grid-row:1; grid-column:'+col+' / span '+g.span+';">'
-          + '<span contenteditable="true" data-bind="month:'+g.startIndex+'" data-placeholder="Mes">'+escapeHtml(g.month)+'</span></div>';
+          + '<span>'+escapeHtml(g.month)+'</span></div>';
       });
       state.weeks.forEach(function(w, i){
         var col = 2+i;
         html += '<div class="cell week-head" style="grid-row:2; grid-column:'+col+';">'
-          + '<span class="lbl" contenteditable="true" data-bind="week:'+w.id+':label" data-placeholder="Semana">'+escapeHtml(w.label)+'</span>'
+          + '<span class="lbl">'+escapeHtml(w.label)+'</span>'
           + '<button class="week-x" data-action="del-week" data-week="'+w.id+'" title="Eliminar columna" aria-label="Eliminar columna '+escapeHtml(w.label||'')+'">\u2715</button></div>';
       });
       state.categories.forEach(function(cat, ci){
         var row = 3+ci;
         html += '<div class="cell row-label stripe-'+toneFase(cat.id)+'" style="grid-row:'+row+'; grid-column:1;">'
-          + '<div class="name" contenteditable="true" data-bind="cat:'+cat.id+':name">'+escapeHtml(cat.name)+'</div>'
-          + '<div class="row-tools">'
-            + '<button data-action="move-cat-up" data-cat="'+cat.id+'" title="Subir">\u2191</button>'
-            + '<button data-action="move-cat-down" data-cat="'+cat.id+'" title="Bajar">\u2193</button>'
-            + '<button data-action="del-category" data-cat="'+cat.id+'" title="Eliminar">\u2715</button>'
-          + '</div></div>';
+          + '<div class="name">'+escapeHtml(cat.name)+'</div></div>';
         state.weeks.forEach(function(w, wi){
           var col = 2+wi;
           var notesHere = notesIn(cat.id, w.id);
@@ -1883,7 +2140,8 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         });
       });
       board.innerHTML = html;
-      if(cfg.weekly){ renderReliability(); renderChecklist(); } else { renderRestrictions(); }
+      if(cfg.weekly){ renderReliability(); renderChecklist(); }
+      pintarBanner();
     }
 
 
@@ -2126,14 +2384,15 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
           if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%" + ((note.real !== "" && note.real != null) ? " \u2192 " + note.real + "%" : ""));
           if(note.cumplido === false && note.causa) metaBits.push(escapeHtml(causaLabel(note.causa)));
         } else {
-          if(note.tipoRestriccion){
-            badge = note.liberada ? '<span class="badge-ok" title="Restricci\u00f3n liberada">\u2713</span>' : '<span class="badge-warn" title="Restricci\u00f3n abierta">!</span>';
-          }
+          if(restrDe(note).length) badge = '<span class="badge-warn" title="Restricci\u00f3n abierta">!</span>';
+          else if(note.tipoRestriccion && note.liberada) badge = '<span class="badge-ok" title="Restricci\u00f3n liberada">\u2713</span>';
           if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%");
         }
         return '<div class="note note-'+note.tone+'" style="'+extraStyle+'" data-action="open-note" data-note="'+note.id+'">'
           + '<div class="txt">'+badge+escapeHtml(note.text || "Nueva tarea")+'</div>'
           + (metaBits.length ? '<div class="meta"><span>'+metaBits.join(" \u00b7 ")+'</span></div>' : "")
+          + (cfg.weekly && note.cumplido === false && note.accion ? '<div class="acc-linea" title="Acci\u00f3n correctiva">\u2192 '+escapeHtml(note.accion)+'</div>' : "")
+          + restrLinea(note)
           + '</div>';
       }
       var catOptions = state.categories.map(function(c){
@@ -2142,10 +2401,6 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       var weekOptions = state.weeks.map(function(w){
         return '<option value="'+w.id+'"'+(w.id===note.weekId?' selected':"")+'>'+escapeHtml(w.month)+' \u00b7 '+escapeHtml(w.label)+'</option>';
       }).join("");
-      var swatches = TONES.map(function(tone){
-        return '<button class="swatch note-'+tone+(tone===note.tone?' active':"")+'" data-action="set-tone" data-note="'+note.id+'" data-tone="'+tone+'" aria-label="Color"></button>';
-      }).join("");
-
       var lpsFields = "";
       if(cfg.weekly){
         var causaOptions = '<option value="">\u2013</option>' + CAUSAS.map(function(c){
@@ -2165,34 +2420,14 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
               + '<button class="tri'+(note.cumplido===false?' active-no':'')+'" data-action="set-cumplido" data-note="'+note.id+'" data-value="0">No cumpli\u00f3</button>'
               + '<button class="tri'+(note.cumplido===null?' active-neu':'')+'" data-action="set-cumplido" data-note="'+note.id+'" data-value="">Pendiente</button>'
             + '</div></div></div>'
-          + (note.cumplido===false ? '<div class="field-row"><div class="field-col"><label>Causa de no cumplimiento</label><select data-bind-select="note:'+note.id+':causa">'+causaOptions+'</select></div></div>' : '');
+          + (note.cumplido===false ? '<div class="field-row"><div class="field-col"><label>Causa de no cumplimiento</label><select data-bind-select="note:'+note.id+':causa">'+causaOptions+'</select></div></div>'
+              + '<div class="field-row"><div class="field-col"><label>\u00bfPor qu\u00e9? / Acci\u00f3n correctiva</label><input type="text" maxlength="200" data-bind="note:'+note.id+':accion" value="'+escapeHtml(note.accion || "")+'" placeholder="ej. faltaron moldajes \u2192 pedirlos el viernes"></div></div>' : '')
+          + restrBloque(note);
       } else {
-        var tipoOptions = '<option value="">\u2013</option>' + RESTRICCION_TIPOS.map(function(t){
-          return '<option value="'+t+'"'+(t===note.tipoRestriccion?' selected':"")+'>'+t+'</option>';
-        }).join("");
         lpsFields = '<div class="field-row">'
           + '<div class="field-col"><label>Responsable</label><input type="text" list="dlr-'+note.id+'" autocomplete="off" data-bind="note:'+note.id+':responsable" value="'+escapeHtml(note.responsable)+'" placeholder="Elige o escribe">'+listaNombres('dlr-'+note.id, 'responsable')+'</div>'
-          + '<div class="field-col"><label>Tipo de restricci\u00f3n</label><select data-bind-select="note:'+note.id+':tipoRestriccion">'+tipoOptions+'</select></div>'
           + '</div>'
-          + (note.tipoRestriccion ? (
-            '<div class="field-row">'
-              + '<div class="field-col"><label>Responsable liberaci\u00f3n</label><input type="text" data-bind="note:'+note.id+':respLiberacion" value="'+escapeHtml(note.respLiberacion)+'"></div>'
-              + '<div class="field-col"><label>Fecha compromiso</label><input type="date" data-bind="note:'+note.id+':fechaCompromiso" value="'+escapeHtml(note.fechaCompromiso)+'"></div>'
-            + '</div>'
-            + '<div class="field-row">'
-              + '<div class="field-col"><label>Fecha real liberaci\u00f3n</label><input type="date" data-bind="note:'+note.id+':fechaLiberacion" value="'+escapeHtml(note.fechaLiberacion)+'"></div>'
-              + '<div class="field-col"><label>\u00bfLiberada?</label>'
-                + '<div class="tri-btns">'
-                  + '<button class="tri'+(note.liberada?' active-ok':'')+'" data-action="set-liberada" data-note="'+note.id+'" data-value="1">S\u00ed</button>'
-                  + '<button class="tri'+(!note.liberada?' active-no':'')+'" data-action="set-liberada" data-note="'+note.id+'" data-value="0">No</button>'
-                + '</div></div>'
-            + '</div>'
-            ) : '')
-          + '<div class="field-row send-row"><div class="field-col"><label>Enviar a Plan Semanal</label>'
-            + '<select class="send-target-select" data-note="'+note.id+'">'+(BOARDS.semanal ? BOARDS.semanal.getWeeksOptionsHtml() : '')+'</select></div>'
-            + '<button data-action="send-to-semanal" data-note="'+note.id+'" style="align-self:flex-end;">'+(note.enviadoSemanal ? '\u21bb Reenviar' : 'Enviar \u2192')+'</button>'
-            + (note.enviadoSemanal ? '<span class="sent-tag">\u2713 Enviada</span>' : '')
-          + '</div>';
+          + restrBloque(note);
       }
 
       return '<div class="note editing" data-note="'+note.id+'">'
@@ -2206,7 +2441,6 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
           + '<div class="field-col"><label>Categor\u00eda</label><select data-bind-select="note:'+note.id+':catId">'+catOptions+'</select></div>'
           + '<div class="field-col"><label>Semana</label><select data-bind-select="note:'+note.id+':weekId">'+weekOptions+'</select></div>'
         + '</div>'
-        + '<div class="swatches">'+swatches+'</div>'
         + '<div class="note-actions">'
           + '<button data-action="dup-note" data-note="'+note.id+'">Duplicar en sig.</button>'
           + '<button data-action="close-note" data-note="'+note.id+'">Cerrar</button>'
@@ -2225,10 +2459,13 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       state.weeks.push({id:uid(), label:"Nueva", month: last?last.month:"Mes 1"});
       saveState(); render();
     }
-    function delWeek(id){
+    function delWeek(id, ok){
       var has = state.notes.some(function(n){return n.weekId===id;});
       var wl = findWeek(id), nom = wl && wl.label ? "\u00ab" + wl.label + "\u00bb" : "esta columna";
-      if(!confirm(has ? "La columna " + nom + " tiene notas. \u00bfEliminarla junto con sus notas?" : "\u00bfEliminar la columna " + nom + "?")) return;
+      if(!ok){
+        if(!confirm(has ? "La columna " + nom + " tiene notas. \u00bfEliminarla junto con sus notas?" : "\u00bfEliminar la columna " + nom + "?")) return;
+        if(has){ conPin(function(){ delWeek(id, true); }); return; }
+      }
       state.weeks = state.weeks.filter(function(w){return w.id!==id;});
       state.notes = state.notes.filter(function(n){return n.weekId!==id;});
       saveState(); render();
@@ -2256,7 +2493,12 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         if(ta) ta.focus();
       }, 0);
     }
-    function delNote(id){
+    function delNote(id, ok){
+      var nd = state.notes.find(function(n){ return n.id === id; });
+      if(!ok && nd && String(nd.text || "").trim()){
+        if(!confirm("\u00bfEliminar esta tarea?")) return;
+        conPin(function(){ delNote(id, true); guardarYa(); }); return;
+      }
       state.notes = state.notes.filter(function(n){return n.id!==id;});
       if(state.editingNoteId===id) state.editingNoteId=null;
       saveState(); render();
@@ -2295,6 +2537,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
 
     root.addEventListener("input", function(e){
       var t = e.target;
+      if(vista) return;
       if(t.dataset && t.dataset.bind){
         var value = t.isContentEditable ? t.textContent : t.value;
         applyBind(t.dataset.bind, value); saveState();
@@ -2302,6 +2545,11 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
     });
     root.addEventListener("change", function(e){
       var t = e.target;
+      if(t.classList && t.classList.contains("ir-semana")){
+        if(t.value){ var dI = parseInputDate(t.value); irSemana(lunesISO(dI)); }
+        return;
+      }
+      if(vista) return;
       if(cfg.weekly && t.dataset && t.dataset.bind && /:(real|percent)$/.test(t.dataset.bind)){
         var nr = state.notes.find(function(x){ return x.id === t.dataset.bind.split(":")[1]; });
         if(nr && nr.real !== "" && nr.real != null && isFinite(Number(nr.real))){
@@ -2337,7 +2585,21 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       if(action !== "print" && (root.style.zoom || root.style.width)){
         root.style.zoom = ""; root.style.width = "";
       }
-      if(action === "add-week") addWeek();
+      if(vista && !/^(semana-|vista-salir|m-col|print|export-excel|abrir-registros|ver-restr)/.test(action)){ aviso("Est\u00e1s viendo una semana guardada (solo lectura). Toca \u00abVolver a la semana actual\u00bb para editar."); return; }
+      if(action === "semana-ant" || action === "semana-sig" || action === "semana-hoy"){
+        var baseN = vista ? vista.inicio : inicioDe(state);
+        irSemana(action === "semana-hoy" ? lunesISO(new Date()) : isoD(addDays(parseInputDate(baseN), action === "semana-ant" ? -7 : 7)));
+      }
+      else if(action === "vista-salir") salirVista();
+      else if(action === "traer-intermedio") traerIntermedio();
+      else if(action === "borrar-grupo") abrirBorrado();
+      else if(action === "nueva-restr"){
+        var nr = state.notes.find(function(x){ return x.id === el.dataset.note; });
+        if(nr && window.LP_REU && window.LP_REU.nueva) window.LP_REU.nueva({ nota: nr.id, fase: catNombre(nr), partida: nr.text || "", zona: nr.zona || "" });
+      }
+      else if(action === "pasar-registro"){ if(window.LP_REU && window.LP_REU.pasar) window.LP_REU.pasar(cfg.key, el.dataset.note); }
+      else if(action === "ver-restr"){ if(window.LP_REU && window.LP_REU.ver) window.LP_REU.ver(); }
+      else if(action === "add-week") addWeek();
       else if(action === "abrir-registros"){
         var nR = state.notes.find(function(x){ return x.id === el.dataset.note; });
         if(nR && window.LP_abrirRegistros) window.LP_abrirRegistros(cfg.key, nR, (findCat(nR.catId) || {}).name || "");
@@ -2408,9 +2670,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         var nSug = hs.length ? hs[hs.length-1].n + 1 : 1;
         var nIn = prompt("N\u00b0 de semana a registrar en Indicadores" + (pend ? "\n(" + pend + " tareas sin evaluar no se cuentan)" : ""), String(nSug));
         if(nIn === null) return; var nSem = parseInt(nIn, 10); if(!nSem){ alert("N\u00b0 de semana inv\u00e1lido."); return; }
-        var w0 = state.weeks[0], dd = w0 ? parseInt(String(w0.label).replace(/\D+/g, ""), 10) : NaN, mm = w0 ? MESES.indexOf(w0.month) : -1;
-        var hoyC = new Date(), ini = (dd && mm >= 0) ? new Date(hoyC.getFullYear(), mm, dd) : mondayOf(hoyC);
-        if(ini - hoyC > 60*864e5) ini.setFullYear(ini.getFullYear() - 1);
+        var ini = parseInputDate(inicioDe(state));
         function iso(d){ return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
         var causas9 = [0,0,0,0,0,0,0,0,0], resp = {};
         ev.forEach(function(n){
@@ -2524,18 +2784,6 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       }
     });
 
-    if(!cfg.weekly && !cfg.mensual){
-
-      var durInput = root.querySelector(".duracion-semanas");
-      root.querySelector(".fecha-inicio").addEventListener("change", function(){
-        if(!this.value) return;
-        var start = mondayOf(parseInputDate(this.value));
-        var end = new Date(start); end.setMonth(end.getMonth()+2);
-        var count = Math.max(1, Math.round((end-start)/(7*24*3600*1000)));
-        durInput.value = count;
-      });
-    }
-
     function syncHeader(){
       var t = root.querySelector('[data-bind="title"]'); if(t) t.textContent = state.title || "";
       var s = root.querySelector('[data-bind="subtitle"]'); if(s) s.textContent = state.subtitle || "";
@@ -2566,6 +2814,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
 
     /* ---------- planilla compartida: foto del tablero y carga desde la planilla ---------- */
     function snapshot(){
+      if(vista){ var keepS = state; state = vista.backup; try{ return snapshot(); } finally { state = keepS; } }
       var ci = {}, wi = {};
       state.categories.forEach(function(c, i){ ci[c.id] = i; });
       state.weeks.forEach(function(w, i){ wi[w.id] = i; });
@@ -2578,13 +2827,16 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
           var p = (n.percent === "" || n.percent == null || !isFinite(Number(n.percent))) ? "" : Math.max(0, Math.min(100, Number(n.percent)));
           return { id: n.id, cat: ci[n.catId], col: wi[n.weekId], tarea: n.text, detalle: n.day || "", responsable: n.responsable || "",
             avance: p, cumplido: n.cumplido === true ? true : (n.cumplido === false ? false : null), causa: n.causa || "",
-            liberada: !!n.liberada, tipoRestriccion: n.tipoRestriccion || "", respLiberacion: n.respLiberacion || "",
+            liberada: !!n.liberada, tipoRestriccion: n.tipoRestriccion || "", respLiberacion: n.respLiberacion || "", accion: n.accion || "",
             fechaCompromiso: n.fechaCompromiso || "", fechaLiberacion: n.fechaLiberacion || "", color: n.tone || "",
             zona: n.zona || "", supervisor: n.supervisor || "", real: (n.real === "" || n.real == null || !isFinite(Number(n.real))) ? "" : Number(n.real) };
         })
       };
     }
     function aplicarRemoto(t, notas){
+      if(vista){ var keepA = state, mA = mCol; state = vista.backup; vista.backup = null; var vA = vista; vista = null;
+        aplicarRemoto(t, notas); vA.backup = state; vista = vA; state = keepA; mCol = mA; render(); return; }
+      var inicioPrev = state.inicio, colsPrev = JSON.stringify(state.weeks.map(function(w){ return [w.label, w.month]; }));
       var idxCol = mCol ? state.weeks.findIndex(function(w){ return w.id === mCol; }) : -1;
       var weeks = (t.columnas || []).map(function(c){ return {id:uid(), label:String(c[0]), month:String(c[1] || "")}; });
       var categories = (t.categorias || []).map(function(n){ return {id:uid(), name:String(n)}; });
@@ -2595,7 +2847,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         notes: (notas || []).filter(function(n){ return categories[n.cat] && weeks[n.col]; }).map(function(n){
           return { id: n.id || uid(), catId: categories[n.cat].id, weekId: weeks[n.col].id, text: n.tarea, day: n.detalle || "",
             percent: (n.avance === "" || n.avance == null) ? "" : n.avance, tone: n.color || "neutral", responsable: n.responsable || "",
-            cumplido: n.cumplido === true ? true : (n.cumplido === false ? false : null), causa: n.causa || "", liberada: !!n.liberada,
+            cumplido: n.cumplido === true ? true : (n.cumplido === false ? false : null), causa: n.causa || "", accion: n.accion || "", liberada: !!n.liberada,
             tipoRestriccion: n.tipoRestriccion || "", respLiberacion: n.respLiberacion || "", fechaCompromiso: n.fechaCompromiso || "", fechaLiberacion: n.fechaLiberacion || "",
             zona: n.zona || "", supervisor: n.supervisor || "", real: (n.real === "" || n.real == null) ? "" : n.real };
         }),
@@ -2603,6 +2855,8 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         checklist: (Array.isArray(ex.checklist) && ex.checklist.length) ? ex.checklist : MEETING_ITEMS.map(function(){ return false; })
       };
       mCol = (idxCol >= 0 && weeks[idxCol]) ? weeks[idxCol].id : null;
+      /* la fecha de inicio se conserva si las columnas no cambiaron; si no, se deduce de las etiquetas */
+      if(inicioPrev && colsPrev === JSON.stringify(weeks.map(function(w){ return [w.label, w.month]; }))) state.inicio = inicioPrev;
       try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
       render(); syncHeader();
     }
@@ -2611,7 +2865,16 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       key: cfg.key,
       snapshot: snapshot,
       aplicarRemoto: aplicarRemoto,
-      editando: function(){ return !!state.editingNoteId; },
+      editando: function(){ return !vista && !!state.editingNoteId; },
+      soloLectura: function(){ return !!vista; },
+      inicioSemana: function(){ return cfg.weekly ? inicioDe(real()) : ""; },
+      tareasDeSemana: function(iso){ return tareasDeSemana(iso); },
+      pasarRestriccion: function(id){
+        var n = real().notes.find(function(x){ return x.id === id; }); if(!n || !n.tipoRestriccion) return null;
+        var r = { tipo: n.tipoRestriccion, resp: n.respLiberacion || n.responsable || "", req: n.fechaCompromiso || "", fase: catNombre(n, real()), partida: n.text || "", zona: n.zona || "", nota: n.id };
+        n.tipoRestriccion = ""; n.respLiberacion = ""; n.fechaCompromiso = ""; n.fechaLiberacion = ""; n.liberada = false;
+        saveState(); render(); return r;
+      },
       restricciones: function(){
         return state.notes.filter(function(n){ return n.tipoRestriccion; }).map(function(n){
           var w = findWeek(n.weekId), c = state.categories.find(function(x){ return x.id === n.catId; });
@@ -2841,6 +3104,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
     try{ history.replaceState(null, "", "#" + tab); }catch(e){}
     if(window.LP_cues) window.LP_cues();
   }
+  window.LP_irTab = irTab;
   var TABS = ["semanal","intermedio","maestro","indicadores","reunion"], hRaw = (location.hash || "").slice(1);
   var h0 = hRaw.split("?")[0], hq = {};
   (hRaw.split("?")[1] || "").split("&").forEach(function(kv){ var j = kv.indexOf("="); if(j > 0) hq[kv.slice(0, j)] = decodeURIComponent(kv.slice(j + 1)); });
@@ -2999,10 +3263,123 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       + '<p class="ind-nota">Toca \ud83d\ude41 1 malo \u00b7 \ud83d\ude10 3 regular \u00b7 \u263a 5 bueno. Toca de nuevo para borrar.</p></div>';
   }
 
+  /* ---- v6: Curva S, acciones correctivas, informe semanal y bitácora ---- */
+  function curvaS(){
+    var s = enRango(); if(s.length < 2) return "";
+    var W = 640, H = 220, l = 44, r = 10, t = 12, b = 26, iw = W-l-r, ih = H-t-b;
+    var P = [], L = [], ap = 0, al = 0; s.forEach(function(w){ ap += w.prog; al += w.log; P.push(ap); L.push(al); });
+    var max = Math.max(1, ap);
+    function x(i){ return l + i * iw / (s.length-1); }
+    function y(v){ return t + ih - v/max*ih; }
+    var grid = [0, .25, .5, .75, 1].map(function(f){ var v = Math.round(max * f); return '<line x1="'+l+'" x2="'+(W-r)+'" y1="'+y(v)+'" y2="'+y(v)+'" class="g"/><text x="'+(l-6)+'" y="'+(y(v)+3)+'" class="ax" text-anchor="end">'+v+'</text>'; }).join("");
+    var paso = Math.max(1, Math.ceil(s.length/8)), xl = "";
+    s.forEach(function(w, i){ if(i % paso === 0 || i === s.length-1) xl += '<text x="'+x(i)+'" y="'+(H-8)+'" class="ax" text-anchor="middle">S'+w.n+'</text>'; });
+    var dif = al - ap;
+    return '<div class="ind-card"><div class="ind-tit">Curva S · actividades comprometidas vs cumplidas (acumulado)</div>'
+      + '<svg viewBox="0 0 '+W+' '+H+'" class="ind-svg" role="img" aria-label="Curva S">'+grid
+      + '<polyline points="'+P.map(function(v,i){ return x(i).toFixed(1)+","+y(v).toFixed(1); }).join(" ")+'" class="s-plan"/>'
+      + '<polyline points="'+L.map(function(v,i){ return x(i).toFixed(1)+","+y(v).toFixed(1); }).join(" ")+'" class="s-real"/>'+xl+'</svg>'
+      + '<div class="ind-ley"><span class="k s-plan"></span>Programadas <span class="k s-real"></span>Cumplidas</div>'
+      + '<p class="ind-nota">A la fecha: <b>'+al+'</b> cumplidas de <b>'+ap+'</b> programadas · brecha de <b>'+(-dif)+'</b> actividades ('+Math.round(al/ap*100)+'%).</p></div>';
+  }
+  function causaTxt(c){ var i = parseInt(c, 10); return (i >= 1 && CAUSAS9[i-1]) ? CAUSAS9[i-1][1] : (c || "Sin causa"); }
+  function acciones(){
+    var b = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS.semanal; if(!b || !b.snapshot) return "";
+    var no = b.snapshot().notas.filter(function(n){ return n.cumplido === false; }); if(!no.length) return "";
+    var con = no.filter(function(n){ return String(n.accion || "").trim(); });
+    return '<div class="ind-card"><div class="ind-tit">Acciones correctivas · semana actual <small>('+con.length+' de '+no.length+' no cumplidas con acción)</small></div><ul class="acc-lista">'
+      + no.map(function(n){ return '<li><b>'+esc(n.tarea)+'</b><span>'+esc(causaTxt(n.causa))+'</span>'+(n.accion ? '<em>→ '+esc(n.accion)+'</em>' : '<em class="falta">Falta la acción correctiva</em>')+'</li>'; }).join("")
+      + '</ul><p class="ind-nota">Se completa en cada tarea “No cumplió” del Semanal (¿Por qué? / Acción correctiva).</p></div>';
+  }
+  function fmtF(iso){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ""); return m ? m[3]+"-"+m[2]+"-"+m[1] : ""; }
+  function addD(iso, n){ var p = iso.split("-"), d = new Date(+p[0], +p[1]-1, +p[2]); d.setDate(d.getDate() + n); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  function elegirSemanaInforme(){
+    var b = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS.semanal, ini = b && b.inicioSemana ? b.inicioSemana() : "";
+    var ops = st.semanas.slice().reverse().map(function(w){ return '<option value="n'+w.n+'">Semana '+w.n+' · '+fmtF(w.ini)+' (cerrada, PPC '+pct(w)+'%)</option>'; });
+    if(ini && !st.semanas.some(function(w){ return w.ini === ini; })) ops.unshift('<option value="actual">Semana del '+fmtF(ini)+' (en curso, sin cerrar)</option>');
+    if(!ops.length){ alert("No hay semanas para el informe. Cierra una semana en el Semanal o arma la semana actual."); return; }
+    var ov = document.createElement("div"); ov.className = "sel-overlay";
+    ov.innerHTML = '<div class="sel-box" role="dialog" aria-modal="true" aria-label="Informe semanal"><h3>📄 Informe semanal</h3><p>Se abre en una pestaña nueva, lista para imprimir o guardar como PDF.</p>'
+      + '<label>Semana<select class="inf-sem">'+ops.join("")+'</select></label><div class="sel-actions"><button type="button" class="btn-sm" data-c="no">Cancelar</button><button type="button" class="btn-sm sel-ok" data-c="si">Generar</button></div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener("click", function(e){
+      var c = e.target.dataset && e.target.dataset.c; if(e.target === ov || c === "no"){ ov.remove(); return; } if(c !== "si") return;
+      var v = ov.querySelector(".inf-sem").value; ov.remove();
+      var win = window.open("", "_blank"); if(!win){ alert("El navegador bloqueó la pestaña nueva. Permite ventanas emergentes para este sitio."); return; }
+      win.document.write('<p style="font:14px Arial;padding:20px">Preparando el informe…</p>');
+      informe(v, win);
+    });
+  }
+  function informe(v, win){
+    var b = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS.semanal, w, actual = v === "actual";
+    if(actual){
+      var sn = b.snapshot().notas.filter(function(n){ return n.cumplido === true || n.cumplido === false; }), c9 = [0,0,0,0,0,0,0,0,0];
+      sn.forEach(function(n){ var i = parseInt(n.causa, 10); if(n.cumplido === false && i >= 1 && i <= 9) c9[i-1]++; });
+      w = { n: "en curso", ini: b.inicioSemana(), prog: sn.length, log: sn.filter(function(n){ return n.cumplido; }).length, causas: c9 };
+    } else w = st.semanas.filter(function(x){ return "n" + x.n === v; })[0];
+    if(!w) return;
+    var fin = addD(w.ini, 6);
+    var tareasP = (b && b.inicioSemana && b.inicioSemana() === w.ini) ? Promise.resolve(b.snapshot())
+      : ((window.LP_SYNC && window.LP_SYNC.historial && (window.LP_SYNC.historial() || []).some(function(h){ return h.semana === w.ini; })) ? window.LP_SYNC.semana(w.ini).then(function(j){ return j && j.ok ? { meta: j.meta, notas: j.notas } : null; }).catch(function(){ return null; }) : Promise.resolve(null));
+    tareasP.then(function(snap){
+      var titulo = (document.getElementById("proyTitulo") || {}).textContent || "Last Planner";
+      var regs = (window.LP_registros ? window.LP_registros() : []).filter(function(a){ return a.fecha >= w.ini && a.fecha <= fin; }).sort(function(a,b2){ return (a.fecha + a.registrado).localeCompare(b2.fecha + b2.registrado); });
+      var fotos = []; regs.forEach(function(a){ (a.fotos || []).forEach(function(id){ if(fotos.length < 6) fotos.push({ id:id, t:(a.tarea || "") + " · " + fmtF(a.fecha) }); }); });
+      var hasta = st.semanas.filter(function(x){ return actual || x.n <= w.n; }), P = hasta.reduce(function(a,x){ return a + x.prog; }, 0) + (actual ? w.prog : 0), L = hasta.reduce(function(a,x){ return a + x.log; }, 0) + (actual ? w.log : 0);
+      var card = function(val, l){ return '<div class="k"><b>'+val+'</b><span>'+l+'</span></div>'; };
+      var cats = snap && snap.meta ? snap.meta.categorias || [] : [];
+      var tareas = snap ? snap.notas.map(function(n){
+        var est = n.cumplido === true ? '<b style="color:#027A48">✓ Cumplió</b>' : (n.cumplido === false ? '<b style="color:#B42318">✗ No cumplió</b>' : 'Pendiente');
+        return '<tr><td>'+esc(cats[n.cat] || "")+'</td><td>'+esc(n.tarea)+'</td><td>'+esc(n.responsable || "")+'</td><td>'+est+'</td><td>'+(n.cumplido === false ? esc(causaTxt(n.causa)) + (n.accion ? '<br><i>→ '+esc(n.accion)+'</i>' : '') : '')+'</td></tr>';
+      }).join("") : "";
+      var c9 = w.causas || [], tc = c9.reduce(function(a,x){ return a + (x || 0); }, 0);
+      var css = 'body{font:11px/1.35 Arial,sans-serif;color:#0A2240;margin:0;padding:18px 22px}h1{font-size:17px;margin:0}h2{font-size:12px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.04em;color:#2C6B7E;border-bottom:1.5px solid #2C6B7E;padding-bottom:2px}'
+        + '.sub{color:#5a6472;margin:2px 0 10px}.ks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.k{border:1px solid #e3e1da;border-radius:8px;padding:8px}.k b{display:block;font-size:20px}.k span{font-size:9px;text-transform:uppercase;color:#5a6472;font-weight:700}'
+        + 'table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:3px 5px;border-bottom:1px solid #e3e1da;vertical-align:top}th{font-size:10px;color:#5a6472}'
+        + '.curvas{display:grid;grid-template-columns:1fr 1fr;gap:14px}svg{width:100%;height:auto;max-height:230px}svg text{font-family:Arial}.g{stroke:#e3e1da}.ax{font-size:10px;fill:#5a6472}.meta{stroke:#B42318;stroke-dasharray:5 4}.ppc{fill:none;stroke:#2C6B7E;stroke-width:2.5}.acum{fill:none;stroke:#9aa3ad;stroke-width:2;stroke-dasharray:6 4}.d-ok{fill:#027A48}.d-bad{fill:#B42318}.s-plan{fill:none;stroke:#9aa3ad;stroke-width:2.5;stroke-dasharray:6 4}.s-real{fill:none;stroke:#2C6B7E;stroke-width:3}'
+        + '.ind-card{break-inside:avoid}.ind-tit{font-weight:700;margin:4px 0}.ind-ley,.ind-nota{font-size:9.5px;color:#5a6472}.ind-ley .k{display:none}.par-row{display:grid;grid-template-columns:1.6fr 2fr 30px 34px 40px;gap:6px;align-items:center;font-size:10px}.par-track{background:#eee;height:8px;border-radius:4px}.par-fill{background:#2C6B7E;height:8px;border-radius:4px}.par-head{display:none}.par-a.vital{color:#B42318;font-weight:700}'
+        + '.fotos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.fotos figure{margin:0}.fotos img{width:100%;height:120px;object-fit:cover;border-radius:6px}.fotos figcaption{font-size:9px;color:#5a6472}'
+        + '.rp-section h3{font-size:12px;margin:14px 0 6px;text-transform:uppercase;color:#2C6B7E;border-bottom:1.5px solid #2C6B7E}.rp-restr-summary{display:flex;gap:14px;margin:4px 0}.rp-table{width:100%}'
+        + '.btn{position:fixed;top:10px;right:10px;padding:8px 14px;background:#0A2240;color:#fff;border:0;border-radius:6px;font-weight:700;cursor:pointer}@media print{.btn{display:none}body{padding:0}}@page{size:A4;margin:12mm}';
+      var r0 = rango; rango = "todo";
+      var html = '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Informe semanal ' + esc(titulo) + ' ' + fmtF(w.ini) + '</title><style>'+css+'</style></head><body>'
+        + '<button class="btn" onclick="window.print()">Imprimir / Guardar PDF</button>'
+        + '<h1>Informe semanal · ' + esc(titulo) + '</h1><div class="sub">Semana ' + esc(w.n) + ' · del ' + fmtF(w.ini) + ' al ' + fmtF(fin) + ' · generado el ' + fmtF(addD(w.ini, 0) && new Date().toISOString().slice(0,10)) + '</div>'
+        + '<div class="ks">' + card((w.prog ? Math.round(w.log / w.prog * 100) : 0) + "%", "PPC de la semana") + card(w.log + " de " + w.prog, "actividades cumplidas") + card((P ? Math.round(L / P * 100) : 0) + "%", "PPC acumulado") + card(tc, "incumplimientos con causa") + '</div>'
+        + '<h2>Curvas del proyecto</h2><div class="curvas">' + curva() + curvaS() + '</div>'
+        + (tc ? '<h2>Causas de no cumplimiento de la semana</h2><table><tr><th>Causa</th><th>N°</th></tr>' + c9.map(function(x, i){ return x ? '<tr><td>'+esc(CAUSAS9[i][1])+'</td><td>'+x+'</td></tr>' : ''; }).join("") + '</table>' : '')
+        + (tareas ? '<h2>Tareas de la semana</h2><table><tr><th>Fase</th><th>Tarea</th><th>Responsable</th><th>Cumplimiento</th><th>Causa / acción</th></tr>' + tareas + '</table>' : '<h2>Tareas de la semana</h2><p>No hay copia guardada del Semanal de esa semana.</p>')
+        + '<h2>Registros de terreno (' + regs.length + ')</h2>' + (regs.length ? '<table><tr><th>Fecha</th><th>Tarea</th><th>Tipo</th><th>%</th><th>Observación</th></tr>' + regs.map(function(a){ return '<tr><td>'+fmtF(a.fecha)+'</td><td>'+esc(a.tarea)+'</td><td>'+esc(a.tipo === "Comentarios" ? "Comentario" : a.tipo)+'</td><td>'+(a.avance !== "" ? esc(a.avance)+'%' : '')+'</td><td>'+esc(a.obs || "")+'</td></tr>'; }).join("") + '</table>' : '<p>Sin registros esa semana.</p>')
+        + (window.LP_REU && window.LP_REU.resumenHtml ? window.LP_REU.resumenHtml() : '')
+        + (fotos.length ? '<h2>Fotos del período</h2><div class="fotos">' + fotos.map(function(f){ return '<figure><img src="https://drive.google.com/thumbnail?id='+encodeURIComponent(f.id)+'&sz=w600" onerror="this.onerror=null;this.src=\'https://lh3.googleusercontent.com/d/'+encodeURIComponent(f.id)+'=w600\'"><figcaption>'+esc(f.t)+'</figcaption></figure>'; }).join("") + '</div>' : '')
+        + '</body></html>';
+      rango = r0;
+      win.document.open(); win.document.write(html); win.document.close();
+    });
+  }
+  function bitacora(){
+    var pin = (window.prompt("PIN de edición para ver la bitácora:") || "").trim(); if(!pin) return;
+    var api = window.LP_SYNC && window.LP_SYNC.api; if(!api){ alert("Sin conexión con la planilla."); return; }
+    var autor = ""; try{ autor = sessionStorage.getItem("lastplanner-autor") || ""; }catch(e){}
+    fetch(api, { method:"POST", body: JSON.stringify({ accion:"leerBitacora", pin:pin, autor: autor || "Sin nombre" }), redirect:"follow" }).then(function(r){ return r.json(); }).then(function(j){
+      if(!j || !j.ok){ alert(j && /desconocida/.test(j.error || "") ? "Para ver la bitácora hay que actualizar el script de la planilla." : ((j && j.error) || "No se pudo leer la bitácora.")); return; }
+      try{ sessionStorage.setItem("lastplanner-pin", pin); }catch(e){}
+      var ov = document.createElement("div"); ov.className = "sel-overlay";
+      var filas = function(q){ q = String(q || "").toLowerCase(); return j.bitacora.filter(function(x){ return !q || (x.fecha + " " + x.accion + " " + x.autor + " " + x.detalle).toLowerCase().indexOf(q) >= 0; })
+        .map(function(x){ return '<tr><td>'+esc(x.fecha)+'</td><td><b>'+esc(x.accion)+'</b></td><td>'+esc(x.autor)+'</td><td>'+esc(x.detalle)+'</td></tr>'; }).join("") || '<tr><td colspan="4">Sin resultados.</td></tr>'; };
+      ov.innerHTML = '<div class="sel-box bit-box" role="dialog" aria-modal="true" aria-label="Bitácora"><h3>📜 Bitácora de cambios <small>(últimos ' + j.bitacora.length + ')</small></h3>'
+        + '<input type="search" class="bit-q" placeholder="Buscar por acción, persona o texto" aria-label="Buscar en la bitácora">'
+        + '<div class="bit-wrap"><table class="bit-t"><thead><tr><th>Fecha</th><th>Acción</th><th>Autor</th><th>Detalle</th></tr></thead><tbody>' + filas("") + '</tbody></table></div>'
+        + '<div class="sel-actions"><button type="button" class="btn-sm sel-ok" data-c="no">Cerrar</button></div></div>';
+      document.body.appendChild(ov);
+      ov.querySelector(".bit-q").addEventListener("input", function(){ ov.querySelector(".bit-t tbody").innerHTML = filas(this.value); });
+      ov.addEventListener("click", function(e){ if(e.target === ov || (e.target.dataset && e.target.dataset.c === "no")) ov.remove(); });
+    }).catch(function(){ alert("Sin conexión: no se pudo leer la bitácora."); });
+  }
   function render(){
     var box = document.getElementById("indBody"); if(!box) return;
     box.innerHTML = kpis() + (st.semanas.length ? '<div class="ind-rango"><button type="button" data-rango="todo" class="'+(rango === "todo" ? "on" : "")+'">Todo el proyecto</button><button type="button" data-rango="12" class="'+(rango === "12" ? "on" : "")+'">\u00daltimas 12 semanas</button></div>' : "")
-      + curva() + pareto() + ranking() + evaluacion();
+      + curva() + curvaS() + pareto() + acciones() + ranking() + evaluacion();
   }
 
   document.addEventListener("click", function(e){
@@ -3017,6 +3394,8 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       guardarLocal(); render(); return;
     }
     var a = e.target.closest("[data-ind]"); if(!a) return;
+    if(a.dataset.ind === "informe"){ elegirSemanaInforme(); return; }
+    if(a.dataset.ind === "bitacora"){ bitacora(); return; }
     if(a.dataset.ind === "historial"){
       if(st.semanas.length && !confirm("Esto reemplaza los indicadores por el historial de la planilla Curanipe (61 semanas, 3 a 64). \u00bfContinuar?")) return;
       st = { semanas: JSON.parse(JSON.stringify(window.CURANIPE_HIST || [])) }; ord(); guardarLocal(); render();
@@ -3036,7 +3415,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   function resumenHtml(){
     if(!st.semanas.length) return "";
     var r0 = rango; rango = "12";
-    var h = '<div class="rp-section"><h3>Indicadores del proyecto</h3>' + kpis() + curva() + '</div>'
+    var h = '<div class="rp-section"><h3>Indicadores del proyecto</h3>' + kpis() + curva() + curvaS() + '</div>'
       + '<div class="rp-section"><h3>\u00daltimas 12 semanas</h3><div class="rp-2col">' + pareto() + ranking(12) + '</div></div>';
     rango = r0; return h;
   }
@@ -3055,7 +3434,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   var st = cargar(), vista = "minuta", semMin = null, semEc = null, filtroR = "abiertas", editR = null, verTodos = false, nuevos = {};
   function vacio(){ return { personas: [], minutas: {}, restricciones: [], evalConst: {} }; }
   function cargar(){ try{ var s = JSON.parse(localStorage.getItem(LS) || "null"); if(s && s.minutas) return s; }catch(e){} return vacio(); }
-  function guardar(){ try{ localStorage.setItem(LS, JSON.stringify(st)); }catch(e){} if(window.LP_SYNC) window.LP_SYNC.cambio("reunion"); }
+  function guardar(){ try{ localStorage.setItem(LS, JSON.stringify(st)); }catch(e){} if(window.LP_SYNC) window.LP_SYNC.cambio("reunion"); repintarTableros(); }
   function esc(t){ return String(t == null ? "" : t).replace(/[&<>"']/g, function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]; }); }
   function hoyIso(){ var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
   function fc(iso){ if(!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) return iso || ""; var p = iso.split("-"); return p[2].slice(0,2) + "/" + p[1] + "/" + p[0].slice(2); }
@@ -3064,6 +3443,40 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   function sem(v){ return v == null ? "" : (v >= 4.5 ? "ok" : (v >= 3.5 ? "mid" : "bad")); }
   function uidR(){ return "r" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
   function vencida(r){ return !r.ok && r.req && r.req < hoyIso(); }
+  /* ---- v6: el registro es el \u00fanico lugar de las restricciones; las tarjetas solo las muestran ---- */
+  var TIPOS_R = ["Materiales","Mano de obra","Equipos","Terreno","Permisos / autorizaciones","Informaci\u00f3n y dise\u00f1o","Contratos","Inspecci\u00f3n","Seguridad","Subcontratos","Otra"];
+  function repintarTableros(){ var B = window.PIZARRA_BOARDS || {}; ["semanal","intermedio"].forEach(function(k){ if(B[k] && B[k].repintar) B[k].repintar(); }); }
+  function guardarPlanilla(k2){
+    if(!window.LP_SYNC || !window.LP_SYNC.guardar) return;
+    var p = window.LP_SYNC.guardar("reunion");
+    if(k2) Promise.resolve(p).then(function(){ window.LP_SYNC.guardar(k2); });
+  }
+  function nuevaDesdeTarea(c){
+    var ov = document.createElement("div"); ov.className = "sel-overlay";
+    ov.innerHTML = '<div class="sel-box" role="dialog" aria-modal="true" aria-label="Nueva restricci\u00f3n"><h3>\uff0b Restricci\u00f3n</h3><p>' + esc(c.partida || "Tarea") + (c.fase ? ' \u00b7 ' + esc(c.fase) : '') + '</p>'
+      + '<label>\u00bfQu\u00e9 impide avanzar?<input class="nr-desc" maxlength="300" placeholder="ej. Falta moldaje para muros"></label>'
+      + '<label>Tipo<select class="nr-tipo">' + TIPOS_R.map(function(t){ return '<option>' + esc(t) + '</option>'; }).join("") + '</select></label>'
+      + '<label>Qui\u00e9n la resuelve<input class="nr-resp" maxlength="120" placeholder="Nombre o empresa"></label>'
+      + '<label>Requerida para<input class="nr-req" type="date"></label>'
+      + '<div class="sel-msg"></div><div class="sel-actions"><button type="button" class="btn-sm" data-c="no">Cancelar</button><button type="button" class="btn-sm sel-ok" data-c="si">Agregar restricci\u00f3n</button></div></div>';
+    document.body.appendChild(ov);
+    var $ = function(q){ return ov.querySelector(q); }, cerrar = function(){ ov.remove(); };
+    $(".nr-desc").focus();
+    ov.addEventListener("click", function(e){
+      var b = e.target.dataset && e.target.dataset.c; if(e.target === ov || b === "no"){ cerrar(); return; } if(b !== "si") return;
+      var d = $(".nr-desc").value.trim(); if(!d){ $(".sel-msg").textContent = "Escribe qu\u00e9 impide avanzar."; $(".sel-msg").className = "sel-msg err"; $(".nr-desc").focus(); return; }
+      st.restricciones.unshift({ id: uidR(), zona: c.zona || "", det: hoyIso(), fase: c.fase || "", partida: c.partida || "", tipo: $(".nr-tipo").value, desc: d, cliente: "",
+        resp: $(".nr-resp").value.trim(), req: $(".nr-req").value, lib: "", ok: false, nota: c.nota || "" });
+      guardar(); render(); cerrar(); guardarPlanilla();
+    });
+  }
+  function pasar(k, id){
+    var b = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS[k]; if(!b || !b.pasarRestriccion) return;
+    var r = b.pasarRestriccion(id); if(!r) return;
+    st.restricciones.unshift({ id: uidR(), zona: r.zona, det: hoyIso(), fase: r.fase, partida: r.partida, tipo: r.tipo, desc: (r.tipo ? r.tipo + ": " : "") + (r.partida || "restricci\u00f3n de la tarea"),
+      cliente: "", resp: r.resp, req: r.req, lib: "", ok: false, nota: r.nota });
+    guardar(); render(); guardarPlanilla(k);
+  }
   function todasR(){
     var b = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS.intermedio;
     var inter = (b && b.restricciones) ? b.restricciones() : [];
@@ -3137,7 +3550,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       return '<div class="reu-r'+(vencida(r) ? " venc" : "")+(deInter ? " inter" : "")+'"><div class="reu-r-top">'+est+'<span>'+(deInter ? '<b class="reu-origen">Intermedio</b> ' : '')+esc([r.zona, r.fase, r.tipo].filter(Boolean).join(" \u00b7 "))+'</span></div>'
         + '<div class="reu-r-desc">'+esc(r.desc)+'</div><div class="reu-r-meta">'+esc(r.partida)+(r.resp ? ' \u00b7 <b>'+esc(r.resp)+'</b>' : '')+' \u00b7 detectada '+fc(r.det)+'</div>'
         + '<div class="reu-acts">'+(r.ok ? '<button type="button" class="btn-sm" data-reu="reabrir" data-id="'+esc(r.id)+'">Reabrir</button>' : '<button type="button" class="btn-sm sel-ok" data-reu="liberar" data-id="'+esc(r.id)+'">\u2713 Liberar hoy</button>')
-        + (deInter ? '<span class="reu-r-meta">Se edita en la nota del Intermedio</span>' : '<button type="button" class="btn-sm" data-reu="edit-r" data-id="'+esc(r.id)+'">Editar</button>') + '</div></div>';
+        + (deInter ? '<button type="button" class="btn-sm" data-reu="pasar" data-id="'+esc(r.id)+'" title="La restricci\u00f3n queda en este registro y se quita de la tarjeta">Pasar al registro</button>' : '<button type="button" class="btn-sm" data-reu="edit-r" data-id="'+esc(r.id)+'">Editar</button>') + '</div></div>';
     }).join("");
     return '<div class="ind-kpis">'
       + '<div class="ind-kpi '+(ab.length ? "bad" : "ok")+'"><b>'+ab.length+'</b><span>abiertas</span></div>'
@@ -3213,7 +3626,10 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       + '<table class="rp-table"><thead><tr><th>Estado</th><th>Restricci\u00f3n</th><th>Tipo</th><th>Responsable</th><th>Requerida</th><th>Origen</th></tr></thead><tbody>'+rows+'</tbody></table>'
       + (ab.length > 15 ? '<p class="rp-note">Y '+(ab.length - 15)+' m\u00e1s.</p>' : '') + '</div>';
   }
-  window.LP_REU = { resumenHtml: resumenHtml, render: function(){ render(); } };
+  window.LP_REU = { resumenHtml: resumenHtml, render: function(){ render(); },
+    lista: function(){ return st.restricciones || []; },
+    nueva: nuevaDesdeTarea, pasar: pasar,
+    ver: function(){ vista = "restricciones"; filtroR = "abiertas"; editR = null; render(); if(window.LP_irTab) window.LP_irTab("reunion"); } };
 
   function render(){
     var box = document.getElementById("reuBody"); if(!box) return;
@@ -3259,6 +3675,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
     else if(a === "liberar"){ var r1 = findR(b.dataset.id); if(r1){ r1.ok = true; r1.lib = hoyIso(); } }
     else if(a === "reabrir"){ var r2 = findR(b.dataset.id); if(r2){ r2.ok = false; r2.lib = ""; } }
     else if(a === "imprimir-acta"){ imprimirActa(); return; }
+    else if(a === "pasar"){ pasar("intermedio", String(b.dataset.id).replace(/^n:/, "")); return; }
     else if(a === "add-evaluador"){ var ne = prompt("Subcontrato que eval\u00faa a la constructora"); if(!ne || !ne.trim()) return; var ev2 = st.evalConst[semEc] || (st.evalConst[semEc] = {}); if(!ev2[ne.trim()]) ev2[ne.trim()] = [null,null,null,null,null]; }
     else if(a === "historial"){ if((st.restricciones.length || nums(st.minutas).length) && !confirm("Esto reemplaza la reuni\u00f3n por el historial Curanipe (actas 15 a 65, 142 restricciones y evaluaci\u00f3n a la constructora). \u00bfContinuar?")) return; importar(); return; }
     else if(a === "borrar"){ if(!confirm("Esto borra actas, restricciones y evaluaciones de este equipo. \u00bfContinuar?")) return; st = vacio(); }
@@ -3282,10 +3699,48 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   window.PIZARRA_BOARDS.reunion = {
     key: "reunion",
     snapshot: function(){ return { meta: { titulo: "Reuni\u00f3n", subtitulo: "", columnas: [], categorias: [], extra: {}, reunion: st }, notas: [] }; },
-    aplicarRemoto: function(t){ st = t.reunion && t.reunion.minutas ? t.reunion : vacio(); try{ localStorage.setItem(LS, JSON.stringify(st)); }catch(e){} render(); },
+    aplicarRemoto: function(t){ st = t.reunion && t.reunion.minutas ? t.reunion : vacio(); try{ localStorage.setItem(LS, JSON.stringify(st)); }catch(e){} render(); repintarTableros(); },
     editando: function(){ var a = document.activeElement; return !!(a && a.closest && a.closest('section[data-board="reunion"]') && /INPUT|TEXTAREA|SELECT/.test(a.tagName)); }
   };
   render();
+})();
+</script>
+<script>
+/* ===== Avisos inferiores: guardados en segundo plano, fotos subiendo y errores con Reintentar ===== */
+(function(){
+  "use strict";
+  var box = document.createElement("div"); box.className = "cola-box"; box.hidden = true;
+  box.setAttribute("role", "status"); box.setAttribute("aria-live", "polite");
+  document.body.appendChild(box);
+  var items = {}, orden = [], flashT = null;
+  function esc(t){ return String(t == null ? "" : t).replace(/[&<>"]/g, function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]; }); }
+  function pintar(){
+    var h = orden.map(function(id){
+      var it = items[id];
+      return '<div class="' + (it.err ? 'cola-e' : 'cola-l') + '" data-id="' + esc(id) + '"><span>' + esc(it.txt) + '</span>'
+        + (it.barra != null ? '<div class="cola-bar"><i style="width:' + Math.round(it.barra * 100) + '%"></i></div>' : '')
+        + (it.acciones || []).map(function(a, i){ return '<button type="button" class="' + (i ? 'de' : 're') + '" data-i="' + i + '">' + esc(a[0]) + '</button>'; }).join("")
+        + '</div>';
+    }).join("");
+    box.innerHTML = h; box.hidden = !orden.length;
+  }
+  box.addEventListener("click", function(e){
+    var b = e.target.closest("button[data-i]"); if(!b) return;
+    var id = b.closest("[data-id]").dataset.id, it = items[id]; if(!it) return;
+    var a = it.acciones[+b.dataset.i]; if(a) a[1]();
+  });
+  window.LP_AVISOS = {
+    poner: function(id, it){ if(!items[id]) orden.push(id); items[id] = it; pintar(); },
+    quitar: function(id){ if(!items[id]) return; delete items[id]; orden = orden.filter(function(x){ return x !== id; }); pintar(); },
+    hay: function(){ return orden.length > 0; },
+    flash: function(txt){
+      var t = document.querySelector(".comp-toast.lp-flash"); if(t) t.remove(); clearTimeout(flashT);
+      t = document.createElement("div"); t.className = "comp-toast lp-flash"; t.setAttribute("role", "status"); t.textContent = txt;
+      document.body.appendChild(t); setTimeout(function(){ t.classList.add("on"); }, 10);
+      flashT = setTimeout(function(){ t.classList.remove("on"); setTimeout(function(){ t.remove(); }, 300); }, 2400);
+    }
+  };
+  window.addEventListener("beforeunload", function(e){ if(orden.some(function(id){ return !items[id].err || id.indexOf("reg-") === 0; })){ e.preventDefault(); e.returnValue = ""; } });
 })();
 </script>
 <script>
@@ -3293,9 +3748,10 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
 (function(){
   "use strict";
   var API = "https://script.google.com/macros/s/AKfycbxpgtBk20PhiH_qWPpLyK-1eGAEqDagCAMf6c-cCW_ZiRwBPc0zE5PBBdzAtD0lCi_P/exec";
-  var LS_INFO = "lastplanner-remoto-v1", SS_PIN = "lastplanner-pin", SS_AUTOR = "lastplanner-autor";
+  var LS_INFO = "lastplanner-remoto-v1", LS_COPIA = "lastplanner-remoto-copia-v1", SS_PIN = "lastplanner-pin", SS_AUTOR = "lastplanner-autor";
   var KEYS = ["semanal", "intermedio", "maestro", "indicadores", "reunion"];
-  var remoto = null, cargando = null, guardando = {};
+  var NOMBRE = { semanal:"Semanal", intermedio:"Intermedio", maestro:"Plan Maestro", indicadores:"Indicadores", reunion:"Reunión" };
+  var remoto = null, cargando = null, guardando = {}, desfasado = false;
   function B(k){ return window.PIZARRA_BOARDS && window.PIZARRA_BOARDS[k]; }
   function ss(k, v){ try{ if(v === undefined) return sessionStorage.getItem(k) || ""; if(v) sessionStorage.setItem(k, v); else sessionStorage.removeItem(k); }catch(e){} return ""; }
   function info(){ try{ return JSON.parse(localStorage.getItem(LS_INFO) || "{}"); }catch(e){ return {}; } }
@@ -3304,6 +3760,15 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   function pendiente(k){ var b = B(k), i = info()[k]; if(!b) return false; if(!i) return b.snapshot().notas.length > 0; return firma(b.snapshot()) !== i.firma; }
   function sec(k){ return document.querySelector('section[data-board="'+k+'"]'); }
   function esc(t){ return String(t || "").replace(/[<>&"]/g, function(c){ return ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"})[c]; }); }
+  /* copia local de la planilla: al abrir la app solo se pregunta si cambió algo */
+  function guardarCopia(){ try{ if(remoto && remoto.version) localStorage.setItem(LS_COPIA, JSON.stringify({ t: Date.now(), d: remoto })); }catch(e){ try{ localStorage.removeItem(LS_COPIA); }catch(e2){} } }
+  function leerCopia(){ try{ var c = JSON.parse(localStorage.getItem(LS_COPIA) || "null"); return c && c.d && c.d.ok ? c : null; }catch(e){ return null; } }
+  /* responde con la versión de los datos: si otra persona guardó entre medio, se descarga todo de nuevo */
+  function version(j){
+    if(!j || !j.version || !remoto) return;
+    if(!j.parcial){ remoto.version = j.version; return; }
+    if(!remoto.version || j.previa === remoto.version) remoto.version = j.version; else desfasado = true;
+  }
   function estado(k, txt, cls){
     var s = sec(k); if(!s) return;
     var el = s.querySelector(".sync-status"); if(el){ el.textContent = txt; el.className = "sync-status " + (cls || ""); }
@@ -3311,14 +3776,14 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   }
   function pintar(k){
     var i = info()[k];
-    if(guardando[k]) return estado(k, "Guardando\u2026", "");
-    if(pendiente(k)) return estado(k, "\u25cf Cambios sin guardar en la planilla" + (localTs && localTs[k] ? " \u00b7 respaldados en este equipo " + hhmm(localTs[k]) : ""), "pend");
-    if(i && i.version) return estado(k, "\u2713 En la planilla" + (i.autor ? " \u00b7 " + i.autor : "") + (i.actualizado ? " \u00b7 " + i.actualizado : ""), "ok");
-    estado(k, remoto ? "Planilla vac\u00eda" : "", "");
+    if(guardando[k]) return estado(k, "Guardando…", "");
+    if(pendiente(k)) return estado(k, "● Cambios sin guardar en la planilla" + (localTs && localTs[k] ? " · respaldados en este equipo " + hhmm(localTs[k]) : ""), "pend");
+    if(i && i.version) return estado(k, "✓ En la planilla" + (i.autor ? " · " + i.autor : "") + (i.actualizado ? " · " + i.actualizado : ""), "ok");
+    estado(k, remoto ? "Planilla vacía" : "", "");
   }
   function pintarEditBar(){
     var el = document.getElementById("editBar"); if(!el) return;
-    el.innerHTML = ss(SS_PIN) ? '<span>\ud83d\udd13 Edici\u00f3n activa en este equipo' + (ss(SS_AUTOR) ? ' \u00b7 ' + esc(ss(SS_AUTOR)) : '') + '</span><button type="button" class="btn-link" id="cerrarEdicion">Cerrar edici\u00f3n</button>' : "";
+    el.innerHTML = ss(SS_PIN) ? '<span>🔓 Edición activa en este equipo' + (ss(SS_AUTOR) ? ' · ' + esc(ss(SS_AUTOR)) : '') + '</span><button type="button" class="btn-link" id="cerrarEdicion">Cerrar edición</button>' : "";
     var b = document.getElementById("cerrarEdicion"); if(b) b.onclick = function(){ ss(SS_PIN, ""); pintarEditBar(); };
   }
   function aplicar(k){
@@ -3329,13 +3794,13 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   /* Regla: si en este equipo no hay cambios sin guardar, el tablero se arma desde la planilla */
   function integrar(){
     KEYS.forEach(function(k){
-      var b = B(k), t = remoto && remoto.tableros[k]; if(!b) return;
-      if(!t){ if(remoto) estado(k, pendiente(k) ? "\u25cf Cambios sin guardar \u00b7 falta actualizar el script de la planilla" : "Falta actualizar el script de la planilla", "warn"); return; }
+      var b = B(k), t = remoto && remoto.tableros && remoto.tableros[k]; if(!b) return;
+      if(!t){ if(remoto) estado(k, pendiente(k) ? "● Cambios sin guardar · falta actualizar el script de la planilla" : "Falta actualizar el script de la planilla", "warn"); return; }
       var i = info()[k];
       if(t.version > 0){
         if(!i && pendiente(k)){
           /* primera conexión de este equipo con datos propios que nunca se guardaron */
-          if(!b.editando() && confirm("La planilla compartida ya tiene el tablero " + k + " (guardado por " + (t.autor || "otra persona") + ").\n\nAceptar: cargar la versi\u00f3n compartida.\nCancelar: mantener lo de este equipo (queda como cambios sin guardar).")) aplicar(k);
+          if(!b.editando() && confirm("La planilla compartida ya tiene el tablero " + k + " (guardado por " + (t.autor || "otra persona") + ").\n\nAceptar: cargar la versión compartida.\nCancelar: mantener lo de este equipo (queda como cambios sin guardar).")) aplicar(k);
           else setInfo(k, { version: 0, firma: "" });
         }
         else if(!pendiente(k) && !b.editando() && (!i || i.version !== t.version)) aplicar(k);
@@ -3344,15 +3809,34 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       pintar(k);
     });
   }
-  function cargar(){
+  function recibir(j){
+    if(!j || !j.ok) throw new Error((j && j.error) || "error");
+    remoto = j; desfasado = false;
+    if(window.LP_setRegistros) window.LP_setRegistros(j.registros);
+    guardarCopia(); integrar();
+  }
+  function sinConexion(){ KEYS.forEach(function(k){ if(!pendiente(k)) estado(k, "Sin conexión con la planilla · tus cambios quedan en este equipo", "warn"); }); }
+  /* Sincronización liviana: primero pregunta la versión; descarga todo solo si algo cambió */
+  function cargar(forzar){
     if(cargando) return cargando;
-    cargando = fetch(API, { cache:"no-store" }).then(function(r){ return r.json(); }).then(function(j){
-      cargando = null; if(!j || !j.ok) throw new Error((j && j.error) || "error");
-      remoto = j; if(window.LP_setRegistros) window.LP_setRegistros(j.registros); integrar();
-    }).catch(function(){ cargando = null; KEYS.forEach(function(k){ if(!pendiente(k)) estado(k, "Sin conexi\u00f3n con la planilla \u00b7 tus cambios quedan en este equipo", "warn"); }); });
+    var copia = remoto ? { t: Date.now(), d: remoto } : leerCopia();
+    var fresca = copia && copia.d.version && (Date.now() - copia.t < 30 * 60000);
+    var completo = function(){ return fetch(API, { cache:"no-store" }).then(function(r){ return r.json(); }).then(recibir); };
+    var p = (forzar || !fresca || desfasado) ? completo()
+      : fetch(API + "?v=1", { cache:"no-store" }).then(function(r){ return r.json(); }).then(function(j){
+          if(!j || !j.ok) throw new Error("error");
+          if(j.tableros) return recibir(j);                      /* script anterior: entrega todo de una vez */
+          if(j.version === copia.d.version){
+            if(!remoto){ remoto = copia.d; if(window.LP_setRegistros) window.LP_setRegistros(remoto.registros); integrar(); }
+            return;
+          }
+          return completo();
+        });
+    cargando = p.then(function(){ cargando = null; }, function(){ cargando = null; sinConexion(); });
     return cargando;
   }
   function enviar(body){
+    body.liviano = 1;          /* el script nuevo responde solo lo que cambió */
     var go = function(){ return fetch(API, { method:"POST", body: JSON.stringify(body), redirect:"follow" }).then(function(r){ return r.json(); }); };
     return go().catch(function(){ return go(); });
   }
@@ -3362,9 +3846,9 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       if(ss(SS_PIN) && ss(SS_AUTOR)) return res({ pin: ss(SS_PIN), autor: ss(SS_AUTOR) });
       var ov = document.createElement("div"); ov.className = "sel-overlay";
       ov.innerHTML = '<div class="sel-box" role="dialog" aria-modal="true" aria-label="Guardar en la planilla"><h3>Guardar en la planilla compartida</h3>'
-        + '<p>Tu nombre queda en la bit\u00e1cora. El PIN se pide una vez por sesi\u00f3n.</p>'
+        + '<p>Tu nombre queda en la bitácora. El PIN se pide una vez por sesión.</p>'
         + '<label for="lpAutor">Tu nombre</label><input id="lpAutor" maxlength="60" autocomplete="name" value="' + esc(ss(SS_AUTOR)) + '">'
-        + '<label for="lpPin">PIN de edici\u00f3n</label><input id="lpPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8">'
+        + '<label for="lpPin">PIN de edición</label><input id="lpPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8">'
         + '<div class="sel-msg"></div><div class="sel-actions"><button type="button" class="btn-sm" data-c="no">Cancelar</button><button type="button" class="btn-sm sel-ok" data-c="si">Guardar</button></div></div>';
       document.body.appendChild(ov);
       var a = ov.querySelector("#lpAutor"), p = ov.querySelector("#lpPin"), msg = ov.querySelector(".sel-msg");
@@ -3372,7 +3856,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       function fin(v){ document.removeEventListener("keydown", tec); ov.remove(); res(v); }
       function ok(){
         if(!a.value.trim()){ msg.textContent = "Escribe tu nombre."; msg.className = "sel-msg err"; a.focus(); return; }
-        if(!/^\d{4,8}$/.test(p.value.trim())){ msg.textContent = "El PIN tiene de 4 a 8 d\u00edgitos."; msg.className = "sel-msg err"; p.focus(); return; }
+        if(!/^\d{4,8}$/.test(p.value.trim())){ msg.textContent = "El PIN tiene de 4 a 8 dígitos."; msg.className = "sel-msg err"; p.focus(); return; }
         fin({ pin: p.value.trim(), autor: a.value.trim() });
       }
       function tec(e){ if(e.key === "Escape") fin(null); else if(e.key === "Enter") ok(); }
@@ -3380,41 +3864,72 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       ov.addEventListener("click", function(e){ var c = e.target.dataset && e.target.dataset.c; if(e.target === ov || c === "no") fin(null); else if(c === "si") ok(); });
     });
   }
+  /* Guardar en segundo plano: puedes seguir trabajando; el aviso inferior muestra el avance o el error */
   function guardar(k, forzar){
-    var b = B(k); if(!b || guardando[k]) return;
-    if(remoto && !remoto.tableros[k]){ alert("Para guardar el Plan Maestro, primero actualiza el script de la planilla (Apps Script) con la versi\u00f3n nueva."); return; }
-    credenciales().then(function(c){
+    var b = B(k); if(!b || guardando[k]) return Promise.resolve();
+    if(b.soloLectura && b.soloLectura()){ alert("Est\u00e1s viendo una semana guardada (solo lectura). Vuelve a la semana actual para guardar."); return Promise.resolve(); }
+    if(remoto && !remoto.tableros[k]){ alert("Para guardar este tablero, primero actualiza el script de la planilla (Apps Script) con la versi\u00f3n nueva."); return Promise.resolve(); }
+    return credenciales().then(function(c){
       if(!c) return;
       var snap = b.snapshot(), i = info()[k] || { version: 0 };
+      var body = { accion:"guardarTablero", pin:c.pin, autor:c.autor, tablero:k, meta:snap.meta, notas:snap.notas, baseVersion:i.version, forzar:!!forzar };
+      if(b.inicioSemana) body.semana = b.inicioSemana();
       guardando[k] = true; pintar(k);
-      enviar({ accion:"guardarTablero", pin:c.pin, autor:c.autor, tablero:k, meta:snap.meta, notas:snap.notas, baseVersion:i.version, forzar:!!forzar }).then(function(j){
+      if(window.LP_AVISOS) window.LP_AVISOS.poner("tab-" + k, { txt: "⏳ Guardando " + NOMBRE[k] + "…" });
+      return enviar(body).then(function(j){
         guardando[k] = false;
+        if(window.LP_AVISOS) window.LP_AVISOS.quitar("tab-" + k);
         if(j && j.ok){
           ss(SS_PIN, c.pin); ss(SS_AUTOR, c.autor); pintarEditBar();
-          remoto = j; var t = j.tableros[k];
+          if(j.parcial && remoto){
+            version(j);
+            remoto.tableros[k] = j.tableros[k]; remoto.notas[k] = j.notas[k];
+            if(j.historial) remoto.historial = j.historial;
+          } else { remoto = j; if(window.LP_setRegistros) window.LP_setRegistros(j.registros); }
+          var t = j.tableros[k];
           setInfo(k, { version: t.version, firma: firma(snap), autor: t.autor, actualizado: t.actualizado });
-          integrar(); return;
+          guardarCopia(); integrar();
+          if(window.LP_AVISOS) window.LP_AVISOS.flash("✓ " + NOMBRE[k] + " guardado en la planilla");
+          if(desfasado) setTimeout(function(){ cargar(true); }, 300);
+          return;
         }
         if(j && j.conflicto){
           ss(SS_PIN, c.pin); ss(SS_AUTOR, c.autor); pintarEditBar(); pintar(k);
-          if(confirm((j.autor || "Otra persona") + " guard\u00f3 cambios en este tablero" + (j.actualizado ? " (" + j.actualizado + ")" : "") + ".\n\nAceptar: reemplazar la planilla con TU versi\u00f3n.\nCancelar: descartar tus cambios y cargar la versi\u00f3n de la planilla.")) guardar(k, true);
+          if(confirm((j.autor || "Otra persona") + " guardó cambios en este tablero" + (j.actualizado ? " (" + j.actualizado + ")" : "") + ".\n\nAceptar: reemplazar la planilla con TU versión.\nCancelar: descartar tus cambios y cargar la versión de la planilla.")) guardar(k, true);
           else recargar(k, true);
           return;
         }
         if(j && /PIN/.test(j.error || "")) ss(SS_PIN, "");
         pintarEditBar(); pintar(k);
-        alert((j && j.error) || "No se pudo guardar. Revisa la conexi\u00f3n.");
-      }).catch(function(){ guardando[k] = false; pintar(k); alert("No se pudo conectar con la planilla. Tus cambios siguen en este equipo."); });
+        fallo(k, (j && j.error) || "No se pudo guardar");
+      }).catch(function(){ guardando[k] = false; if(window.LP_AVISOS) window.LP_AVISOS.quitar("tab-" + k); pintar(k); fallo(k, "Sin conexión con la planilla (tus cambios siguen en este equipo)"); });
     });
   }
+  function fallo(k, txt){
+    if(!window.LP_AVISOS){ alert(txt); return; }
+    window.LP_AVISOS.poner("tab-" + k, { err: true, txt: "⚠ " + NOMBRE[k] + ": " + txt,
+      acciones: [["Reintentar", function(){ window.LP_AVISOS.quitar("tab-" + k); guardar(k); }], ["Cerrar", function(){ window.LP_AVISOS.quitar("tab-" + k); }]] });
+  }
   function recargar(k, sinPreguntar){
-    if(!sinPreguntar && pendiente(k) && !confirm("Se descartan los cambios de este equipo y se carga la versi\u00f3n de la planilla. \u00bfContinuar?")) return;
-    cargar().then(function(){ if(remoto && remoto.tableros[k] && remoto.tableros[k].version > 0) aplicar(k); pintar(k); });
+    if(!sinPreguntar && pendiente(k) && !confirm("Se descartan los cambios de este equipo y se carga la versión de la planilla. ¿Continuar?")) return;
+    cargar(true).then(function(){ if(remoto && remoto.tableros[k] && remoto.tableros[k].version > 0) aplicar(k); pintar(k); });
   }
   var timer = {}, localTs = {};
   function hhmm(t){ var d = new Date(t); return ("0"+d.getHours()).slice(-2) + ":" + ("0"+d.getMinutes()).slice(-2); }
-  window.LP_SYNC = { cambio: function(k){ localTs[k] = Date.now(); clearTimeout(timer[k]); timer[k] = setTimeout(function(){ pintar(k); }, 150); } };
-  if(!/^https:\/\/script\.google\.com\//.test(API)) return;
+  window.LP_SYNC = {
+    cambio: function(k){ localTs[k] = Date.now(); clearTimeout(timer[k]); timer[k] = setTimeout(function(){ pintar(k); }, 150); },
+    guardar: function(k){ return guardar(k); },
+    pendiente: function(k){ return pendiente(k); },
+    version: version,
+    cargar: function(f){ return cargar(f); },
+    /* registros (avance, fotos): actualiza la copia local con lo que respondió el script */
+    registros: function(lista){ if(remoto && Array.isArray(lista)){ remoto.registros = lista; guardarCopia(); } if(desfasado) setTimeout(function(){ cargar(true); }, 300); },
+    historial: function(){ return (remoto && Array.isArray(remoto.historial)) ? remoto.historial : null; },
+    semana: function(iso, k){ return fetch(API + "?semana=" + encodeURIComponent(iso) + "&tablero=" + (k || "semanal"), { cache:"no-store" }).then(function(r){ return r.json(); }); },
+    v2: function(){ return !!(remoto && remoto.version); },
+    api: API
+  };
+  if(!/^https?:\/\//.test(API)) return;
   Array.prototype.forEach.call(document.querySelectorAll("[data-sync]"), function(b){ b.hidden = false; });
   document.addEventListener("click", function(e){
     var b = e.target.closest("[data-sync]"); if(!b) return;
@@ -3614,10 +4129,11 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   function hoy(){ var d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
   var TIPOS = [["Avance","Avance"],["Comentarios","0. Comentarios"],["Prevenci\u00f3n","0. Prevenci\u00f3n"]];
   function chip(t){ return t === "Comentarios" ? '<span class="rg-chip rg-com">\ud83d\udcac Comentario</span>' : (t === "Prevenci\u00f3n" ? '<span class="rg-chip rg-prev">\ud83e\uddba Prevenci\u00f3n</span>' : '<span class="rg-chip rg-av">\ud83d\udcc8 Avance</span>'); }
-  window.LP_setRegistros = function(r){ if(Array.isArray(r)) REG = r; };
+  window.LP_setRegistros = function(r){ if(Array.isArray(r)){ BASE = r; refrescar(); } };
   window.LP_contarRegistros = function(id){ return REG.filter(function(x){ return x.nota === id; }).length; };
   function enviar(body){
     body.autor = body.autor || ss(SS_AUTOR) || "Sin nombre";
+    body.liviano = 1;      /* el script nuevo responde solo los registros */
     return fetch(API, { method:"POST", body: JSON.stringify(body), redirect:"follow" }).then(function(r){ return r.json(); });
   }
   /* ---- fotos: se leen a memoria al elegirlas y se reducen a 1600 px ---- */
@@ -3636,15 +4152,133 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
     return p.then(function(r){ if(r && r.datos) return r; if(/^image\/(jpeg|png|webp)$/.test(blob.type) && blob.size <= 9*1024*1024) return aB64(blob).then(function(d){ return d ? { nombre:n, tipo:blob.type, datos:d } : null; }); return null; });
   }
   function comprimirTodas(b){ return b && b.length ? Promise.all(Array.prototype.slice.call(b, 0, 10).map(comprimir)).then(function(a){ return a.filter(Boolean); }) : Promise.resolve([]); }
+  /* ---- copia de la planilla + cambios que se están guardando (se muestran al instante) ---- */
+  var BASE = [], COLA = [], colaN = 0, laneDatos = false, laneFotos = false;
+  function v2(){ return !!(window.LP_SYNC && window.LP_SYNC.v2 && window.LP_SYNC.v2()); }
+  function clon(a){ return (a || []).map(function(x){ var o = {}; for(var k in x) o[k] = x[k]; return o; }); }
+  function nuevoId(){
+    if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c){ var r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16); });
+  }
+  function proyectar(){
+    var a = clon(BASE);
+    COLA.forEach(function(t){ try{ if(t.parche) t.parche(a, t); }catch(e){} });
+    REG = a;
+  }
+  function fusionar(j){
+    if(!j || !j.ok) return;
+    if(Array.isArray(j.registros)) BASE = j.registros;
+    if(j.registro) BASE.forEach(function(a){ if(a.id === j.registro.id){ a.fotos = j.registro.fotos || []; a.nfotos = j.registro.nfotos || 0; a.fotosUrl = j.registro.fotosUrl || ""; } });
+    if(window.LP_SYNC){ if(window.LP_SYNC.version) window.LP_SYNC.version(j); if(window.LP_SYNC.registros) window.LP_SYNC.registros(BASE); }
+  }
+  function refrescar(){ proyectar(); refrescarNotas(); if(!modal.hidden && modal._refrescar){ try{ modal._refrescar(); }catch(e){} } }
+  function etiqueta(t){ return String((ctx && ctx.nota && ctx.nota.text) || t || "Registro").slice(0, 40); }
+  function pintarCola(){
+    var A = window.LP_AVISOS; if(!A) return;
+    var datos = COLA.filter(function(t){ return t.tipo !== "fotos" && t.estado !== "error"; });
+    if(datos.length) A.poner("reg-datos", { txt: "⏳ Guardando " + (datos.length === 1 ? "1 registro" : datos.length + " registros") + "…" }); else A.quitar("reg-datos");
+    var fotos = COLA.filter(function(t){ return t.tipo === "fotos" && t.estado !== "error"; }), tot = 0, he = 0;
+    fotos.forEach(function(f){ tot += f.items.length; he += f.items.filter(function(i){ return i.ok; }).length; });
+    if(fotos.length) A.poner("reg-fotos", { txt: "📷 Subiendo fotos · " + he + " de " + tot, barra: tot ? he / tot : 0 }); else A.quitar("reg-fotos");
+    COLA.forEach(function(t){
+      if(t.estado !== "error") { A.quitar("reg-e" + t.uid); return; }
+      A.poner("reg-e" + t.uid, { err: true, txt: "⚠ " + t.etiqueta + ": " + t.error, acciones: [
+        ["Reintentar", function(){
+          if(t.pinMalo){ var p = (window.prompt("PIN de edición:") || "").trim(); if(!p) return; COLA.forEach(function(x){ if(x.pinMalo){ x.pinMalo = false; x.pin = p; if(x.body) x.body.pin = p; x.estado = "espera"; } }); }
+          t.estado = "espera"; t.error = ""; refrescar(); pintarCola(); bombear(); }],
+        ["Descartar", function(){ if(!confirm("¿Descartar este cambio? No quedará guardado en la planilla.")) return; COLA = COLA.filter(function(x){ return x !== t; }); window.LP_AVISOS.quitar("reg-e" + t.uid); refrescar(); pintarCola(); }]] });
+    });
+  }
+  function tarea(t){ t.uid = ++colaN; t.estado = "espera"; if(t.body && !t.pin) t.pin = t.body.pin; COLA.push(t); refrescar(); pintarCola(); bombear(); return t; }
+  function finCola(){
+    refrescar(); pintarCola();
+    var m = modal.hidden ? null : modal.querySelector("#rgMsg"), activo = COLA.some(function(t){ return t.estado !== "error"; });
+    if(m && !activo && /Se est\u00e1 guardando|se est\u00e1n subiendo/.test(m.textContent)){
+      var err = COLA.length > 0; m.textContent = err ? "\u26a0 Un cambio no se guard\u00f3: usa Reintentar en el aviso de abajo." : "\u2713 Guardado para todos"; m.className = "rg-msg" + (err ? " err" : " ok");
+    }
+    bombear();
+  }
+  function fallar(t, txt, esPin){
+    var lote = [t];
+    if(esPin){ ss(SS_PIN, ""); lote = COLA.filter(function(x){ return x.estado !== "error" && x.pin === t.pin; }); }
+    lote.forEach(function(x){ x.estado = "error"; x.error = txt; x.pinMalo = !!esPin; });
+  }
+  function enviarSeguro(body, intentos){
+    var n = 0, espera = function(ms){ return new Promise(function(ok){ setTimeout(ok, ms); }); };
+    function ir(){ return enviar(body).then(function(j){ if(j && j.ocupado && n < intentos){ n++; return espera(1500).then(ir); } return j; },
+      function(err){ if(n < intentos){ n++; return espera(1500 * n).then(ir); } throw err; }); }
+    return ir();
+  }
+  function bombear(){
+    if(!laneDatos){
+      var t = COLA.filter(function(x){ return x.tipo !== "fotos" && x.estado === "espera"; })[0];
+      if(t){
+        laneDatos = true; t.estado = "enviando"; pintarCola();
+        enviarSeguro(t.body, 2).then(function(j){
+          laneDatos = false;
+          if(!j || !j.ok){ fallar(t, (j && j.error) || "no se pudo guardar", !!(j && /PIN/.test(j.error || ""))); return; }
+          ss(SS_PIN, t.pin);
+          COLA = COLA.filter(function(x){ return x !== t; });
+          fusionar(j);
+          if(t.alExito){ try{ t.alExito(j); }catch(e){} }
+        }, function(){ laneDatos = false; fallar(t, "sin conexión, no se guardó", false); }).then(finCola);
+      }
+    }
+    if(!laneFotos){ var f = COLA.filter(function(x){ return x.tipo === "fotos" && x.estado === "espera"; })[0]; if(f) subirTarea(f); }
+  }
+  /* fotos: de a una por envío (dos en paralelo) con avance visible; cada foto lleva una clave para no duplicarla al reintentar */
+  function subirTarea(f){
+    laneFotos = true; f.estado = "enviando"; pintarCola();
+    var pend = f.items.filter(function(i){ return !i.ok; }), cortar = false, ultimo = "";
+    function una(){
+      var it = pend.shift(); if(!it || cortar) return Promise.resolve();
+      return comprimir(it.b).then(function(ft){
+        if(!ft){ ultimo = "no se pudo leer una foto"; return; }
+        return enviarSeguro({ accion:"agregarFotos", id:f.regId, pin:f.pin, fotos:[ft], clave:it.clave, orden:it.i + 1, breve:1 }, 2).then(function(j){
+          if(!j || !j.ok){ ultimo = (j && j.error) || "no se pudo subir"; if(j && /PIN|encontrado|Demasiados/.test(j.error || "")){ cortar = true; f.pinMalo = /PIN/.test(j.error); } return; }
+          it.ok = true; it.b = null; ss(SS_PIN, f.pin); fusionar(j); refrescar(); pintarCola();
+        });
+      }).catch(function(){ ultimo = "sin conexión"; }).then(una);
+    }
+    una().then(function(){ return Promise.all([una(), una()]); }).then(function(){
+      laneFotos = false;
+      var faltan = f.items.filter(function(i){ return !i.ok; }).length;
+      if(!faltan){ COLA = COLA.filter(function(x){ return x !== f; }); if(window.LP_AVISOS) window.LP_AVISOS.flash("✓ " + f.items.length + (f.items.length === 1 ? " foto subida" : " fotos subidas")); }
+      else { f.estado = "error"; f.error = (faltan === 1 ? "falta 1 foto" : "faltan " + faltan + " fotos") + " (" + ultimo + ")"; if(f.pinMalo) ss(SS_PIN, ""); }
+      finCola();
+    });
+  }
+  function tareaFotos(regId, blobs, pin, nombre){
+    return tarea({ tipo:"fotos", regId:regId, pin:pin, etiqueta: String(nombre || "Registro").slice(0, 40) + " · fotos",
+      items: blobs.map(function(b, i){ return { b:b, i:i, clave:nuevoId(), ok:false }; }),
+      parche: function(a, t){
+        var r = a.filter(function(x){ return x.id === regId; })[0]; if(!r) return;
+        var he = t.items.filter(function(x){ return x.ok; }).length, falta = t.items.length - he;
+        r._subErr = t.estado === "error";
+        r._sub = r._subErr ? (falta === 1 ? "falta 1 foto" : "faltan " + falta + " fotos") : "subiendo " + he + "/" + t.items.length;
+      } });
+  }
   /* ---- ventana de registros ---- */
   var modal = document.createElement("div"); modal.className = "rg-overlay"; modal.hidden = true; document.body.appendChild(modal);
   modal.addEventListener("click", function(e){ if(e.target === modal) cerrar(); });
   document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !modal.hidden && gal.hidden) cerrar(); });
   function cerrar(){ modal.hidden = true; modal.innerHTML = ""; }
   var ctx = null;
+  function histHtml(hist){
+    return hist.length ? hist.map(function(a){
+      return '<li data-reg="'+esc(a.id)+'"'+(a._pend?' class="rg-espera"':'')+'>'+chip(a.tipo)+'<span class="rg-f">'+fmt(a.fecha)+'</span>'+(a.avance!==''&&a.tipo==='Avance'?'<span class="rg-pct">'+esc(a.avance)+'%</span>':'')
+        +(a.obs?'<span class="rg-obs">'+esc(a.obs)+'</span>':'')+(a.autor?'<span class="rg-f">'+esc(a.autor)+'</span>':'')
+        +(a._pend ? '<span class="rg-pend'+(a._pend==="error"?' err':'')+'">'+(a._pend==="error"?'\u26a0 sin guardar':'\u23f3 guardando\u2026')+'</span>' : '')
+        +(a.nfotos?'<button type="button" class="rg-link" data-gal="'+esc(a.id)+'">\ud83d\udcf7 '+a.nfotos+' foto'+(a.nfotos===1?'':'s')+'</button>':'')
+        +(a._sub ? '<span class="rg-pend'+(a._subErr?' err':'')+'">\ud83d\udcf7 '+esc(a._sub)+'</span>' : '')
+        +(a._pend || (a._sub && !a._subErr) ? '' : '<button type="button" class="rg-link" data-add="'+esc(a.id)+'">+ Fotos</button>')
+        +(a._pend ? '' : '<button type="button" class="rg-link" data-edit="'+esc(a.id)+'">Editar</button><button type="button" class="rg-link rg-danger" data-anular="'+esc(a.id)+'">Anular</button>')+'</li>';
+    }).join("") : '<li class="rg-vacio">Sin registros todav\u00eda</li>';
+  }
+  function histDe(id){ return REG.filter(function(x){ return x.nota === id; }).sort(function(a,b){ return (b.fecha + b.registrado).localeCompare(a.fecha + a.registrado); }); }
   function abrir(tablero, nota, fase){
     ctx = { tablero: tablero, nota: nota, fase: fase };
-    var hist = REG.filter(function(x){ return x.nota === nota.id; }).sort(function(a,b){ return (b.fecha + b.registrado).localeCompare(a.fecha + a.registrado); });
+    var hist = histDe(nota.id);
     var pin = ss(SS_PIN);
     var avs = ["","100","75","50","25","0"].map(function(v){ return '<option value="'+v+'"'+(v==="100"?' selected':'')+'>'+(v===""?"\u2013":v+"%")+'</option>'; }).join("");
     modal.innerHTML = '<div class="rg-card" role="dialog" aria-modal="true" aria-label="Registros de la tarea">'
@@ -3658,13 +4292,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       + '<label class="rg-full">\ud83d\udcf7 Fotos (opcional, m\u00e1x. 10)<input type="file" id="rgFotos" accept="image/*" multiple></label><div class="rg-thumbs" id="rgThumbs"></div>'
       + (pin ? '' : '<div class="rg-grid"><label>Tu nombre<input type="text" id="rgAutor" maxlength="60" value="'+esc(ss(SS_AUTOR))+'"></label><label>PIN<input type="password" id="rgPin" inputmode="numeric" autocomplete="off" maxlength="8"></label></div>')
       + '<div class="rg-msg" id="rgMsg"></div><button type="button" class="rg-save" id="rgSave">Guardar registro</button>'
-      + '<div class="rg-lbl">Historial de la tarea</div><ul class="rg-hist">'
-      + (hist.length ? hist.map(function(a){
-          return '<li data-reg="'+esc(a.id)+'">'+chip(a.tipo)+'<span class="rg-f">'+fmt(a.fecha)+'</span>'+(a.avance!==''&&a.tipo==='Avance'?'<span class="rg-pct">'+esc(a.avance)+'%</span>':'')
-            +(a.obs?'<span class="rg-obs">'+esc(a.obs)+'</span>':'')+(a.autor?'<span class="rg-f">'+esc(a.autor)+'</span>':'')
-            +(a.nfotos?'<button type="button" class="rg-link" data-gal="'+esc(a.id)+'">\ud83d\udcf7 '+a.nfotos+' foto'+(a.nfotos===1?'':'s')+'</button>':'')
-            +'<button type="button" class="rg-link" data-add="'+esc(a.id)+'">+ Fotos</button><button type="button" class="rg-link" data-edit="'+esc(a.id)+'">Editar</button><button type="button" class="rg-link rg-danger" data-anular="'+esc(a.id)+'">Anular</button></li>';
-        }).join("") : '<li class="rg-vacio">Sin registros todav\u00eda</li>') + '</ul></div></div>';
+      + '<div class="rg-lbl">Historial de la tarea</div><ul class="rg-hist">' + histHtml(hist) + '</ul></div></div>';
     modal.hidden = false;
     var fotosSel = [];
     modal.querySelector(".rg-x").onclick = cerrar;
@@ -3680,6 +4308,13 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       mandar({ accion:"registrar", tablero: ctx.tablero, nota: nota.id, tarea: nota.text || "", fase: fase, zona: nota.zona || "", tipo: tipo,
                fecha: modal.querySelector("#rgFecha").value, avance: tipo === "Avance" ? modal.querySelector("#rgAv").value : "", obs: obs }, this, m, fotosSel);
     };
+    enlazar();
+    /* refresca solo el historial, sin tocar el formulario ni las fotos elegidas */
+    modal._refrescar = function(){
+      if(!ctx || ctx.nota !== nota || modal.querySelector(".rg-editando, .rg-pinbox")) return;
+      hist = histDe(nota.id); var ul = modal.querySelector(".rg-hist"); if(ul) ul.innerHTML = histHtml(hist); enlazar();
+    };
+    function enlazar(){
     modal.querySelectorAll("[data-gal]").forEach(function(b){ b.onclick = function(){ abrirGaleria(b.dataset.gal); }; });
     modal.querySelectorAll("[data-add]").forEach(function(b){ b.onclick = function(){
       var inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.multiple = true;
@@ -3687,6 +4322,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       inp.click(); }; });
     modal.querySelectorAll("[data-anular]").forEach(function(b){ b.onclick = function(){ cajaPin(b.closest("li"), "\u00bfAnular este registro?", "Anular", function(pin, m, btn){ mandar({ accion:"anular", id: b.dataset.anular, pin: pin }, btn, m); }); }; });
     modal.querySelectorAll("[data-edit]").forEach(function(b){ b.onclick = function(){ editar(b.closest("li"), hist.find(function(x){ return x.id === b.dataset.edit; })); }; });
+    }
   }
   function aviso(m, t, ok){ m.textContent = t; m.className = "rg-msg" + (ok ? " ok" : " err"); }
   function credencial(){
@@ -3697,13 +4333,53 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   function mandar(body, btn, m, fotos){
     var pin = body.pin || credencial();
     if(!pin){ var pi = modal.querySelector("#rgPin"); if(pi) pi.focus(); return aviso(m, "Ingresa el PIN."); }
-    body.pin = pin; btn.disabled = true; aviso(m, fotos && fotos.length ? "Preparando fotos\u2026" : "Guardando\u2026", true); m.className = "rg-msg";
-    comprimirTodas(fotos).then(function(f){ if(f.length){ body.fotos = f; aviso(m, "Subiendo " + f.length + " foto" + (f.length===1?"":"s") + "\u2026", true); m.className = "rg-msg"; } else if(fotos && fotos.length) throw new Error("fotos"); return enviar(body); })
-      .then(function(j){
+    body.pin = pin;
+    var blobs = Array.prototype.slice.call(fotos || [], 0, 10), c = ctx, nota = c.nota;
+    var rec = REG.filter(function(x){ return x.id === body.id; })[0];
+    /* ---- script nuevo: las fotos suben en segundo plano, una por una ---- */
+    if(v2() && body.accion === "agregarFotos"){
+      if(!blobs.length) return aviso(m, "No se pudieron leer las fotos. Vuelve a elegirlas.");
+      tareaFotos(body.id, blobs, pin, rec ? rec.tarea : nota.text); return;
+    }
+    /* ---- guardado instant\u00e1neo: PIN ya confirmado en esta sesi\u00f3n ---- */
+    if(v2() && pin === ss(SS_PIN) && /^(registrar|editarRegistro|anular)$/.test(body.accion)){
+      var t = { accion: body.accion, body: body, etiqueta: String(nota.text || "Registro").slice(0, 40) };
+      var marca = function(tt){ return tt.estado === "error" ? "error" : "1"; };
+      if(body.accion === "registrar"){
+        body.id = nuevoId(); if(blobs.length) body.conFotos = 1;
+        var d0 = new Date(), f0 = /^\d{4}-\d{2}-\d{2}$/.test(body.fecha || "") ? body.fecha : hoy();
+        var r0 = { id: body.id, tablero: body.tablero, nota: body.nota, tarea: body.tarea, fase: body.fase, zona: body.zona || "", tipo: body.tipo, fecha: f0,
+          avance: body.tipo === "Avance" ? String(body.avance || "") : "", obs: body.obs || "", fotosUrl:"", nfotos:0, fotos:[],
+          registrado: hoy() + "T" + ("0" + d0.getHours()).slice(-2) + ":" + ("0" + d0.getMinutes()).slice(-2), autor: ss(SS_AUTOR) || "" };
+        t.parche = function(a, tt){ var o = clon([r0])[0]; o._pend = marca(tt); if(blobs.length) o._sub = blobs.length + (blobs.length === 1 ? " foto por subir" : " fotos por subir"); a.push(o); };
+        t.alExito = function(){ if(blobs.length) tareaFotos(body.id, blobs, pin, nota.text); };
+      } else if(body.accion === "editarRegistro"){
+        t.etiqueta += " (edici\u00f3n)";
+        t.parche = function(a, tt){ var r = a.filter(function(x){ return x.id === body.id; })[0]; if(!r) return;
+          r.tipo = body.tipo; if(/^\d{4}-\d{2}-\d{2}$/.test(body.fecha || "")) r.fecha = body.fecha; r.avance = body.tipo === "Avance" ? String(body.avance || "") : ""; r.obs = body.obs || ""; r._pend = marca(tt); };
+      } else {
+        t.etiqueta += " (anular)";
+        t.parche = function(a){ for(var i = a.length - 1; i >= 0; i--) if(a[i].id === body.id) a.splice(i, 1); };
+      }
+      tarea(t);
+      abrir(c.tablero, c.nota, c.fase);
+      var m3 = modal.querySelector("#rgMsg"); if(m3) aviso(m3, "\u2713 Listo. Se est\u00e1 guardando en la planilla\u2026", true);
+      return;
+    }
+    /* ---- primer guardado de la sesi\u00f3n (hay que confirmar el PIN) o script anterior: espera la respuesta ---- */
+    var aparte = v2() && blobs.length > 0;
+    if(v2() && body.accion === "registrar"){ body.id = nuevoId(); if(aparte) body.conFotos = 1; }
+    btn.disabled = true; aviso(m, (!aparte && blobs.length) ? "Preparando fotos\u2026" : "Guardando\u2026", true); m.className = "rg-msg";
+    (aparte ? Promise.resolve([]) : comprimirTodas(blobs)).then(function(f){
+      if(f.length){ body.fotos = f; aviso(m, "Subiendo " + f.length + " foto" + (f.length===1?"":"s") + "\u2026", true); m.className = "rg-msg"; }
+      else if(!aparte && blobs.length) throw new Error("fotos");
+      return v2() ? enviarSeguro(body, 2) : enviar(body);
+    }).then(function(j){
         if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) ss(SS_PIN, ""); btn.disabled = false; return aviso(m, (j && j.error) || "No se pudo guardar."); }
         if(!body.pin || body.accion !== "anular") ss(SS_PIN, pin); else if(!ss(SS_PIN)) ss(SS_PIN, pin);
-        REG = j.registros || REG; abrir(ctx.tablero, ctx.nota, ctx.fase);
-        var m2 = modal.querySelector("#rgMsg"); if(m2) aviso(m2, "\u2713 Guardado para todos", true);
+        fusionar(j); proyectar(); abrir(c.tablero, c.nota, c.fase);
+        if(aparte) tareaFotos(body.id, blobs, pin, nota.text);
+        var m2 = modal.querySelector("#rgMsg"); if(m2) aviso(m2, aparte ? "\u2713 Guardado. Las fotos se est\u00e1n subiendo\u2026" : "\u2713 Guardado para todos", true);
         refrescarNotas();
       }).catch(function(err){ btn.disabled = false; aviso(m, err && err.message === "fotos" ? "No se pudieron leer las fotos. Vuelve a elegirlas." : "No se recibi\u00f3 confirmaci\u00f3n. Revisa el historial antes de reintentar."); });
   }
@@ -3756,11 +4432,11 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
     if(n) n.onclick = function(){ gPos = (gPos + 1) % gIds.length; pintarGal(); };
     gal.querySelector(".gal-del").onclick = function(){
       if(!confirm("\u00bfEliminar esta foto para todos?\nQueda 30 d\u00edas en la papelera de Drive.")) return;
-      var pin = ss(SS_PIN) || (window.prompt("PIN de edici\u00f3n:") || "").trim(); if(!pin) return;
+      var pin = (window.prompt("PIN de edici\u00f3n para eliminar la foto:") || "").trim(); if(!pin) return;   /* toda eliminaci\u00f3n pide el PIN */
       var m = gal.querySelector(".gal-msg"); m.textContent = "Eliminando\u2026";
       enviar({ accion:"borrarFoto", foto: id, pin: pin }).then(function(j){
         if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) ss(SS_PIN, ""); m.textContent = (j && j.error) || "No se pudo eliminar."; return; }
-        ss(SS_PIN, pin); REG = j.registros || REG; gIds.splice(gPos, 1);
+        ss(SS_PIN, pin); fusionar(j); proyectar(); gIds.splice(gPos, 1);
         if(!gIds.length){ gal.hidden = true; gal.innerHTML = ""; } else { if(gPos >= gIds.length) gPos = gIds.length - 1; pintarGal(); }
         abrir(ctx.tablero, ctx.nota, ctx.fase);
       }).catch(function(){ m.textContent = "No se recibi\u00f3 confirmaci\u00f3n."; });
@@ -3776,6 +4452,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   gal.addEventListener("touchend", function(e){ if(tx === null || gIds.length < 2) return; var dx = e.changedTouches[0].clientX - tx; tx = null; if(Math.abs(dx) > 50){ gPos = (gPos + (dx < 0 ? 1 : -1) + gIds.length) % gIds.length; pintarGal(); } });
   document.addEventListener("keydown", function(e){ if(gal.hidden) return; if(e.key === "Escape"){ gal.hidden = true; gal.innerHTML = ""; e.stopPropagation(); } else if(e.key === "ArrowLeft" && gIds.length > 1){ gPos = (gPos - 1 + gIds.length) % gIds.length; pintarGal(); } else if(e.key === "ArrowRight" && gIds.length > 1){ gPos = (gPos + 1) % gIds.length; pintarGal(); } }, true);
   window.LP_abrirRegistros = abrir;
+  window.LP_registros = function(){ return REG; };
 })();
 </script>
 </body>
