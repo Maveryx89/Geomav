@@ -98,13 +98,13 @@
       k: ['timelapse', 'time lapse', 'avance de obra', 'camara de obra']
     },
     cobertura: {
-      r: '<strong>Zona de trabajo habitual:</strong> centro-sur de Chile, principalmente las regiones del <strong>Maule</strong> y de <strong>O’Higgins</strong>. Si tu terreno está en otra zona, escríbenos y lo evaluamos.',
+      r: '<strong>Zona de trabajo habitual:</strong> <strong>Maule</strong>, <strong>O’Higgins</strong> y <strong>Chillán</strong>. Si tu terreno está en otra zona, escríbenos y lo evaluamos.',
       l: [],
       wa: 'quiero consultar si cubren mi zona',
       k: ['zona', 'cobertura', 'donde', 'cubren', 'atienden', 'region', 'talca', 'curico', 'linares', 'rancagua', 'maule', 'ohiggins', 'chillan', 'comuna']
     },
     cotizar: {
-      r: '<strong>Para cotizar</strong> necesitamos, idealmente:<ul><li>Ubicación (comuna y sector, o rol del predio)</li><li>Qué necesitas (plano, subdivisión, deslindes, vuelo, tour…)</li><li>Superficie aproximada y plazo</li><li>Título o plano anterior, si existe</li></ul>Mándalo por WhatsApp y te respondemos con una propuesta.',
+      r: '<strong>Para cotizar</strong> necesitamos, idealmente:<ul><li>Ubicación (comuna y sector, o rol del predio)</li><li>Qué necesitas (plano, subdivisión, deslindes, vuelo, tour…)</li><li>Superficie aproximada y plazo</li><li>Título de dominio, escritura o plano anterior, si existe</li></ul>Mándalo por WhatsApp y te respondemos con una propuesta.',
       l: [],
       wa: 'quiero cotizar un trabajo',
       k: ['cotiz', 'precio', 'valor', 'cuanto cuesta', 'cuanto sale', 'presupuesto', 'tarifa', 'costo']
