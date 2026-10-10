@@ -1068,6 +1068,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
     <div class="toolbar">
       <button class="btn-sm sync-save" type="button" data-sync="guardar" hidden><span aria-hidden="true">&#x2601;</span> Guardar en planilla</button>
       <button class="btn-sm" type="button" data-ind="informe"><span aria-hidden="true">&#x1F4C4;</span> Informe semanal</button>
+      <button class="btn-sm" type="button" data-ind="excel" title="Excel con Minuta, Last Planner, Restricciones, Consolidado, Evaluación y Plan Maestro"><span aria-hidden="true">&#x1F4CA;</span> Informe Excel</button>
       <button class="btn-sm" type="button" data-ind="bitacora"><span aria-hidden="true">&#x1F4DC;</span> Bit&aacute;cora</button>
       <details class="menu-mas">
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
@@ -1079,7 +1080,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
           <button class="btn-sm danger" type="button" data-ind="borrar">Borrar indicadores</button>
         </div>
       </details>
-      <details class="ayuda"><summary aria-label="Ayuda: Indicadores" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Indicadores</b><ol class="ay-l"><li>Cada semana cerrada en el Semanal suma un punto a la <b>curva PPC</b> (meta 80%).</li><li><b>Pareto</b>: causas de no cumplimiento, de mayor a menor.</li><li><b>Ranking</b>: cumplimiento por subcontrato o responsable.</li><li><b>Evaluación 1-3-5</b>: calidad, prevención, administración, plazo y compromiso.</li></ol><a class="ay-m" href="manual.html#indicadores">Ver manual completo &rarr;</a></div></details>
+      <details class="ayuda"><summary aria-label="Ayuda: Indicadores" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Indicadores</b><ol class="ay-l"><li>Cada semana cerrada en el Semanal suma un punto a la <b>curva PPC</b> (meta 80%).</li><li><b>Pareto</b>: causas de no cumplimiento, de mayor a menor.</li><li><b>Ranking</b>: cumplimiento por subcontrato o responsable.</li><li><b>Evaluación 1-3-5</b>: calidad, prevención, administración, plazo y compromiso.</li><li><b>📊 Informe Excel</b>: descarga la semana elegida en el formato de la obra (Minuta, Last Planner, Restricciones, Consolidado, Evaluación y Plan Maestro).</li></ol><a class="ay-m" href="manual.html#indicadores">Ver manual completo &rarr;</a></div></details>
       <span class="sync-status" aria-live="polite"></span>
     </div>
     <div id="indBody" class="ind-body"></div>
@@ -3293,6 +3294,86 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   }
   function fmtF(iso){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ""); return m ? m[3]+"-"+m[2]+"-"+m[1] : ""; }
   function addD(iso, n){ var p = iso.split("-"), d = new Date(+p[0], +p[1]-1, +p[2]); d.setDate(d.getDate() + n); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+
+  /* ---- Informe Excel: rellena la plantilla de la obra (Minuta, Last Planner, Restricciones, Consolidado, Ev. Subcontratista, Plan Maestro) ---- */
+  function cargarJs(src, listo){
+    return new Promise(function(ok, no){ if(listo()) return ok();
+      var sc = document.createElement("script"); sc.src = src; sc.onload = function(){ listo() ? ok() : no(new Error("No cargó " + src)); }; sc.onerror = function(){ no(new Error("Sin conexión: no se pudo cargar " + src)); }; document.head.appendChild(sc); });
+  }
+  function lunesDe(iso){ var p = iso.split("-"), d = new Date(+p[0], +p[1]-1, +p[2]); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  function hoyStr(){ var d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  function primerLunes(reu, extra){
+    var c = st.semanas.map(function(w){ return w.ini; });
+    Object.keys(reu.minutas || {}).forEach(function(k){ var m = reu.minutas[k]; if(m && m.fecha && (m.realizada !== false || (m.asistentes || []).length || (m.temas || []).length)) c.push(m.fecha); });
+    var h = (window.LP_SYNC && window.LP_SYNC.historial && window.LP_SYNC.historial()) || [];
+    h.forEach(function(x){ if(x.tablero === "semanal" && x.semana) c.push(x.semana); });
+    if(extra) c.push(extra);
+    c = c.filter(function(x){ return /^\d{4}-\d{2}-\d{2}/.test(x || ""); }).map(function(x){ return lunesDe(x.slice(0,10)); }).sort();
+    return c[0] || lunesDe(hoyStr());
+  }
+  function datosExcel(v){
+    var B = window.PIZARRA_BOARDS || {}, b = B.semanal, actual = v === "actual";
+    var reu = (B.reunion && B.reunion.snapshot().meta.reunion) || { personas: [], minutas: {}, restricciones: [] };
+    var w = actual ? null : st.semanas.filter(function(x){ return "n" + x.n === v; })[0];
+    var ini = lunesDe(actual ? b.inicioSemana() : w.ini), fin = addD(ini, 6);
+    var pl = primerLunes(reu, ini), U = window.LP_INFORME_XLSX._u, n = U.semanasEntre(pl, ini) + 1;
+    var tareasP = (b && b.inicioSemana && b.inicioSemana() === ini) ? Promise.resolve(b.snapshot())
+      : ((window.LP_SYNC && window.LP_SYNC.historial && (window.LP_SYNC.historial() || []).some(function(h){ return h.tablero === "semanal" && h.semana === ini; })) ? window.LP_SYNC.semana(ini).then(function(j){ return j && j.ok ? { meta: j.meta, notas: j.notas } : null; }).catch(function(){ return null; }) : Promise.resolve(null));
+    return tareasP.then(function(snap){
+      var semanas = st.semanas.slice();
+      if(actual && snap && !semanas.some(function(x){ return lunesDe(x.ini) === ini; })){
+        var ev = snap.notas.filter(function(x){ return x.cumplido === true || x.cumplido === false; }), c9 = [0,0,0,0,0,0,0,0,0];
+        ev.forEach(function(x){ var i = parseInt(x.causa, 10); if(x.cumplido === false && i >= 1 && i <= 9) c9[i-1]++; });
+        if(ev.length) semanas.push({ n: 0, ini: ini, prog: ev.length, log: ev.filter(function(x){ return x.cumplido; }).length, causas: c9, ev: {} });
+      }
+      var ks = Object.keys(reu.minutas || {}), minuta = null;
+      ks.forEach(function(k){ var m = reu.minutas[k]; if(m && m.fecha && m.fecha >= ini && m.fecha <= fin) minuta = m; });
+      if(!minuta && w && reu.minutas[w.n]) minuta = reu.minutas[w.n];
+      var previas = ks.map(Number).sort(function(a,b2){ return a-b2; }).map(function(k){ return reu.minutas[k]; })
+        .filter(function(m){ return m && m.fecha && m.fecha < ini && (m.asistentes || []).length; }).slice(-4), frec = {};
+      previas.forEach(function(m){ m.asistentes.forEach(function(x){ frec[x] = 1; }); });
+      var inter = (B.intermedio && B.intermedio.restricciones) ? B.intermedio.restricciones() : [];
+      var maestro = B.maestro && B.maestro.snapshot ? B.maestro.snapshot() : null;
+      var mm = maestro && maestro.meta && maestro.meta.columnas && maestro.meta.columnas[0], CORTO = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+      var iniObra = mm && CORTO.indexOf(String(mm[0]).slice(0,3)) >= 0 && parseInt(mm[1], 10) ? mm[1] + "-" + String(CORTO.indexOf(String(mm[0]).slice(0,3)) + 1).padStart(2,"0") + "-01" : pl;
+      var adm = (reu.personas || []).filter(function(p){ return /administrad/i.test(p[1] || ""); })[0];
+      return {
+        obra: String((document.getElementById("proyTitulo") || {}).textContent || "").trim(), inicioObra: iniObra, administrador: adm ? adm[0] : "",
+        hoy: hoyStr(), n: n, ini: ini, fin: fin, primerLunes: pl,
+        semanal: snap ? { categorias: (snap.meta && snap.meta.categorias) || [], notas: snap.notas || [] } : null,
+        minuta: minuta, personas: reu.personas || [], frecuentes: (reu.personas || []).filter(function(p){ return frec[p[0]]; }),
+        restricciones: (reu.restricciones || []).concat(inter),
+        semanas: semanas.map(function(x){ return { ini: lunesDe(x.ini), prog: x.prog, log: x.log, causas: x.causas, ev: x.ev }; }),
+        maestro: maestro ? { columnas: maestro.meta.columnas, categorias: maestro.meta.categorias, notas: maestro.notas } : null
+      };
+    });
+  }
+  function elegirSemanaExcel(){
+    var b = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS.semanal, ini = b && b.inicioSemana ? b.inicioSemana() : "";
+    var ops = st.semanas.slice().reverse().map(function(w){ return '<option value="n'+w.n+'">Semana del '+fmtF(w.ini)+' (cerrada, PPC '+pct(w)+'%)</option>'; });
+    if(ini && !st.semanas.some(function(w){ return w.ini === ini; })) ops.unshift('<option value="actual">Semana del '+fmtF(ini)+' (en curso)</option>');
+    if(!ops.length){ alert("No hay semanas para el informe. Arma la semana en el Semanal o cierra una semana."); return; }
+    var ov = document.createElement("div"); ov.className = "sel-overlay";
+    ov.innerHTML = '<div class="sel-box" role="dialog" aria-modal="true" aria-label="Informe Excel"><h3>📊 Informe Excel</h3><p>Descarga un Excel con el formato de la obra: Minuta, Last Planner, Restricciones, Consolidado, Evaluación de subcontratos y Plan Maestro. El N° de semana se cuenta desde la primera semana con información.</p>'
+      + '<label>Semana<select class="inf-sem">'+ops.join("")+'</select></label><div class="sel-msg"></div><div class="sel-actions"><button type="button" class="btn-sm" data-c="no">Cancelar</button><button type="button" class="btn-sm sel-ok" data-c="si">Descargar Excel</button></div></div>';
+    document.body.appendChild(ov);
+    var msg = ov.querySelector(".sel-msg"), ocupado = false;
+    ov.addEventListener("click", function(e){
+      var c = e.target.dataset && e.target.dataset.c; if(ocupado) return; if(e.target === ov || c === "no"){ ov.remove(); return; } if(c !== "si") return;
+      var v = ov.querySelector(".inf-sem").value; ocupado = true; e.target.disabled = true; msg.className = "sel-msg"; msg.textContent = "Preparando el Excel…";
+      cargarJs("https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js", function(){ return typeof JSZip !== "undefined"; })
+        .then(function(){ return cargarJs("informe-excel.js?v=1", function(){ return !!window.LP_INFORME_XLSX; }); })
+        .then(function(){ return datosExcel(v); })
+        .then(function(D){ return window.LP_INFORME_XLSX.generar(D).then(function(blob){ return { D: D, blob: blob }; }); })
+        .then(function(r){
+          var a2 = document.createElement("a"), url = URL.createObjectURL(r.blob);
+          a2.href = url; a2.download = "Informe Last Planner N" + String(r.D.n).padStart(2, "0") + " " + r.D.ini + ".xlsx"; document.body.appendChild(a2); a2.click(); a2.remove();
+          setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+          ov.remove(); if(window.LP_AVISOS) window.LP_AVISOS.flash("Informe Excel de la semana N° " + r.D.n + " descargado.");
+        })
+        .catch(function(err){ ocupado = false; e.target.disabled = false; msg.className = "sel-msg err"; msg.textContent = (err && err.message) || "No se pudo generar el Excel."; });
+    });
+  }
   function elegirSemanaInforme(){
     var b = window.PIZARRA_BOARDS && window.PIZARRA_BOARDS.semanal, ini = b && b.inicioSemana ? b.inicioSemana() : "";
     var ops = st.semanas.slice().reverse().map(function(w){ return '<option value="n'+w.n+'">Semana '+w.n+' · '+fmtF(w.ini)+' (cerrada, PPC '+pct(w)+'%)</option>'; });
@@ -3395,6 +3476,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
     }
     var a = e.target.closest("[data-ind]"); if(!a) return;
     if(a.dataset.ind === "informe"){ elegirSemanaInforme(); return; }
+    if(a.dataset.ind === "excel"){ elegirSemanaExcel(); return; }
     if(a.dataset.ind === "bitacora"){ bitacora(); return; }
     if(a.dataset.ind === "historial"){
       if(st.semanas.length && !confirm("Esto reemplaza los indicadores por el historial de la planilla Curanipe (61 semanas, 3 a 64). \u00bfContinuar?")) return;
