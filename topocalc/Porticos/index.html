@@ -1062,6 +1062,16 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .tour-pie .tour-sig{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
 .tour-pie .tour-saltar{ border:none; background:none; color:var(--ink-soft); padding:8px 4px; }
 .tour-pie button:focus-visible{ outline:2px solid var(--blueprint); outline-offset:2px; }
+
+/* ===== ajustes móvil/escritorio: listado y mapa 9/16, comunas completas, scroll encadenado ===== */
+@media (max-width:860px){
+  body.pm-mapa[data-mtab="porticos"] .semanal-layout > .porticos-panel{ height:auto; align-self:start; aspect-ratio:9 / 16; min-height:420px; max-height:calc(100vh - 150px); max-height:calc(100svh - 150px); }
+  body.pm-mapa[data-mtab="porticos"] .mapa-canvas{ height:auto; aspect-ratio:9 / 16; min-height:380px; max-height:calc(100vh - 220px); max-height:calc(100svh - 220px); }
+  .porticos-scroll{ overscroll-behavior-y:auto; }
+  .msel-pop, #fEstado .msel-pop{ position:fixed; left:12px; right:12px; top:auto; bottom:calc(76px + env(safe-area-inset-bottom, 0px)); width:auto; min-width:0; max-width:none; max-height:60vh; max-height:60dvh; overscroll-behavior:contain; z-index:80; }
+  .msel-op{ min-height:40px; font-size:.9rem; }
+}
+.mapa-hint{ font-size:.7rem; color:var(--ink-soft); padding:4px 12px 0; }
 </style>
 <style id="partida-trazado">
 /* partida "Trazado": 8º color fijo (celeste) */
@@ -3842,7 +3852,9 @@ window.PORTICOS_LISTA = (function(){
       if(!abrir) return;
       if(mapa){ setTimeout(function(){ mapa.invalidateSize(); mapa._encuadrado = false; pintarMapa(); }, 50); return; }
       cargarLeaflet(function(){
-        mapa = L.map("mapaPorticos", { scrollWheelZoom:false });
+        var tactil = !!(window.matchMedia && window.matchMedia("(pointer:coarse)").matches);
+        mapa = L.map("mapaPorticos", { scrollWheelZoom:!tactil, dragging:!tactil, tap:false });
+        if(tactil){ var h = document.createElement("div"); h.className = "mapa-hint"; h.textContent = "Usa dos dedos para mover y acercar el mapa; con uno sigues bajando la p\u00e1gina."; document.getElementById("mapaPorticos").parentNode.insertBefore(h, document.getElementById("mapaPorticos")); }
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom:19, attribution:"&copy; OpenStreetMap" }).addTo(mapa);
         mapa.fitBounds(OHIGGINS);
         capa = L.layerGroup().addTo(mapa);
@@ -3874,6 +3886,19 @@ window.PORTICOS_LISTA = (function(){
     }, 60);
   }
   window.addEventListener("resize", function(){ if(mapa && document.body.classList.contains("pm-mapa")) mapa.invalidateSize(); });
+  /* ---------- scroll encadenado: al llegar al final/inicio del listado, el gesto sigue moviendo la página ---------- */
+  (function(){
+    var sc = document.querySelector(".porticos-scroll"); if(!sc) return;
+    var y0 = null;
+    sc.addEventListener("touchstart", function(e){ y0 = e.touches.length === 1 ? e.touches[0].clientY : null; }, { passive:true });
+    sc.addEventListener("touchmove", function(e){
+      if(y0 === null || e.touches.length !== 1) return;
+      var y = e.touches[0].clientY, dy = y - y0; y0 = y;
+      var arriba = sc.scrollTop <= 0, abajo = sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 1;
+      if((dy > 0 && arriba) || (dy < 0 && abajo)){ var y1 = window.scrollY; requestAnimationFrame(function(){ if(Math.abs(window.scrollY - y1) < 1) window.scrollBy(0, -dy); }); }
+    }, { passive:true });
+  })();
+
   /* ---------- indicadores: PPC semanal, Pareto de causas, curva S, resumen ---------- */
   function isoD(s){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ""); return m ? new Date(+m[1], +m[2]-1, +m[3], 12) : null; }
   function lunesIso(s){ var d = isoD(s); if(!d) return ""; d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
