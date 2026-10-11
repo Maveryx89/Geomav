@@ -546,6 +546,14 @@ footer.app-foot .foot-copy{font-size:10px; opacity:.75;}
   main{padding:24px 28px 64px;}
   .card-grid{grid-template-columns:repeat(3, 1fr);}
   .tool-view{max-width:640px; margin:0 auto; width:100%;}
+  /* Herramientas de varias tarjetas independientes (ej. Boleta de Honorarios e IVA): en escritorio usan todo el ancho
+     y las tarjetas van de a dos, en vez de una larga columna con campos estirados. En móvil siguen apiladas. */
+  .tool-view.tool-2col{max-width:none;}
+  .tool-2col .bh-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start;}
+  .tool-2col .bh-grid .field-card{margin-top:0;}
+  .tool-2col .bh-span{grid-column:1 / -1;}
+  .tool-2col .bh-iva-cols{display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start;}
+  .tool-2col .bh-iva-cols .results{margin-top:0 !important;}
 }
 @media (min-width:1200px){
   #app{max-width:1280px;}
@@ -7886,31 +7894,44 @@ function renderPitagoras(){
 /* ---------- BOLETA DE HONORARIOS (SII) ---------- */
 function renderBoletaHonorarios(){
   const body = `
+  <div class="bh-grid">
   <div class="field-card">
     <h3>Bruto → Líquido a recibir</h3>
-    ${fieldRow('Monto bruto de la boleta ($)','bh_bruto',500000)}
-    ${fieldRow('Tasa de retención (%)','bh_tasa1',15.25,{step:'0.01'})}
+    <div class="field-inline2">
+      ${fieldRow('Monto bruto de la boleta ($)','bh_bruto',500000)}
+      ${fieldRow('Tasa de retención (%)','bh_tasa1',15.25,{step:'0.01'})}
+    </div>
     <button class="btn" id="btnBH1" type="button">Calcular</button>
     <div id="resBH1"></div>
   </div>
   <div class="field-card">
     <h3>Líquido deseado → Bruto a emitir</h3>
-    ${fieldRow('Líquido que quieres recibir ($)','bh_liquido',500000)}
-    ${fieldRow('Tasa de retención (%)','bh_tasa2',15.25,{step:'0.01'})}
+    <div class="field-inline2">
+      ${fieldRow('Líquido que quieres recibir ($)','bh_liquido',500000)}
+      ${fieldRow('Tasa de retención (%)','bh_tasa2',15.25,{step:'0.01'})}
+    </div>
     <button class="btn" id="btnBH2" type="button">Calcular</button>
     <div id="resBH2"></div>
   </div>
-  <div class="field-card">
+  <div class="field-card bh-span">
     <h3>IVA — Neto ↔ Total</h3>
     <p class="tool-blurb" style="margin:0 0 8px;">La boleta de honorarios no lleva IVA (lleva retención). El IVA se aplica en facturas y otros documentos afectos: usa esta sección para sacar el neto, el IVA o el total de un cobro.</p>
-    ${fieldRow('Monto ($)','bh_ivaMonto',500000)}
-    <div class="field-row"><label for="bh_ivaModo">El monto ingresado es</label>
-      <select id="bh_ivaModo"><option value="neto" selected>Neto (sin IVA)</option><option value="total">Total (con IVA incluido)</option></select></div>
-    ${fieldRow('Tasa de IVA (%)','bh_ivaTasa',19,{step:'0.01'})}
-    <button class="btn" id="btnBH3" type="button">Calcular</button>
-    <div id="resBH3"></div>
+    <div class="bh-iva-cols">
+      <div>
+        <div class="field-inline2">
+          ${fieldRow('Monto ($)','bh_ivaMonto',500000)}
+          ${fieldRow('Tasa de IVA (%)','bh_ivaTasa',19,{step:'0.01'})}
+        </div>
+        <div class="field-row"><label for="bh_ivaModo">El monto ingresado es</label>
+          <select id="bh_ivaModo"><option value="neto" selected>Neto (sin IVA)</option><option value="total">Total (con IVA incluido)</option></select></div>
+        <button class="btn" id="btnBH3" type="button">Calcular</button>
+      </div>
+      <div id="resBH3"></div>
+    </div>
+  </div>
   </div>`;
   toolShell('boletaHonorarios','Retención de Boleta de Honorarios electrónica en Chile, más cálculo de IVA (19%) para facturas. Retención vigente 2026: 15,25% (sube gradualmente hasta 17% en 2028 según ley) — ajústala si emites en otro año o si eliges retener un % mayor de forma voluntaria.', body);
+  document.querySelector('.tool-view').classList.add('tool-2col');
   document.getElementById('btnBH1').addEventListener('click', ()=>{
     const bruto=val('bh_bruto'), tasa=val('bh_tasa1'); const box=document.getElementById('resBH1');
     if(isNaN(bruto)||isNaN(tasa)||bruto<=0||tasa<0){ box.innerHTML=`<p class="err-msg">Ingresa el monto bruto y la tasa.</p>`; return; }
@@ -7942,6 +7963,7 @@ function renderBoletaHonorarios(){
       <div class="result-row"><span class="k">Total con IVA</span><span class="v accent big">$${fmtNum(r.total,0)}</span></div>
     </div>`;
   });
+  document.getElementById('btnBH3').click();   // el IVA aparece calculado desde el inicio (llena la mitad derecha de la tarjeta)
 }
 
 /* ---------- REPLANTEO POR ORDENADAS DESDE LA TANGENTE ---------- */
