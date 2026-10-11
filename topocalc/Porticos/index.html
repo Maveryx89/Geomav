@@ -563,7 +563,7 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
 .ep-orden{ font:inherit; font-size:.82rem; color:var(--ink); background:var(--paper); border:1px solid var(--line-strong); border-radius:6px; padding:6px 8px; }
 @media (max-width:860px){ .ep-ord{ width:100%; } .ep-orden{ flex:1; font-size:16px; min-height:40px; } .ep-ctrl .ep-buscar{ font-size:16px; min-height:40px; } }
 .ep-buscar{ width:100%; box-sizing:border-box; font:inherit; font-size:.84rem; color:var(--ink); background:var(--paper); border:1px solid var(--line-strong); border-radius:6px; padding:7px 9px; margin:4px 0 8px; }
-.ep-lista{ max-height:430px; overflow-y:auto; overscroll-behavior:contain; border-top:1px solid var(--line); border-bottom:1px solid var(--line); scrollbar-width:thin; }
+.ep-lista{ max-height:430px; overflow-y:auto; overscroll-behavior:auto; border-top:1px solid var(--line); border-bottom:1px solid var(--line); scrollbar-width:thin; }
 .ep-toggle{ all:unset; cursor:pointer; display:flex; align-items:center; gap:8px; width:100%; box-sizing:border-box; margin:0 0 8px; font-family:var(--font-display); font-weight:700; font-size:.95rem; color:var(--ink); }
 .ep-toggle:focus-visible{ outline:2px solid var(--blueprint); border-radius:6px; }
 .ep-caret{ color:var(--blueprint); width:14px; } .ep-tot{ margin-left:auto; font-family:var(--font-body); font-size:.72rem; font-weight:600; color:var(--ink-soft); background:var(--paper-sunken); border-radius:999px; padding:2px 9px; }
@@ -1065,9 +1065,9 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 
 /* ===== ajustes móvil/escritorio: listado y mapa 9/16, comunas completas, scroll encadenado ===== */
 @media (max-width:860px){
-  body.pm-mapa[data-mtab="porticos"] .semanal-layout > .porticos-panel{ height:auto; align-self:start; aspect-ratio:9 / 16; min-height:420px; max-height:calc(100vh - 150px); max-height:calc(100svh - 150px); }
+  body.pm-mapa[data-mtab="porticos"] .semanal-layout > .porticos-panel{ width:calc(100% - 24px); box-sizing:border-box; height:auto; align-self:start; justify-self:stretch; aspect-ratio:9 / 16; min-height:420px; max-height:calc(100vh - 150px); max-height:calc(100svh - 150px); }
   body.pm-mapa[data-mtab="porticos"] .mapa-canvas{ height:auto; aspect-ratio:9 / 16; min-height:380px; max-height:calc(100vh - 220px); max-height:calc(100svh - 220px); }
-  .porticos-scroll{ overscroll-behavior-y:auto; }
+  .porticos-scroll, .ep-lista, .bi-l, .avance-wrap{ overscroll-behavior-y:auto; }
   .msel-pop, #fEstado .msel-pop{ position:fixed; left:12px; right:12px; top:auto; bottom:calc(76px + env(safe-area-inset-bottom, 0px)); width:auto; min-width:0; max-width:none; max-height:60vh; max-height:60dvh; overscroll-behavior:contain; z-index:80; }
   .msel-op{ min-height:40px; font-size:.9rem; }
 }
@@ -1972,13 +1972,45 @@ window.PORTICOS_LISTA = (function(){
     function esMovil(){ return !!(mqMovil && mqMovil.matches); }
     if(mqMovil && mqMovil.addEventListener) mqMovil.addEventListener("change", function(){ render(); });
     function colPorDefecto(){
-      if(state.inicio){
-        var hoy = new Date(), h0 = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+      /* columna de "hoy"; si es sábado o domingo, la del lunes siguiente. Antes del inicio -> primera, después del fin -> última */
+      var n = state.weeks.length;
+      if(state.inicio && n){
+        var hoy = new Date(), dow = hoy.getDay();
+        var h0 = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + (dow === 6 ? 2 : dow === 0 ? 1 : 0));
         var d = Math.round((h0 - parseInputDate(state.inicio)) / 86400000);
         var idx = cfg.weekly ? d : Math.floor(d / 7);
-        if(idx >= 0 && idx < state.weeks.length) return state.weeks[idx].id;
+        return state.weeks[Math.max(0, Math.min(n - 1, idx))].id;
+      }
+      if(n){ /* sin fecha de inicio guardada: se deduce de las etiquetas (día + mes) de cada columna */
+        var hoy2 = new Date(), dow2 = hoy2.getDay();
+        var t0 = new Date(hoy2.getFullYear(), hoy2.getMonth(), hoy2.getDate() + (dow2 === 6 ? 2 : dow2 === 0 ? 1 : 0)), sel = 0;
+        state.weeks.forEach(function(w, i){
+          var m = /(\d+)\s*$/.exec(String(w.label || "")), mi = MESES.indexOf(w.month);
+          if(!m || mi < 0) return;
+          var dt = new Date(t0.getFullYear(), mi, parseInt(m[1], 10));
+          if(dt - t0 > 183 * 86400000) dt.setFullYear(dt.getFullYear() - 1); else if(t0 - dt > 183 * 86400000) dt.setFullYear(dt.getFullYear() + 1);
+          if(dt <= t0) sel = i;
+        });
+        return state.weeks[sel].id;
       }
       return state.weeks[0].id;
+    }
+    /* escritorio: al abrir, el tablero se desplaza a la columna de hoy (o del lunes siguiente en fin de semana) */
+    var inicioHecho = false, inicioObs = null;
+    function posInicio(){
+      if(inicioHecho || esMovil() || !state.weeks.length) return;
+      var sc = root.querySelector(".board-scroll"), bd = root.querySelector(".board");
+      if(!sc || !bd) return;
+      if(!sc.clientWidth){
+        if(!inicioObs && window.IntersectionObserver){ inicioObs = new IntersectionObserver(function(){ posInicio(); }); inicioObs.observe(sc); }
+        return;
+      }
+      var id = colPorDefecto(), heads = bd.querySelectorAll(".week-head"), idx = -1;
+      state.weeks.forEach(function(w, i){ if(w.id === id) idx = i; });
+      if(idx < 0 || !heads[idx]) return;
+      sc.scrollLeft = Math.max(0, heads[idx].getBoundingClientRect().left - bd.getBoundingClientRect().left - 150);
+      inicioHecho = true;
+      if(inicioObs){ inicioObs.disconnect(); inicioObs = null; }
     }
     function renderMobile(){
       var box = root.querySelector(".m-view"); if(!box) return;
@@ -2000,6 +2032,7 @@ window.PORTICOS_LISTA = (function(){
       }).join("");
       chips += '<button type="button" class="m-chip m-chip-add" data-action="add-week" aria-label="'+(cfg.weekly ? 'Agregar d\u00eda' : 'Agregar semana')+'"><span aria-hidden="true">+</span><small>'+(cfg.weekly ? 'D\u00eda' : 'Semana')+'</small></button>';
       box.innerHTML = '<div class="m-chips">'+chips+'</div>' + grupos;
+      var chOn = box.querySelector(".m-chip.on"), chBar = box.querySelector(".m-chips"); if(chOn && chBar) chBar.scrollLeft = Math.max(0, chOn.offsetLeft - 60);
     }
     function render(){
       renderFiltrosP();
@@ -2061,6 +2094,7 @@ window.PORTICOS_LISTA = (function(){
         });
       });
       board.innerHTML = html;
+      posInicio();
     }
 
     function computePPC(){
@@ -3886,13 +3920,15 @@ window.PORTICOS_LISTA = (function(){
     }, 60);
   }
   window.addEventListener("resize", function(){ if(mapa && document.body.classList.contains("pm-mapa")) mapa.invalidateSize(); });
-  /* ---------- scroll encadenado: al llegar al final/inicio del listado, el gesto sigue moviendo la página ---------- */
+  /* ---------- scroll encadenado: al llegar al final/inicio de una lista con scroll propio, el gesto sigue moviendo la página ---------- */
   (function(){
-    var sc = document.querySelector(".porticos-scroll"); if(!sc) return;
-    var y0 = null;
-    sc.addEventListener("touchstart", function(e){ y0 = e.touches.length === 1 ? e.touches[0].clientY : null; }, { passive:true });
-    sc.addEventListener("touchmove", function(e){
-      if(y0 === null || e.touches.length !== 1) return;
+    var SEL = ".porticos-scroll, .ep-lista, .bi-l, .avance-wrap", sc = null, y0 = null;
+    document.addEventListener("touchstart", function(e){
+      sc = e.touches.length === 1 && e.target.closest ? e.target.closest(SEL) : null;
+      y0 = sc ? e.touches[0].clientY : null;
+    }, { passive:true });
+    document.addEventListener("touchmove", function(e){
+      if(!sc || y0 === null || e.touches.length !== 1) return;
       var y = e.touches[0].clientY, dy = y - y0; y0 = y;
       var arriba = sc.scrollTop <= 0, abajo = sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 1;
       if((dy > 0 && arriba) || (dy < 0 && abajo)){ var y1 = window.scrollY; requestAnimationFrame(function(){ if(Math.abs(window.scrollY - y1) < 1) window.scrollBy(0, -dy); }); }
