@@ -1081,6 +1081,23 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .f-plano-gen a{ color:var(--blueprint); font-weight:700; }
 .pdf-frame{ flex:1; min-height:0; width:100%; border:0; background:#fff; }
 .pdf-ov .gal-top{ gap:12px; } .pdf-ov .gal-info{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.pm-pop{ min-width:190px; } .pm-pop strong{ font-size:.95rem; color:var(--ink); } .pm-pop .pm-s{ color:var(--ink-soft); margin:2px 0 8px; line-height:1.35; }
+.pm-pop .pm-acc{ display:flex; flex-direction:column; gap:6px; }
+.pm-pop .pm-b{ all:unset; box-sizing:border-box; cursor:pointer; text-align:center; padding:8px 10px; min-height:20px; border-radius:8px; font-size:.8rem; font-weight:700; border:1px solid var(--line-strong); background:var(--paper); color:var(--ink) !important; text-decoration:none; }
+.pm-pop .pm-b.pm-go{ background:var(--ink); border-color:var(--ink); color:#fff !important; }
+.pm-pop .pm-b.pm-on{ background:var(--blueprint-soft); border-color:var(--blueprint); color:var(--blueprint) !important; }
+.pm-pop .pm-l{ display:block; text-align:center; margin-top:6px; font-size:.74rem; color:var(--blueprint); }
+.ruta-n{ background:var(--blueprint); color:#fff; border:2px solid #fff; border-radius:50%; font:700 11px/18px var(--font-body); text-align:center; box-shadow:0 1px 4px rgba(0,0,0,.4); }
+.ruta-panel{ border-top:1px solid var(--line); padding:10px 12px; background:var(--paper-raised); }
+.ruta-h{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-size:.82rem; color:var(--ink); } .ruta-h span{ font-size:.72rem; color:var(--ink-soft); }
+.ruta-l{ list-style:none; margin:8px 0; padding:0; max-height:190px; overflow:auto; } .ruta-l li{ display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid var(--line); font-size:.8rem; }
+.ruta-l li b{ flex:none; width:20px; height:20px; border-radius:50%; background:var(--blueprint); color:#fff; font-size:.68rem; display:flex; align-items:center; justify-content:center; }
+.ruta-l li span{ flex:1; min-width:0; overflow-wrap:anywhere; } .ruta-l li small{ color:var(--ink-soft); }
+.ruta-l button{ all:unset; cursor:pointer; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:6px; color:var(--ink-soft); font-size:.9rem; } .ruta-l button:hover{ background:var(--paper-sunken); color:var(--ink); }
+.ruta-acc{ display:flex; flex-wrap:wrap; gap:8px; }
+.ruta-acc .r-b{ all:unset; cursor:pointer; box-sizing:border-box; min-height:40px; padding:6px 12px; display:inline-flex; align-items:center; border-radius:999px; font-size:.78rem; font-weight:700; border:1px solid var(--line-strong); background:var(--paper); color:var(--ink); text-decoration:none; }
+.ruta-acc .r-b.r-go{ background:var(--ink); border-color:var(--ink); color:#fff; }
 </style>
 <style id="partida-trazado">
 /* partida "Trazado": 8º color fijo (celeste) */
@@ -1182,6 +1199,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
           <div class="mapa-info" id="mapaInfo">Región de O&#39;Higgins</div>
           <div class="mapa-canvas" id="mapaPorticos"></div>
           <div class="mapa-leyenda" id="mapaLeyenda"></div>
+          <div class="ruta-panel" id="rutaPanel" hidden></div>
         </div>
         <div class="ficha-portico" id="fichaPortico" hidden aria-live="polite"></div>
       </div>
@@ -3866,10 +3884,76 @@ window.PORTICOS_LISTA = (function(){
   var TONE_HEX = { copper:"#D49A6A", neutral:"#8C949E", blueprint:"#2C6B7E", amber:"#D6A828", success:"#26694B", violet:"#7A52AA", sky:"#3F8FC4", danger:"#B23B3B" };
   var SIN_INICIAR_HEX = "#FFFFFF"; /* todos parten en blanco y avanzan con el color de su partida */
   var OHIGGINS = [[-35.02,-72.06],[-33.83,-69.98]];
-  var mapa = null, capa = null;
+  var mapa = null, capa = null, capaRuta = null, rutaPts = [], reabrirPopup = false;
   function tieneCoords(p){ return typeof p.lat === "number" && typeof p.lng === "number" && isFinite(p.lat) && isFinite(p.lng); }
+  /* ---------- ventana emergente del punto y ruta entre pórticos ---------- */
+  function datosPortico(num){ var r = null; lista().forEach(function(p, k){ if(numDe(p, k) === String(num)) r = p; }); return r; }
+  function popupHtml(num){
+    var p = datosPortico(num); if(!p) return "";
+    var st = ultimoData ? estadoDe(String(num), ultimoData) : null, en = rutaPts.indexOf(String(num)) >= 0;
+    return '<div class="pm-pop"><strong>' + esc(p.nombre) + '</strong>'
+      + '<div class="pm-s">' + esc(p.comuna || "") + '<br>' + (st ? esc(st.name) + ' \u00b7 ejecutado ' + fmt(st.fecha) : 'Sin iniciar') + '</div>'
+      + '<div class="pm-acc"><a class="pm-b pm-go" href="https://www.google.com/maps/dir/?api=1&destination=' + p.lat + ',' + p.lng + '&travelmode=driving" target="_blank" rel="noopener">\ud83e\udded Ir a la ubicaci\u00f3n</a>'
+      + '<button type="button" class="pm-b' + (en ? ' pm-on' : '') + '" onclick="window.rutaToggle(\'' + num + '\')">' + (en ? '\u2713 En la ruta (quitar)' : '\u2795 Agregar a la ruta') + '</button></div>'
+      + '<a class="pm-l" href="#" onclick="window.abrirPortico(' + num + ');return false;">Registrar avance</a></div>';
+  }
+  function distKm(a, b){ var R = 6371, t = Math.PI / 180, dLa = (b[0] - a[0]) * t, dLo = (b[1] - a[1]) * t, h = Math.sin(dLa / 2) * Math.sin(dLa / 2) + Math.cos(a[0] * t) * Math.cos(b[0] * t) * Math.sin(dLo / 2) * Math.sin(dLo / 2); return 2 * R * Math.asin(Math.sqrt(h)); }
+  function rutaCoords(){ return rutaPts.map(function(n){ var p = datosPortico(n); return p && tieneCoords(p) ? { n:n, p:p, ll:[p.lat, p.lng] } : null; }).filter(Boolean); }
+  function refrescarPopups(){ Object.keys(marcadores).forEach(function(n){ if(rutaPts.indexOf(n) >= 0 || marcadores[n].isPopupOpen()) marcadores[n].setPopupContent(popupHtml(n)); }); }
+  function pintarRuta(){
+    var panel = document.getElementById("rutaPanel"); if(!panel) return;
+    var rc = rutaCoords(); rutaPts = rc.map(function(x){ return x.n; });
+    if(capaRuta){
+      capaRuta.clearLayers();
+      if(rc.length > 1) L.polyline(rc.map(function(x){ return x.ll; }), { color:"#2C6B7E", weight:3, dashArray:"6 6", opacity:.9, interactive:false }).addTo(capaRuta);
+      rc.forEach(function(x, i){ L.marker(x.ll, { icon:L.divIcon({ className:"ruta-n", html:String(i + 1), iconSize:[20, 20] }), interactive:false, keyboard:false, zIndexOffset:900 }).addTo(capaRuta); });
+    }
+    if(!rc.length){ panel.hidden = true; panel.innerHTML = ""; return; }
+    var km = 0; for(var i = 1; i < rc.length; i++) km += distKm(rc[i - 1].ll, rc[i].ll);
+    var tramos = [], pos = 0, MAXP = 11;
+    while(pos < rc.length - 1 || !tramos.length){ var fin = Math.min(pos + MAXP - 1, rc.length - 1); tramos.push(rc.slice(pos, fin + 1)); if(fin >= rc.length - 1) break; pos = fin; }
+    function ll(x){ return x.ll[0] + "," + x.ll[1]; }
+    var enlaces = tramos.map(function(t, k){
+      var u = "https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=" + encodeURIComponent(ll(t[t.length - 1]));
+      if(t.length > 1) u += "&origin=" + encodeURIComponent(ll(t[0]));
+      if(t.length > 2) u += "&waypoints=" + encodeURIComponent(t.slice(1, -1).map(ll).join("|"));
+      return '<a class="r-b r-go" href="' + u + '" target="_blank" rel="noopener">\ud83e\udded ' + (tramos.length > 1 ? 'Ruta tramo ' + (k + 1) + ' (' + t.length + ' pts)' : 'Calcular ruta en Google Maps') + '</a>';
+    }).join("");
+    panel.innerHTML = '<div class="ruta-h"><strong>Ruta (' + rc.length + ' punto' + (rc.length > 1 ? 's' : '') + ')</strong><span>' + (rc.length > 1 ? '\u2248 ' + km.toFixed(0) + ' km en l\u00ednea recta (referencial)' : 'agrega otro punto para trazar la ruta') + '</span></div>'
+      + '<ol class="ruta-l">' + rc.map(function(x, i){
+        return '<li><b>' + (i + 1) + '</b><span>' + esc(x.p.nombre) + ' <small>' + esc(x.p.comuna || "") + '</small></span>'
+          + '<button type="button" data-r="up" data-n="' + x.n + '" aria-label="Subir"' + (i ? '' : ' disabled') + '>\u2191</button><button type="button" data-r="dn" data-n="' + x.n + '" aria-label="Bajar"' + (i < rc.length - 1 ? '' : ' disabled') + '>\u2193</button><button type="button" data-r="rm" data-n="' + x.n + '" aria-label="Quitar">\u2715</button></li>';
+      }).join("") + '</ol>'
+      + '<div class="ruta-acc">' + (rc.length > 1 ? enlaces : '<a class="r-b r-go" href="https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=' + encodeURIComponent(ll(rc[0])) + '" target="_blank" rel="noopener">\ud83e\udded Ir al punto</a>')
+      + (rc.length > 2 ? '<button type="button" class="r-b" data-r="opt">Ordenar por cercan\u00eda</button>' : '') + '<button type="button" class="r-b" data-r="clr">Limpiar ruta</button></div>';
+    panel.hidden = false;
+    refrescarPopups();
+  }
+  window.rutaToggle = function(num){
+    num = String(num); var i = rutaPts.indexOf(num);
+    if(i >= 0) rutaPts.splice(i, 1); else rutaPts.push(num);
+    setTimeout(function(){ pintarRuta(); if(marcadores[num]) marcadores[num].setPopupContent(popupHtml(num)); }, 0);
+  };
+  (function(){
+    var panel = document.getElementById("rutaPanel"); if(!panel) return;
+    panel.addEventListener("click", function(e){
+      var b = e.target.closest("button[data-r]"); if(!b) return;
+      var acc = b.getAttribute("data-r"), n = b.getAttribute("data-n"), i = rutaPts.indexOf(n);
+      if(acc === "rm" && i >= 0) rutaPts.splice(i, 1);
+      else if(acc === "up" && i > 0){ rutaPts.splice(i - 1, 0, rutaPts.splice(i, 1)[0]); }
+      else if(acc === "dn" && i >= 0 && i < rutaPts.length - 1){ rutaPts.splice(i + 1, 0, rutaPts.splice(i, 1)[0]); }
+      else if(acc === "clr") rutaPts = [];
+      else if(acc === "opt"){
+        var rest = rutaCoords(), orden = [rest.shift()];
+        while(rest.length){ var ult = orden[orden.length - 1], bi = 0, bd = 1e9; rest.forEach(function(x, k){ var d = distKm(ult.ll, x.ll); if(d < bd){ bd = d; bi = k; } }); orden.push(rest.splice(bi, 1)[0]); }
+        rutaPts = orden.map(function(x){ return x.n; });
+      }
+      pintarRuta();
+    });
+  })();
   function pintarMapa(){
     if(!mapa || !capa || !ultimoData) return;
+    var abierto = null; Object.keys(marcadores).forEach(function(n){ if(marcadores[n].isPopupOpen()) abierto = n; }); if(reabrirPopup && selPortico) abierto = String(selPortico);
     capa.clearLayers(); marcadores = {};
     var con = 0, pts = [], destacado = null;
     lista().forEach(function(p, k){
@@ -3885,12 +3969,9 @@ window.PORTICOS_LISTA = (function(){
           ? { radius:12, color:"#E0245E", weight:4, fillColor: tone ? TONE_HEX[tone] : SIN_INICIAR_HEX, fillOpacity:1 }
           : { radius:8, color: tone ? "#fff" : "#0A2240", weight:2, fillColor: tone ? TONE_HEX[tone] : SIN_INICIAR_HEX, fillOpacity: tone ? .95 : 1 })
         .bindTooltip(esc(p.nombre), { direction:"top", offset:[0,-6] })
-        .bindPopup('<strong>'+esc(p.nombre)+'</strong><br>'+esc(p.comuna)
-          +'<br>'+(st ? esc(st.name)+' \u00b7 ejecutado '+fmt(st.fecha) : 'Sin iniciar')
-          +'<br><a href="'+url+'" target="_blank" rel="noopener">Abrir en Google Maps</a>'
-          +' \u00b7 <a href="#" onclick="window.abrirPortico('+num+');return false;">Registrar avance</a>')
+        .bindPopup(popupHtml(num), { minWidth:200 })
         .addTo(capa);
-      mk.on("click", (function(n){ return function(){ seleccionarPortico(n, true); }; })(num));
+      mk.on("click", (function(n){ return function(){ reabrirPopup = true; setTimeout(function(){ reabrirPopup = false; }, 900); seleccionarPortico(n, true); }; })(num));
       marcadores[num] = mk; if(esSel) destacado = mk;
     });
     if(destacado){
@@ -3904,6 +3985,8 @@ window.PORTICOS_LISTA = (function(){
       destacado.bringToFront();
     }
     if(pts.length && !mapa._encuadrado){ mapa.fitBounds(L.latLngBounds(pts), { padding:[28,28], maxZoom:13 }); mapa._encuadrado = true; }
+    if(abierto && marcadores[abierto]) marcadores[abierto].openPopup();
+    pintarRuta();
     var info = document.getElementById("mapaInfo");
     if(info) info.textContent = "Regi\u00f3n de O'Higgins \u00b7 " + (hayFiltro() ? con + " de " + lista().length + " p\u00f3rticos (filtrados)" : con + " de " + lista().length + " p\u00f3rticos con coordenadas");
   }
@@ -3939,7 +4022,7 @@ window.PORTICOS_LISTA = (function(){
         if(tactil){ var h = document.createElement("div"); h.className = "mapa-hint"; h.textContent = "Usa dos dedos para mover y acercar el mapa; con uno sigues bajando la p\u00e1gina."; document.getElementById("mapaPorticos").parentNode.insertBefore(h, document.getElementById("mapaPorticos")); }
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom:19, attribution:"&copy; OpenStreetMap" }).addTo(mapa);
         mapa.fitBounds(OHIGGINS);
-        capa = L.layerGroup().addTo(mapa);
+        capa = L.layerGroup().addTo(mapa); capaRuta = L.layerGroup().addTo(mapa);
         pintarLeyenda(); pintarMapa();
       });
     });
