@@ -2031,7 +2031,7 @@ const CATEGORIES = [
 ];
 
 const TOOLS = {
-  utm: {name:'Conversor UTM', desc:'Grados decimales ↔ UTM', icon:ICONS.utm},
+  utm: {name:'Conversor de Coordenadas', desc:'Decimal ↔ GMS ↔ UTM', icon:ICONS.utm},
   angulo: {name:'Conversor de Ángulos', desc:'Decimal ↔ GMS ↔ Gon', icon:ICONS.angulo},
   converg: {name:'Convergencia de Meridianos', desc:'Corrección angular por huso', icon:ICONS.converg},
   reducHorizonte: {name:'Reducción al Horizonte', desc:'Distancia inclinada → Dh, Dv', icon:ICONS.reducHorizonte},
@@ -3545,7 +3545,9 @@ function svgSkyPlot(satelites){
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">${anillos}${ejes}${puntos}</svg>`;
 }
 
-/* Mini-mapas GPS del Conversor UTM (uno por bloque, Grados→UTM y UTM→Grados): antes cada mapa se
+/* Mini-mapa GPS del Conversor de Coordenadas. Desde oct-2026 es UN solo mapa, bajo las 3 filas de coordenadas
+   (decimal, GMS y UTM); el código lo sigue tratando como lista de ids. Historia: antes eran dos mapas (uno por bloque,
+   Grados→UTM y UTM→Grados) y cada mapa se
    centraba en el punto ingresado/calculado de su propio formulario (podía mostrar cualquier cosa,
    válida o sin sentido, según el dato) — ahora ambos comparten UN solo GPS. Activar cualquiera de
    los dos ("Activar GPS") pide permiso de ubicación una sola vez y, en cuanto llega la primera
@@ -3560,7 +3562,7 @@ function svgSkyPlot(satelites){
    miniMapaGpsState — el GPS en sí es un único geoWatchPosition compartido (utmGpsWatch); render()
    lo detiene al salir de la herramienta. */
 const miniMapaGpsState = {};
-const MINI_MAPA_UTM_IDS = ['miniMapaU1','miniMapaU2'];
+const MINI_MAPA_UTM_IDS = ['miniMapaU1'];
 let utmGpsWatch = null;
 
 function resetMiniMapaUTM(containerId){
@@ -3649,12 +3651,30 @@ function startUtmGps(){
 function renderUTM(){
   const body = `
   <div class="field-card">
-    <h3>Grados decimales → UTM</h3>
+    <h3>Escribe en cualquiera de las 3 filas — las otras se actualizan solas</h3>
+    <h3 style="margin-top:12px;">1 · Grados decimales</h3>
     <div class="field-inline2">
       ${fieldRow('Latitud (°, sur negativo)','u_lat',-35.420410)}
       ${fieldRow('Longitud (°, oeste negativo)','u_lon',-71.673116)}
     </div>
-    <button class="btn" id="btnU1" type="button">Calcular UTM</button>
+    <h3 style="margin-top:12px;">2 · Grados, minutos y segundos (GMS)</h3>
+    <div class="field-inline2">
+      ${fieldRow('Latitud','u_dlat','',{type:'text',placeholder:'35°26\'07.22&quot;S'})}
+      ${fieldRow('Longitud','u_dlon','',{type:'text',placeholder:'71°40\'35.14&quot;W'})}
+    </div>
+    <p class="tool-blurb" style="margin:0 0 4px;">Puedes pegar la coordenada completa (ej. 35°26'07.22"S 71°40'35.14"W) en cualquiera de los dos campos.</p>
+    <h3 style="margin-top:12px;">3 · UTM</h3>
+    <div class="field-inline2">
+      ${fieldRow('Este (m)','u_e','')}
+      ${fieldRow('Norte (m)','u_n','')}
+    </div>
+    <div class="field-inline2">
+      ${fieldRow('Huso','u_zona','',{type:'number',step:'1'})}
+      <div class="field-row"><label for="u_hemi">Hemisferio</label>
+        <select id="u_hemi"><option value="S" selected>Sur</option><option value="N">Norte</option></select></div>
+    </div>
+    <div id="u_msg"></div>
+    <button class="btn" id="btnU1" type="button">Calcular</button>
     <div id="resU1"></div>
     <div id="miniMapaU1" class="plot-wrap" style="padding:0; overflow:hidden;"></div>
   </div>
@@ -3664,23 +3684,8 @@ function renderUTM(){
     <button class="btn-sm" id="btnGnssStart" type="button">🛰️ Empezar a ver satélites</button>
     <button class="btn-sm" id="btnGnssStop" type="button" style="display:none;">■ Detener</button>
     <div id="gnssResult"></div>
-  </div>
-  <div class="field-card">
-    <h3>UTM → Grados decimales</h3>
-    <div class="field-inline2">
-      ${fieldRow('Este (m)','u_e',658236)}
-      ${fieldRow('Norte (m)','u_n',9568215)}
-    </div>
-    <div class="field-inline2">
-      ${fieldRow('Huso','u_zona',18,{type:'number',step:'1'})}
-      <div class="field-row"><label for="u_hemi">Hemisferio</label>
-        <select id="u_hemi"><option value="S" selected>Sur</option><option value="N">Norte</option></select></div>
-    </div>
-    <button class="btn" id="btnU2" type="button">Calcular Lat/Lon</button>
-    <div id="resU2"></div>
-    <div id="miniMapaU2" class="plot-wrap" style="padding:0; overflow:hidden;"></div>
   </div>`;
-  toolShell('utm','Proyección UTM sobre elipsoide WGS84 (Gauss-Krüger). Ingresa un lado del cálculo, el otro se completa en el formulario opuesto.', body);
+  toolShell('utm','Convierte una coordenada entre los tres formatos: grados decimales, grados-minutos-segundos (GMS) y UTM sobre elipsoide WGS84 (Gauss-Krüger). Escribe en cualquier fila y las otras dos se completan de inmediato.', body);
 
   MINI_MAPA_UTM_IDS.forEach(resetMiniMapaUTM);
 
@@ -3743,11 +3748,97 @@ function renderUTM(){
     });
   }
 
-  document.getElementById('btnU1').addEventListener('click', ()=>{
-    const lat=val('u_lat'), lon=val('u_lon');
-    const box=document.getElementById('resU1');
-    if(isNaN(lat)||isNaN(lon)){ box.innerHTML=`<p class="err-msg">Ingresa latitud y longitud válidas.</p>`; return; }
+  /* --- Las 3 filas (decimal, GMS, UTM) se mantienen sincronizadas: se escribe en una y las otras se recalculan --- */
+  const $ = (id)=> document.getElementById(id);
+  const roundNum = (v,d)=> Math.round(v*Math.pow(10,d))/Math.pow(10,d);
+  let updating = false, last = 'dec';
+  const msg = (t)=>{ $('u_msg').innerHTML = t ? `<p class="err-msg" style="margin:8px 0 0;">${t}</p>` : ''; };
+  const dmsText = (v,pos,neg)=>{
+    const r = Math.round(Math.abs(v)*360000)/360000;            // a 0,01" antes de descomponer (así no hay 60" sueltos)
+    const {d,m,s} = decToDMS(r);
+    return `${d}°${String(m).padStart(2,'0')}'${s.toFixed(2).padStart(5,'0')}"${(v<0 && r!==0)?neg:pos}`;
+  };
+  /* Lee una coordenada GMS escrita de forma flexible: 35°26'07.22"S · 35 26 07.22 S · -35°26'07,22" · 35.4353 S */
+  const parseDMS = (str,kind)=>{
+    if(typeof str!=='string') return NaN;
+    let t = str.trim(); if(!t) return NaN;
+    t = t.replace(/[′’´‘`]/g,"'").replace(/[″”“]/g,'"').replace(/''/g,'"').replace(/[º˚]/g,'°').replace(/−/g,'-').replace(/,/g,'.');
+    const letras = t.match(/[A-Za-z]/g) || [];
+    if(letras.length>1) return NaN;
+    const hemi = letras.length ? letras[0].toUpperCase() : '';
+    if(hemi && (kind==='lat' ? 'NS' : 'EWO').indexOf(hemi)<0) return NaN;
+    const nums = t.match(/\d+(?:\.\d+)?/g);
+    if(!nums || nums.length>3) return NaN;
+    const d=parseFloat(nums[0]), m=nums.length>1?parseFloat(nums[1]):0, sg=nums.length>2?parseFloat(nums[2]):0;
+    if(m>=60 || sg>=60) return NaN;
+    const v = d + m/60 + sg/3600;
+    if(v > (kind==='lat'?90:180)) return NaN;
+    const neg = /^\s*-/.test(t) || hemi==='S' || hemi==='W' || hemi==='O';
+    return neg ? -v : v;
+  };
+  /* Si pegan "35°26'07.22"S 71°40'35.14"W" completo, lo separa en latitud y longitud */
+  const splitPair = (str)=>{
+    let m = str.match(/^(.*?[NSns])[\s,;\/]*(.*?[EWOewo])\s*$/);
+    if(m && /\d/.test(m[1]) && /\d/.test(m[2])) return [m[1],m[2]];
+    m = str.split(/\s*;\s*|,\s+/);
+    if(m.length===2 && /\d/.test(m[0]) && /\d/.test(m[1])) return m;
+    return null;
+  };
+  const setDec = (lat,lon)=>{ $('u_lat').value = roundNum(lat,7); $('u_lon').value = roundNum(lon,7); };
+  const setDms = (lat,lon)=>{ $('u_dlat').value = dmsText(lat,'N','S'); $('u_dlon').value = dmsText(lon,'E','W'); };
+  const setUtm = (lat,lon)=>{
+    if(lat < -80 || lat >= 84 || lon < -180 || lon >= 180){
+      ['u_e','u_n','u_zona'].forEach(id=> $(id).value='');
+      msg('Esta posición queda fuera de la zona UTM (de 80°S a 84°N). Se muestran solo los formatos decimal y GMS.');
+      return;
+    }
     const r = latLonToUTM(lat,lon);
+    $('u_e').value = roundNum(r.este,3); $('u_n').value = roundNum(r.norte,3);
+    $('u_zona').value = r.zona; $('u_hemi').value = r.hemisferio;
+  };
+  const fromDec = ()=>{
+    const lat=val('u_lat'), lon=val('u_lon');
+    if(isNaN(lat)||isNaN(lon)){ msg(''); return null; }
+    if(Math.abs(lat)>90 || Math.abs(lon)>180){ msg('La latitud va de −90 a 90 y la longitud de −180 a 180.'); return null; }
+    msg(''); setDms(lat,lon); setUtm(lat,lon); return {lat,lon};
+  };
+  const fromDms = ()=>{
+    const a=$('u_dlat').value.trim(), b=$('u_dlon').value.trim();
+    if(!a || !b){ msg(''); return null; }
+    const lat=parseDMS(a,'lat'), lon=parseDMS(b,'lon');
+    if(isNaN(lat)||isNaN(lon)){ msg('Revisa el formato GMS. Ejemplo: 35°26\'07.22"S · 71°40\'35.14"W (minutos y segundos menores a 60).'); return null; }
+    msg(''); setDec(lat,lon); setUtm(lat,lon); return {lat,lon};
+  };
+  const fromUtm = ()=>{
+    const e=val('u_e'), n=val('u_n'), z=valInt('u_zona'), h=$('u_hemi').value;
+    if(isNaN(e)||isNaN(n)||isNaN(z)){ msg(''); return null; }
+    if(z<1 || z>60){ msg('El huso UTM va de 1 a 60.'); return null; }
+    const r = utmToLatLon(e,n,z,h);
+    if(!isFinite(r.lat)||!isFinite(r.lon)){ msg('No se pudo convertir ese par Este/Norte.'); return null; }
+    msg(''); setDec(r.lat,r.lon); setDms(r.lat,r.lon); return {lat:r.lat, lon:r.lon};
+  };
+  const sync = (src)=> src==='dms' ? fromDms() : (src==='utm' ? fromUtm() : fromDec());
+  const onDmsInput = (ev)=>{
+    if(updating) return;
+    const pair = splitPair(ev.target.value);
+    if(pair){
+      const la=parseDMS(pair[0],'lat'), lo=parseDMS(pair[1],'lon');
+      if(!isNaN(la)&&!isNaN(lo)){ $('u_dlat').value=dmsText(la,'N','S'); $('u_dlon').value=dmsText(lo,'E','W'); }
+    }
+    last='dms'; fromDms();
+  };
+  ['u_lat','u_lon'].forEach(id=> $(id).addEventListener('input', ()=>{ last='dec'; fromDec(); }));
+  ['u_dlat','u_dlon'].forEach(id=>{ const el=$(id); el.autocapitalize='off'; el.spellcheck=false; el.addEventListener('input', onDmsInput); });
+  ['u_e','u_n','u_zona'].forEach(id=> $(id).addEventListener('input', ()=>{ last='utm'; fromUtm(); }));
+  $('u_hemi').addEventListener('change', ()=>{ last='utm'; fromUtm(); });
+  fromDec();   // completa GMS y UTM a partir de los valores iniciales
+
+  $('btnU1').addEventListener('click', ()=>{
+    const box=$('resU1');
+    const ll = sync(last);
+    if(!ll){ box.innerHTML=`<p class="err-msg">Completa una de las 3 filas con datos válidos.</p>`; return; }
+    if(ll.lat < -80 || ll.lat >= 84 || ll.lon < -180 || ll.lon >= 180){ box.innerHTML=`<p class="err-msg">Esa posición queda fuera de la zona UTM (80°S a 84°N).</p>`; return; }
+    const r = latLonToUTM(ll.lat,ll.lon);
     box.innerHTML = `<div class="results" style="margin-top:12px;">
       <div class="result-row"><span class="k">Huso / Banda</span><span class="v big">${r.zona} ${r.banda}</span></div>
       <div class="result-row"><span class="k">Este</span><span class="v accent">${fmtNum(r.este,3)} m</span></div>
@@ -3763,18 +3854,6 @@ function renderUTM(){
       btnGuardar.textContent = 'Guardado ✓';
     });
     box.appendChild(btnGuardar);
-  });
-  document.getElementById('btnU2').addEventListener('click', ()=>{
-    const e=val('u_e'), n=val('u_n'), z=valInt('u_zona'), h=document.getElementById('u_hemi').value;
-    const box=document.getElementById('resU2');
-    if(isNaN(e)||isNaN(n)||isNaN(z)){ box.innerHTML=`<p class="err-msg">Ingresa este, norte y huso válidos.</p>`; return; }
-    const r = utmToLatLon(e,n,z,h);
-    box.innerHTML = `<div class="results" style="margin-top:12px;">
-      <div class="result-row"><span class="k">Latitud</span><span class="v accent big">${fmtDMS(r.lat,'N','S')}</span></div>
-      <div class="result-row"><span class="k">Longitud</span><span class="v accent big">${fmtDMS(r.lon,'E','W')}</span></div>
-      <div class="result-row"><span class="k">Latitud decimal</span><span class="v">${fmtNum(r.lat,7)}°</span></div>
-      <div class="result-row"><span class="k">Longitud decimal</span><span class="v">${fmtNum(r.lon,7)}°</span></div>
-    </div>`;
   });
 }
 
