@@ -1352,6 +1352,16 @@ function calcBoletaLiquidoABruto(liquido, tasaPct){
   const bruto = liquido/(1-tasaPct/100);
   return {bruto, retencion: bruto-liquido};
 }
+/* IVA (Chile, 19%): el impuesto se redondea al peso, así neto + IVA = total exacto.
+   modo 'neto': el monto es el valor sin IVA · modo 'total': el monto ya incluye el IVA. */
+function calcIVA(monto, tasaPct, modo){
+  if(modo === 'total'){
+    const neto = Math.round(monto/(1+tasaPct/100));
+    return {neto, iva: monto-neto, total: monto};
+  }
+  const iva = Math.round(monto*tasaPct/100);
+  return {neto: monto, iva, total: monto+iva};
+}
 
 /* ---- Replanteo de curva por ordenadas desde la tangente (solo cinta métrica) ---- */
 function calcReplanteoOrdenadas(R, deltaDeg, step){
@@ -2063,7 +2073,7 @@ const TOOLS = {
   costo: {name:'Costo de Brigada', desc:'Factor salarial diario', icon:ICONS.costo},
   cotizacion: {name:'Cotización de Trabajo', desc:'Precio de un levantamiento', icon:ICONS.cotizacion},
   pitagoras: {name:'Teorema de Pitágoras', desc:'Hipotenusa o cateto', icon:ICONS.pitagoras},
-  boletaHonorarios: {name:'Boleta de Honorarios (SII)', desc:'Retención y líquido a recibir', icon:ICONS.boletaHonorarios},
+  boletaHonorarios: {name:'Boleta de Honorarios e IVA', desc:'Retención, líquido a recibir e IVA', icon:ICONS.boletaHonorarios},
   replanteoOrdenadas: {name:'Replanteo por Ordenadas', desc:'Con cinta, desde la tangente', icon:ICONS.replanteoOrdenadas},
   replanteoCuerda: {name:'Replanteo por Cuerda', desc:'Con cinta, ordenadas desde la cuerda PC–PT', icon:ICONS.replanteoCuerda},
   clotoide: {name:'Curva de Transición (Clotoide)', desc:'Espiral de Euler, parámetros A, p, k', icon:ICONS.clotoide},
@@ -7889,8 +7899,18 @@ function renderBoletaHonorarios(){
     ${fieldRow('Tasa de retención (%)','bh_tasa2',15.25,{step:'0.01'})}
     <button class="btn" id="btnBH2" type="button">Calcular</button>
     <div id="resBH2"></div>
+  </div>
+  <div class="field-card">
+    <h3>IVA — Neto ↔ Total</h3>
+    <p class="tool-blurb" style="margin:0 0 8px;">La boleta de honorarios no lleva IVA (lleva retención). El IVA se aplica en facturas y otros documentos afectos: usa esta sección para sacar el neto, el IVA o el total de un cobro.</p>
+    ${fieldRow('Monto ($)','bh_ivaMonto',500000)}
+    <div class="field-row"><label for="bh_ivaModo">El monto ingresado es</label>
+      <select id="bh_ivaModo"><option value="neto" selected>Neto (sin IVA)</option><option value="total">Total (con IVA incluido)</option></select></div>
+    ${fieldRow('Tasa de IVA (%)','bh_ivaTasa',19,{step:'0.01'})}
+    <button class="btn" id="btnBH3" type="button">Calcular</button>
+    <div id="resBH3"></div>
   </div>`;
-  toolShell('boletaHonorarios','Retención de Boleta de Honorarios electrónica en Chile. Tasa vigente 2026: 15,25% (sube gradualmente hasta 17% en 2028 según ley) — ajústala si emites en otro año o si eliges retener un % mayor de forma voluntaria.', body);
+  toolShell('boletaHonorarios','Retención de Boleta de Honorarios electrónica en Chile, más cálculo de IVA (19%) para facturas. Retención vigente 2026: 15,25% (sube gradualmente hasta 17% en 2028 según ley) — ajústala si emites en otro año o si eliges retener un % mayor de forma voluntaria.', body);
   document.getElementById('btnBH1').addEventListener('click', ()=>{
     const bruto=val('bh_bruto'), tasa=val('bh_tasa1'); const box=document.getElementById('resBH1');
     if(isNaN(bruto)||isNaN(tasa)||bruto<=0||tasa<0){ box.innerHTML=`<p class="err-msg">Ingresa el monto bruto y la tasa.</p>`; return; }
@@ -7909,6 +7929,17 @@ function renderBoletaHonorarios(){
       <div class="result-row"><span class="k">Monto bruto a emitir</span><span class="v accent big">$${fmtNum(bruto,0)}</span></div>
       <div class="result-row"><span class="k">Retención (${fmtNum(tasa,2)}%)</span><span class="v">$${fmtNum(retencion,0)}</span></div>
       <div class="plot-wrap">${svgBoletaBarra(liquido,retencion)}</div>
+    </div>`;
+  });
+  document.getElementById('btnBH3').addEventListener('click', ()=>{
+    const monto=val('bh_ivaMonto'), tasa=val('bh_ivaTasa'), modo=document.getElementById('bh_ivaModo').value;
+    const box=document.getElementById('resBH3');
+    if(isNaN(monto)||isNaN(tasa)||monto<=0||tasa<0){ box.innerHTML=`<p class="err-msg">Ingresa el monto y la tasa de IVA.</p>`; return; }
+    const r = calcIVA(monto,tasa,modo);
+    box.innerHTML = `<div class="results" style="margin-top:12px;">
+      <div class="result-row"><span class="k">Neto (sin IVA)</span><span class="v">$${fmtNum(r.neto,0)}</span></div>
+      <div class="result-row"><span class="k">IVA (${fmtNum(tasa,2)}%)</span><span class="v accent">$${fmtNum(r.iva,0)}</span></div>
+      <div class="result-row"><span class="k">Total con IVA</span><span class="v accent big">$${fmtNum(r.total,0)}</span></div>
     </div>`;
   });
 }
