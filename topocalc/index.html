@@ -6434,6 +6434,18 @@ function renderTalud(){
 let tbN = 3;
 function renderTaludBancos(){
   const body = `<div class="field-card">
+    <h3>Casos guardados</h3>
+    ${fieldRow('Nombre del caso','tb_caseName','',{type:'text',placeholder:'Ej. Km 2+300 lado izquierdo'})}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+      <button type="button" class="btn-sm" id="tbSaveCase">💾 Guardar caso</button>
+      <button type="button" class="btn-sm" id="tbExport">⬇ Exportar JSON</button>
+      <button type="button" class="btn-sm" id="tbImport">⬆ Importar JSON</button>
+    </div>
+    <input type="file" id="tbFile" accept=".json,application/json" style="display:none">
+    <span id="tbMsg" class="proj-msg"></span>
+    <div id="tbCases" style="margin-top:6px;"></div>
+  </div>
+  <div class="field-card">
     <h3>Camino / plataforma</h3>
     <div class="field-inline2">
       ${fieldRow('Semiancho plataforma (m)','tb_halfWidth',2.5)}
@@ -6456,7 +6468,7 @@ function renderTaludBancos(){
   <div id="resTB"></div>`;
   toolShell('taludBancos','Bancos escalonados (en cascada): distancias de seguridad al eje de camino, alturas acumuladas y sección transversal a escala. El Banco 1 es el más cercano al camino; cada banco siguiente se apila sobre el anterior.', body);
 
-  const draw = ()=>{
+  const drawRaw = ()=>{
     let html='';
     for(let i=0;i<tbN;i++){
       html += `<div class="station-block">
@@ -6473,9 +6485,90 @@ function renderTaludBancos(){
     }
     document.getElementById('tbBenches').innerHTML = html;
   };
-  draw();
-  document.getElementById('tbMinus').addEventListener('click', ()=>{ if(tbN>1){tbN--; document.getElementById('tbNVal').textContent=tbN; draw();}});
-  document.getElementById('tbPlus').addEventListener('click', ()=>{ if(tbN<12){tbN++; document.getElementById('tbNVal').textContent=tbN; draw();}});
+
+  /* --- Persistencia: se recuerdan los datos al volver, y se pueden guardar varios casos o pasarlos a otro equipo (JSON) --- */
+  const TB_KEY='topocalc-taludbancos', TB_GIDS=['tb_halfWidth','tb_crownPct','tb_defV','tb_defH','tb_maxHeight'];
+  const tbStoreGet = ()=>{ try{ const o=JSON.parse(localStorage.getItem(TB_KEY)||'{}'); return {actual:o.actual||null, casos:Array.isArray(o.casos)?o.casos:[]}; }catch(e){ return {actual:null,casos:[]}; } };
+  const tbStoreSet = (o)=>{ try{ localStorage.setItem(TB_KEY, JSON.stringify(o)); }catch(e){} };
+  const tbNum = (x)=>{ const n=parseFloat(x); return isFinite(n)?String(n):''; };
+  const tbSnap = ()=>{
+    const g={}; TB_GIDS.forEach(id=>{ g[id]=document.getElementById(id).value; });
+    const b=[]; for(let i=0;i<tbN;i++){ const q=(id)=>{ const e=document.getElementById(id+'_'+i); return e?e.value:''; }; b.push({h:q('tb_h'),w:q('tb_w'),v:q('tb_rv'),hh:q('tb_rh')}); }
+    return {g:g,b:b};
+  };
+  const tbClean = (d)=>{
+    if(!d||typeof d!=='object'||!d.g||!Array.isArray(d.b)||!d.b.length) return null;
+    const g={}; TB_GIDS.forEach(id=>{ g[id]=tbNum(d.g[id]); });
+    const b=d.b.slice(0,12).map(x=>({h:tbNum(x&&x.h),w:tbNum(x&&x.w),v:tbNum(x&&x.v),hh:tbNum(x&&x.hh)}));
+    return {g:g,b:b};
+  };
+  const tbPutBenches = (b)=>{ b.forEach((x,i)=>{ const set=(id,v)=>{ const e=document.getElementById(id+'_'+i); if(e&&v!==undefined&&v!==null&&v!=='') e.value=v; }; set('tb_h',x.h); set('tb_w',x.w); set('tb_rv',x.v); set('tb_rh',x.hh); }); };
+  const draw = ()=>{ const prev=tbSnap().b; drawRaw(); tbPutBenches(prev); };   // al agregar/quitar bancos se conservan los valores ya escritos
+  const tbApply = (d)=>{
+    TB_GIDS.forEach(id=>{ const v=d.g[id]; if(v!==undefined&&v!==null&&v!=='') document.getElementById(id).value=v; });
+    tbN=Math.max(1,Math.min(12,d.b.length)); document.getElementById('tbNVal').textContent=tbN;
+    drawRaw(); tbPutBenches(d.b);
+  };
+  const tbSave = ()=>{ const st=tbStoreGet(); st.actual=tbSnap(); tbStoreSet(st); };
+  const tbMsg = (t)=>{ document.getElementById('tbMsg').textContent=t; };
+  const tbRenderCases = ()=>{
+    const box=document.getElementById('tbCases'); box.textContent='';
+    tbStoreGet().casos.forEach((c,idx)=>{
+      const row=document.createElement('div'); row.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid rgba(10,34,64,.12);flex-wrap:wrap;';
+      const nm=document.createElement('span'); nm.style.cssText='flex:1 1 140px;font-weight:600;';
+      nm.textContent=(c.nombre||'Sin nombre')+' · '+((c.datos&&c.datos.b&&c.datos.b.length)||0)+' bancos';
+      const bl=document.createElement('button'); bl.type='button'; bl.className='btn-sm'; bl.textContent='Cargar';
+      bl.addEventListener('click', ()=>{ const d=tbClean(c.datos); if(!d){ tbMsg('El caso guardado está dañado.'); return; } tbApply(d); tbSave(); document.getElementById('tb_caseName').value=c.nombre||''; document.getElementById('resTB').innerHTML=''; tbMsg('Caso cargado.'); });
+      const bd=document.createElement('button'); bd.type='button'; bd.className='btn-sm'; bd.textContent='Eliminar';
+      bd.addEventListener('click', ()=>{
+        if(bd.dataset.ok!=='1'){ bd.dataset.ok='1'; bd.textContent='¿Seguro?'; setTimeout(()=>{ if(bd.isConnected){ bd.dataset.ok=''; bd.textContent='Eliminar'; } },3000); return; }
+        const st=tbStoreGet(); st.casos.splice(idx,1); tbStoreSet(st); tbRenderCases(); tbMsg('Caso eliminado.');
+      });
+      row.appendChild(nm); row.appendChild(bl); row.appendChild(bd); box.appendChild(row);
+    });
+  };
+  const tbAddCase = (nombre, datos)=>{
+    const st=tbStoreGet(); const i=st.casos.findIndex(c=>c.nombre===nombre);
+    if(i>=0) st.casos[i]={nombre:nombre,datos:datos}; else st.casos.push({nombre:nombre,datos:datos});
+    if(st.casos.length>50) st.casos=st.casos.slice(-50);
+    tbStoreSet(st);
+  };
+
+  const c0=tbClean(tbStoreGet().actual);
+  if(c0) tbApply(c0); else draw();
+  tbRenderCases();
+  document.querySelector('.tool-view').addEventListener('input', tbSave);
+  document.getElementById('tbMinus').addEventListener('click', ()=>{ if(tbN>1){tbN--; document.getElementById('tbNVal').textContent=tbN; draw(); tbSave();}});
+  document.getElementById('tbPlus').addEventListener('click', ()=>{ if(tbN<12){tbN++; document.getElementById('tbNVal').textContent=tbN; draw(); tbSave();}});
+
+  document.getElementById('tbSaveCase').addEventListener('click', ()=>{
+    const inp=document.getElementById('tb_caseName');
+    const nombre=(inp.value||'').trim().slice(0,80) || ('Caso '+(tbStoreGet().casos.length+1));
+    inp.value=nombre; tbAddCase(nombre, tbClean(tbSnap())); tbSave(); tbRenderCases(); tbMsg('Caso guardado en este dispositivo.');
+  });
+  document.getElementById('tbExport').addEventListener('click', ()=>{
+    const out={tipo:'topocalc-taludbancos', version:1, actual:tbSnap(), casos:tbStoreGet().casos};
+    downloadTextFile('taludes_bancos_casos.json', JSON.stringify(out,null,2), 'application/json;charset=utf-8;');
+    tbMsg('Archivo exportado.');
+  });
+  document.getElementById('tbImport').addEventListener('click', ()=> document.getElementById('tbFile').click());
+  document.getElementById('tbFile').addEventListener('change', (ev)=>{
+    const f=ev.target.files && ev.target.files[0]; if(!f) return;
+    const rd=new FileReader();
+    rd.onload=()=>{
+      try{
+        const o=JSON.parse(rd.result);
+        if(!o||o.tipo!=='topocalc-taludbancos') throw new Error('tipo');
+        let n=0;
+        (Array.isArray(o.casos)?o.casos:[]).forEach(c=>{ const d=tbClean(c&&c.datos); if(d){ tbAddCase(String((c&&c.nombre)||'Caso importado').slice(0,80), d); n++; } });
+        const a=tbClean(o.actual); if(a){ tbApply(a); tbSave(); document.getElementById('resTB').innerHTML=''; }
+        tbRenderCases(); tbMsg('Importado: '+n+' caso(s)'+(a?' y datos actuales.':'.'));
+      }catch(e){ tbMsg('El archivo no es válido para Taludes en Cascada.'); }
+      ev.target.value='';
+    };
+    rd.onerror=()=>{ tbMsg('No se pudo leer el archivo.'); ev.target.value=''; };
+    rd.readAsText(f);
+  });
 
   document.getElementById('btnTB').addEventListener('click', ()=>{
     const box=document.getElementById('resTB');
@@ -6500,7 +6593,7 @@ function renderTaludBancos(){
     const warnCount = geo.filter(function(g){return g.exceedsMax;}).length;
 
     const trs = geo.map(function(g){
-      return `<tr><td>Banco ${g.index+1}</td><td>${fmtNum(g.height,2)}</td><td>${fmtNum(g.V,1)} : ${fmtNum(g.H,1)}</td><td>${fmtNum(g.slopeLength,2)}</td><td>${fmtNum(g.crestY,2)}</td><td>${fmtNum(g.toeX,3)}</td><td>${fmtNum(g.crestX,3)}</td></tr>`;
+      return `<tr><td>Banco ${g.index+1}</td><td>${fmtNum(g.height,2)}${g.exceedsMax?' ⚠':''}</td><td>${fmtNum(g.V,1)} : ${fmtNum(g.H,1)}</td><td>${fmtNum(g.slopeLength,2)}</td><td>${fmtNum(g.crestY,2)}</td><td>${fmtNum(g.toeX,3)}</td><td>${fmtNum(g.crestX,3)}</td></tr>`;
     }).join('');
 
     box.innerHTML = `<div class="results" style="margin-top:14px;">
@@ -6510,6 +6603,9 @@ function renderTaludBancos(){
       <div class="result-row"><span class="k">Distancia a cresta del último banco</span><span class="v">${fmtNum(totalCrest,3)} m</span></div>
       <div class="table-wrap" style="margin-top:12px;"><table class="data-table"><thead><tr><th>Banco</th><th>Altura</th><th>Talud V:H</th><th>Long. talud</th><th>Cota acum.</th><th>Dist. a pie</th><th>Dist. a cresta</th></tr></thead><tbody>${trs}</tbody></table></div>
       <div class="plot-wrap">${svgTaludBancos(glob, geo)}</div>
+      <details style="margin-top:12px;"><summary style="cursor:pointer;font-weight:600;">Fórmulas utilizadas</summary>
+        <p style="margin:8px 0 0;font-size:.9rem;line-height:1.6;">Recorrido horizontal = altura × H / V<br>Longitud del talud = √(altura² + recorrido²)<br>Dist. a pie = dist. a cresta del banco anterior + recorrido (el primer banco parte del semiancho de la plataforma)<br>Dist. a cresta = dist. a pie + berma<br>Cota acumulada = suma de las alturas de los bancos<br>⚠ = altura del banco mayor que la máxima recomendada</p>
+      </details>
     </div>`;
     const csvRows = ['banco,altura_m,talud_V,talud_H,long_talud_m,cota_acumulada_m,dist_pie_m,dist_cresta_m'];
     geo.forEach(function(g){ csvRows.push(`Banco ${g.index+1},${g.height},${g.V},${g.H},${round(g.slopeLength,3)},${round(g.crestY,3)},${round(g.toeX,3)},${round(g.crestX,3)}`); });
