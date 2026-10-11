@@ -1072,6 +1072,15 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
   .msel-op{ min-height:40px; font-size:.9rem; }
 }
 .mapa-hint{ font-size:.7rem; color:var(--ink-soft); padding:4px 12px 0; }
+
+.f-planos{ display:flex; flex-wrap:wrap; gap:8px; }
+.f-plano{ display:inline-flex; align-items:center; gap:6px; min-height:40px; padding:6px 12px; box-sizing:border-box; border:1px solid var(--line-strong); border-radius:999px; background:var(--paper); color:var(--ink); font-size:.8rem; font-weight:700; text-decoration:none; }
+.f-plano:hover{ border-color:var(--blueprint); color:var(--blueprint); }
+.f-plano small{ font-weight:600; color:var(--ink-soft); font-size:.7rem; }
+.f-plano-gen{ margin:8px 0 0; font-size:.72rem; color:var(--ink-soft); }
+.f-plano-gen a{ color:var(--blueprint); font-weight:700; }
+.pdf-frame{ flex:1; min-height:0; width:100%; border:0; background:#fff; }
+.pdf-ov .gal-top{ gap:12px; } .pdf-ov .gal-info{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 </style>
 <style id="partida-trazado">
 /* partida "Trazado": 8º color fijo (celeste) */
@@ -3265,6 +3274,42 @@ window.PORTICOS_LISTA = (function(){
             + '<td><span class="cob-b '+nivel(d.bn)+'">'+esc(d.b)+'</span> <small>Mbps</small></td><td>'+esc(d.s || "\u2014")+' <small>Mbps</small></td><td>'+esc(d.pi || "\u2014")+' <small>ms</small></td><td>'+esc(d.j || "\u2014")+' <small>ms</small></td></tr>';
         }).join("") + '</tbody></table><p class="f-ley">Bajada: <b class="cob-ok">\u2265 50</b> buena \u00b7 <b class="cob-med">10\u201350</b> media \u00b7 <b class="cob-bajo">&lt; 10</b> baja (Mbps)</p></div>';
   }
+  /* ---------- planos del pórtico (carpeta de Drive "01- Porticos": PDF y versión CAD) ---------- */
+  var PLANOS = {"11":{"p":[["","1mYk2QDX48gwt-tNggwVD7q7eLwYWXy6_"]],"c":[["","1_Q43dph-g_Cx5OWhA2pQewK6dwWDOmq6"]]},"12":{"p":[["","1_W_dk2yeJFqkXzja-O_Jkl7R9SCFzuYR"]],"c":[["","1tPG2cRGM3lL2w7AeyFJPAWNYCgziO62k"]]},"13":{"p":[["","1Bm-Enwy8vQ0pqu6JGXJf9EaSfpjWVgTB"]],"c":[["","17_-bVZvcwTFSCQ8hqggNKstjhhF2z6JI"]]},"134a":{"p":[["","10bgIpj6eVkK8w8ud1YEk45C7sGBEFIZz"]],"c":[["","1lM_PEZGW93atH8x8wf4BXM5pI4ma7vVg"]]},"134b":{"p":[["","1zmSZG7lPMBhSJOVtceL5O4YgIHwpgJGO"]],"c":[["","1Neit2gn_WwwoP3ia7tFqFtzS8cGArF6B"]]},"14":{"p":[["","1PeFY6ipwQP-ET7t48MZk2RDK8MSbFe62"]],"c":[["","1p3YZvQgXHgUBOreES3-PvG-MBgTDTkBI"]]},"143a":{"p":[["","1a2yB0kuGRB2S7MZP3CQD4F170ZXW_yoJ"]],"c":[["Layout1","1VUrP7R0B5HYbk9FV0lFkHpI1BZ4nl90t"],["Model","1T7TlF9Sz2I09zSE450NbWxfMIsOQxh0Z"]]},"143b":{"p":[["Layout2","1qDjY7XS7MO8cDXlnaHp79pslMl0wexu5"],["Layout1","1TkwWENmkqYQOKIZnq49nWxOcxqmzJFQf"]],"c":[["","1h7tnqM5MV0JpaslVyK262J1-Eic4E6s_"]]},"144a":{"p":[["","1Ia9hpW5nT-hJTFqUMdjTZkQpIqkBZQ6W"]],"c":[["","1ZvivW4agQtR6za3rRQdgV153hz0eQ_Hl"]]},"144b":{"p":[["","1AD3iBNuEncE6ZsW7M2zbgcZcV4J-LmM4"]],"c":[["","1eiUTbxx5mTuAIiFawFa_EBLGyCV9G-3r"]]},"145a":{"p":[["","1ANa2OBOjnx_yGwgEaUoD52AiWh-hTEZx"]],"c":[["","11l4wJ-zgoYf8YGPVLTDamf01uFe80g0x"]]},"145b":{"p":[["","1vJnY2McGouUgHnATjcCJUFor3Jb-tCsV"]],"c":[["","1Sf3U2C4XGiFYoxxYncP23g6xkXDmAjN2"]]},"145c":{"p":[["","14MPS_jbIv_AVhXH2QyqJ7npBb1HbACjz"]],"c":[["","1qrh9v5UcN0ptrqHT5nMPAWkym12hpeSm"]]},"146":{"p":[["","1AUJEPIYu86YpMwgqABapioQEyMqyfYwb"]],"c":[["","11PkXvKoqeGkQ3LI1dJrVx-p1Z5hybq7E"]]},"147a":{"p":[["","1sEigyM8P4wvLCGFXIQ3_U-fSGQz2wES6"]],"c":[["","13bik2FeeOJlSdZo9gK2qTzcOqZh_Ygxo"]]},"147b":{"p":[["","1jT60XBiv9Ko39j3VzhbXBuqRyuf38MFb"]],"c":[["","1j0_6SR82wzz90x8yD3ciAqNa97KmcR3l"]]},"147c":{"p":[["","14HHeVfAvRzW8akmtmuSPlPftThRl2joM"]],"c":[["","1SJemBh1u1x-l9Jo-W4Yf7JsLEZnroICG"]]},"147d":{"p":[["","1pmEnYVCVupQs_9dp0eTeDYLEnelgLcTE"]],"c":[["","1_UQDwCNI7uKgfp1507bXKPLy_Mf8LDLO"]]},"148a":{"p":[["","1bU36c1K-0C2H-av5ulU0Sf_37CI_4V2o"]],"c":[["","1x9BOCKjV5OcPabCzKUETFi03U84JE_BY"]]},"148b":{"p":[["","11y3x_IIYLw5G13L7bweq7OyK-8JLjwk5"]],"c":[["","1wvkiUEOlPMo2XnB3ydxEJcQhHDm6cNb2"]]},"153":{"p":[["","1YIDB0U9OXQ_270YoWnknZgzpI2mDwJuZ"]],"c":[["","1Cj_evunNiVmjrYkBZZbXh0e4aezjX9y3"]]},"154a":{"p":[["","1-SrmwPQH_yZSWMCDta9ux0jUDY1xRyik"]],"c":[["","19i2CpXjab05ARXafDYA1SsZs_WZ7PXyA"]]},"154b":{"p":[["","1ZuwTJwRyPf5vzQ4Tj218umCtrSGMTGhU"]],"c":[["","1WH_57jlfw65cmSGoomNrSJRlTRCL1Msz"]]},"155":{"p":[["","1Pt6cA6-DmTps2MTywqC8jd9AuEfgoBj_"]],"c":[["","16ds9GFwHko7CHsNUUTUWqpCdWEdOmwMc"]]},"156":{"p":[["","1ryNknFpqB5END6lbj59QTrkkzjcbkwEv"]],"c":[["","1Gni0ToTx92W7VSJx7hYS9wjW67MW9o6B"]]},"157a":{"p":[["","1WRWuFNvYxvqAVNJULFW1j4QQOqDdoYKl"]],"c":[["Model","1a6r2x7ePz4e6gLTSDPxr22heh_FSKqSo"],["Layout1","1Kygm12DOhQ7o3UC11UHYQ9jAxKx_Ii9v"]]},"157b":{"p":[["","17FsqTGn-qxmciixO1eWnIQ-nLheGxxfd"]],"c":[["","1mSBMzL1J5W8VpLOV_0e6aFsXbmz_Xnu-"]]},"158a":{"p":[["","11RHmDWsjoYP-iSsW8ID8IZ5hHyaj63Js"]],"c":[["","10nzbIVfqPzjCEyX0VY_LGin0vU6hmIGr"]]},"158b":{"p":[["","1HP6cZzoJ1Rg1JNQPS_sIS_-_QNln76fB"]],"c":[["","1n5kSoTfauWRT-ZuK40hi8I-iPD2kOufm"]]},"160":{"p":[["","1IHrZX1kl5qAAAT3VuzJhVWQ7l481Ps-r"]],"c":[["","1iLauctfNg1gByUaiS5Vfh1uNoxwHwBlN"]]},"161a":{"p":[["","1gOKiMlR68aVnWY_8M47apVtirh2rrzNV"]],"c":[["","11YQi43UEZFgOE0UL2SDFKq8vT3Z9iki3"]]},"161b":{"p":[["","1atvkaBHYN7aIsAs25prRUkyxC6lH7gfX"]],"c":[["","1Sj5au5q7wEl8CGRwEYA4FqOQvTbZ2Rq9"]]},"162a":{"p":[["","1N4lbOLlw0hobRUYYQZ9_KPRRg29rTlPW"]],"c":[["","1GxEk53me3ssry4vikRLKKLIyOm9eysO4"]]},"162b":{"p":[["","1X7HhvYuOpbXeaSICEb12qK5zvRsfzZwp"]],"c":[["","1nYyWQn08nXPKrhw3AFeB_bFGo-h9RPIn"]]},"162c":{"p":[["","1DsQWeTWVsUqWDgG_lu5WAod4ywUXn4FD"]],"c":[["","1mc6PE_d9frWCkM2BSNuqcN2SOBo0FiHV"]]},"162d":{"p":[["","1dA79iHasp6bzOAtAzPzu8RBwWwyNMUoK"]],"c":[["","16G2csVc51Do8nosuSYCX9BBRAqESafGx"]]},"163":{"p":[["","1Eo63osNNR082SwUTX-z5bh_dsxyx8CHt"]],"c":[["","1v2iLzrMcA1ZUrGhmhV3rLoswc6jgC-gm"]]},"164":{"p":[["","1L1-h_nQ0IX063aXEe1YTn5hJd_c0dde-"]],"c":[["","1Tq_9q5wrAW0FyuhvQvQiKyHeTgl2CsjY"]]},"166":{"p":[["","1DwwtMXPF7Z9oiY-cc4DajP66DVjD6O7Z"]],"c":[["","11AH3kKvhNVQizrHDUsgJrUy5BThxtNNf"]]},"30":{"p":[["","1M3KE5UzmOSNBT80sVyBFSrEP2c7P-I_r"]],"c":[["","1zDw6JpTH7dcAVzuVRuUvlgxIsgyua0Gn"]]},"31":{"p":[["","1AFnMwT3zwrBB1k8OSBkq7MotXvPNt4CZ"]],"c":[["","1kGuGQZT7NE2kVxrt3413Qqehc0AqkoX2"]]},"32":{"p":[["","11unHxWvb7NiT1Z6uyxvHhvdNebwiV1wa"]],"c":[["","1LEgZIrMSaQakmzzggZ6jMa2tVXbVRqlO"]]},"33":{"p":[["","1jgL-YHxBECouGE7b3Mo2kxhScirrecmJ"]],"c":[["","1r1FcCckb1tD8qJvcGrSzsJp_lKX8J5E_"]]},"34":{"p":[["","1xz-5FWIdUZXuQ8B3CFiMll9j9lBXlxx7"]],"c":[["","1XaZLCBPuG6wmE3QCn61AbCnNEMfZ-Kn_"]]},"35":{"p":[["","1skttfKojKbMcVIrMDZhVRQNJLgFVM76k"]],"c":[["","1hKH1S8pkFiSvSL0dTKPc3ENfzd2-3DL0"]]},"54":{"p":[["","1-HFdYftBQINsWhKhQ1WwWrud1n2MAkEl"]],"c":[["","1bltXJeGVIQK9OwJZHPEs6lQn7-MGOTGd"]]},"66":{"p":[["","18OPdl2W5iuIotnNtct3uNidmsRXlDjGh"]],"c":[["","1e_gdr6FZ4KUCCKvL9EqOZu0pmJ06xVId"]]},"67":{"p":[["","1kfCYQ_KbOGFbNlaoxPkRAbG78cervAQS"]],"c":[["","1LAbMvkvQhvzviCE8X8J8LxxWYRs1b-14"]]},"68":{"p":[["","1Tng65-txwBYyl6kdjnM3DGlfWch84MzF"]],"c":[["","1FTB01KwU_icfpuIklTcDem92laNOtS_t"]]},"69":{"p":[["","1c2I-e8PXBhd4wTgObq-3U9pQAflwpTSx"]],"c":[["","13UfaQ3LZeN4ZjMjnbaiXdr_-s21Xds44"]]},"70":{"p":[["","1hV5MbC82wu-L9Qo8Nylqu6d2h5SXQH20"]],"c":[["","1evvm5ES_Ih_l_6NMb5xyW0BC02uc8LGH"]]},"71":{"p":[["","10wfSYbpA019R_kPApTGaJu-f76rDU1vU"]],"c":[["","1_k_o2K2Uvbpzn5WEFWGH6Sw0nnRJnkRX"]]},"73":{"p":[["","1hmepmbrPsHK6RYEzJi1zJ5BuQW4JwIKt"]],"c":[["","1xXWT4CVC9YQFgkmyf7g1JPchXJwxRfLH"]]},"75":{"p":[["","12QV0fk0nJg3PD27dP2i98Oqt3tl9qdaP"]],"c":[["","14aq3Lum27nvyrcBqGYsThlDtR95vDw8Z"]]},"76":{"p":[["","1_WvOLw35ARPVfbEuPyX7H-KPIYW0y4ZS"]],"c":[["","18AAr25ttkiOWrNMchextLRFkAJN7ZSXK"]]},"77":{"p":[["","1NIotwjFvsiHUu6eXiQZsfdD5CDzIBZYq"]],"c":[["","1y_4uQIYR2wMOAPbcHZHBL7NU2FrmJVyi"]]},"82":{"p":[["","1mb3l-w9LaKjULPCtnDoss4zTxSpXlwvT"]],"c":[["","1JKn9dlC4KrfPDIYb5IYP_JVz64SrmH7I"]]},"83":{"p":[["","1J_HWTS1S_nH-ld80nXyb0Pw1m6aESU_X"]],"c":[["","1Y5lyAAJRWauzLNxsA_M41Mk55FKKdSHi"]]},"84":{"p":[["","1x53d6zyziWYf_Cv_j26Vuzdsyzq4zMHD"]],"c":[["","1QV7DFrN6etqz8ryAZ0oyhpPQFd2jJtj2"]]},"85":{"p":[["","1UKAtCeOywwIoEyK4fkQVXVzBZaQlOa78"]],"c":[["","1_ka1odF3G96t0TKAI1g6bbL618L4smiY"]]},"86":{"p":[["","1TQvRCFeqTmsIS_JB4bnyUzE8WL2HbejO"]],"c":[["","13Vpo-kGN3rGsFyezq4lhmqpL8DiI2JFT"]]},"region":{"p":[["","16JeWP33NUBdIYBxvQTN05XVsHuId4DO6"]],"c":[["","1bJqiA7t6RhlZeGwxiIC0bxkF-TH53N3o"]]}};
+  function clavePlano(n){ return String(n || "").toLowerCase().replace(/^p(?=\d)/, "").replace(/[^a-z0-9]/g, ""); }
+  function enlacesPlano(arr, tipo, titulo){
+    return (arr || []).slice().sort(function(a, b){ return String(a[0]).localeCompare(String(b[0])); }).map(function(x){
+      var url = tipo === "pdf" ? "https://drive.google.com/file/d/" + x[1] + "/view" : "https://drive.google.com/uc?export=download&id=" + x[1];
+      return '<a class="f-plano" href="' + url + '"' + (tipo === "pdf" ? ' data-pdf="' + x[1] + '" data-tit="' + esc(titulo + (x[0] ? ' \u00b7 ' + x[0] : '')) + '"' : '') + ' target="_blank" rel="noopener">' + (tipo === "pdf" ? '\ud83d\udcc4 Plano PDF' : '\ud83d\udcd0 Plano CAD (.dwg)') + (x[0] ? ' <small>' + esc(x[0]) + '</small>' : '') + '</a>';
+    }).join("");
+  }
+  function secPlanos(p){
+    var d = PLANOS[clavePlano(p.nombre)]; if(!d) return "";
+    var g = PLANOS.region;
+    return '<div class="f-sec"><h4>Planos</h4><div class="f-planos">' + enlacesPlano(d.p, "pdf", "Plano " + p.nombre) + enlacesPlano(d.c, "cad", "") + '</div>'
+      + (g ? '<p class="f-plano-gen">Plano general de la regi\u00f3n: <a href="https://drive.google.com/file/d/' + g.p[0][1] + '/view" data-pdf="' + g.p[0][1] + '" data-tit="Plano general de la regi\u00f3n" target="_blank" rel="noopener">PDF</a> \u00b7 <a href="https://drive.google.com/uc?export=download&id=' + g.c[0][1] + '" target="_blank" rel="noopener">CAD</a></p>' : '') + '</div>';
+  }
+  /* visor de PDF dentro de la página (vista previa de Drive) */
+  (function(){
+    var ov = null;
+    function cerrar(){ if(ov){ ov.remove(); ov = null; document.removeEventListener("keydown", tecla); } }
+    function tecla(e){ if(e.key === "Escape") cerrar(); }
+    document.addEventListener("click", function(e){
+      var a = e.target.closest && e.target.closest("a[data-pdf]"); if(!a) return;
+      e.preventDefault(); cerrar();
+      var id = a.getAttribute("data-pdf"), tit = a.getAttribute("data-tit") || "Plano";
+      ov = document.createElement("div"); ov.className = "gal-overlay pdf-ov"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", tit);
+      ov.innerHTML = '<div class="gal-top"><span class="gal-info">' + esc(tit) + '</span>'
+        + '<a class="gal-drive" href="https://drive.google.com/uc?export=download&id=' + encodeURIComponent(id) + '">Descargar</a>'
+        + '<a class="gal-drive" href="https://drive.google.com/file/d/' + encodeURIComponent(id) + '/view" target="_blank" rel="noopener">Abrir en Drive</a>'
+        + '<button type="button" class="gal-x" aria-label="Cerrar">\u2715</button></div>'
+        + '<iframe class="pdf-frame" title="' + esc(tit) + '" src="https://drive.google.com/file/d/' + encodeURIComponent(id) + '/preview" allow="autoplay"></iframe>';
+      document.body.appendChild(ov);
+      ov.querySelector(".gal-x").onclick = cerrar;
+      ov.querySelector(".gal-x").focus();
+      document.addEventListener("keydown", tecla);
+    });
+  })();
   function pintarFicha(){
     var box = document.getElementById("fichaPortico"); if(!box) return;
     if(!selPortico){ box.hidden = true; box.innerHTML = ""; return; }
@@ -3281,8 +3326,10 @@ window.PORTICOS_LISTA = (function(){
       cuerpo = '<div class="f-sec"><div class="f-grid">' + par('Estado', '') .replace('<span class="f-nd">\u2014</span>', estado)
         + par('Coordenadas', tieneCoords(p) ? p.lat.toFixed(6) + ', ' + p.lng.toFixed(6) : '').replace('</dd>', mp + '</dd>') + '</div>'
         + '<p class="f-vacia">Este p\u00f3rtico a\u00fan no tiene ficha t\u00e9cnica cargada.</p></div>';
+      cuerpo += secPlanos(p);
     } else {
       cuerpo = '<div class="f-sec"><h4>Estado de avance</h4><div class="f-estado">' + estado + '</div></div>'
+        + secPlanos(p)
         + '<div class="f-sec"><h4>Identificaci\u00f3n y ubicaci\u00f3n</h4><div class="f-grid">'
           + par('N\u00b0 Kmz', p.nombre) + par('Comuna', p.comuna) + (f.provincia ? par('Provincia', f.provincia) : '') + (f.zona ? par('Zona', f.zona) : '')
           + (f.dmProp ? par('DM propuesto', f.dmProp, 'm') : '') + (f.distCoord ? par('Dist. entre coordenadas', f.distCoord, 'm') : '')
