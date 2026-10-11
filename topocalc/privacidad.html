@@ -164,9 +164,10 @@ navegador. No enviamos las coordenadas, mediciones ni resultados que
 ingreses a ningún servidor nuestro.</p>
 
         <h2>Servicios externos que usa la app</h2>
-<p>Para funcionar, TopoCalc carga algunos recursos desde servicios de terceros. Al hacerlo, tu navegador o dispositivo les envía automáticamente datos técnicos de la conexión, como tu dirección IP. Nosotros no enviamos a estos servicios tus coordenadas, mediciones ni resultados.</p>
+<p>Para funcionar, TopoCalc carga algunos recursos desde servicios de terceros. Al hacerlo, tu navegador o dispositivo les envía automáticamente datos técnicos de la conexión, como tu dirección IP. Nosotros no enviamos a estos servicios tus coordenadas, mediciones ni resultados, salvo la excepción de OSRM descrita abajo (cálculo de rutas en el mapa de pórticos).</p>
 <ul>
   <li><strong>OpenStreetMap</strong>: los mapas de fondo se descargan como mosaicos desde <code>tile.openstreetmap.org</code>. Para dibujar el mapa, el servidor recibe tu IP y los mosaicos de la zona que estás viendo. Los datos del mapa son © colaboradores de OpenStreetMap. Más información: <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">Política de Privacidad de OpenStreetMap Foundation</a>.</li>
+  <li><strong>OSRM (Project OSRM)</strong>: solo en el mapa de pórticos, si pulsas «Calcular ruta (vehículo)», se envían a <code>router.project-osrm.org</code> las coordenadas de los puntos de la ruta (y tu ubicación, si marcaste «Salir desde mi ubicación») para obtener distancia, tiempo y trazado por carretera. No se envía nada si no usas esa función. Más información: <a href="https://project-osrm.org" target="_blank" rel="noopener">project-osrm.org</a>.</li>
   <li><strong>cdnjs (Cloudflare)</strong>: se cargan las librerías del mapa (Leaflet), de exportación a Excel y de capturas de pantalla. Más información: <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Política de Privacidad de Cloudflare</a>.</li>
   <li><strong>Google Fonts</strong>: se carga la tipografía Inter. Más información: <a href="https://developers.google.com/fonts/faq/privacy" target="_blank" rel="noopener">Privacidad en Google Fonts</a>.</li>
 </ul>
