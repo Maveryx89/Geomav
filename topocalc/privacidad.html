@@ -1,70 +1,178 @@
 <!DOCTYPE html>
 <html lang="es-CL">
 <head>
-<meta charset="UTF-8">
-<title>Política de Privacidad — Topo de Bolsillo | GeoMav</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#F4F3EF">
-<style>
-  body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;max-width:760px;margin:0 auto;padding:32px 20px 80px;line-height:1.6;color:#2b2b28;background:#F4F3EF;}
-  h1{font-size:1.6rem;margin-bottom:4px;}
-  .updated{color:#6b6b64;font-size:.9rem;margin-bottom:2rem;}
-  h2{font-size:1.15rem;margin-top:2.2rem;border-top:1px solid #ddd;padding-top:1.2rem;}
-  a{color:#2a7a8c;}
-  ul{padding-left:1.3rem;}
-  table{border-collapse:collapse;width:100%;margin:1rem 0;}
-  th,td{border:1px solid #ddd;padding:8px 10px;text-align:left;font-size:.95rem;}
-  th{background:#eae8e2;}
-</style>
-</head>
-<body>
-<h1>Política de Privacidad — Topo de Bolsillo</h1>
-<p class="updated">Última actualización: septiembre de 2026</p>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Política de Privacidad — Topo de Bolsillo | GEOMAV</title>
+  <meta name="description" content="Política de privacidad de la app Topo de Bolsillo (GeoMav): qué datos usa, anuncios de Google AdMob, compras con Google Play y RevenueCat, y permisos." />
+  <link rel="canonical" href="https://geomav.me/topocalc/privacidad.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Política de Privacidad — Topo de Bolsillo | GEOMAV" />
+  <meta property="og:description" content="Política de privacidad de la app Topo de Bolsillo (GeoMav)." />
+  <meta property="og:url" content="https://geomav.me/topocalc/privacidad.html" />
+  <meta property="og:locale" content="es_CL" />
 
-<p>Esta política aplica a la aplicación <strong>Topo de Bolsillo</strong>,
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+
+  <style>
+    .articulo-contenido a:not(.boton){color:var(--color-secundario); font-weight:700;}
+    /* Tabla de datos: usa solo variables de estilo.css */
+    .tabla-datos-wrap{overflow-x:auto; margin:20px 0;}
+    .tabla-datos{width:100%; border-collapse:collapse; font-size:0.92rem; background:var(--color-blanco); border:1px solid var(--color-borde); border-radius:4px;}
+    .tabla-datos th, .tabla-datos td{text-align:left; padding:12px 14px; border-bottom:1px solid var(--color-borde); vertical-align:top;}
+    .tabla-datos th{font-size:0.75rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--color-primario); background:var(--color-fondo);}
+    .tabla-datos td:first-child{font-weight:700; color:var(--color-primario);}
+    @media (max-width:768px){
+      .tabla-datos thead{display:none;}
+      .tabla-datos, .tabla-datos tbody, .tabla-datos tr, .tabla-datos td{display:block; width:100%;}
+      .tabla-datos tr{border-bottom:1px solid var(--color-borde); padding:6px 0;}
+      .tabla-datos td{border:none; padding:6px 14px;}
+      .tabla-datos td[data-label]::before{content:attr(data-label); display:block; font-size:0.7rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--color-dim); margin-bottom:2px;}
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="../aprende/" class="menu-enlace">Aprende</a></li>
+          <li><a href="../alianzas/" class="menu-enlace">Alianzas</a></li>
+          <li><a href="../topocalc/" class="menu-enlace">Topo de Bolsillo</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="../aprende/" class="overlay-enlace">Aprende</a>
+    <a href="../alianzas/" class="overlay-enlace">Alianzas</a>
+
+    <a href="../topocalc/" class="overlay-enlace">Topo de Bolsillo</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+  <!-- CABECERA -->
+  <section class="pagina-hero" style="padding-bottom:0;">
+    <div class="contenedor">
+      <a href="../topocalc/" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver a Topo de Bolsillo
+      </a>
+      <span class="etiqueta-seccion">Legal · App</span>
+      <h1 class="titulo-seccion">Política de <span class="texto-destacado">privacidad</span> — Topo de Bolsillo</h1>
+      <p class="pagina-hero-descripcion">Última actualización: octubre de 2026.</p>
+    </div>
+  </section>
+
+  <!-- CONTENIDO -->
+  <section class="pagina-galeria" style="padding-top:20px;">
+    <div class="contenedor">
+      <article class="articulo-contenido">
+
+        <p>Esta política aplica a la aplicación <strong>Topo de Bolsillo</strong>,
 desarrollada por <strong>GeoMav</strong> (en adelante "nosotros"),
 disponible como sitio web en <a href="https://geomav.me/topocalc/">geomav.me/topocalc</a>
 y como app en Google Play.</p>
 
-<h2>Qué datos recopilamos y para qué</h2>
+        <h2>Qué datos recopilamos y para qué</h2>
 
-<table>
-<tr><th>Dato</th><th>¿Cuándo se recopila?</th><th>Para qué se usa</th><th>¿Se comparte?</th></tr>
-<tr>
-  <td>Ubicación (GPS)</td>
-  <td>Solo si usas herramientas que la requieren y otorgas el permiso</td>
-  <td>Calcular coordenadas y resultados directamente en tu dispositivo</td>
-  <td>No se envía a nuestros servidores ni a terceros</td>
-</tr>
-<tr>
-  <td>Cámara / fotos</td>
-  <td>Solo si usas una función que la requiere y otorgas el permiso</td>
-  <td>Funcionalidad de la app en tu dispositivo</td>
-  <td>No se sube a servidores ni se comparte</td>
-</tr>
-<tr>
-  <td>Identificador de publicidad / datos de uso</td>
-  <td>Automáticamente, a través de Google AdMob (anuncios)</td>
-  <td>Mostrar anuncios (potencialmente personalizados)</td>
-  <td>Sí, con Google AdMob — ver su política más abajo</td>
-</tr>
-<tr>
-  <td>Información de compra ("Quitar anuncios")</td>
-  <td>Si realizas la compra dentro de la app</td>
-  <td>Validar y recordar que ya no debes ver anuncios</td>
-  <td>Sí, con Google Play Billing y RevenueCat (procesador de compras)</td>
-</tr>
+<div class="tabla-datos-wrap">
+<table class="tabla-datos">
+<thead><tr><th>Dato</th><th>¿Cuándo se recopila?</th><th>Para qué se usa</th><th>¿Se comparte?</th></tr></thead>
+<tbody>
+<tr><td data-label="Dato">Ubicación (GPS)</td><td data-label="¿Cuándo se recopila?">Solo si usas herramientas que la requieren y otorgas el permiso</td><td data-label="Para qué se usa">Calcular coordenadas y resultados directamente en tu dispositivo</td><td data-label="¿Se comparte?">No se envía a nuestros servidores ni a terceros</td></tr>
+<tr><td data-label="Dato">Cámara / fotos</td><td data-label="¿Cuándo se recopila?">Solo si usas una función que la requiere y otorgas el permiso</td><td data-label="Para qué se usa">Funcionalidad de la app en tu dispositivo</td><td data-label="¿Se comparte?">No se sube a servidores ni se comparte</td></tr>
+<tr><td data-label="Dato">Identificador de publicidad / datos de uso</td><td data-label="¿Cuándo se recopila?">Automáticamente, a través de Google AdMob (anuncios)</td><td data-label="Para qué se usa">Mostrar anuncios (potencialmente personalizados)</td><td data-label="¿Se comparte?">Sí, con Google AdMob — ver su política más abajo</td></tr>
+<tr><td data-label="Dato">Información de compra ("Quitar anuncios")</td><td data-label="¿Cuándo se recopila?">Si realizas la compra dentro de la app</td><td data-label="Para qué se usa">Validar y recordar que ya no debes ver anuncios</td><td data-label="¿Se comparte?">Sí, con Google Play Billing y RevenueCat (procesador de compras)</td></tr>
+<tr><td data-label="Dato">Dirección IP y zona del mapa que visualizas</td><td data-label="¿Cuándo se recopila?">Al abrir una herramienta con mapa (el navegador o la app pide los mosaicos del mapa)</td><td data-label="Para qué se usa">Mostrar el mapa de fondo (OpenStreetMap)</td><td data-label="¿Se comparte?">Sí, con los servidores de OpenStreetMap — ver sección "Servicios externos"</td></tr>
+</tbody>
 </table>
+</div>
 
 <p>No pedimos registro ni cuenta de usuario: la app no recopila tu nombre,
 correo ni ningún dato de identificación personal directamente.</p>
 
-<h2>Todos los cálculos se hacen en tu dispositivo</h2>
+        <h2>Todos los cálculos se hacen en tu dispositivo</h2>
 <p>Las calculadoras de topografía funcionan enteramente en tu teléfono o
 navegador. No enviamos las coordenadas, mediciones ni resultados que
 ingreses a ningún servidor nuestro.</p>
 
-<h2>Anuncios (Google AdMob)</h2>
+        <h2>Servicios externos que usa la app</h2>
+<p>Para funcionar, TopoCalc carga algunos recursos desde servicios de terceros. Al hacerlo, tu navegador o dispositivo les envía automáticamente datos técnicos de la conexión, como tu dirección IP. Nosotros no enviamos a estos servicios tus coordenadas, mediciones ni resultados.</p>
+<ul>
+  <li><strong>OpenStreetMap</strong>: los mapas de fondo se descargan como mosaicos desde <code>tile.openstreetmap.org</code>. Para dibujar el mapa, el servidor recibe tu IP y los mosaicos de la zona que estás viendo. Los datos del mapa son © colaboradores de OpenStreetMap. Más información: <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">Política de Privacidad de OpenStreetMap Foundation</a>.</li>
+  <li><strong>cdnjs (Cloudflare)</strong>: se cargan las librerías del mapa (Leaflet), de exportación a Excel y de capturas de pantalla. Más información: <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Política de Privacidad de Cloudflare</a>.</li>
+  <li><strong>Google Fonts</strong>: se carga la tipografía Inter. Más información: <a href="https://developers.google.com/fonts/faq/privacy" target="_blank" rel="noopener">Privacidad en Google Fonts</a>.</li>
+</ul>
+<p>La app guarda en tu dispositivo una copia de estos recursos y de los mosaicos del mapa que ya viste, para que funcione sin internet.</p>
+
+        <h2>Anuncios (Google AdMob)</h2>
 <p>Usamos Google AdMob para mostrar anuncios dentro de la app. AdMob puede
 recopilar identificadores de publicidad y datos de uso para mostrar
 anuncios relevantes, conforme a su propia política de privacidad:</p>
@@ -75,7 +183,7 @@ anuncios relevantes, conforme a su propia política de privacidad:</p>
 <p>Puedes eliminar los anuncios comprando "Quitar anuncios" dentro de la
 app.</p>
 
-<h2>Compras dentro de la app</h2>
+        <h2>Compras dentro de la app</h2>
 <p>La compra "Quitar anuncios" se procesa a través de Google Play Billing
 y se gestiona con la plataforma <strong>RevenueCat</strong>, que actúa
 como procesador de la compra para validar tu adquisición. RevenueCat no
@@ -83,7 +191,7 @@ recibe datos de pago (esos los procesa Google Play directamente) — solo
 información de la transacción necesaria para confirmar tu compra.
 Más información: <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener">Política de Privacidad de RevenueCat</a>.</p>
 
-<h2>Permisos que solicita la app</h2>
+        <h2>Permisos que solicita la app</h2>
 <ul>
   <li><strong>Ubicación:</strong> opcional, solo para las herramientas que
   la usan (ej. captura de coordenadas en terreno).</li>
@@ -93,24 +201,67 @@ Más información: <a href="https://www.revenuecat.com/privacy" target="_blank" 
 <p>Puedes usar la app sin otorgar estos permisos; simplemente las
 funciones que dependen de ellos no estarán disponibles.</p>
 
-<h2>Menores de edad</h2>
+        <h2>Menores de edad</h2>
 <p>Topo de Bolsillo es una herramienta técnica de uso profesional/educativo
 y no está dirigida específicamente a niños.</p>
 
-<h2>Tus derechos</h2>
+        <h2>Tus derechos</h2>
 <p>Como no almacenamos datos personales identificables en nuestros
 servidores, no hay una cuenta ni perfil que puedas solicitar eliminar con
 nosotros directamente. Para gestionar los datos que Google recopila a
 través de AdMob o Play Billing, puedes revisar tu
 <a href="https://myaccount.google.com/data-and-privacy" target="_blank" rel="noopener">configuración de privacidad de Google</a>.</p>
 
-<h2>Cambios a esta política</h2>
+        <h2>Cambios a esta política</h2>
 <p>Podemos actualizar esta política ocasionalmente. La fecha de la última
 actualización aparece arriba.</p>
 
-<h2>Contacto</h2>
+        <h2>Contacto</h2>
 <p>Si tienes preguntas sobre esta política, escríbenos a través de
 <a href="https://geomav.me/">geomav.me</a>.</p>
 
+      </article>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+          <p style="margin-top:10px; color:var(--color-primario); font-size:0.85rem; font-weight:700; max-width:280px;">Perito Judicial habilitado — Cortes de Apelaciones de Rancagua, Talca y Chillán</p>
+          <p style="margin-top:10px; max-width:280px;"><a href="https://maps.google.com/?cid=16890480175112336440" target="_blank" rel="noopener" class="pie-enlace" style="color:var(--color-secundario); font-size:0.85rem; font-weight:600;">📍 Ver GEOMAV en Google Maps</a></p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="../aprende/" class="pie-enlace">Aprende</a></li>
+            <li><a href="../alianzas/" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2026 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js"></script>
 </body>
 </html>
