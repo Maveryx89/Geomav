@@ -1143,7 +1143,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .capas-ley{ margin-top:4px; }
 .capas-ley .ly{ display:inline-block; width:22px; height:0; border-top-width:3px; border-top-style:solid; vertical-align:middle; margin-right:6px; border-radius:0; background:none !important; box-shadow:none !important; }
 .capas-ley .ly-prov{ border-top-color:#7A52AA; border-top-width:3.5px; }
-.capas-ley .ly-com{ border-top-color:#0A2240; border-top-style:dashed; border-top-width:1.5px; }
+.capas-ley .ly-com{ border-top-color:#0A2240; border-top-width:1.8px; }
 .capas-ley .ly-vec{ border-top-color:#8C949E; border-top-style:dotted; border-top-width:1.5px; }
 .capas-ley .ly-vial{ border-top-color:#D62828; border-top-style:dashed; border-top-width:2.5px; }
 .capas-ley.sin-com span:nth-child(-n+3), .capas-ley.sin-vial span:nth-child(4){ display:none; }
@@ -4174,7 +4174,7 @@ window.PORTICOS_LISTA = (function(){
     var n = f.properties.comuna;
     if(!f.properties.r6) return { color:"#8C949E", weight:1, opacity:.7, dashArray:"2 5", fillOpacity:0 };
     var sel = !!selCom[n], conP = lista().some(function(p){ return p.comuna === n; });
-    return { color:"#0A2240", weight: sel ? 2.2 : 1.1, opacity: sel ? .9 : .6, dashArray: sel ? null : "5 4",
+    return { color:"#0A2240", weight: sel ? 2.6 : 1.7, opacity:.85,
              fillColor: sel ? "#2C6B7E" : "#0A2240", fillOpacity: sel ? .14 : (conP ? .045 : .012) };
   }
   function zoomCapas(){
