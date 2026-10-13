@@ -1141,6 +1141,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .vial-sin-nombres .rol-lbl{ display:none; }
 .leaflet-tooltip.rol-tip{ font-weight:700; color:#B01E1E; }
 .capas-ley{ margin-top:4px; }
+.capas-ley[hidden]{ display:none !important; }
 .capas-ley .ly{ display:inline-block; width:22px; height:0; border-top-width:3px; border-top-style:solid; vertical-align:middle; margin-right:6px; border-radius:0; background:none !important; box-shadow:none !important; }
 .capas-ley .ly-prov{ border-top-color:#7A52AA; border-top-width:3.5px; }
 .capas-ley .ly-com{ border-top-color:#0A2240; border-top-width:1.8px; }
@@ -4289,9 +4290,11 @@ window.PORTICOS_LISTA = (function(){
     if(quiero.join() !== hay.join() || quiero.some(function(l, i){ return hay[i] !== l; })){
       hay.forEach(function(l){ mapa.removeLayer(l); }); quiero.forEach(function(l){ l.addTo(mapa); });
     }
+    /* sin capas activas: se quita también el lienzo, el mapa queda exactamente como antes */
+    if(!quiero.length && rCapas && mapa.hasLayer(rCapas)) mapa.removeLayer(rCapas);
     zoomCapas();
     var ley = document.getElementById("capasLeyenda");
-    if(ley){ ley.classList.toggle("sin-com", !CAPAS.comunas.ver); ley.classList.toggle("sin-vial", !CAPAS.vial.ver); }
+    if(ley){ ley.classList.toggle("sin-com", !CAPAS.comunas.ver); ley.classList.toggle("sin-vial", !CAPAS.vial.ver); ley.hidden = !CAPAS.comunas.ver && !CAPAS.vial.ver; }
   }
   function traer(url){ return fetch(url).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); }); }
   function cargarCapas(){
