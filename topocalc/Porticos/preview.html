@@ -4161,7 +4161,7 @@ window.PORTICOS_LISTA = (function(){
     if(!verComunas){ if(capaComunas){ mapa.removeLayer(capaComunas); } return; }
     if(!capaComunas){
       if(!mapa.getPane("comunas")){ mapa.createPane("comunas"); mapa.getPane("comunas").style.zIndex = 350; }
-      capaComunas = L.geoJSON(comunasGeo, { pane:"comunas", style: estiloComuna,
+      capaComunas = L.geoJSON(comunasGeo, { pane:"comunas", style: estiloComuna, attribution:"L\u00edmites comunales: BCN / OCHA (CC BY 3.0 IGO)",
         onEachFeature: function(f, ly){
           ly.bindTooltip(esc(f.properties.comuna), { permanent:true, direction:"center", className:"com-lbl", pane:"comunas" });
           ly.on("click", function(ev){
