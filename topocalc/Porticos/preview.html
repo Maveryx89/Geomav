@@ -1130,10 +1130,23 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .note.editing.note-sky{ background:var(--note-sky); }
 </style>
 <style>
-/* ---- capa de comunas ---- */
+/* ---- capas vectoriales del mapa ---- */
 .leaflet-tooltip.com-lbl{ background:transparent; border:0; box-shadow:none; color:#0A2240; font:700 11px/1.1 Inter, Arial, sans-serif; text-shadow:0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff; padding:0; white-space:nowrap; pointer-events:none; }
+.leaflet-tooltip.com-lbl.com-vec{ color:#6B7380; font-weight:600; font-style:italic; }
 .leaflet-tooltip.com-lbl::before{ display:none; }
 .com-sin-nombres .leaflet-tooltip.com-lbl{ display:none; }
+.prov-lbl{ color:#5B3A8A; font:800 13px/1 Inter, Arial, sans-serif; letter-spacing:.12em; text-shadow:0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff; white-space:nowrap; transform:translate(-50%, -50%); pointer-events:none; }
+.prov-sin-nombres .prov-lbl{ display:none; }
+.rol-lbl{ background:#fff; color:#B01E1E; border:1.5px solid #D62828; border-radius:4px; font:800 10px/1 Inter, Arial, sans-serif; padding:2px 4px; white-space:nowrap; transform:translate(-50%, -50%); pointer-events:none; box-shadow:0 1px 2px rgba(0,0,0,.15); }
+.vial-sin-nombres .rol-lbl{ display:none; }
+.leaflet-tooltip.rol-tip{ font-weight:700; color:#B01E1E; }
+.capas-ley{ margin-top:4px; }
+.capas-ley .ly{ display:inline-block; width:22px; height:0; border-top-width:3px; border-top-style:solid; vertical-align:middle; margin-right:6px; border-radius:0; background:none !important; box-shadow:none !important; }
+.capas-ley .ly-prov{ border-top-color:#7A52AA; border-top-width:3.5px; }
+.capas-ley .ly-com{ border-top-color:#0A2240; border-top-style:dashed; border-top-width:1.5px; }
+.capas-ley .ly-vec{ border-top-color:#8C949E; border-top-style:dotted; border-top-width:1.5px; }
+.capas-ley .ly-vial{ border-top-color:#D62828; border-top-style:dashed; border-top-width:2.5px; }
+.capas-ley.sin-com span:nth-child(-n+3), .capas-ley.sin-vial span:nth-child(4){ display:none; }
 </style>
 </head>
 
@@ -1224,13 +1237,15 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
             <button type="button" class="mt-b" id="btnGps" aria-pressed="false">&#128205; Mi ubicaci&oacute;n</button>
             <button type="button" class="mt-b" id="btnCentrar" hidden>&#127919; Centrar</button>
             <button type="button" class="mt-b" id="btnMedir" aria-pressed="false">&#128207; Medir</button>
-            <button type="button" class="mt-b" id="btnComunas" aria-pressed="true" title="Mostrar u ocultar los l&iacute;mites comunales">&#128506;&#65039; Comunas</button>
+            <button type="button" class="mt-b" data-capa="comunas" aria-pressed="true" title="L&iacute;mites comunales y provinciales">&#128506;&#65039; Comunas</button>
+            <button type="button" class="mt-b" data-capa="vial" aria-pressed="true" title="Red vial con el rol de cada ruta">&#128739;&#65039; Rutas</button>
             <button type="button" class="mt-b" id="btnMedirUndo" hidden>&#8617; Deshacer</button>
             <button type="button" class="mt-b" id="btnMedirClr" hidden>Limpiar medida</button>
             <div class="mt-s" id="mapaEstado" role="status" aria-live="polite"></div>
           </div>
           <div class="mapa-canvas" id="mapaPorticos"></div>
           <div class="mapa-leyenda" id="mapaLeyenda"></div>
+          <div class="mapa-leyenda capas-ley" id="capasLeyenda"><span><i class="ly ly-prov"></i>L&iacute;mite provincial</span><span><i class="ly ly-com"></i>L&iacute;mite comunal</span><span><i class="ly ly-vec"></i>Comuna vecina (otra regi&oacute;n)</span><span><i class="ly ly-vial"></i>Ruta (rol MOP)</span></div>
           <div class="ruta-panel" id="rutaPanel" hidden></div>
         </div>
         <div class="ficha-portico" id="fichaPortico" hidden aria-live="polite"></div>
@@ -4136,7 +4151,7 @@ window.PORTICOS_LISTA = (function(){
     }
     if(pts.length && !mapa._encuadrado){ mapa.fitBounds(L.latLngBounds(pts), { padding:[28,28], maxZoom:13 }); mapa._encuadrado = true; }
     if(abierto && marcadores[abierto]) marcadores[abierto].openPopup();
-    pintarComunas();
+    if(lyCom) lyCom.setStyle(estiloComuna);
     pintarRuta();
     var info = document.getElementById("mapaInfo");
     if(info) info.textContent = "Regi\u00f3n de O'Higgins \u00b7 " + (hayFiltro() ? con + " de " + lista().length + " p\u00f3rticos (filtrados)" : con + " de " + lista().length + " p\u00f3rticos con coordenadas");
@@ -4148,52 +4163,109 @@ window.PORTICOS_LISTA = (function(){
     }).join("");
     el.innerHTML = '<span><i style="background:'+SIN_INICIAR_HEX+';border-color:#0A2240;box-shadow:none"></i>Sin iniciar</span>' + html;
   }
-  /* ---------- capa vectorial: l\u00edmites comunales de la regi\u00f3n (GeoJSON en ./capas/) ---------- */
-  var capaComunas = null, comunasGeo = null, verComunas = true;
-  try{ verComunas = localStorage.getItem("porticos-capa-comunas") !== "0"; }catch(e){}
+  /* ---------- capas vectoriales (GeoJSON en ./capas/): provincias, comunas (+ vecinas) y red vial ---------- */
+  var CAPAS = { comunas:{ ver:true, cargando:false }, vial:{ ver:true, cargando:false } };
+  ["comunas","vial"].forEach(function(k){ try{ CAPAS[k].ver = localStorage.getItem("porticos-capa-" + k) !== "0"; }catch(e){} });
+  var lyCom = null, lyProv = null, lyVial = null, lyVialLbl = null, lyProvLbl = null, geoCom = null, geoProv = null, geoVial = null;
+  function panel(n, z){ if(!mapa.getPane(n)){ mapa.createPane(n); mapa.getPane(n).style.zIndex = z; } return n; }
+  var rCapas = null;
+  function lienzo(){ return rCapas || (rCapas = L.canvas({ pane: panel("comunas", 350), padding:.3, tolerance:3 })); }
   function estiloComuna(f){
-    var n = f.properties.comuna, sel = !!selCom[n], conP = lista().some(function(p){ return p.comuna === n; });
-    return { color:"#0A2240", weight: sel ? 2.4 : 1.2, opacity: sel ? .9 : .55, dashArray: sel ? null : "5 4",
-             fillColor: sel ? "#2C6B7E" : "#0A2240", fillOpacity: sel ? .14 : (conP ? .045 : .015) };
+    var n = f.properties.comuna;
+    if(!f.properties.r6) return { color:"#8C949E", weight:1, opacity:.7, dashArray:"2 5", fillOpacity:0 };
+    var sel = !!selCom[n], conP = lista().some(function(p){ return p.comuna === n; });
+    return { color:"#0A2240", weight: sel ? 2.2 : 1.1, opacity: sel ? .9 : .6, dashArray: sel ? null : "5 4",
+             fillColor: sel ? "#2C6B7E" : "#0A2240", fillOpacity: sel ? .14 : (conP ? .045 : .012) };
   }
-  function pintarComunas(){
-    if(!mapa || !comunasGeo) return;
-    if(!verComunas){ if(capaComunas){ mapa.removeLayer(capaComunas); } return; }
-    if(!capaComunas){
-      if(!mapa.getPane("comunas")){ mapa.createPane("comunas"); mapa.getPane("comunas").style.zIndex = 350; }
-      capaComunas = L.geoJSON(comunasGeo, { pane:"comunas", style: estiloComuna, attribution:"L\u00edmites comunales: BCN / OCHA (CC BY 3.0 IGO)",
-        onEachFeature: function(f, ly){
-          ly.bindTooltip(esc(f.properties.comuna), { permanent:true, direction:"center", className:"com-lbl", pane:"comunas" });
-          ly.on("click", function(ev){
-            if(medir) return;
-            var n = f.properties.comuna, cnt = lista().filter(function(p){ return p.comuna === n; }).length;
-            L.popup({ minWidth:180 }).setLatLng(ev.latlng).setContent('<div class="pm-pop"><strong>' + esc(n) + '</strong><div class="pm-s">' + (cnt ? cnt + ' p\u00f3rtico' + (cnt === 1 ? '' : 's') : 'Sin p\u00f3rticos') + '</div>'
-              + (cnt ? '<div class="pm-acc"><button type="button" class="pm-b" onclick="window.filtrarComuna(\'' + esc(n).replace(/'/g, "\\'") + '\')">Ver solo esta comuna</button></div>' : '') + '</div>').openOn(mapa);
-          });
-        } });
+  function zoomCapas(){
+    if(!mapa) return; var z = mapa.getZoom(), c = mapa.getContainer();
+    c.classList.toggle("com-sin-nombres", z < 10);
+    c.classList.toggle("vial-sin-nombres", z < 11);
+    c.classList.toggle("prov-sin-nombres", z >= 10);
+  }
+  function popupComuna(f, ev){
+    if(medir) return;
+    var n = f.properties.comuna, cnt = lista().filter(function(p){ return p.comuna === n; }).length;
+    var html = '<div class="pm-pop"><strong>' + esc(n) + '</strong><div class="pm-s">' + (f.properties.r6 ? 'Provincia de ' + esc(f.properties.provincia || "") + '<br>' + (cnt ? cnt + ' p\u00f3rtico' + (cnt === 1 ? '' : 's') : 'Sin p\u00f3rticos') : 'Comuna vecina \u00b7 otra regi\u00f3n') + '</div>'
+      + (cnt ? '<div class="pm-acc"><button type="button" class="pm-b" onclick="window.filtrarComuna(\'' + esc(n).replace(/'/g, "\\'") + '\')">Ver solo esta comuna</button></div>' : '') + '</div>';
+    L.popup({ minWidth:180 }).setLatLng(ev.latlng).setContent(html).openOn(mapa);
+  }
+  function centroide(geo){
+    var b = L.geoJSON(geo).getBounds(); return b.isValid() ? b.getCenter() : null;
+  }
+  function pintarCapas(){
+    if(!mapa) return;
+    /* comunas y provincias */
+    if(CAPAS.comunas.ver && geoCom && geoProv){
+      if(!lyCom){
+        lyCom = L.geoJSON(geoCom, { renderer: lienzo(), style: estiloComuna, attribution:"Capas: comunas, provincias y red vial (archivos del proyecto)",
+          onEachFeature: function(f, ly){
+            ly.bindTooltip(esc(f.properties.comuna), { permanent:true, direction:"center", className:"com-lbl" + (f.properties.r6 ? "" : " com-vec"), pane:"comunas" });
+            ly.on("click", function(ev){ popupComuna(f, ev); });
+          } });
+        lyProv = L.geoJSON(geoProv, { renderer: lienzo(), interactive:false,
+          style: function(){ return { color:"#7A52AA", weight:3.4, opacity:.85, fill:false }; } });
+        lyProvLbl = L.layerGroup(geoProv.features.map(function(f){
+          var c = centroide(f); return c ? L.marker(c, { pane: panel("provLbl", 640), interactive:false, keyboard:false,
+            icon: L.divIcon({ className:"prov-lbl", html: esc(String(f.properties.provincia || "").toUpperCase()), iconSize:null }) }) : null;
+        }).filter(Boolean));
+      }
+      if(!mapa.hasLayer(lyProvLbl)) lyProvLbl.addTo(mapa);
+      lyCom.setStyle(estiloComuna);
+    } else if(lyProvLbl && mapa.hasLayer(lyProvLbl)) mapa.removeLayer(lyProvLbl);
+    /* red vial: roja segmentada con el rol como nombre */
+    if(CAPAS.vial.ver && geoVial){
+      if(!lyVial){
+        lyVial = L.geoJSON(geoVial, { renderer: lienzo(),
+          style: function(){ return { color:"#D62828", weight:2.4, opacity:.9, dashArray:"9 6", lineCap:"butt" }; },
+          onEachFeature: function(f, ly){ ly.bindTooltip("Ruta " + esc(f.properties.rol), { sticky:true, direction:"top", className:"rol-tip" }); } });
+        var lbls = [];
+        geoVial.features.forEach(function(f){ (f.properties.lab || []).forEach(function(p){
+          lbls.push(L.marker([p[1], p[0]], { pane: panel("vialLbl", 630), interactive:false, keyboard:false,
+            icon: L.divIcon({ className:"rol-lbl", html: esc(f.properties.rol), iconSize:null }) }));
+        }); });
+        lyVialLbl = L.layerGroup(lbls);
+      }
+      if(!mapa.hasLayer(lyVialLbl)) lyVialLbl.addTo(mapa);
+    } else if(lyVialLbl && mapa.hasLayer(lyVialLbl)) mapa.removeLayer(lyVialLbl);
+    /* un solo lienzo para las 3 capas (si no, el lienzo de arriba bloquea los clics del de abajo); orden: comunas < provincias < rutas */
+    var quiero = [CAPAS.comunas.ver && lyCom, CAPAS.comunas.ver && lyProv, CAPAS.vial.ver && lyVial].filter(Boolean);
+    var hay = [lyCom, lyProv, lyVial].filter(function(l){ return l && mapa.hasLayer(l); });
+    if(quiero.join() !== hay.join() || quiero.some(function(l, i){ return hay[i] !== l; })){
+      hay.forEach(function(l){ mapa.removeLayer(l); }); quiero.forEach(function(l){ l.addTo(mapa); });
     }
-    if(!mapa.hasLayer(capaComunas)) capaComunas.addTo(mapa);
-    capaComunas.setStyle(estiloComuna);
-    var z = mapa.getZoom(); mapa.getContainer().classList.toggle("com-sin-nombres", z < 10);
+    zoomCapas();
+    var ley = document.getElementById("capasLeyenda");
+    if(ley){ ley.classList.toggle("sin-com", !CAPAS.comunas.ver); ley.classList.toggle("sin-vial", !CAPAS.vial.ver); }
+  }
+  function traer(url){ return fetch(url).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); }); }
+  function cargarCapas(){
+    if(!mapa) return;
+    if(CAPAS.comunas.ver && !geoCom && !CAPAS.comunas.cargando){
+      CAPAS.comunas.cargando = true;
+      Promise.all([traer("capas/comunas-ohiggins.geojson"), traer("capas/provincias-ohiggins.geojson")]).then(function(r){ geoCom = r[0]; geoProv = r[1]; pintarCapas(); })
+        .catch(function(){ CAPAS.comunas.cargando = false; estadoMapa("No se pudo cargar la capa de comunas."); });
+    }
+    if(CAPAS.vial.ver && !geoVial && !CAPAS.vial.cargando){
+      CAPAS.vial.cargando = true;
+      traer("capas/red-vial-ohiggins.geojson").then(function(g){ geoVial = g; pintarCapas(); })
+        .catch(function(){ CAPAS.vial.cargando = false; estadoMapa("No se pudo cargar la red vial."); });
+    }
+    pintarCapas();
   }
   window.filtrarComuna = function(n){
     Object.keys(selCom).forEach(function(k){ delete selCom[k]; }); selCom[n] = 1;
     if(mapa) mapa.closePopup();
     filtroCambio();
   };
-  function cargarComunas(){
-    if(comunasGeo) return pintarComunas();
-    fetch("capas/comunas-ohiggins.geojson").then(function(r){ return r.json(); }).then(function(g){ comunasGeo = g; pintarComunas(); }).catch(function(){});
-  }
-  (function(){
-    var b = document.getElementById("btnComunas"); if(!b) return;
-    b.setAttribute("aria-pressed", verComunas ? "true" : "false");
+  Array.prototype.forEach.call(document.querySelectorAll("[data-capa]"), function(b){
+    var k = b.dataset.capa; b.setAttribute("aria-pressed", CAPAS[k].ver ? "true" : "false");
     b.addEventListener("click", function(){
-      verComunas = !verComunas; b.setAttribute("aria-pressed", verComunas ? "true" : "false");
-      try{ localStorage.setItem("porticos-capa-comunas", verComunas ? "1" : "0"); }catch(e){}
-      if(verComunas) cargarComunas(); else pintarComunas();
+      CAPAS[k].ver = !CAPAS[k].ver; b.setAttribute("aria-pressed", CAPAS[k].ver ? "true" : "false");
+      try{ localStorage.setItem("porticos-capa-" + k, CAPAS[k].ver ? "1" : "0"); }catch(e){}
+      cargarCapas();
     });
-  })();
+  });
   function cargarLeaflet(cb){
     if(window.L) return cb();
     var css = document.createElement("link"); css.rel = "stylesheet";
@@ -4221,8 +4293,8 @@ window.PORTICOS_LISTA = (function(){
         mapa.fitBounds(OHIGGINS);
         capa = L.layerGroup().addTo(mapa); capaRuta = L.layerGroup().addTo(mapa); capaMedir = L.layerGroup().addTo(mapa); capaGps = L.layerGroup().addTo(mapa);
         mapa.on("click", function(ev){ if(medir){ medPts.push([ev.latlng.lat, ev.latlng.lng]); pintarMedida(); } });
-        mapa.on("zoomend", function(){ mapa.getContainer().classList.toggle("com-sin-nombres", mapa.getZoom() < 10); });
-        pintarLeyenda(); pintarMapa(); if(verComunas) cargarComunas();
+        mapa.on("zoomend", zoomCapas);
+        pintarLeyenda(); pintarMapa(); cargarCapas();
       });
     });
   }
