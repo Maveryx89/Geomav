@@ -5190,11 +5190,17 @@ function svgProgresivaOffset(n1,e1,k1,n2,e2,np,ep,r){
 /* Nivelación diferencial: esquema de campo (trípode + mira + terreno), como Taquimetría/Nivelación Trig.
    Agrupa filas en ESTACIONES: una fila con BS en blanco es una vista adicional (radiada) desde
    la MISMA estación anterior, sin mover el instrumento — no 1 trípode por fila. */
+/* Diagrama de nivelación diferencial — v2.
+   Basado en la plantilla de Illustrator de Mario (plantilla_nivelacion_diferencial_v2_mv.svg): mesa 320×190,
+   geometría, grosores de línea, ubicaciones y tamaños de texto de esa plantilla. Los valores van en el listado
+   (esquina superior izquierda), el dibujo solo lleva el carácter de cada magnitud.
+   Color por tramo (estación 1 = blueprint, estación 2 = success, y así alternando); ΔH total = accent. */
 function svgNivelacionDiferencial(cotas, filas){
   const n = filas.length;
   const nPts = cotas.length;
   if(nPts<2 || n<1) return '';
 
+  // ---- estaciones de nivel: cada fila con BS abre una estación; las filas sin BS son FS adicionales de la misma estación ----
   const stations = [];
   let i = 0;
   while(i<n){
@@ -5206,81 +5212,161 @@ function svgNivelacionDiferencial(cotas, filas){
       toPts.push(j+1);
       j++;
     } while(j<n && !isFinite(filas[j].bs));
-    stations.push({fromPt, toPts, hi});
+    stations.push({fromPt, row0:i, toPts, hi});
     i = j;
   }
 
+  // ---- mapa de alturas (esquemático): el valor mínimo va a y=150 y el máximo (cota o HI) a y=95 ----
+  const W=320, H=190, yBot=150, yTop=95;
   const allVals = [...cotas, ...stations.map(s=>s.hi)].filter(isFinite);
   const minC=Math.min(...allVals), maxC=Math.max(...allVals);
   const span=Math.max(maxC-minC, 0.001);
-  const w=320, h=190, pad=26, yTop=44, yBot=h-40;
-  const stepX=(w-2*pad)/n;
-  const px = idx => pad + idx*stepX;
   const py = v => yBot - ((v-minC)/span)*(yBot-yTop);
 
-  const ptX = cotas.map((_,idx)=>px(idx));
-  const ptY = cotas.map(c=>py(c));
+  // ---- posiciones horizontales: separación de la plantilla (67,5), centradas; se comprime si hay muchos puntos ----
+  const nSeg = nPts-1;
+  const sp = Math.min(67.5, 212/nSeg);
+  const x0 = 182.5 - (nSeg*sp)/2;
+  const ptX = cotas.map((_,k)=> x0 + k*sp);
+  const ptY = cotas.map(c=> py(c));
+  const xLast = ptX[nPts-1];
+  const ptLbl = k => k===0 ? 'BM' : (k===nPts-1 ? 'PF' : 'PC'+k);
+  const stCol = k => (k%2===0) ? 'var(--blueprint)' : 'var(--success)';
+  const f = v => v.toFixed(2).replace(/\.?0+$/,'');   // coordenadas compactas
+  const FONT = 'font-family="var(--font-body)" font-weight="700"';
+  const HALO = 'stroke="var(--paper-raised)" stroke-width="1" paint-order="stroke" stroke-linejoin="round"';
+  const dense = sp < 45;   // muchas estaciones: se simplifica (sin E, HI siempre a la izquierda)
 
+  // ---- listado de valores (esquina superior izquierda, columnas de 10 filas) ----
+  const rows = [];
+  stations.forEach((s,k)=>{
+    const r = s.row0+1;
+    rows.push({t:'HI'+r, c:stCol(k), v:s.hi});
+    rows.push({t:'BS'+r, c:stCol(k), v:filas[s.row0].bs});
+    s.toPts.forEach(p=> rows.push({t:'FS'+p, c:stCol(k), v:filas[p-1].fs}));
+  });
+  const dH = cotas[nPts-1]-cotas[0];
+  rows.push({t:'ΔH', c:'var(--accent)', v:dH, signed:true});
+  cotas.forEach((c,k)=> rows.push({t:'Cota '+ptLbl(k), c:'var(--ink-soft)', v:c}));
+  const PER_COL=10, COL_W=70, ROW_Y0=12.521, ROW_DY=5.761;
+  const nCols = Math.ceil(rows.length/PER_COL);
+  const listRight = 10 + COL_W*(nCols-1) + 66;
+  const listBottom = ROW_Y0 + (Math.min(rows.length,PER_COL)-1)*ROW_DY + 1;
+
+  // ---- altura de cada mira: 65 desde el terreno, y siempre sobre las visuales que toca ----
   const touchY = cotas.map(()=>[]);
   stations.forEach(s=>{
     const y = py(s.hi);
     touchY[s.fromPt].push(y);
     s.toPts.forEach(p=>touchY[p].push(y));
   });
-  const staffTopY = cotas.map((c,idx)=>{
-    let top = ptY[idx];
-    touchY[idx].forEach(y=>{ top = Math.min(top, y); });
-    return top - 6;
+  const staffTop = cotas.map((_,k)=>{
+    let top = ptY[k]-65;
+    touchY[k].forEach(y=>{ top = Math.min(top, y-12); });
+    if(ptX[k]-3 < listRight) top = Math.max(top, listBottom+4);   // no pisar el listado
+    return top;
   });
+
+  // ---- desnivel total (parámetros) y obstáculos horizontales para desplazar rótulos solo en vertical ----
+  const yBM = ptY[0], yFin = ptY[nPts-1];
+  const showDH = Math.abs(yBM-yFin) > 0.5;
+  const subiendo = yFin < yBM;                         // el punto final está más alto que el BM
+  const xd = subiendo ? xLast+4 : xLast+13;            // si baja, se desplaza para no montarse sobre el FS final
+  const obst = stations.map((s,k)=>({y:py(s.hi), x1:ptX[s.fromPt]+1.5, x2:ptX[s.toPts[s.toPts.length-1]]-1.5, st:k}));
+  if(showDH) obst.push({y:yBM, x1:ptX[0]+3, x2:xd+20, st:-1});
+  const placeV = (x, ya, yb, st) => {
+    const c0 = (ya+yb)/2 + 1, halfL = 4.2;
+    const lo = Math.min(ya,yb)+halfL+0.8, hi = Math.max(ya,yb)-halfL-0.8;
+    if(lo>hi) return c0;
+    const cl = v => Math.min(hi, Math.max(lo, v));
+    const bad = c => obst.some(o=> o.st!==st && o.x1<=x+0.5 && o.x2>=x-3.3 && Math.abs(o.y-c) < halfL+0.7);
+    if(!bad(cl(c0))) return cl(c0);
+    for(let d=0.5; d<=(hi-lo); d+=0.5){
+      for(const sg of [-1,1]){ const c=c0+sg*d; if(c>=lo && c<=hi && !bad(c)) return c; }
+    }
+    return cl(c0);
+  };
 
   let out = '';
 
-  let terrainD = `M ${ptX[0].toFixed(1)} ${(ptY[0]+3).toFixed(1)}`;
-  for(let idx=1;idx<nPts;idx++) terrainD += ` L ${ptX[idx].toFixed(1)} ${(ptY[idx]+3).toFixed(1)}`;
-  out += `<path d="${terrainD}" fill="none" stroke="#8B6B47" stroke-width="1.6"/>\n`;
+  // ---- terreno ----
+  const extL = Math.min(15, x0-4), extR = Math.min(40, 316-xLast);
+  let terrainD = `M${f(x0-extL)} ${f(ptY[0]+2.5)}`;
+  for(let k=0;k<nPts;k++) terrainD += ` L${f(ptX[k])} ${f(ptY[k])}`;
+  terrainD += ` L${f(xLast+extR)} ${f(ptY[nPts-1]-2)}`;
+  out += `<path d="${terrainD}" fill="none" stroke="#8B6B47" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>\n`;
 
-  for(let idx=0;idx<nPts;idx++){
-    out += `<line x1="${ptX[idx].toFixed(1)}" y1="${(ptY[idx]+3).toFixed(1)}" x2="${ptX[idx].toFixed(1)}" y2="${staffTopY[idx].toFixed(1)}" stroke="var(--ink)" stroke-width="1.6"/>\n`;
-    out += `<circle cx="${ptX[idx].toFixed(1)}" cy="${(ptY[idx]+3).toFixed(1)}" r="2.6" fill="var(--accent)"/>\n`;
-    const lbl = idx===0 ? 'BM' : (idx===nPts-1 ? 'PF' : 'PC'+idx);
-    out += `<text x="${ptX[idx].toFixed(1)}" y="${(ptY[idx]+3+11).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--accent-text)" text-anchor="middle">${lbl}</text>\n`;
+  // ---- miras y puntos (neutros) ----
+  for(let k=0;k<nPts;k++){
+    out += `<rect x="${f(ptX[k]-1)}" y="${f(staffTop[k])}" width="2" height="${f(ptY[k]-staffTop[k])}" fill="none" stroke="var(--ink-soft)" stroke-width="0.6" stroke-linejoin="round"/>\n`;
+  }
+  for(let k=0;k<nPts;k++){
+    out += `<circle cx="${f(ptX[k])}" cy="${f(ptY[k])}" r="2" fill="var(--ink-soft)"/>\n`;
   }
 
-  stations.forEach(s=>{
-    const y = py(s.hi);
+  // ---- estaciones ----
+  stations.forEach((s,k)=>{
+    const col = stCol(k);
+    const visY = py(s.hi);
     const xFrom = ptX[s.fromPt];
-    const xLast = ptX[s.toPts[s.toPts.length-1]];
-    const Vx = (xFrom+xLast)/2, Vy = y;
+    const xTo = ptX[s.toPts[s.toPts.length-1]];
+    const Vx = xFrom + sp/2;
+    const Ey = ptY[s.fromPt] + (ptY[s.fromPt+1]-ptY[s.fromPt])/2;
+    const bodyTop = visY-2.45, bodyBot = visY+2.45;
 
-    out += `<line x1="${(xFrom-4).toFixed(1)}" y1="${y.toFixed(1)}" x2="${(xFrom+4).toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.4"/>\n`;
-    out += `<text x="${xFrom.toFixed(1)}" y="${(y-5).toFixed(1)}" font-size="7.3" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="middle">BS</text>\n`;
-
-    s.toPts.forEach(p=>{
-      const x = ptX[p];
-      out += `<line x1="${(x-4).toFixed(1)}" y1="${y.toFixed(1)}" x2="${(x+4).toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.4"/>\n`;
-      out += `<text x="${x.toFixed(1)}" y="${(y+8.5).toFixed(1)}" font-size="7.3" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="middle">FS</text>\n`;
-    });
-
-    out += `<line x1="${xFrom.toFixed(1)}" y1="${y.toFixed(1)}" x2="${xLast.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.3" stroke-dasharray="3 2"/>\n`;
-    out += `<text x="${Vx.toFixed(1)}" y="${(Vy-9).toFixed(1)}" font-size="8" font-family="var(--font-mono)" font-weight="700" fill="var(--blueprint)" text-anchor="middle">HI</text>\n`;
-
-    const idxLo = Math.floor((Vx-pad)/stepX), idxHi = Math.min(idxLo+1, nPts-1);
-    const t = Math.max(0, Math.min(1, (Vx-ptX[idxLo])/(ptX[idxHi]-ptX[idxLo]||1)));
-    const terrainAtV = (ptY[idxLo]+3) + ((ptY[idxHi]+3)-(ptY[idxLo]+3))*t;
-    out += `<line x1="${(Vx-3).toFixed(1)}" y1="${(Vy+2).toFixed(1)}" x2="${(Vx-9).toFixed(1)}" y2="${terrainAtV.toFixed(1)}" stroke="var(--ink)" stroke-width="1.3"/>\n`;
-    out += `<line x1="${(Vx+3).toFixed(1)}" y1="${(Vy+2).toFixed(1)}" x2="${(Vx+7).toFixed(1)}" y2="${terrainAtV.toFixed(1)}" stroke="var(--ink)" stroke-width="1.3"/>\n`;
-    out += `<line x1="${Vx.toFixed(1)}" y1="${(Vy+3).toFixed(1)}" x2="${(Vx-1).toFixed(1)}" y2="${terrainAtV.toFixed(1)}" stroke="var(--ink)" stroke-width="1.3"/>\n`;
-    out += `<line x1="${Vx.toFixed(1)}" y1="${(Vy-1).toFixed(1)}" x2="${(Vx+8).toFixed(1)}" y2="${(Vy-1).toFixed(1)}" stroke="var(--ink)" stroke-width="1.5"/>\n`;
-    out += `<rect x="${(Vx-4).toFixed(1)}" y="${(Vy-3.7).toFixed(1)}" width="8" height="5.4" rx="1.1" fill="var(--ink)"/>\n`;
-    out += `<circle cx="${Vx.toFixed(1)}" cy="${(Vy-0.9).toFixed(1)}" r="1.4" fill="var(--paper)"/>\n`;
+    // visual horizontal
+    out += `<line x1="${f(xFrom+1.5)}" y1="${f(visY)}" x2="${f(xTo-1.5)}" y2="${f(visY)}" stroke="${col}" stroke-width="0.7" stroke-linecap="round" stroke-dasharray="3 2"/>\n`;
+    // BS (a la izquierda de su mira) y FS (a la derecha de cada mira de adelante): cota con topes
+    const dim = (x, y1, y2, c, w) => `<path d="M${f(x)} ${f(y1)} L${f(x)} ${f(y2)} M${f(x-2)} ${f(y1)} L${f(x+2)} ${f(y1)} M${f(x-2)} ${f(y2)} L${f(x+2)} ${f(y2)}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+    const xBS = xFrom-4;
+    out += dim(xBS, visY, ptY[s.fromPt], col, 0.7);
+    s.toPts.forEach(p=>{ out += dim(ptX[p]+4, visY, ptY[p], col, 0.7); });
+    // nivel (cuerpo + trípode)
+    out += `<path d="M${f(Vx)} ${f(bodyBot)} L${f(Vx)} ${f(Ey)} M${f(Vx)} ${f(bodyBot)} L${f(Vx-4.3)} ${f(Ey)} M${f(Vx)} ${f(bodyBot)} L${f(Vx+4.3)} ${f(Ey)}" fill="none" stroke="${col}" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+    out += `<rect x="${f(Vx-4.25)}" y="${f(bodyTop)}" width="8.5" height="4.9" fill="var(--paper-raised)" stroke="${col}" stroke-width="1.4" stroke-linejoin="round"/>\n`;
+    out += `<circle cx="${f(Vx)}" cy="${f(Ey)}" r="1.5" fill="var(--ink-soft)"/>\n`;
+    // rótulos de la estación
+    const half = sp/2;
+    const hiX = dense ? Vx - 0.3*sp : Vx + (k%2===0 ? -0.55 : 0.6)*half;
+    out += `<text x="${f(hiX)}" y="${f(visY-0.94)}" ${FONT} ${HALO} font-size="4" fill="${col}" text-anchor="middle">HI${s.row0+1}</text>\n`;
+    if(!dense) out += `<text x="${f(Vx+5.3)}" y="${f(Ey-3.6)}" ${FONT} ${HALO} font-size="4" fill="${col}">E${k+1}</text>\n`;
+    const rot = (x, y, t) => `<text transform="translate(${f(x)} ${f(y)}) rotate(-90)" ${FONT} ${HALO} font-size="4" fill="${col}" text-anchor="middle">${t}</text>\n`;
+    out += rot(xBS-1.4, placeV(xBS-1.4, visY, ptY[s.fromPt], k), 'BS'+(s.row0+1));
+    s.toPts.forEach(p=>{ out += rot(ptX[p]+7.875, placeV(ptX[p]+7.875, visY, ptY[p], k), 'FS'+p); });
   });
 
-  out += `<text x="${w/2}" y="${h-4}" font-size="7.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(esquemático, no a escala)</text>\n`;
+  // ---- desnivel total BM → punto final (accent) ----
+  if(showDH){
+    out += `<line x1="${f(ptX[0]+3)}" y1="${f(yBM)}" x2="${f(xd+20)}" y2="${f(yBM)}" stroke="var(--ink-soft)" stroke-width="0.7" stroke-linecap="round" stroke-dasharray="1 2"/>\n`;
+    out += `<path d="M${f(xd)} ${f(yBM)} L${f(xd)} ${f(yFin)} M${f(xd-2)} ${f(yBM)} L${f(xd+2)} ${f(yBM)} M${f(xd-2)} ${f(yFin)} L${f(xd+2)} ${f(yFin)}" fill="none" stroke="var(--accent)" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+    if(Math.abs(yBM-yFin) < 10)   // tramo muy corto: el rótulo va horizontal a un lado
+      out += `<text x="${f(xd+3.5)}" y="${f((yBM+yFin)/2+1.4)}" ${FONT} ${HALO} font-size="4" fill="var(--accent)">ΔH</text>\n`;
+    else
+      out += `<text transform="translate(${f(xd+3.875)} ${f((yBM+yFin)/2)}) rotate(-90)" ${FONT} ${HALO} font-size="4" fill="var(--accent)" text-anchor="middle">ΔH</text>\n`;
+  }
 
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">\n${out}</svg>`;
+  // ---- nombres de los puntos ----
+  for(let k=0;k<nPts;k++){
+    if(k===0) out += `<text x="${f(ptX[0])}" y="${f(ptY[0]+6.359)}" ${FONT} ${HALO} font-size="4.5" fill="var(--ink-soft)" text-anchor="middle">BM</text>\n`;
+    else if(k===nPts-1) out += `<text x="${f(ptX[k]+3)}" y="${f(ptY[k]+5.875)}" ${FONT} ${HALO} font-size="4" fill="var(--ink-soft)" text-anchor="end">${ptLbl(k)}</text>\n`;
+    else out += `<text x="${f(ptX[k])}" y="${f(ptY[k]+5.875)}" ${FONT} ${HALO} font-size="4" fill="var(--ink-soft)" text-anchor="middle">${ptLbl(k)}</text>\n`;
+  }
+
+  // ---- listado de valores ----
+  rows.forEach((r,idx)=>{
+    const col = Math.floor(idx/PER_COL), row = idx%PER_COL;
+    const ox = COL_W*col, by = ROW_Y0 + row*ROW_DY;
+    const txt = (r.signed && r.v>=0 ? '+' : '') + fmtNum(r.v,3);
+    out += `<rect x="${f(10.026+ox)}" y="${f(by-3.457)}" width="3.457" height="3.457" fill="${r.c}"/>\n`;
+    out += `<text x="${f(15.211+ox)}" y="${f(by)}" ${FONT} font-size="4.32" fill="${r.c}">${r.t}</text>\n`;
+    out += `<text x="${f(36.526+ox)}" y="${f(by)}" ${FONT} font-size="4.32" fill="var(--ink)">= ${txt} m</text>\n`;
+  });
+
+  out += `<text x="${W/2}" y="${H-4}" font-family="var(--font-body)" font-size="4" fill="var(--ink-soft)" text-anchor="middle">(esquemático, no a escala)</text>\n`;
+
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">\n${out}</svg>`;
 }
 
-/* Diagrama de nivelación: perfil de cotas (puntos conectados) */
 function svgPerfilNivel(cotas, labels){
   const w=300,h=170,pad=26;
   const vals = cotas.filter(v=>isFinite(v));
