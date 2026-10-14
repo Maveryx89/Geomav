@@ -4077,7 +4077,7 @@ function calcularPoligonalUI(){
       <thead><tr><th>Est.</th><th>Azimut</th><th>Rumbo</th><th>Dist.</th><th>Este</th><th>Norte</th></tr></thead>
       <tbody>${tableRows}</tbody>
     </table></div>
-    <div class="plot-wrap">${renderPolygonSVG(r.coordE, r.coordN)}</div>
+    <div class="plot-wrap">${svgPoligonalCerrada(r.coordE, r.coordN)}</div>
   </div>`;
 
   const csvRows = ['nombre,este,norte,cota'];
@@ -4096,6 +4096,115 @@ function calcularPoligonalUI(){
     btnGuardar.textContent = `Guardado (${polN} puntos) ✓`;
   });
   box.appendChild(btnGuardar);
+}
+
+/* Diagrama de Poligonal Cerrada — v2.
+   Basado en la plantilla de Illustrator de Mario (plantilla_poligonal_cerrada.svg): mesa 320×190, trazos, colores
+   y rótulos de esa plantilla. Polígono a escala con relleno accent suave (el área es el resultado principal), lados en
+   blueprint con su valor por fuera, vértices neutros con su letra, área al centro, norte arriba a la derecha y el
+   listado (valor pegado al descriptor) arriba a la izquierda. Con más de 8 lados, el dibujo lleva solo el valor del lado. */
+function svgPoligonalCerrada(coordE, coordN){
+  const W=320, H=190;
+  const f = v => v.toFixed(2).replace(/\.?0+$/,'');
+  const FONT = 'font-family="var(--font-body)" font-weight="700"';
+  const eng = svgLblEngine(W,H);
+  const n = coordE.length - 1;
+  const P0 = coordE.slice(0,n).map((e,i)=>({e, n:coordN[i]}));
+  const dist = P0.map((p,i)=>{ const q=P0[(i+1)%n]; return Math.hypot(q.e-p.e, q.n-p.n); });
+  const perim = dist.reduce((a,b)=>a+b,0);
+  let a2 = 0; for(let i=0;i<n;i++){ const p=P0[i], q=P0[(i+1)%n]; a2 += p.e*q.n - q.e*p.n; }
+  const areaM2 = Math.abs(a2)/2, areaHa = areaM2/10000;
+  const sideName = i => POL_LABELS[i] + POL_LABELS[(i+1)%n];
+  const corto = n > 8;                         // muchos lados: en el dibujo solo el valor
+  const dTxt = i => `${fmtNum(dist[i],2)} m`;
+
+  // ---- listado (arriba a la izquierda, columnas de 10 filas) ----
+  const rows = [];
+  for(let i=0;i<n;i++) rows.push({k:sideName(i), c:'var(--blueprint)', v:dTxt(i)});
+  rows.push({k:'Perímetro', c:'var(--success)', v:`${fmtNum(perim,2)} m`});
+  rows.push({k:'Área', c:'var(--accent)', v:`${fmtNum(areaHa,4)} ha`});
+  const PER_COL=10, COL_W=70, ROW_Y0=12.521, ROW_DY=5.761;
+  const nCols = Math.ceil(rows.length/PER_COL);
+  const maxRowW = Math.max(...rows.map(r=>eng.tw(`${r.k} = ${r.v}`,4.32)));
+  const listRight = 15.2 + COL_W*(nCols-1) + maxRowW + 1;
+  const listBottom = ROW_Y0 + (Math.min(rows.length,PER_COL)-1)*ROW_DY + 1;
+  eng.rectFill(8.5, 6.5, listRight, listBottom+0.5);
+  eng.rectFill(292, 3, 308, 38);                                  // flecha norte
+
+  // ---- polígono a escala dentro de la caja libre (a la derecha del listado y bajo él) ----
+  const top = Math.max(50, listBottom+7), bot = 168;
+  const left = 75, right = 265;
+  const minE=Math.min(...P0.map(p=>p.e)), maxE=Math.max(...P0.map(p=>p.e));
+  const minN=Math.min(...P0.map(p=>p.n)), maxN=Math.max(...P0.map(p=>p.n));
+  const spanE=Math.max(maxE-minE,0.001), spanN=Math.max(maxN-minN,0.001);
+  const sc = Math.min((right-left)/spanE, (bot-top)/spanN);
+  const ox = (left+right)/2 - (spanE*sc)/2, oy = (top+bot)/2 + (spanN*sc)/2;
+  const V = P0.map(p=>({x: ox+(p.e-minE)*sc, y: oy-(p.n-minN)*sc}));
+  const s2 = V.reduce((s,p,i)=>{ const q=V[(i+1)%n]; return s + p.x*q.y - q.x*p.y; },0);     // orientación en pantalla
+
+  let out = '';
+  out += `<path d="M${V.map(p=>f(p.x)+' '+f(p.y)).join(' L')} Z" fill="var(--accent)" fill-opacity="0.14" stroke="none"/>\n`;
+  V.forEach((p,i)=>{
+    const q=V[(i+1)%n];
+    out += `<path d="M${f(p.x)} ${f(p.y)} L${f(q.x)} ${f(q.y)}" fill="none" stroke="var(--blueprint)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+    eng.seg(p.x,p.y,q.x,q.y);
+  });
+  V.forEach(p=>{ out += `<circle cx="${f(p.x)}" cy="${f(p.y)}" r="2" fill="var(--ink-soft)"/>\n`; eng.circle(p.x,p.y,2.3); });
+  // norte
+  out += `<path d="M300 36 L300 14" fill="none" stroke="var(--ink-soft)" stroke-width="0.7" stroke-linecap="round"/>\n`;
+  out += `<path d="M300 10 L298.2 14.5 L301.8 14.5 Z" fill="var(--ink-soft)"/>\n`;
+  out += `<text x="300" y="7.5" ${FONT} font-size="4.5" fill="var(--ink-soft)" text-anchor="middle">N</text>\n`;
+
+  const lab = (t, fs, col, c) => { const q=eng.txtAttrs(c); out += `<text ${q.pos} ${FONT} font-size="${fs}" fill="${col}"${q.an}>${t}</text>\n`; };
+  const outN = (i) => { const p=V[i], q=V[(i+1)%n], dx=q.x-p.x, dy=q.y-p.y, l=Math.hypot(dx,dy)||1; const k = s2>0 ? 1 : -1; return [k*dy/l, -k*dx/l]; };
+
+  // lados: a lo largo de su línea, por fuera; si no cabe, se desliza, se aleja o pasa al interior
+  for(let i=0;i<n;i++){
+    const p=V[i], q=V[(i+1)%n], dx=q.x-p.x, dy=q.y-p.y, len=Math.hypot(dx,dy)||1;
+    let ang=Math.atan2(dy,dx)*180/Math.PI; if(ang>90) ang-=180; if(ang<-90) ang+=180;
+    const th=ang*Math.PI/180, g=[Math.sin(th), -Math.cos(th)], u=[Math.cos(th), Math.sin(th)], no=outN(i);
+    const mx=(p.x+q.x)/2, my=(p.y+q.y)/2;
+    const t = corto ? dTxt(i) : `${sideName(i)} = ${dTxt(i)}`;
+    const tmax = Math.max(0, len/2 - eng.tw(t,4)/2 - 3), cands=[];
+    for(let s=0;s<=tmax+1e-6;s+=2.5) for(const sg of [1,-1]){ if(s===0&&sg===-1) continue;
+      [[1,0],[1,3.6],[1,7.2],[1,10.8],[-1,0],[-1,3.6]].forEach(([side,extra],si)=>{
+        const nn=[no[0]*side,no[1]*side], d=((g[0]*nn[0]+g[1]*nn[1])>0 ? 1.9 : 4.8)+extra;
+        cands.push({x:mx+u[0]*s*sg+nn[0]*d, y:my+u[1]*s*sg+nn[1]*d, rot:ang, anchor:'middle', pen:s*0.4+(side<0?10:0)+extra*1.2});
+      });
+    }
+    lab(t,4,'var(--blueprint)',eng.pick(t,4,cands));
+  }
+  // vértices: letra hacia afuera
+  for(let i=0;i<n;i++){
+    const a=outN((i+n-1)%n), b=outN(i); let ux=a[0]+b[0], uy=a[1]+b[1]; const l=Math.hypot(ux,uy)||1; ux/=l; uy/=l;
+    const cands=[];
+    for(let r=4.6; r<=11; r+=1.2) for(let da=-70; da<=70; da+=14){
+      const ca=Math.cos(da*Math.PI/180), sa=Math.sin(da*Math.PI/180), vx=ux*ca-uy*sa, vy=ux*sa+uy*ca;
+      cands.push({x:V[i].x+vx*r, y:V[i].y+vy*r+1.6, anchor:'middle', pen:(r-4.6)*1.5+Math.abs(da)*0.05});
+    }
+    lab(POL_LABELS[i],4.5,'var(--ink-soft)',eng.pick(POL_LABELS[i],4.5,cands));
+  }
+  // área: en el interior, lo más lejos posible de los bordes
+  {
+    const inside = (x,y) => { let c=false; for(let i=0,j=n-1;i<n;j=i++){ const a=V[i], b=V[j]; if(((a.y>y)!==(b.y>y)) && (x < (b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)) c=!c; } return c; };
+    const dEdge = (x,y) => { let m=1e9; for(let i=0;i<n;i++){ const a=V[i], b=V[(i+1)%n], dx=b.x-a.x, dy=b.y-a.y, l2=dx*dx+dy*dy||1; let t=((x-a.x)*dx+(y-a.y)*dy)/l2; t=Math.max(0,Math.min(1,t)); m=Math.min(m,Math.hypot(x-a.x-t*dx,y-a.y-t*dy)); } return m; };
+    const t=`Área = ${fmtNum(areaHa,4)} ha`, cands=[]; let best=0;
+    const xs=V.map(p=>p.x), ys=V.map(p=>p.y);
+    const pts=[]; for(let x=Math.min(...xs); x<=Math.max(...xs); x+=2.5) for(let y=Math.min(...ys); y<=Math.max(...ys); y+=2.5) if(inside(x,y)){ const d=dEdge(x,y); pts.push([x,y,d]); best=Math.max(best,d); }
+    pts.forEach(([x,y,d])=> cands.push({x, y:y+1.5, anchor:'middle', pen:(best-d)*0.8}));
+    const tw0=eng.tw(t,4.5), mxx=Math.max(...xs), mnx=Math.min(...xs), my0=(Math.min(...ys)+Math.max(...ys))/2;
+    for(let dy=-40; dy<=40; dy+=6){ cands.push({x:mxx+8+tw0/2, y:my0+dy, anchor:'middle', pen:30+Math.abs(dy)*0.1}); cands.push({x:mnx-8-tw0/2, y:my0+dy, anchor:'middle', pen:30+Math.abs(dy)*0.1}); }
+    if(!cands.length) cands.push({x:(Math.min(...xs)+Math.max(...xs))/2, y:(Math.min(...ys)+Math.max(...ys))/2, anchor:'middle', pen:0});
+    lab(t,4.5,'var(--accent)',eng.pick(t,4.5,cands));
+  }
+
+  // listado: el valor a continuación de su descriptor
+  rows.forEach((r,idx)=>{
+    const col=Math.floor(idx/PER_COL), row=idx%PER_COL, oxl=COL_W*col, by=ROW_Y0+row*ROW_DY;
+    out += `<rect x="${f(10.026+oxl)}" y="${f(by-3.457)}" width="3.457" height="3.457" fill="${r.c}"/>\n`;
+    out += `<text x="${f(15.211+oxl)}" y="${f(by)}" ${FONT} font-size="4.32"><tspan fill="${r.c}">${r.k}</tspan><tspan fill="var(--ink)"> = ${r.v}</tspan></text>\n`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">\n${out}</svg>`;
 }
 
 function renderPolygonSVG(coordE, coordN){
