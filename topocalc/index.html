@@ -5809,68 +5809,125 @@ function svgSectorCircular(deltaDeg, Rval){
 }
 
 /* Diagrama de dos rectas que se intersectan */
+/* Diagrama de Intersección de Rectas — v2.
+   Basado en la plantilla de Illustrator de Mario (plantilla_interseccion_rectas.svg): lienzo 320×190, recta 1 teal y recta 2
+   verde (tramo estación→I sólido y prolongaciones punteadas tenues), I en cobre (resultado principal), Es1/Es2 neutros,
+   arco del ángulo agudo en I (ink), D y Az de cada recta a lados opuestos de su línea, flecha norte y listado con el valor a
+   continuación de su descriptor (E, N, Ángulo, D1, D2 a la izquierda; Az1, Az2 a la derecha). */
 function svgInterseccion(e1,n1,az1,e2,n2,az2,eI,nI){
-  const L=200;
-  const pA={e:e1+L*Math.sin(toRad(az1)), n:n1+L*Math.cos(toRad(az1))};
-  const pA0={e:e1-L*Math.sin(toRad(az1)), n:n1-L*Math.cos(toRad(az1))};
-  const pB={e:e2+L*Math.sin(toRad(az2)), n:n2+L*Math.cos(toRad(az2))};
-  const pB0={e:e2-L*Math.sin(toRad(az2)), n:n2-L*Math.cos(toRad(az2))};
-  const all=[pA,pA0,pB,pB0,{e:eI,n:nI},{e:e1,n:n1},{e:e2,n:n2}];
-  const minE=Math.min(...all.map(p=>p.e)), maxE=Math.max(...all.map(p=>p.e));
-  const minN=Math.min(...all.map(p=>p.n)), maxN=Math.max(...all.map(p=>p.n));
-  const w=300,h=220,pad=26;
-  const spanE=Math.max(maxE-minE,0.001), spanN=Math.max(maxN-minN,0.001);
-  const scale=Math.min((w-2*pad)/spanE,(h-2*pad)/spanN);
-  const px=e=>pad+(e-minE)*scale, py=n=>(h-pad)-(n-minN)*scale;
+  const W=320, H=190, EXT=14;
+  const f = v => v.toFixed(2).replace(/\.?0+$/,'');
+  const FONT = 'font-family="var(--font-body)" font-weight="700"';
+  const eng = svgLblEngine(W,H);
+  const CB1='var(--blueprint)', CB2='var(--success)', CI='var(--accent)', CK='var(--ink)', CS='var(--ink-soft)';
+  const s1=Math.sin(toRad(az1)), c1=Math.cos(toRad(az1)), s2=Math.sin(toRad(az2)), c2=Math.cos(toRad(az2));
+  const t1=(eI-e1)*s1+(nI-n1)*c1, t2=(eI-e2)*s2+(nI-n2)*c2;                 // distancias con signo estación → I
+  let ang=Math.abs(normDeg(az2-az1)); if(ang>180) ang=360-ang; if(ang>90) ang=180-ang;
+  const aTxt = v => fmtAngle(v);
 
-  // Rótulo de azimut sobre el lado de la visual OPUESTO a donde cae I (el punto de intersección
-  // puede quedar hacia adelante o hacia atrás de cada estación según los datos ingresados): así
-  // nunca compite por espacio con I, y al no estar pegado a la estación tampoco se superpone con
-  // "Est. N".
-  const dirSign1 = (Math.sin(toRad(az1))*(eI-e1)+Math.cos(toRad(az1))*(nI-n1)) >= 0 ? -1 : 1;
-  const dirSign2 = (Math.sin(toRad(az2))*(eI-e2)+Math.cos(toRad(az2))*(nI-n2)) >= 0 ? -1 : 1;
-  const t1s=L*0.15, t1e=L*0.4, t2s=L*0.15, t2e=L*0.4;
-  const nearA0={e:e1+dirSign1*t1s*Math.sin(toRad(az1)), n:n1+dirSign1*t1s*Math.cos(toRad(az1))};
-  const nearA={e:e1+dirSign1*t1e*Math.sin(toRad(az1)), n:n1+dirSign1*t1e*Math.cos(toRad(az1))};
-  const nearB0={e:e2+dirSign2*t2s*Math.sin(toRad(az2)), n:n2+dirSign2*t2s*Math.cos(toRad(az2))};
-  const nearB={e:e2+dirSign2*t2e*Math.sin(toRad(az2)), n:n2+dirSign2*t2e*Math.cos(toRad(az2))};
+  // ---- listado ----
+  const rows1=[{k:'E',c:CI,v:fmtNum(eI,3)},{k:'N',c:CI,v:fmtNum(nI,3)},{k:'Ángulo',c:CK,v:aTxt(ang)},{k:'D1',c:CB1,v:`${fmtNum(t1,3)} m`},{k:'D2',c:CB2,v:`${fmtNum(t2,3)} m`}];
+  const rows2=[{k:'Az1',c:CB1,v:aTxt(az1)},{k:'Az2',c:CB2,v:aTxt(az2)}];
+  const ROW_Y0=12.521, ROW_DY=5.761, FS_L=4.32;
+  const w1=Math.max(...rows1.map(q=>eng.tw(`${q.k} = ${q.v}`,FS_L)));
+  const OX2=Math.max(80, 10.026+5.2+w1+9);
+  const items=[]; rows1.forEach((q,i)=>items.push({q,x:10.026,y:ROW_Y0+i*ROW_DY})); rows2.forEach((q,i)=>items.push({q,x:OX2,y:ROW_Y0+i*ROW_DY}));
+  let listRight=0, listBottom=0;
+  items.forEach(it=>{ listRight=Math.max(listRight,it.x+5.2+eng.tw(`${it.q.k} = ${it.q.v}`,FS_L)+1); listBottom=Math.max(listBottom,it.y+1); });
+  eng.rectFill(8.5,6.5,listRight,listBottom+0.5);
+  eng.rectFill(292,3,308,38);
 
-  // "Es1"/"Es2" (antes "Est. 1"/"Est. 2") se desplazan perpendicular a su línea (no solo hacia
-  // arriba en pantalla) para no quedar montados sobre ella; van al lado contrario de donde se
-  // ubica el rótulo Az (side=1), así no compiten entre sí.
-  const offPoint=(px0,py0,dxp,dyp,dist,side)=>{
-    const len=Math.hypot(dxp,dyp)||1, s=side===-1?-1:1;
-    const nx=-(dyp/len)*s, ny=(dxp/len)*s;
-    return {x:px0+nx*dist, y:py0+ny*dist};
+  // ---- geometría a escala (estaciones e I; las prolongaciones tienen largo fijo en pantalla) ----
+  const left=78, right=262, top=Math.max(62,listBottom+20), bot=150;
+  const Es=[e1,e2,eI], Ns=[n1,n2,nI];
+  const minE=Math.min(...Es), maxE=Math.max(...Es), minN=Math.min(...Ns), maxN=Math.max(...Ns);
+  const spanE=maxE-minE, spanN=maxN-minN;
+  let sc=Math.min((right-left)/Math.max(spanE,1e-9),(bot-top)/Math.max(spanN,1e-9));
+  if(!isFinite(sc) || spanE+spanN<1e-9) sc=1;
+  const ox=(left+right)/2-(spanE*sc)/2, oy=(top+bot)/2+(spanN*sc)/2;
+  const X=e=>ox+(e-minE)*sc, Y=n=>oy-(n-minN)*sc;
+  const P1={x:X(e1),y:Y(n1)}, P2={x:X(e2),y:Y(n2)}, I={x:X(eI),y:Y(nI)};
+  const d1=[s1,-c1], d2=[s2,-c2];
+  const sg1=t1>=0?1:-1, sg2=t2>=0?1:-1;
+
+  let out='';
+  const rect=(P,d,sg,col)=>{
+    const a={x:P.x-d[0]*sg*EXT, y:P.y-d[1]*sg*EXT}, b={x:I.x+d[0]*sg*EXT, y:I.y+d[1]*sg*EXT};
+    out += `<path d="M${f(a.x)} ${f(a.y)} L${f(P.x)} ${f(P.y)}" fill="none" stroke="${col}" stroke-width="0.8" stroke-linecap="round" stroke-dasharray="2 1.6" opacity="0.45"/>\n`;
+    out += `<path d="M${f(P.x)} ${f(P.y)} L${f(I.x)} ${f(I.y)}" fill="none" stroke="${col}" stroke-width="0.8" stroke-linecap="round"/>\n`;
+    out += `<path d="M${f(I.x)} ${f(I.y)} L${f(b.x)} ${f(b.y)}" fill="none" stroke="${col}" stroke-width="0.8" stroke-linecap="round" stroke-dasharray="2 1.6" opacity="0.45"/>\n`;
+    eng.seg(a.x,a.y,b.x,b.y,1);
   };
-  const es1Pos=offPoint(px(e1),py(n1), px(pA.e)-px(e1), py(pA.n)-py(n1), 13, -1);
-  const es2Pos=offPoint(px(e2),py(n2), px(pB.e)-px(e2), py(pB.n)-py(n2), 13, -1);
+  rect(P1,d1,sg1,CB1); rect(P2,d2,sg2,CB2);
 
-  // Los rótulos Az1/Az2 pueden quedar rotados en ángulos muy distintos según los azimuts
-  // ingresados; svgLineLabelAutoOffset ajusta cada uno por separado para que ambos queden a la
-  // misma distancia visual de su línea (ver comentario en esa función).
-  // El lado (side) que se le pasa a svgLineLabel se multiplica por dirSign: como nearA0->nearA
-  // puede apuntar hacia adelante o hacia atrás según dirSign, sin este ajuste el rótulo Az
-  // podría terminar cayendo del mismo lado físico que "Es1"/"Es2" (que siempre usan la dirección
-  // hacia adelante como referencia) y superponerse con ellos.
-  const azSide1=dirSign1, azSide2=dirSign2;
-  const azFont=relFont(w,0.028,7,9);
-  const azOffset1=svgLineLabelAutoOffset(px(nearA0.e),py(nearA0.n),px(nearA.e),py(nearA.n),azSide1,azFont);
-  const azOffset2=svgLineLabelAutoOffset(px(nearB0.e),py(nearB0.n),px(nearB.e),py(nearB.n),azSide2,azFont);
+  // arco del ángulo agudo en I
+  const r1=sg1>0?[-d1[0],-d1[1]]:[d1[0],d1[1]];
+  let r2=sg2>0?[-d2[0],-d2[1]]:[d2[0],d2[1]];
+  if(r1[0]*r2[0]+r1[1]*r2[1]<0) r2=[-r2[0],-r2[1]];
+  const L1=Math.hypot(P1.x-I.x,P1.y-I.y), L2=Math.hypot(P2.x-I.x,P2.y-I.y);
+  const R=Math.min(9, 0.45*Math.max(0.01,Math.min(L1>0.5?L1:99, L2>0.5?L2:99)));
+  const a1=Math.atan2(r1[1],r1[0]), a2=Math.atan2(r2[1],r2[0]), da=(a2-a1+Math.PI)%(2*Math.PI)-Math.PI, sw=da>0?1:0;
+  out += `<path d="M${f(I.x+R*Math.cos(a1))} ${f(I.y+R*Math.sin(a1))} A${f(R)} ${f(R)} 0 0 ${sw} ${f(I.x+R*Math.cos(a2))} ${f(I.y+R*Math.sin(a2))}" fill="none" stroke="var(--ink)" stroke-width="0.8" stroke-linecap="round"/>\n`;
+  for(let t=0;t<=1.0001;t+=0.1){ const an=a1+da*t; eng.pts.push([I.x+R*Math.cos(an),I.y+R*Math.sin(an)]); }
+  out += `<circle cx="${f(P1.x)}" cy="${f(P1.y)}" r="2" fill="var(--ink-soft)"/>\n<circle cx="${f(P2.x)}" cy="${f(P2.y)}" r="2" fill="var(--ink-soft)"/>\n`;
+  out += `<circle cx="${f(I.x)}" cy="${f(I.y)}" r="2.7" fill="var(--accent)"/>\n`;
+  eng.circle(P1.x,P1.y,2.3); eng.circle(P2.x,P2.y,2.3); eng.circle(I.x,I.y,3);
+  out += `<path d="M300 36 L300 14" fill="none" stroke="var(--ink-soft)" stroke-width="0.7" stroke-linecap="round"/>\n`;
+  out += `<path d="M300 10 L298.2 14.5 L301.8 14.5 Z" fill="var(--ink-soft)"/>\n`;
+  out += `<text x="300" y="7.5" ${FONT} font-size="4.5" fill="var(--ink-soft)" text-anchor="middle">N</text>\n`;
 
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${px(pA0.e).toFixed(1)}" y1="${py(pA0.n).toFixed(1)}" x2="${px(pA.e).toFixed(1)}" y2="${py(pA.n).toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.8"/>
-    <line x1="${px(pB0.e).toFixed(1)}" y1="${py(pB0.n).toFixed(1)}" x2="${px(pB.e).toFixed(1)}" y2="${py(pB.n).toFixed(1)}" stroke="var(--accent)" stroke-width="1.8"/>
-    <circle cx="${px(e1).toFixed(1)}" cy="${py(n1).toFixed(1)}" r="3" fill="var(--blueprint)"/>
-    <circle cx="${px(e2).toFixed(1)}" cy="${py(n2).toFixed(1)}" r="3" fill="var(--accent)"/>
-    <circle cx="${px(eI).toFixed(1)}" cy="${py(nI).toFixed(1)}" r="4" fill="var(--ink)"/>
-    <text x="${es1Pos.x.toFixed(1)}" y="${es1Pos.y.toFixed(1)}" font-size="${relFont(w,0.03,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">Es1</text>
-    <text x="${es2Pos.x.toFixed(1)}" y="${es2Pos.y.toFixed(1)}" font-size="${relFont(w,0.03,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Es2</text>
-    ${svgLineLabel(px(nearA0.e),py(nearA0.n),px(nearA.e),py(nearA.n), 'Az1: '+fmtNum(az1,2)+'°', 'var(--blueprint)', azFont, azSide1, azOffset1, 700)}
-    ${svgLineLabel(px(nearB0.e),py(nearB0.n),px(nearB.e),py(nearB.n), 'Az2: '+fmtNum(az2,2)+'°', 'var(--accent)', azFont, azSide2, azOffset2, 700)}
-    <text x="${px(eI).toFixed(1)}" y="${(py(nI)-9).toFixed(1)}" font-size="${relFont(w,0.033,8,10)}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">I</text>
-    ${svgNorthArrow(w-20,20)}
-  </svg>`;
+  const lab=(t,fs,col,cd)=>{ const q=eng.txtAttrs(cd); out += `<text ${q.pos} ${FONT} font-size="${fs}" fill="${col}"${q.an}>${t}</text>\n`; };
+  const around=(pt,t,fs,col,pref,r0,rmax)=>{       // rótulo alrededor de un punto, con dirección preferida
+    const cands=[];
+    for(let r=r0;r<=rmax;r+=1.2) for(let an=0;an<360;an+=15){
+      const dx=Math.cos(an*Math.PI/180), dy=Math.sin(an*Math.PI/180);
+      const dp=Math.acos(Math.max(-1,Math.min(1,dx*pref[0]+dy*pref[1])))*180/Math.PI;
+      cands.push({x:pt.x+dx*r, y:pt.y+dy*r+0.36*fs, anchor:'middle', pen:(r-r0)*1.2+dp*0.08});
+    }
+    lab(t,fs,col,eng.pick(t,fs,cands));
+  };
+  around(P1,'Es1',4.5,CS,[-0.3,1],5.2,12); around(P2,'Es2',4.5,CS,[0.3,1],5.2,12);
+  around(I,'I',4.5,CI,[0,-1],4.8,12);
+
+  // D y Az de cada recta: a lados opuestos de la línea, hacia el centro del tramo
+  const sideLabels=(P,d,sg,other,tD,tA,col)=>{
+    const L=Math.hypot(I.x-P.x,I.y-P.y), dx=(I.x-P.x), dy=(I.y-P.y);
+    let ux=L>1e-6?dx/L:d[0]*sg, uy=L>1e-6?dy/L:d[1]*sg;
+    let angR=Math.atan2(uy,ux)*180/Math.PI; if(angR>90) angR-=180; if(angR<-90) angR+=180;
+    const th=angR*Math.PI/180, g=[Math.sin(th),-Math.cos(th)], uu=[Math.cos(th),Math.sin(th)];
+    let nx=-uy, ny=ux; if(nx*(other.x-P.x)+ny*(other.y-P.y)>0){ nx=-nx; ny=-ny; }       // normal: lado alejado de la otra estación
+    const mx=P.x+ux*L/2, my=P.y+uy*L/2;
+    [[tD,1],[tA,-1]].forEach(([t,sd])=>{
+      const smax=Math.max(0,L/2-eng.tw(t,4)/2-3)+8, cands=[];
+      for(let s=0;s<=smax+1e-6;s+=2.5) for(const sgn of [1,-1]){ if(s===0&&sgn===-1) continue;
+        [[sd,0],[sd,3.6],[sd,7.2],[-sd,0],[-sd,3.6]].forEach(([sdd,ex])=>{
+          const m=[nx*sdd,ny*sdd], dd=((g[0]*m[0]+g[1]*m[1])>0?1.9:4.8)+ex;
+          cands.push({x:mx+uu[0]*s*sgn+m[0]*dd, y:my+uu[1]*s*sgn+m[1]*dd, rot:angR, anchor:'middle', pen:s*0.4+(sdd!==sd?10:0)+ex*1.2});
+        });
+      }
+      if(Math.min(...cands.map(q=>eng.count(eng.box(t,4,q),0.5)))>0) return;        // sin sitio libre: queda solo en el listado
+      lab(t,4,col,eng.pick(t,4,cands));
+    });
+  };
+  sideLabels(P1,d1,sg1,P2,`D1 = ${fmtNum(t1,3)} m`,`Az1 = ${aTxt(az1)}`,CB1);
+  sideLabels(P2,d2,sg2,P1,`D2 = ${fmtNum(t2,3)} m`,`Az2 = ${aTxt(az2)}`,CB2);
+
+  // ángulo entre rectas: junto al arco, hacia la bisectriz del ángulo agudo o por fuera
+  {
+    const t=`Áng = ${aTxt(ang)}`, tw=eng.tw(t,4), bis=[r1[0]+r2[0],r1[1]+r2[1]], bl=Math.hypot(bis[0],bis[1])||1, cands=[];
+    const b0=[bis[0]/bl,bis[1]/bl];
+    for(let r=R+tw/2+2; r<=R+tw/2+36; r+=2) for(let an=0;an<360;an+=15){
+      const dx=Math.cos(an*Math.PI/180), dy=Math.sin(an*Math.PI/180), dp=Math.acos(Math.max(-1,Math.min(1,dx*b0[0]+dy*b0[1])))*180/Math.PI;
+      cands.push({x:I.x+dx*r, y:I.y+dy*r+1.4, anchor:'middle', pen:(r-R-tw/2-2)*0.25+dp*0.1});
+    }
+    lab(t,4,CK,eng.pick(t,4,cands));
+  }
+
+  items.forEach(it=>{
+    out += `<rect x="${f(it.x)}" y="${f(it.y-3.457)}" width="3.457" height="3.457" fill="${it.q.c}"/>\n`;
+    out += `<text x="${f(it.x+5.185)}" y="${f(it.y)}" ${FONT} font-size="${FS_L}"><tspan fill="${it.q.c}">${it.q.k}</tspan><tspan fill="var(--ink)"> = ${it.q.v}</tspan></text>\n`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">\n${out}</svg>`;
 }
 
 /* Diagrama de secciones de volumen de tierra */
