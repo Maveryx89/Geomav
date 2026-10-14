@@ -5190,10 +5190,10 @@ function svgProgresivaOffset(n1,e1,k1,n2,e2,np,ep,r){
 /* Nivelación diferencial: esquema de campo (trípode + mira + terreno), como Taquimetría/Nivelación Trig.
    Agrupa filas en ESTACIONES: una fila con BS en blanco es una vista adicional (radiada) desde
    la MISMA estación anterior, sin mover el instrumento — no 1 trípode por fila. */
-/* Diagrama de nivelación diferencial — v2.
+/* Diagrama de nivelación diferencial — v3.
    Basado en la plantilla de Illustrator de Mario (plantilla_nivelacion_diferencial_v2_mv.svg): mesa 320×190,
    geometría, grosores de línea, ubicaciones y tamaños de texto de esa plantilla. Los valores van en el listado
-   (esquina superior izquierda), el dibujo solo lleva el carácter de cada magnitud.
+   (esquina superior izquierda, pegados a su descriptor) y también en los rótulos del dibujo (HI, BS, FS y ΔH).
    Color por tramo (estación 1 = blueprint, estación 2 = success, y así alternando); ΔH total = accent. */
 function svgNivelacionDiferencial(cotas, filas){
   const n = filas.length;
@@ -5235,23 +5235,29 @@ function svgNivelacionDiferencial(cotas, filas){
   const f = v => v.toFixed(2).replace(/\.?0+$/,'');   // coordenadas compactas
   const FONT = 'font-family="var(--font-body)" font-weight="700"';
   const HALO = 'stroke="var(--paper-raised)" stroke-width="1" paint-order="stroke" stroke-linejoin="round"';
-  const dense = sp < 45;   // muchas estaciones: se simplifica (sin E, HI siempre a la izquierda)
+  const dense = sp < 45;   // muchas estaciones: se simplifica (sin E)
+  const eng = svgLblEngine(W,H);
+  const val = v => `${fmtNum(v,3)} m`;
 
   // ---- listado de valores (esquina superior izquierda, columnas de 10 filas) ----
   const rows = [];
   stations.forEach((s,k)=>{
     const r = s.row0+1;
-    rows.push({t:'HI'+r, c:stCol(k), v:s.hi});
-    rows.push({t:'BS'+r, c:stCol(k), v:filas[s.row0].bs});
-    s.toPts.forEach(p=> rows.push({t:'FS'+p, c:stCol(k), v:filas[p-1].fs}));
+    rows.push({t:'HI'+r, c:stCol(k), v:val(s.hi)});
+    rows.push({t:'BS'+r, c:stCol(k), v:val(filas[s.row0].bs)});
+    s.toPts.forEach(p=> rows.push({t:'FS'+p, c:stCol(k), v:val(filas[p-1].fs)}));
   });
   const dH = cotas[nPts-1]-cotas[0];
-  rows.push({t:'ΔH', c:'var(--accent)', v:dH, signed:true});
-  cotas.forEach((c,k)=> rows.push({t:'Cota '+ptLbl(k), c:'var(--ink-soft)', v:c}));
+  const dHtxt = (dH>=0 ? '+' : '') + val(dH);
+  rows.push({t:'ΔH', c:'var(--accent)', v:dHtxt});
+  cotas.forEach((c,k)=> rows.push({t:'Cota '+ptLbl(k), c:'var(--ink-soft)', v:val(c)}));
   const PER_COL=10, COL_W=70, ROW_Y0=12.521, ROW_DY=5.761;
   const nCols = Math.ceil(rows.length/PER_COL);
-  const listRight = 10 + COL_W*(nCols-1) + 66;
+  const maxRowW = Math.max(...rows.map(r=>eng.tw(`${r.t} = ${r.v}`,4.32)));
+  const listRight = 15.2 + COL_W*(nCols-1) + maxRowW + 1;
   const listBottom = ROW_Y0 + (Math.min(rows.length,PER_COL)-1)*ROW_DY + 1;
+  eng.rectFill(8.5, 6.5, listRight, listBottom+0.5);
+  eng.rectFill(W/2-30, 181.5, W/2+30, 187);
 
   // ---- altura de cada mira: 65 desde el terreno, y siempre sobre las visuales que toca ----
   const touchY = cotas.map(()=>[]);
@@ -5267,44 +5273,35 @@ function svgNivelacionDiferencial(cotas, filas){
     return top;
   });
 
-  // ---- desnivel total (parámetros) y obstáculos horizontales para desplazar rótulos solo en vertical ----
+  // ---- desnivel total (parámetros) ----
   const yBM = ptY[0], yFin = ptY[nPts-1];
   const showDH = Math.abs(yBM-yFin) > 0.5;
   const subiendo = yFin < yBM;                         // el punto final está más alto que el BM
   const xd = subiendo ? xLast+4 : xLast+13;            // si baja, se desplaza para no montarse sobre el FS final
-  const obst = stations.map((s,k)=>({y:py(s.hi), x1:ptX[s.fromPt]+1.5, x2:ptX[s.toPts[s.toPts.length-1]]-1.5, st:k}));
-  if(showDH) obst.push({y:yBM, x1:ptX[0]+3, x2:xd+20, st:-1});
-  const placeV = (x, ya, yb, st) => {
-    const c0 = (ya+yb)/2 + 1, halfL = 4.2;
-    const lo = Math.min(ya,yb)+halfL+0.8, hi = Math.max(ya,yb)-halfL-0.8;
-    if(lo>hi) return c0;
-    const cl = v => Math.min(hi, Math.max(lo, v));
-    const bad = c => obst.some(o=> o.st!==st && o.x1<=x+0.5 && o.x2>=x-3.3 && Math.abs(o.y-c) < halfL+0.7);
-    if(!bad(cl(c0))) return cl(c0);
-    for(let d=0.5; d<=(hi-lo); d+=0.5){
-      for(const sg of [-1,1]){ const c=c0+sg*d; if(c>=lo && c<=hi && !bad(c)) return c; }
-    }
-    return cl(c0);
-  };
 
   let out = '';
 
   // ---- terreno ----
   const extL = Math.min(15, x0-4), extR = Math.min(40, 316-xLast);
   let terrainD = `M${f(x0-extL)} ${f(ptY[0]+2.5)}`;
-  for(let k=0;k<nPts;k++) terrainD += ` L${f(ptX[k])} ${f(ptY[k])}`;
-  terrainD += ` L${f(xLast+extR)} ${f(ptY[nPts-1]-2)}`;
+  const tp = [[x0-extL, ptY[0]+2.5]];
+  for(let k=0;k<nPts;k++){ terrainD += ` L${f(ptX[k])} ${f(ptY[k])}`; tp.push([ptX[k],ptY[k]]); }
+  terrainD += ` L${f(xLast+extR)} ${f(ptY[nPts-1]-2)}`; tp.push([xLast+extR, ptY[nPts-1]-2]);
   out += `<path d="${terrainD}" fill="none" stroke="#8B6B47" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+  eng.poly(tp);
 
   // ---- miras y puntos (neutros) ----
   for(let k=0;k<nPts;k++){
     out += `<rect x="${f(ptX[k]-1)}" y="${f(staffTop[k])}" width="2" height="${f(ptY[k]-staffTop[k])}" fill="none" stroke="var(--ink-soft)" stroke-width="0.6" stroke-linejoin="round"/>\n`;
+    eng.rectOutline(ptX[k]-1, staffTop[k], ptX[k]+1, ptY[k]);
   }
   for(let k=0;k<nPts;k++){
     out += `<circle cx="${f(ptX[k])}" cy="${f(ptY[k])}" r="2" fill="var(--ink-soft)"/>\n`;
+    eng.circle(ptX[k], ptY[k], 2.3);
   }
 
-  // ---- estaciones ----
+  // ---- estaciones (geometría) ----
+  const pend = [];   // rótulos pendientes de colocar
   stations.forEach((s,k)=>{
     const col = stCol(k);
     const visY = py(s.hi);
@@ -5316,8 +5313,10 @@ function svgNivelacionDiferencial(cotas, filas){
 
     // visual horizontal
     out += `<line x1="${f(xFrom+1.5)}" y1="${f(visY)}" x2="${f(xTo-1.5)}" y2="${f(visY)}" stroke="${col}" stroke-width="0.7" stroke-linecap="round" stroke-dasharray="3 2"/>\n`;
+    eng.seg(xFrom+1.5, visY, xTo-1.5, visY);
     // BS (a la izquierda de su mira) y FS (a la derecha de cada mira de adelante): cota con topes
-    const dim = (x, y1, y2, c, w) => `<path d="M${f(x)} ${f(y1)} L${f(x)} ${f(y2)} M${f(x-2)} ${f(y1)} L${f(x+2)} ${f(y1)} M${f(x-2)} ${f(y2)} L${f(x+2)} ${f(y2)}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+    const dim = (x, y1, y2, c, w) => { eng.seg(x,y1,x,y2); eng.seg(x-2,y1,x+2,y1); eng.seg(x-2,y2,x+2,y2);
+      return `<path d="M${f(x)} ${f(y1)} L${f(x)} ${f(y2)} M${f(x-2)} ${f(y1)} L${f(x+2)} ${f(y1)} M${f(x-2)} ${f(y2)} L${f(x+2)} ${f(y2)}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>\n`; };
     const xBS = xFrom-4;
     out += dim(xBS, visY, ptY[s.fromPt], col, 0.7);
     s.toPts.forEach(p=>{ out += dim(ptX[p]+4, visY, ptY[p], col, 0.7); });
@@ -5325,41 +5324,67 @@ function svgNivelacionDiferencial(cotas, filas){
     out += `<path d="M${f(Vx)} ${f(bodyBot)} L${f(Vx)} ${f(Ey)} M${f(Vx)} ${f(bodyBot)} L${f(Vx-4.3)} ${f(Ey)} M${f(Vx)} ${f(bodyBot)} L${f(Vx+4.3)} ${f(Ey)}" fill="none" stroke="${col}" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>\n`;
     out += `<rect x="${f(Vx-4.25)}" y="${f(bodyTop)}" width="8.5" height="4.9" fill="var(--paper-raised)" stroke="${col}" stroke-width="1.4" stroke-linejoin="round"/>\n`;
     out += `<circle cx="${f(Vx)}" cy="${f(Ey)}" r="1.5" fill="var(--ink-soft)"/>\n`;
-    // rótulos de la estación
-    const half = sp/2;
-    const hiX = dense ? Vx - 0.3*sp : Vx + (k%2===0 ? -0.55 : 0.6)*half;
-    out += `<text x="${f(hiX)}" y="${f(visY-0.94)}" ${FONT} ${HALO} font-size="4" fill="${col}" text-anchor="middle">HI${s.row0+1}</text>\n`;
-    if(!dense) out += `<text x="${f(Vx+5.3)}" y="${f(Ey-3.6)}" ${FONT} ${HALO} font-size="4" fill="${col}">E${k+1}</text>\n`;
-    const rot = (x, y, t) => `<text transform="translate(${f(x)} ${f(y)}) rotate(-90)" ${FONT} ${HALO} font-size="4" fill="${col}" text-anchor="middle">${t}</text>\n`;
-    out += rot(xBS-1.4, placeV(xBS-1.4, visY, ptY[s.fromPt], k), 'BS'+(s.row0+1));
-    s.toPts.forEach(p=>{ out += rot(ptX[p]+7.875, placeV(ptX[p]+7.875, visY, ptY[p], k), 'FS'+p); });
+    eng.seg(Vx,bodyBot,Vx,Ey); eng.seg(Vx,bodyBot,Vx-4.3,Ey); eng.seg(Vx,bodyBot,Vx+4.3,Ey);
+    eng.rectFill(Vx-4.5, bodyTop-0.3, Vx+4.5, bodyBot+0.3, 0.8); eng.circle(Vx,Ey,1.8);
+    pend.push({kind:'st', k, col, visY, xFrom, xBS, Vx, Ey, s});
   });
 
-  // ---- desnivel total BM → punto final (accent) ----
+  // ---- desnivel total BM → punto final (accent): geometría ----
   if(showDH){
     out += `<line x1="${f(ptX[0]+3)}" y1="${f(yBM)}" x2="${f(xd+20)}" y2="${f(yBM)}" stroke="var(--ink-soft)" stroke-width="0.7" stroke-linecap="round" stroke-dasharray="1 2"/>\n`;
     out += `<path d="M${f(xd)} ${f(yBM)} L${f(xd)} ${f(yFin)} M${f(xd-2)} ${f(yBM)} L${f(xd+2)} ${f(yBM)} M${f(xd-2)} ${f(yFin)} L${f(xd+2)} ${f(yFin)}" fill="none" stroke="var(--accent)" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>\n`;
-    if(Math.abs(yBM-yFin) < 10)   // tramo muy corto: el rótulo va horizontal a un lado
-      out += `<text x="${f(xd+3.5)}" y="${f((yBM+yFin)/2+1.4)}" ${FONT} ${HALO} font-size="4" fill="var(--accent)">ΔH</text>\n`;
-    else
-      out += `<text transform="translate(${f(xd+3.875)} ${f((yBM+yFin)/2)}) rotate(-90)" ${FONT} ${HALO} font-size="4" fill="var(--accent)" text-anchor="middle">ΔH</text>\n`;
+    eng.seg(ptX[0]+3,yBM,xd+20,yBM); eng.seg(xd,yBM,xd,yFin); eng.seg(xd-2,yBM,xd+2,yBM); eng.seg(xd-2,yFin,xd+2,yFin);
   }
 
-  // ---- nombres de los puntos ----
+  // ---- rótulos fijos: nombres de los puntos y E (neutros) ----
+  const lab = (t, fs, col, c, halo=true) => { const q=eng.txtAttrs(c); out += `<text ${q.pos} ${FONT} ${halo?HALO+' ':''}font-size="${fs}" fill="${col}"${q.an}>${t}</text>\n`; };
+  const near = (c, dxs, dys) => { const cc=[]; for(const dx of dxs) for(const dy of dys) cc.push({...c, x:c.x+dx, y:c.y+dy, pen:Math.hypot(dx,dy)*0.5}); return cc; };
+  const D6=[0,-1.5,1.5,-3,3,-5,5,-8,8], D5=[0,1,2,3,4,5,7,9];
   for(let k=0;k<nPts;k++){
-    if(k===0) out += `<text x="${f(ptX[0])}" y="${f(ptY[0]+6.359)}" ${FONT} ${HALO} font-size="4.5" fill="var(--ink-soft)" text-anchor="middle">BM</text>\n`;
-    else if(k===nPts-1) out += `<text x="${f(ptX[k]+3)}" y="${f(ptY[k]+5.875)}" ${FONT} ${HALO} font-size="4" fill="var(--ink-soft)" text-anchor="end">${ptLbl(k)}</text>\n`;
-    else out += `<text x="${f(ptX[k])}" y="${f(ptY[k]+5.875)}" ${FONT} ${HALO} font-size="4" fill="var(--ink-soft)" text-anchor="middle">${ptLbl(k)}</text>\n`;
+    let c, fs=4;
+    if(k===0){ c={x:ptX[0], y:ptY[0]+6.359, anchor:'middle'}; fs=4.5; }
+    else if(k===nPts-1) c={x:ptX[k]+3, y:ptY[k]+5.875, anchor:'end'};
+    else c={x:ptX[k], y:ptY[k]+5.875, anchor:'middle'};
+    lab(ptLbl(k), fs, 'var(--ink-soft)', eng.pick(ptLbl(k),fs,near(c,D6,D5)));
   }
+  pend.forEach(p=>{
+    if(!dense){ const c={x:p.Vx+5.3, y:p.Ey-3.6}; lab('E'+(p.k+1),4,p.col,eng.pick('E'+(p.k+1),4,near(c,[0,1,2,3,-1,-2,4,6],[0,-1,-2,-3,1,2,-5,-7]))); }
+  });
 
-  // ---- listado de valores ----
+  // ---- rótulos con valor: ΔH, luego BS/FS, luego HI ----
+  if(showDH){
+    const t = 'ΔH = '+dHtxt, cc=[], mid=(yBM+yFin)/2, len=Math.abs(yBM-yFin), wT=eng.tw(t,4);
+    for(let d=0; d<=40; d+=2) for(const sg of [1,-1]){ if(d===0&&sg===-1) continue;
+      for(const dx of [0,4,8]) cc.push({x:xd+3.875+dx, y:mid+d*sg, rot:-90, anchor:'middle', pen:d*0.3+dx*0.8+Math.max(0,wT-len)*0.6});
+    }
+    for(const dx of [3.5,5,8]) for(let d=-16; d<=16; d+=2) cc.push({x:xd+dx, y:mid+1.4+d, pen:6+Math.abs(d)*0.3+(dx-3.5)*0.5});
+    lab(t,4,'var(--accent)',eng.pick(t,4,cc));
+  }
+  pend.forEach(p=>{
+    const s=p.s, col=p.col, r=s.row0+1;
+    const bsT = `BS${r} = ${val(filas[s.row0].bs)}`;
+    const vert = (t, xBase, ya, yb) => { const cc=[], c0=(ya+yb)/2+1, len=Math.abs(ya-yb), wT=eng.tw(t,4), lo=Math.min(ya,yb), hi=Math.max(ya,yb);
+      for(let d=0; d<=70; d+=1.5) for(const sg of [1,-1]){ if(d===0&&sg===-1) continue; const y=c0+d*sg;
+        const over=Math.max(0,lo-(y-wT/2))+Math.max(0,(y+wT/2)-hi);
+        for(const dx of [0,3,6]) cc.push({x:xBase+dx*(t.startsWith('BS')?-1:1), y, rot:-90, anchor:'middle', pen:d*0.25+over*0.7+dx*0.8}); }
+      lab(t,4,col,eng.pick(t,4,cc)); };
+    vert(bsT, p.xBS-1.4, p.visY, ptY[s.fromPt]);
+    s.toPts.forEach(q=> vert(`FS${q} = ${val(filas[q-1].fs)}`, ptX[q]+7.875, p.visY, ptY[q]));
+  });
+  pend.forEach(p=>{
+    const s=p.s, t=`HI${s.row0+1} = ${val(s.hi)}`, half=sp/2, cc=[];
+    const hx = dense ? p.Vx - 0.3*sp : p.Vx + (p.k%2===0 ? -0.55 : 0.6)*half;
+    for(let dx=-60; dx<=60; dx+=2) for(let dy=0; dy<=28; dy+=2)
+      cc.push({x:hx+dx, y:p.visY-0.94-dy, anchor:'middle', pen:Math.abs(dx)*0.25+dy*0.45});
+    lab(t,4,p.col,eng.pick(t,4,cc));
+  });
+
+  // ---- listado de valores: el valor a continuación de su descriptor ----
   rows.forEach((r,idx)=>{
     const col = Math.floor(idx/PER_COL), row = idx%PER_COL;
     const ox = COL_W*col, by = ROW_Y0 + row*ROW_DY;
-    const txt = (r.signed && r.v>=0 ? '+' : '') + fmtNum(r.v,3);
     out += `<rect x="${f(10.026+ox)}" y="${f(by-3.457)}" width="3.457" height="3.457" fill="${r.c}"/>\n`;
-    out += `<text x="${f(15.211+ox)}" y="${f(by)}" ${FONT} font-size="4.32" fill="${r.c}">${r.t}</text>\n`;
-    out += `<text x="${f(36.526+ox)}" y="${f(by)}" ${FONT} font-size="4.32" fill="var(--ink)">= ${txt} m</text>\n`;
+    out += `<text x="${f(15.211+ox)}" y="${f(by)}" ${FONT} font-size="4.32"><tspan fill="${r.c}">${r.t}</tspan><tspan fill="var(--ink)"> = ${r.v}</tspan></text>\n`;
   });
 
   out += `<text x="${W/2}" y="${H-4}" font-family="var(--font-body)" font-size="4" fill="var(--ink-soft)" text-anchor="middle">(esquemático, no a escala)</text>\n`;
@@ -7178,6 +7203,255 @@ function renderProgresivaOffset(){
   });
 }
 
+/* Motor de colocación de rótulos para diagramas SVG: reúne obstáculos (trazos, terreno, listado, otros rótulos)
+   como nubes de puntos y elige para cada rótulo la posición candidata con menos choques. */
+function svgLblEngine(W,H){
+  const pts = [];
+  const CW = {'0':.63,'1':.63,'2':.63,'3':.63,'4':.63,'5':.63,'6':.63,'7':.63,'8':.63,'9':.63,',':.28,'.':.28,' ':.26,'=':.6,
+    '°':.46,"'":.26,'"':.42,'+':.6,'-':.5,'−':.6,'m':.98,'D':.76,'i':.29,'h':.62,'v':.58,'B':.7,'S':.66,'F':.6,'H':.78,'I':.3,'P':.7,'E':.62,'Z':.66,'N':.78,'C':.72,'α':.62,'Δ':.74,'ᵍ':.8,'g':.4,'s':.56,'o':.62,'t':.4,'a':.6,'l':.28,'(':.34,')':.34,'M':.9,'F':.6};
+  const tw = (t,fs) => { let w=0; for(const ch of String(t)) w += (CW[ch]!==undefined?CW[ch]:.62); return w*fs*1.03; };
+  const seg = (x1,y1,x2,y2,st=0.5) => { const n=Math.max(1,Math.ceil(Math.hypot(x2-x1,y2-y1)/st)); for(let i=0;i<=n;i++) pts.push([x1+(x2-x1)*i/n, y1+(y2-y1)*i/n]); };
+  const poly = (a) => { for(let i=0;i+1<a.length;i++) seg(a[i][0],a[i][1],a[i+1][0],a[i+1][1]); };
+  const rectFill = (x1,y1,x2,y2,st=0.9) => { for(let x=x1;x<=x2+1e-6;x+=st) for(let y=y1;y<=y2+1e-6;y+=st) pts.push([x,y]); };
+  const rectOutline = (x1,y1,x2,y2) => { seg(x1,y1,x2,y1); seg(x2,y1,x2,y2); seg(x2,y2,x1,y2); seg(x1,y2,x1,y1); };
+  const circle = (cx,cy,r) => { for(let a=0;a<Math.PI*2;a+=0.25){ pts.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]); } pts.push([cx,cy]); };
+  // caja local de un rótulo: x en [x0, x0+w], y en [-asc, desc] (línea base en 0)
+  const box = (t,fs,c) => {
+    const w = tw(t,fs), asc=0.74*fs, desc=0.14*fs, an=c.anchor||'start';
+    const x0 = an==='middle' ? -w/2 : (an==='end' ? -w : 0);
+    const th=(c.rot||0)*Math.PI/180;
+    return {w,asc,desc,x0,ox:c.x,oy:c.y,ct:Math.cos(th),st:Math.sin(th)};
+  };
+  const count = (b,m=0.5) => {
+    let n=0;
+    for(const p of pts){
+      const dx=p[0]-b.ox, dy=p[1]-b.oy;
+      const lx=dx*b.ct+dy*b.st, ly=-dx*b.st+dy*b.ct;
+      if(lx>b.x0-m && lx<b.x0+b.w+m && ly>-b.asc-m && ly<b.desc+m) n++;
+    }
+    // fuera del lienzo
+    for(const lx of [b.x0,b.x0+b.w]) for(const ly of [-b.asc,b.desc]){
+      const X=b.ox+lx*b.ct-ly*b.st, Y=b.oy+lx*b.st+ly*b.ct;
+      if(X<0.8||X>W-0.8||Y<0.8||Y>H-0.8) n+=500;
+    }
+    return n;
+  };
+  const addBox = (b,pad=0.7) => {
+    for(let lx=b.x0-pad; lx<=b.x0+b.w+pad+1e-6; lx+=0.8) for(let ly=-b.asc-pad; ly<=b.desc+pad+1e-6; ly+=0.8){
+      pts.push([b.ox+lx*b.ct-ly*b.st, b.oy+lx*b.st+ly*b.ct]);
+    }
+  };
+  // elige la candidata de menor puntuación (choques*1000 + penalización) y la registra como obstáculo
+  const pick = (t,fs,cands,m=0.5) => {
+    let best=null, bs=1e18;
+    for(const c of cands){
+      const b=box(t,fs,c), s=count(b,m)*1000 + (c.pen||0);
+      if(s<bs){ bs=s; best=c; best._b=b; best._hits=Math.floor(s/1000); }
+    }
+    if(best) addBox(best._b);
+    return best;
+  };
+  const txtAttrs = (c) => {
+    const an = c.anchor && c.anchor!=='start' ? ` text-anchor="${c.anchor}"` : '';
+    return c.rot ? {pos:`transform="translate(${c.x.toFixed(2)} ${c.y.toFixed(2)}) rotate(${c.rot.toFixed(2)})"`, an}
+                 : {pos:`x="${c.x.toFixed(2)}" y="${c.y.toFixed(2)}"`, an};
+  };
+  return {pts,tw,seg,poly,rectFill,rectOutline,circle,box,count,addBox,pick,txtAttrs};
+}
+
+/* Diagrama de Reducción al Horizonte — v2.
+   Basado en la plantilla de Illustrator de Mario (plantilla_reduccion_horizonte_v4mv.svg): mesa 320×190, geometría,
+   grosores, terreno y ubicaciones de rótulos de esa plantilla. Los valores van en el listado (esquina superior
+   izquierda, pegados a su descriptor) y también en cada rótulo del dibujo.
+   Di = blueprint, Dh = accent (resultado estrella), Dv = success, α = danger, Z = ink; E, P, N, Hi, hp y ΔH neutros; terreno café. */
+function svgReduccionHorizonte(anguloDeg, Di, Dh, Dv){
+  const W=320, H=190;
+  const f = v => v.toFixed(2).replace(/\.?0+$/,'');
+  const FONT = 'font-family="var(--font-body)" font-weight="700"';
+  const eng = svgLblEngine(W,H);
+
+  // ---- ángulo visual (con signo) y tamaño del triángulo (esquemático, no a escala) ----
+  let a = Math.max(-70, Math.min(anguloDeg, 70));
+  if(Math.abs(a) < 3) a = a<0 ? -3 : 3;
+  const neg = a < 0, aa = Math.abs(a), ar = toRad(aa);
+  const s = neg ? -1 : 1;                                  // +1 sube, −1 baja
+  const L = Math.min(194.13, 72.7/Math.sin(ar));          // hipotenusa en px (con 22° reproduce Dh=179,94, Dv=72,7)
+  const dh = L*Math.cos(ar), dv = L*Math.sin(ar);
+  const E = {x: neg ? Math.max(160 - dh/2, 82) : 160 - dh/2, y: neg ? 62.3 : 135};   // si cuelga hacia abajo, no invade el listado
+  const P = {x: E.x+dh, y: E.y - s*dv};
+  const B = {x: P.x, y: E.y};                              // pie de la vertical (ángulo recto)
+
+  // ---- terreno de la plantilla (de izquierda a derecha), ajustado a la pendiente y al ancho del triángulo ----
+  const TER=[[46.32,161.945],[51.159,161.945],[58.888,161.938],[62.363,161.945],[66.78,161.954],[65.802,161.976],[75.648,161.945],[82.025,160.246],[87.77,159.21],[101.25,157.9],[117.43,153.87],[108.41,154.75],[142.01,149.73],[152.92,144.85],[168.69,149.68],[173.86,147.11],[197.07,135.54],[224.888,121.529],[234.378,114.469],[238.42,111.457],[233.81,91.52],[247.97,91.52],[248.97,91.52],[256.303,91.52],[258.4,91.52],[268.934,91.867],[279.467,92.213],[290.001,92.56]];
+  const X0T=46.32, WT=243.681, DYT=-69.385;
+  const Wt = Math.max(dh+63.74, 170), kf = Math.min(Math.tan(ar)/Math.tan(toRad(22)), 1.8), dYnew = DYT*s*kf*(Wt/WT);   // pendiente acotada: con ángulos grandes el terreno no se vuelve vertical
+  const T = TER.map(([x,y])=>{
+    const u = (x-X0T)/WT;
+    return [E.x-23.71 + u*Wt, y + (E.y-135) + (dYnew-DYT)*u];
+  });
+  let terrainD = `M${f(T[0][0])} ${f(T[0][1])}`;
+  for(let i=1;i<T.length;i+=3) terrainD += ` C${f(T[i][0])} ${f(T[i][1])} ${f(T[i+1][0])} ${f(T[i+1][1])} ${f(T[i+2][0])} ${f(T[i+2][1])}`;
+  const tpoly = [];
+  for(let i=0;i+3<T.length;i+=3){
+    for(let t=0;t<=1.0001;t+=0.004){
+      const m=1-t, c=[m*m*m, 3*m*m*t, 3*m*t*t, t*t*t];
+      tpoly.push([0,1].map(k=> c[0]*T[i][k]+c[1]*T[i+1][k]+c[2]*T[i+2][k]+c[3]*T[i+3][k]));
+    }
+  }
+  // primer punto del terreno bajo (x, desde y0 hacia abajo)
+  const groundAt = (x,y0,dflt) => { let best=null; tpoly.forEach(q=>{ if(Math.abs(q[0]-x)<0.6 && q[1]>=y0 && (best===null||q[1]<best)) best=q[1]; }); return best===null ? dflt : best; };
+  const gE = groundAt(E.x, E.y+8, E.y+27);
+  const gP = Math.max(groundAt(P.x, P.y+4, P.y+12), P.y+6);
+
+  // ---- textos (valores en el listado y en el dibujo) ----
+  const z0 = v => Math.abs(v)<0.0005 ? 0 : v;   // evita «−0,000»
+  const aV = Math.abs(anguloDeg)<1e-9 ? 0 : anguloDeg;
+  const rows = [
+    {k:'Di', c:'var(--blueprint)', v:`${fmtNum(z0(Di),3)} m`},
+    {k:'Dh', c:'var(--accent)',    v:`${fmtNum(z0(Dh),3)} m`},
+    {k:'Dv', c:'var(--success)',   v:`${fmtNum(z0(Dv),3)} m`},
+    {k:'α',  c:'var(--danger)',    v:fmtAngle(aV)},
+    {k:'Z',  c:'var(--ink)',       v:fmtAngle(90-aV)}
+  ];
+  const tx = {}; rows.forEach(r=> tx[r.k] = `${r.k} = ${r.v}`);
+
+  let out = '';
+  const NEUT = 'stroke="var(--ink-soft)" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round" fill="none"';
+  const brV = (x,y1,y2) => { eng.seg(x,y1,x,y2); eng.seg(x-2,y1,x+2,y1); eng.seg(x-2,y2,x+2,y2);
+    return `<path d="M${f(x)} ${f(y1)} L${f(x)} ${f(y2)} M${f(x-2)} ${f(y1)} L${f(x+2)} ${f(y1)} M${f(x-2)} ${f(y2)} L${f(x+2)} ${f(y2)}" ${NEUT}/>\n`; };
+
+  // obstáculos fijos: terreno, listado y nota al pie
+  eng.poly(tpoly);
+  const listW = Math.max(...rows.map(r=>eng.tw(tx[r.k],4.32)));
+  eng.rectFill(8.5, 6.5, 15.2+listW+1.5, 37.2);
+  eng.rectFill(W/2-30, 181.5, W/2+30, 187);
+
+  out += `<path d="${terrainD}" fill="none" stroke="#8B6B47" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+
+  // ---- instrumento en E (neutro) ----
+  out += `<path d="M${f(E.x)} ${f(E.y+2.45)} L${f(E.x)} ${f(gE)} M${f(E.x)} ${f(E.y+2.45)} L${f(E.x-4.3)} ${f(gE)} M${f(E.x)} ${f(E.y+2.45)} L${f(E.x+4.3)} ${f(gE)}" fill="none" stroke="var(--ink-soft)" stroke-width="0.7" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+  out += `<rect x="${f(E.x-4.25)}" y="${f(E.y-2.45)}" width="8.5" height="4.9" fill="var(--paper-raised)" stroke="var(--ink-soft)" stroke-width="0.7" stroke-linejoin="round"/>\n`;
+  eng.seg(E.x,E.y+2.45,E.x,gE); eng.seg(E.x,E.y+2.45,E.x-4.3,gE); eng.seg(E.x,E.y+2.45,E.x+4.3,gE);
+  eng.rectFill(E.x-4.25,E.y-2.45,E.x+4.25,E.y+2.45,0.8);
+
+  // ---- triángulo: un trazo por magnitud ----
+  out += `<path d="M${f(E.x)} ${f(E.y)} L${f(P.x)} ${f(P.y)}" fill="none" stroke="var(--blueprint)" stroke-width="0.8" stroke-linecap="round"/>\n`;
+  out += `<path d="M${f(E.x)} ${f(E.y)} L${f(B.x)} ${f(B.y)}" fill="none" stroke="var(--accent)" stroke-width="0.8" stroke-linecap="round"/>\n`;
+  out += `<path d="M${f(B.x)} ${f(B.y)} L${f(P.x)} ${f(P.y)}" fill="none" stroke="var(--success)" stroke-width="0.8" stroke-linecap="round"/>\n`;
+  out += `<path d="M${f(B.x-4)} ${f(B.y)} L${f(B.x-4)} ${f(B.y-s*4)} L${f(B.x)} ${f(B.y-s*4)}" fill="none" stroke="var(--ink-soft)" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+  eng.seg(E.x,E.y,P.x,P.y); eng.seg(E.x,E.y,B.x,B.y); eng.seg(B.x,B.y,P.x,P.y);
+  eng.seg(B.x-4,B.y,B.x-4,B.y-s*4); eng.seg(B.x-4,B.y-s*4,B.x,B.y-s*4);
+  const R = Math.min(54.5, 0.35*dh, 0.45*L);
+  out += `<path d="M${f(E.x+R)} ${f(E.y)} A${f(R)} ${f(R)} 0 0 ${neg?1:0} ${f(E.x+R*Math.cos(ar))} ${f(E.y-s*R*Math.sin(ar))}" fill="none" stroke="var(--danger)" stroke-width="0.7" stroke-linecap="round"/>\n`;
+  for(let t=0;t<=1.0001;t+=0.02){ eng.pts.push([E.x+R*Math.cos(ar*t), E.y-s*R*Math.sin(ar*t)]); }
+
+  // ---- puntos E y P (neutros) ----
+  out += `<circle cx="${f(E.x)}" cy="${f(E.y)}" r="2" fill="var(--ink-soft)"/>\n`;
+  out += `<circle cx="${f(P.x)}" cy="${f(P.y)}" r="2" fill="var(--ink-soft)"/>\n`;
+  eng.circle(E.x,E.y,2.3); eng.circle(P.x,P.y,2.3);
+
+  // ---- N: eje vertical con flecha desde E ----
+  out += `<path d="M${f(E.x)} ${f(E.y-4)} L${f(E.x)} ${f(E.y-46)}" ${NEUT}/>\n`;
+  out += `<path d="M${f(E.x)} ${f(E.y-50)} L${f(E.x-1.8)} ${f(E.y-45.5)} L${f(E.x+1.8)} ${f(E.y-45.5)} Z" fill="var(--ink-soft)" stroke="none"/>\n`;
+  eng.seg(E.x,E.y-4,E.x,E.y-50); eng.seg(E.x-1.8,E.y-45.5,E.x+1.8,E.y-45.5);
+  // ---- Z: ángulo cenital, desde N hasta Di, en sentido horario ----
+  const Zdeg = 90 - s*aa;
+  let rZ = Math.min(40, 0.8*L);
+  if(neg && Math.abs(rZ-dh/2) < 5.5) rZ = (dh/2-6 >= 18) ? dh/2-6 : dh/2+6;
+  out += `<path d="M${f(E.x)} ${f(E.y-rZ)} A${f(rZ)} ${f(rZ)} 0 ${Zdeg>180?1:0} 1 ${f(E.x+rZ*Math.cos(ar))} ${f(E.y-s*rZ*Math.sin(ar))}" fill="none" stroke="var(--ink)" stroke-width="0.7" stroke-linecap="round" stroke-dasharray="2 1.5"/>\n`;
+  for(let t=0;t<=1.0001;t+=0.01){ const th=toRad(Zdeg)*t; eng.pts.push([E.x+rZ*Math.sin(th), E.y-rZ*Math.cos(th)]); }
+  // ---- Hi: altura del instrumento (esquemática), a la izquierda de las patas ----
+  const xHi = E.x-7.667;
+  out += brV(xHi, E.y-0.055, gE);
+  // ---- hp y ΔH: apilados a la derecha de la vertical (hp: P → terreno bajo P; ΔH: terreno bajo P → terreno bajo E) ----
+  const xBr = P.x+2.55;
+  out += brV(xBr, P.y, gP);
+  out += brV(xBr, gP, gE);
+  const dx0 = neg ? xBr+2 : E.x+9.33, dx1 = neg ? xBr+16 : xBr-3.45;
+  if(dx1 > dx0+2){ out += `<path d="M${f(dx0)} ${f(gE)} L${f(dx1)} ${f(gE)}" ${NEUT} stroke-dasharray="1 2"/>\n`; eng.seg(dx0,gE,dx1,gE); }
+
+  // ---- rótulos (cada uno elige su posición libre más cercana a la de la plantilla) ----
+  const lab = (t, fs, col, c) => { const q=eng.txtAttrs(c); out += `<text ${q.pos} ${FONT} font-size="${fs}" fill="${col}"${q.an}>${t}</text>\n`; };
+  const mx=(E.x+P.x)/2, my=(E.y+P.y)/2;
+
+  // Di: a lo largo de su línea
+  {
+    const rot = -s*aa, g=[Math.sin(toRad(rot)), -Math.cos(toRad(rot))], u=[Math.cos(ar), -s*Math.sin(ar)];
+    const wD = eng.tw(tx.Di,4), tmax = Math.max(0, L/2 - wD/2 - 6), cands=[];
+    const sides = neg ? [[-1,4.8],[1,1.9]] : [[1,1.9],[-1,4.8]];
+    for(let t=0;t<=tmax+1e-6;t+=3) for(const sg of [1,-1]){ if(t===0&&sg===-1) continue;
+      sides.forEach(([ns,d],si)=> cands.push({x:mx+u[0]*t*sg+g[0]*ns*d, y:my+u[1]*t*sg+g[1]*ns*d, rot, anchor:'middle', pen:t*0.4+si*6}));
+    }
+    lab(tx.Di,4,'var(--blueprint)',eng.pick(tx.Di,4,cands));
+  }
+  // Dh: bajo la base (sobre ella si el triángulo cuelga); si no cabe, se corre a lo largo o más abajo
+  {
+    const wD = eng.tw(tx.Dh,4), cands=[];
+    const ys = neg ? [E.y-1.0, E.y+3.94, E.y+9, E.y-6] : [E.y+3.94, E.y-1.0, E.y+9, E.y+14];
+    for(let t=0;t<=130;t+=2) for(const sg of [1,-1]){ if(t===0&&sg===-1) continue;
+      const over = Math.max(0, wD/2 - (dh/2-Math.abs(t)) ) ;   // cuánto sobresale del tramo
+      ys.forEach((yy,si)=> cands.push({x:mx-0.169+t*sg, y:yy, anchor:'middle', pen:t*0.3+si*6+over*0.8}));
+    }
+    lab(tx.Dh,4,'var(--accent)',eng.pick(tx.Dh,4,cands));
+  }
+  // Dv: a la izquierda de la vertical (la derecha lleva hp y ΔH)
+  {
+    const c0 = (P.y+B.y)/2 + s*11.75, lo=Math.min(P.y,B.y), hi=Math.max(P.y,B.y), wD=eng.tw(tx.Dv,4), cands=[];
+    for(let d=0; d<=70; d+=1.5) for(const sg of [1,-1]){ if(d===0&&sg===-1) continue;
+      const cc=c0+d*sg; const over = Math.max(0, lo-(cc-wD/2)) + Math.max(0,(cc+wD/2)-hi);
+      [[P.x-1.865,0],[P.x+4.424,5]].forEach(([xx,pp])=> cands.push({x:xx, y:cc, rot:-90, anchor:'middle', pen:d*0.3+over*2+pp}));
+    }
+    lab(tx.Dv,4,'var(--success)',eng.pick(tx.Dv,4,cands));
+  }
+  // α: a la derecha del arco, junto a su punto medio
+  {
+    const th=-s*aa/2*Math.PI/180, mxA=E.x+R*Math.cos(th), myA=E.y+R*Math.sin(th), cands=[];
+    for(let dx=0.8; dx<=45; dx+=1.5) for(let dy=-16; dy<=16; dy+=1.2)
+      cands.push({x:mxA+dx, y:myA+s*1.05+dy, pen:Math.hypot(dx-1,dy)*0.35 + ((s>0 ? myA+s*1.05+dy > E.y-0.5 : myA+s*1.05+dy < E.y+3.5) ? 8 : 0)});
+    lab(tx['α'],4.5,'var(--danger)',eng.pick(tx['α'],4.5,cands));
+  }
+  // Z: fuera del arco, junto a su punto medio
+  {
+    const zm=toRad(Zdeg/2), mxZ=E.x+rZ*Math.sin(zm), myZ=E.y-rZ*Math.cos(zm), cands=[];
+    for(let dx=1; dx<=45; dx+=1.5) for(let dy=-16; dy<=16; dy+=1.2){
+      cands.push({x:mxZ+dx, y:myZ+dy, pen:Math.hypot(dx-3,dy+1.5)*0.35});
+      cands.push({x:mxZ-dx, y:myZ+dy, anchor:'end', pen:Math.hypot(dx-3,dy+1.5)*0.35+4});
+    }
+    lab(tx.Z,4.5,'var(--ink)',eng.pick(tx.Z,4.5,cands));
+  }
+  // E, P, N (neutros): cerca de la posición de la plantilla
+  {
+    const eC=[]; for(let dx=-16;dx<=16;dx+=1) for(let dy=-8;dy<=10;dy+=1) eC.push({x:E.x+6.98+dx, y:E.y+20.5+dy, anchor:'end', pen:Math.hypot(dx,dy)*0.4});
+    lab('E',4.5,'var(--ink-soft)',eng.pick('E',4.5,eC));
+    const pC=[]; const py0 = neg ? P.y+6.4 : P.y-3.09;
+    for(let dx=-6;dx<=8;dx+=1) for(let dy=-8;dy<=8;dy+=1) pC.push({x:P.x-0.9+dx, y:py0+dy, pen:Math.hypot(dx,dy)*0.4});
+    lab('P',4.5,'var(--ink-soft)',eng.pick('P',4.5,pC));
+    const nC=[]; for(let dx=-6;dx<=6;dx+=1) for(let dy=-6;dy<=3;dy+=1) nC.push({x:E.x+dx, y:E.y-52.5+dy, anchor:'middle', pen:Math.hypot(dx,dy)*0.4});
+    lab('N',4.5,'var(--ink-soft)',eng.pick('N',4.5,nC));
+  }
+  // Hi, hp y ΔH (neutros, sin valor)
+  {
+    const hC=[]; for(let dx=-6;dx<=4;dx+=1) for(let dy=-8;dy<=8;dy+=1) hC.push({x:xHi-2+dx, y:(E.y+gE)/2+2.735+dy, anchor:'end', pen:Math.hypot(dx,dy)*0.4});
+    lab('Hi',4,'var(--ink-soft)',eng.pick('Hi',4,hC));
+    const vl = (t,y1,y2,off) => { const cc=[]; const lo=Math.min(y1,y2), hi=Math.max(y1,y2), m=(y1+y2)/2+off;
+      for(let d=0; d<=60; d+=1) for(const sg of [1,-1]){ if(d===0&&sg===-1) continue; const y=m+d*sg;
+        for(let dx=0; dx<=8; dx+=4) cc.push({x:xBr+3.875+dx, y, rot:-90, anchor:'middle', pen:d*0.3+dx*0.6+Math.max(0,lo+2-(y-eng.tw(t,4)/2))*3+Math.max(0,(y+eng.tw(t,4)/2)-(hi-2))*3}); }
+      lab(t,4,'var(--ink-soft)',eng.pick(t,4,cc)); };
+    vl('hp',P.y,gP,3.5);
+    vl('ΔH',gP,gE,1.95);
+  }
+
+  // ---- listado de valores (esquina superior izquierda): el valor a continuación de su descriptor ----
+  rows.forEach((r,i)=>{
+    const by = 12.521 + i*5.761;
+    out += `<rect x="10.026" y="${f(by-3.457)}" width="3.457" height="3.457" fill="${r.c}"/>\n`;
+    out += `<text x="15.211" y="${f(by)}" ${FONT} font-size="4.32"><tspan fill="${r.c}">${r.k}</tspan><tspan fill="var(--ink)"> = ${r.v}</tspan></text>\n`;
+  });
+
+  out += `<text x="${W/2}" y="${H-4}" font-family="var(--font-body)" font-size="4" fill="var(--ink-soft)" text-anchor="middle">(esquemático, no a escala)</text>\n`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">\n${out}</svg>`;
+}
+
 /* ---------- REDUCCION AL HORIZONTE ---------- */
 function renderReducHorizonte(){
   const body = `<div class="field-card">
@@ -7195,7 +7469,7 @@ function renderReducHorizonte(){
     box.innerHTML = `<div class="results" style="margin-top:12px;">
       <div class="result-row"><span class="k">Distancia horizontal (Dh)</span><span class="v accent big">${fmtNum(r.Dh,3)} m</span></div>
       <div class="result-row"><span class="k">Distancia vertical (Dv)</span><span class="v">${fmtNum(r.Dv,3)} m</span></div>
-      <div class="plot-wrap">${svgTrianguloVertical(ang, Di, r.Dh, r.Dv)}</div>
+      <div class="plot-wrap">${svgReduccionHorizonte(ang, Di, r.Dh, r.Dv)}</div>
     </div>`;
   });
 }
