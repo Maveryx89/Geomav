@@ -5854,29 +5854,75 @@ function svgAstronomica(azSolDeg, rDeg, chDeg){
   </svg>`;
 }
 
-/* Diagrama de triángulo rectángulo (Pitágoras), a escala real */
+/* Diagrama de triángulo rectángulo (Pitágoras), a escala real — v2.
+   Basado en la plantilla de Illustrator de Mario (plantilla_pitagoras.svg): mesa 320×190, trazos, colores y
+   rótulos de esa plantilla (caso 3-4-5 = caja de 160×120). El triángulo conserva la proporción real de A:B
+   (si es extrema, se limita a un mínimo visible). Los valores van en el listado y en cada lado del dibujo.
+   A = blueprint, B = success, C (hipotenusa) = accent. */
 function svgPitagoras(a,b,c){
-  const w=260,h=200,pad=46;
-  const scale=Math.min((w-2*pad)/b,(h-2*pad)/a);
-  const bx=b*scale, ay=a*scale;
-  const x0=pad, y0=h-pad;
-  const x1=x0+bx, y1=y0;
-  const x2=x0, y2=y0-ay;
-  const rs=12;
-  // Tamaño y cercanía a la línea calibrados como en Triangulación (relFont chico, offset por
-  // defecto de svgLineLabel) — solo se mantiene el rótulo abreviado en negrita.
-  // A y C usan offsetMult=0.16 (en vez del default 0.85): al rotar el texto, el lado que
-  // "come" espacio hacia la línea es el descendente (más chico que el ascendente que usa B),
-  // así que necesitan un offset menor para que la separación visual respecto a la línea
-  // quede igual a la de B.
-  const font=relFont(w,0.032,8,10);
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <path d="M${x0} ${y0} L${x1.toFixed(1)} ${y1} L${x2} ${y2.toFixed(1)} Z" fill="var(--blueprint)" fill-opacity=".1" stroke="var(--blueprint)" stroke-width="2" stroke-linejoin="round"/>
-    <path d="M${x0} ${(y0-rs).toFixed(1)} L${(x0+rs).toFixed(1)} ${(y0-rs).toFixed(1)} L${(x0+rs).toFixed(1)} ${y0}" stroke="var(--ink-soft)" stroke-width="1.2" fill="none"/>
-    ${svgLineLabel(x0,y0,x1,y1, 'B: '+fmtNum(b,3), 'var(--ink)', font, 1, undefined, 700)}
-    ${svgLineLabel(x0,y0,x2,y2, 'A: '+fmtNum(a,3), 'var(--ink)', font, -1, 0.16, 700)}
-    ${svgLineLabel(x1,y1,x2,y2, 'C: '+fmtNum(c,3), 'var(--accent)', font, 1, 0.16, 700)}
-  </svg>`;
+  const W=320, H=190;
+  const f = v => v.toFixed(2).replace(/\.?0+$/,'');
+  const FONT = 'font-family="var(--font-body)" font-weight="700"';
+  const eng = svgLblEngine(W,H);
+
+  // ---- triángulo a escala dentro de la caja de la plantilla (160 × 120), centrado en x, base en y=170 ----
+  const sc = Math.min(160/b, 120/a);
+  const bx = Math.max(sc*b, 8), ay = Math.max(sc*a, 8);
+  const x0 = 160 - bx/2, y0 = 170, x1 = x0+bx, y2 = y0-ay;
+  const th = Math.atan2(ay,bx), thD = th*180/Math.PI;          // inclinación de la hipotenusa (A arriba → B abajo)
+  const rs = Math.min(4, 0.4*Math.min(bx,ay));
+
+  const rows = [
+    {k:'A', c:'var(--blueprint)', v:`${fmtNum(a,3)} m`},
+    {k:'B', c:'var(--success)',   v:`${fmtNum(b,3)} m`},
+    {k:'C', c:'var(--accent)',    v:`${fmtNum(c,3)} m`}
+  ];
+  const tx = {}; rows.forEach(r=> tx[r.k] = `${r.k} = ${r.v}`);
+  const listW = Math.max(...rows.map(r=>eng.tw(tx[r.k],4.32)));
+  eng.rectFill(8.5, 6.5, 15.2+listW+1.5, 25.5);
+
+  let out = '';
+  out += `<path d="M${f(x0)} ${y0} L${f(x1)} ${y0}" fill="none" stroke="var(--success)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+  out += `<path d="M${f(x0)} ${y0} L${f(x0)} ${f(y2)}" fill="none" stroke="var(--blueprint)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+  out += `<path d="M${f(x1)} ${y0} L${f(x0)} ${f(y2)}" fill="none" stroke="var(--accent)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+  out += `<path d="M${f(x0+rs)} ${y0} L${f(x0+rs)} ${f(y0-rs)} L${f(x0)} ${f(y0-rs)}" fill="none" stroke="var(--ink-soft)" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+  eng.seg(x0,y0,x1,y0); eng.seg(x0,y0,x0,y2); eng.seg(x1,y0,x0,y2); eng.seg(x0+rs,y0,x0+rs,y0-rs); eng.seg(x0+rs,y0-rs,x0,y0-rs);
+
+  const lab = (t, fs, col, c) => { const q=eng.txtAttrs(c); out += `<text ${q.pos} ${FONT} font-size="${fs}" fill="${col}"${q.an}>${t}</text>\n`; };
+
+  // C: a lo largo de la hipotenusa, por fuera (arriba a la derecha); si no cabe, se desliza o pasa al interior
+  {
+    const Lc = Math.hypot(bx,ay), mx=(x0+x1)/2, my=(y0+y2)/2, g=[Math.sin(th), -Math.cos(th)], u=[Math.cos(th), Math.sin(th)];
+    const tmax = Math.max(0, Lc/2 - eng.tw(tx.C,4)/2 - 4), cands=[];
+    for(let t=0;t<=tmax+1e-6;t+=3) for(const sg of [1,-1]){ if(t===0&&sg===-1) continue;
+      [[1,1.9],[-1,4.8]].forEach(([ns,d],si)=> cands.push({x:mx+u[0]*t*sg+g[0]*ns*d, y:my+u[1]*t*sg+g[1]*ns*d, rot:thD, anchor:'middle', pen:t*0.4+si*6}));
+    }
+    lab(tx.C,4,'var(--accent)',eng.pick(tx.C,4,cands));
+  }
+  // B: bajo la base
+  {
+    const cands=[];
+    for(let t=0;t<=90;t+=2) for(const sg of [1,-1]){ if(t===0&&sg===-1) continue;
+      [4.5,9].forEach((dy,si)=> cands.push({x:160+t*sg, y:y0+dy, anchor:'middle', pen:t*0.3+si*6}));
+    }
+    lab(tx.B,4,'var(--success)',eng.pick(tx.B,4,cands));
+  }
+  // A: a la izquierda de la vertical (si no cabe, por el interior)
+  {
+    const cands=[], mid=(y0+y2)/2;
+    for(let d=0; d<=70; d+=2) for(const sg of [1,-1]){ if(d===0&&sg===-1) continue;
+      [[x0-1.9,0],[x0+4.8,6],[x0-8,8]].forEach(([xx,pp])=> cands.push({x:xx, y:mid+d*sg, rot:-90, anchor:'middle', pen:d*0.3+pp}));
+    }
+    lab(tx.A,4,'var(--blueprint)',eng.pick(tx.A,4,cands));
+  }
+
+  // listado (valor a continuación de su descriptor)
+  rows.forEach((r,i)=>{
+    const by = 12.521 + i*5.761;
+    out += `<rect x="10.026" y="${f(by-3.457)}" width="3.457" height="3.457" fill="${r.c}"/>\n`;
+    out += `<text x="15.211" y="${f(by)}" ${FONT} font-size="4.32"><tspan fill="${r.c}">${r.k}</tspan><tspan fill="var(--ink)"> = ${r.v}</tspan></text>\n`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">\n${out}</svg>`;
 }
 
 /* Barra proporcional líquido/retención de una boleta de honorarios */
