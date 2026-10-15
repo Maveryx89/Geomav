@@ -5778,47 +5778,41 @@ function svgCurvaArco(R, deltaDeg, puntos, fuente, ptLabel, Tval, extras){
   return K.svg();
 }
 
-/* Diagrama de curva vertical parabólica (perfil) */
+/* Diagrama de curva vertical parabólica — v2 (estándar de plantillas de Mario): perfil con las dos tangentes (p1 en success, p2 en danger),
+   parábola (blueprint) de PVC a PVT y la corrección vertical e en el PIV (accent: es la magnitud estrella); longitud L acotada en horizontal
+   (blueprint). Los valores van en el listado (p1, p2, L, A, K, e) y en el dibujo solo el carácter. Escala horizontal real; la vertical se
+   exagera para que la pendiente más fuerte alcance ~40 px. Con replanteo, los puntos de la tabla se marcan sobre la curva. */
 function svgCurvaVertical(p1,p2,L,fracs){
-  const w=300,h=180,pad=30;
-  const scaleX=(w-2*pad)/L;
-  const maxSlope=Math.max(Math.abs(p1),Math.abs(p2),0.5);
-  const scaleY=(h-2*pad)/2/(maxSlope/100*L/2+1);
-  const xPIV=w/2, yPIV=pad+ (h-2*pad)/2 - ( (p1<0&&p2>0)||(p1>0&&p2<0)? 0:0 );
-  const halfL=L/2;
-  const yAt = (dx, slopePct) => -slopePct/100*dx*scaleX*0; // placeholder unused
-  const x0=xPIV-halfL*scaleX, x1=xPIV+halfL*scaleX;
-  const y0=yPIV - (p1/100)*halfL*scaleX*0.6;
-  const y1=yPIV + (p2/100)*halfL*scaleX*0.6;
-  const tipo = p2>p1;
-  const curveMid = tipo ? yPIV+18 : yPIV-18;
-  // Marcas de replanteo: se evalúan sobre la misma curva de Bézier cuadrática que se dibuja
-  // (P0=inicio, P1=vértice de control, P2=fin), para que coincidan exactamente con el trazo.
-  let ticks='';
-  if(fracs && fracs.length){
-    const step = thinLabelStep(fracs.length,8);
-    const tickFont = relFont(w,0.024,6,7.5);
-    fracs.forEach((t,i)=>{
-      const mt=1-t;
-      const bx = mt*mt*x0 + 2*mt*t*xPIV + t*t*x1;
-      const by = mt*mt*y0 + 2*mt*t*curveMid + t*t*y1;
-      ticks += `<circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="2.2" fill="var(--accent)"/>`;
-      if(i%step===0 && i!==0 && i!==fracs.length-1 && Math.abs(bx-xPIV)>14){
-        ticks += `<text x="${bx.toFixed(1)}" y="${(by-6).toFixed(1)}" font-size="${tickFont}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">${i+1}</text>`;
-      }
-    });
-  }
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" stroke="var(--line)" stroke-width="1"/>
-    <path d="M${x0.toFixed(1)} ${y0.toFixed(1)} L${xPIV.toFixed(1)} ${yPIV.toFixed(1)} L${x1.toFixed(1)} ${y1.toFixed(1)}" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="3 3" fill="none"/>
-    <path d="M${x0.toFixed(1)} ${y0.toFixed(1)} Q${xPIV.toFixed(1)} ${curveMid.toFixed(1)} ${x1.toFixed(1)} ${y1.toFixed(1)}" stroke="var(--blueprint)" stroke-width="2" fill="none"/>
-    ${ticks}
-    <circle cx="${xPIV.toFixed(1)}" cy="${yPIV.toFixed(1)}" r="3" fill="var(--ink)"/>
-    <text x="${xPIV.toFixed(1)}" y="${(yPIV-10).toFixed(1)}" font-size="10" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">PIV</text>
-    <text x="${x0.toFixed(1)}" y="${(y0-8).toFixed(1)}" font-size="10" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">p1 ${fmtNum(p1,2)}%</text>
-    <text x="${x1.toFixed(1)}" y="${(y1-8).toFixed(1)}" font-size="10" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="end">p2 ${fmtNum(p2,2)}%</text>
-    <text x="${xPIV.toFixed(1)}" y="${(h-pad+14).toFixed(1)}" font-size="8.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">L=${fmtNum(L,2)} m</text>
-  </svg>`;
+  const K=svgKit(), A=Math.abs(p1-p2), e=A*L/800, kk=A!==0?L/A:Infinity;
+  K.list([[{k:'p1',c:'var(--success)',v:`${fmtNum(p1,2)} %`},{k:'p2',c:'var(--danger)',v:`${fmtNum(p2,2)} %`},{k:'L',c:'var(--blueprint)',v:`${fmtNum(L,2)} m`},{k:'A',c:'var(--ink)',v:`${fmtNum(A,3)} %`},{k:'K',c:'var(--ink-soft)',v:isFinite(kk)?fmtNum(kk,2):'∞'},{k:'e',c:'var(--accent)',v:`${fmtNum(e,4)} m`}]]);
+  const l=34, r=286, t=K.listBottom+12, b=158, half=L/2, col=p2>p1?1:-1;
+  const sx=(r-l)/Math.max(L,1e-6), sv=40/((Math.max(Math.abs(p1),Math.abs(p2),0.3)/100)*half);
+  const zP=-p1/100*half, zT=p2/100*half, zM=col*e, zs=[zP,zT,0,(zP+zT)/2+0*zM,col*e];
+  const zmin=Math.min(...zs,0), zmax=Math.max(...zs,0), hh=(zmax-zmin)*sv;
+  const yc=t+((b-t)-hh)/2;                       // parte alta del dibujo
+  const X=x=>l+x*sx, Y=z=>yc+(zmax-z)*sv;
+  const zc=x=>zP+p1/100*x-(p1-p2)/(200*L)*x*x;
+  const PVC=[X(0),Y(zP)], PIV=[X(half),Y(0)], PVT=[X(L),Y(zT)];
+  const cv=[]; for(let i=0;i<=60;i++){ const x=L*i/60; cv.push([X(x),Y(zc(x))]); }
+  const CM=[X(half),Y(zc(half))];
+  K.line(...PVC,...PIV,'var(--success)',{sw:0.7,dash:'3 2'}); K.line(...PIV,...PVT,'var(--danger)',{sw:0.7,dash:'3 2'});
+  K.poly(cv,{stroke:'var(--blueprint)',sw:1.5});
+  if(e*sv>2) K.line(...PIV,...CM,'var(--accent)',{sw:1});
+  // cota de L
+  const dy=b+12; K.line(PVC[0],dy,PVT[0],dy,'var(--blueprint)',{sw:0.7}); K.line(PVC[0],dy-3,PVC[0],dy+3,'var(--blueprint)',{sw:0.6,noObs:false}); K.line(PVT[0],dy-3,PVT[0],dy+3,'var(--blueprint)',{sw:0.6,noObs:false});
+  K.line(PVC[0],Math.max(PVC[1],0)+0,PVC[0],dy-3,'var(--ink-soft)',{sw:0.4,dash:'1 2',noObs:true,op:0.6}); K.line(PVT[0],PVT[1],PVT[0],dy-3,'var(--ink-soft)',{sw:0.4,dash:'1 2',noObs:true,op:0.6});
+  if(fracs&&fracs.length){ const st=thinLabelStep(fracs.length,8); fracs.forEach((f,i)=>{ const q=cv[Math.round(f*60)]; K.dot(q[0],q[1],'var(--ink-soft)',1.6); if(i%st===0&&i!==0&&i!==fracs.length-1) K.pointLabel(String(i+1),q[0],q[1],3,'var(--ink-soft)',{dir:[0,col>0?1:-1],rmin:3.2,rmax:8}); }); }
+  [PVC,PVT].forEach(q=>K.dot(q[0],q[1],'var(--ink-soft)',2)); K.dot(PIV[0],PIV[1],'var(--ink-soft)',2);
+  const up=col>0?[0,-1]:[0,1];                    // el PIV queda del lado contrario a la curva
+  K.pointLabel('PIV',PIV[0],PIV[1],4.5,'var(--ink-soft)',{dir:col>0?[0,1]:[0,-1],omit:false});
+  K.pointLabel('PVC',PVC[0],PVC[1],4.5,'var(--ink-soft)',{dir:[-1,p1>0?0.5:-0.5],omit:false});
+  K.pointLabel('PVT',PVT[0],PVT[1],4.5,'var(--ink-soft)',{dir:[1,p2>0?-0.5:0.5],omit:false});
+  const mid=(a,b2)=>[(a[0]+b2[0])/2,(a[1]+b2[1])/2], awayC=(a,b2)=>{ const m=mid(a,b2); return [col>0?-0.2:0.2, col>0?1:-1]; };
+  K.lineLabel(...PVC,...PIV,'p1',4.5,'var(--success)',{out:[0,col>0?1:-1],extras:[0,3,6]});
+  K.lineLabel(...PIV,...PVT,'p2',4.5,'var(--danger)',{out:[0,col>0?1:-1],extras:[0,3,6]});
+  if(e*sv>5) K.lineLabel(...PIV,...CM,'e',4.5,'var(--accent)',{out:[1,0],extras:[0,3]});
+  K.lineLabel(PVC[0],dy,PVT[0],dy,'L',4.5,'var(--blueprint)',{out:[0,1],extras:[0,3]});
+  return K.svg();
 }
 
 /* Diagrama de taquimetría: mira con 3 hilos + linea de vista */
