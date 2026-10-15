@@ -6211,83 +6211,60 @@ function svgBoletaBarra(liquido, retencion){
   </svg>`;
 }
 
-/* Diagrama de replanteo por ordenadas desde la tangente */
+/* Diagrama de replanteo por ordenadas desde la tangente — v2 (estándar de plantillas de Mario): tangente desde el PC (x, blueprint), curva
+   (accent: la longitud de curva Lc es la magnitud estrella del panel) y ordenadas perpendiculares (y, success) en cada punto; valores de
+   Lc, x y y del PT en el listado, y la ordenada de cada punto sobre su trazo cuando son ≤ 8 puntos (la tabla del panel los trae todos).
+   Esquema: la escala vertical se exagera hasta 4× la horizontal para que la curva se distinga de la tangente. */
 function svgReplanteoOrdenadas(R, deltaDeg, rows, xMax, yMax){
-  const w=300,h=190,padL=26,padR=16,padT=20,padB=34;
-  const scaleX=(w-padL-padR)/Math.max(xMax,0.001);
-  const scaleY=Math.min((h-padT-padB)/Math.max(yMax,0.001), scaleX*4);
-  const ox=padL, oy=h-padB;
-  const toXY=(x,y)=>({sx: ox+x*scaleX, sy: oy-y*scaleY});
-  let curvePts=[];
-  const n=24;
-  for(let i=0;i<=n;i++){
-    const x=xMax*i/n;
-    const y=R-Math.sqrt(Math.max(R*R-x*x,0));
-    curvePts.push(toXY(x,y));
-  }
-  const curvePath=curvePts.map((p,i)=>(i===0?'M':'L')+p.sx.toFixed(1)+' '+p.sy.toFixed(1)).join(' ');
-  let ticks='';
-  const tickStep1=thinLabelStep(rows.length,9);
-  const tickFont1=relFont(w,0.024,6,7.5);
-  rows.forEach((r,i)=>{
-    const top=toXY(r.x,r.y), base=toXY(r.x,0);
-    ticks += `<line x1="${base.sx.toFixed(1)}" y1="${base.sy.toFixed(1)}" x2="${top.sx.toFixed(1)}" y2="${top.sy.toFixed(1)}" stroke="var(--accent)" stroke-width="1.1" stroke-dasharray="${r.esPT?'0':'2 2'}"/>`;
-    ticks += `<circle cx="${top.sx.toFixed(1)}" cy="${top.sy.toFixed(1)}" r="2.2" fill="var(--accent)"/>`;
-    if(!r.esPT && i%tickStep1===0) ticks += `<text x="${top.sx.toFixed(1)}" y="${(top.sy-6).toFixed(1)}" font-size="${tickFont1}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">P${i+1}</text>`;
-  });
-  const pcP=toXY(0,0), ptP=toXY(xMax,yMax);
-  const lblFont1=relFont(w,0.033,8,10);
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${ox}" y1="${oy}" x2="${(ox+xMax*scaleX+10).toFixed(1)}" y2="${oy}" stroke="var(--line-strong)" stroke-width="1.4"/>
-    <path d="${curvePath}" stroke="var(--blueprint)" stroke-width="2" fill="none"/>
-    ${ticks}
-    <circle cx="${pcP.sx.toFixed(1)}" cy="${pcP.sy.toFixed(1)}" r="3" fill="var(--ink)"/>
-    <circle cx="${ptP.sx.toFixed(1)}" cy="${ptP.sy.toFixed(1)}" r="3" fill="var(--ink)"/>
-    <text x="${pcP.sx.toFixed(1)}" y="${(oy+16).toFixed(1)}" font-size="${lblFont1}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">PC</text>
-    <text x="${ptP.sx.toFixed(1)}" y="${(oy+16).toFixed(1)}" font-size="${lblFont1}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">PT</text>
-    <text x="${(ox+xMax*scaleX/2).toFixed(1)}" y="${(oy+29).toFixed(1)}" font-size="${relFont(w,0.03,7.5,9)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">tangente (x)</text>
-  </svg>`;
+  const K=svgKit(), n=rows.length, many=n>8;
+  K.list([[{k:'Lc',c:'var(--accent)',v:`${fmtNum(R*toRad(deltaDeg),3)} m`},{k:'x PT',c:'var(--blueprint)',v:`${fmtNum(xMax,3)} m`},{k:'y PT',c:'var(--success)',v:`${fmtNum(yMax,3)} m`}]]);
+  const l=26, r=292, t=K.listBottom+12, b=150;
+  const dr=toRad(Math.min(deltaDeg,179.9)), xExt=dr>Math.PI/2?R:xMax, yExt=Math.max(yMax,1e-3);
+  const sx=(r-l)/Math.max(xExt,1e-3), sy=Math.min((b-t)/yExt, sx*4);
+  const X=x=>l+x*sx, Y=y=>b-y*sy;
+  const cp=[]; for(let i=0;i<=60;i++){ const a=dr*i/60; cp.push([X(R*Math.sin(a)),Y(R*(1-Math.cos(a)))]); }
+  K.line(l,b,X(xExt),b,'var(--blueprint)');
+  rows.forEach(q=>{ if(q.y>1e-9) K.line(X(q.x),b,X(q.x),Y(q.y),'var(--success)',{dash:q.esPT?null:'2 2',sw:0.7}); });
+  K.poly(cp,{stroke:'var(--accent)',sw:1.4});
+  const st=thinLabelStep(n,9);
+  rows.forEach((q,i)=>{ if(!q.esPT) K.dot(X(q.x),Y(q.y),'var(--ink-soft)',1.8); });
+  K.dot(l,b,'var(--ink-soft)',2); K.dot(X(xMax),Y(yMax),'var(--ink-soft)',2);
+  K.pointLabel('PC',l,b,4.5,'var(--ink-soft)',{dir:[0,1],omit:false});
+  K.pointLabel('PT',X(xMax),Y(yMax),4.5,'var(--ink-soft)',{dir:[1,-0.4],omit:false});
+  rows.forEach((q,i)=>{ if(!q.esPT && i%st===0) K.pointLabel('P'+(i+1),X(q.x),Y(q.y),3,'var(--ink-soft)',{dir:[0,-1],rmin:3.2,rmax:9}); });
+  K.lineLabel(l,b,X(xExt),b,'x',4.5,'var(--blueprint)',{out:[0,1],extras:[0,3,6]});
+  K.lineLabel(X(xMax),b,X(xMax),Y(yMax),'y',4.5,'var(--success)',{out:[1,0],extras:[0,3,6]});
+  const mid=cp[30]; K.pointLabel('Lc',mid[0],mid[1],4.5,'var(--accent)',{dir:[-0.35,-1],rmin:3,rmax:10});
+  if(!many) rows.forEach(q=>{ if(!q.esPT && q.y*sy>14) K.lineLabel(X(q.x),b,X(q.x),Y(q.y),fmtNum(q.y,3),3,'var(--success)',{out:[1,0],extras:[0,3],margin:1}); });
+  return K.svg();
 }
 
-/* Diagrama de replanteo por ordenadas desde la cuerda PC-PT */
+/* Diagrama de replanteo por ordenadas desde la cuerda — v2 (estándar de plantillas de Mario): cuerda PC–PT como línea base (C, accent: es la
+   magnitud estrella del panel), curva (blueprint) y ordenadas perpendiculares a la cuerda (success); la ordenada media M (danger) se marca
+   en el centro. Valores de C y M en el listado, y la ordenada de cada punto sobre su trazo cuando son ≤ 8 puntos (la tabla trae todos).
+   Esquema: la escala vertical se exagera hasta 4× la horizontal para que la curva se distinga de la cuerda. */
 function svgReplanteoCuerda(R, deltaDeg, rows, Lchord, M){
-  const w=300,h=190,padL=20,padR=20,padT=26,padB=34;
-  const scaleX=(w-padL-padR)/Math.max(Lchord,0.001);
-  const scaleY=Math.min((h-padT-padB)/Math.max(M,0.001), scaleX*4);
-  const ox=padL, oy=h-padB;
-  const half=Lchord/2, d=R-M;
-  const toXY=(x,y)=>({sx: ox+x*scaleX, sy: oy-y*scaleY});
-  let curvePts=[];
-  const n=24;
-  for(let i=0;i<=n;i++){
-    const x=Lchord*i/n;
-    const dx=x-half;
-    const under=R*R-dx*dx;
-    const y=under>0 ? Math.sqrt(under)-d : 0;
-    curvePts.push(toXY(x, Math.max(y,0)));
-  }
-  const curvePath=curvePts.map((p,i)=>(i===0?'M':'L')+p.sx.toFixed(1)+' '+p.sy.toFixed(1)).join(' ');
-  let ticks='';
-  const tickStep2=thinLabelStep(rows.length,9);
-  const tickFont2=relFont(w,0.024,6,7.5);
-  rows.forEach((r,i)=>{
-    const top=toXY(r.x,r.y), base=toXY(r.x,0);
-    ticks += `<line x1="${base.sx.toFixed(1)}" y1="${base.sy.toFixed(1)}" x2="${top.sx.toFixed(1)}" y2="${top.sy.toFixed(1)}" stroke="var(--accent)" stroke-width="1.1" stroke-dasharray="${(r.esPC||r.esPT)?'0':'2 2'}"/>`;
-    ticks += `<circle cx="${top.sx.toFixed(1)}" cy="${top.sy.toFixed(1)}" r="2.2" fill="var(--accent)"/>`;
-    if(!r.esPC && !r.esPT && i%tickStep2===0) ticks += `<text x="${top.sx.toFixed(1)}" y="${(top.sy-6).toFixed(1)}" font-size="${tickFont2}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">P${i+1}</text>`;
-  });
-  const pcP=toXY(0,0), ptP=toXY(Lchord,0);
-  const lblFont2=relFont(w,0.033,8,10);
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${pcP.sx.toFixed(1)}" y1="${oy}" x2="${ptP.sx.toFixed(1)}" y2="${oy}" stroke="var(--line-strong)" stroke-width="1.4"/>
-    <path d="${curvePath}" stroke="var(--blueprint)" stroke-width="2" fill="none"/>
-    ${ticks}
-    <circle cx="${pcP.sx.toFixed(1)}" cy="${pcP.sy.toFixed(1)}" r="3" fill="var(--ink)"/>
-    <circle cx="${ptP.sx.toFixed(1)}" cy="${ptP.sy.toFixed(1)}" r="3" fill="var(--ink)"/>
-    <text x="${pcP.sx.toFixed(1)}" y="${(oy+16).toFixed(1)}" font-size="${lblFont2}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">PC</text>
-    <text x="${ptP.sx.toFixed(1)}" y="${(oy+16).toFixed(1)}" font-size="${lblFont2}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">PT</text>
-    <text x="${(ox+Lchord*scaleX/2).toFixed(1)}" y="${(oy+29).toFixed(1)}" font-size="${relFont(w,0.03,7.5,9)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">cuerda PC–PT</text>
-  </svg>`;
+  const K=svgKit(), n=rows.length, many=n>8;
+  K.list([[{k:'C',c:'var(--accent)',v:`${fmtNum(Lchord,3)} m`},{k:'M',c:'var(--danger)',v:`${fmtNum(M,3)} m`}]]);
+  const l=26, r=292, t=K.listBottom+12, b=150, half=Lchord/2, dd=R-M;
+  const sx=(r-l)/Math.max(Lchord,1e-3), sy=Math.min((b-t)/Math.max(M,1e-3), sx*4);
+  const X=x=>l+x*sx, Y=y=>b-y*sy;
+  const cp=[], hd=toRad(Math.min(deltaDeg,179.9))/2; for(let i=0;i<=60;i++){ const a=-hd+2*hd*i/60; cp.push([X(half+R*Math.sin(a)),Y(Math.max(R*Math.cos(a)-dd,0))]); }
+  K.line(l,b,X(Lchord),b,'var(--accent)');
+  rows.forEach(q=>{ if(q.y>1e-9) K.line(X(q.x),b,X(q.x),Y(q.y),'var(--success)',{dash:(q.esPC||q.esPT)?null:'2 2',sw:0.7}); });
+  K.poly(cp,{stroke:'var(--blueprint)',sw:1.4});
+  K.line(X(half),b,X(half),Y(M),'var(--danger)',{sw:0.9});
+  const st=thinLabelStep(n,9);
+  rows.forEach(q=>{ if(!q.esPC&&!q.esPT) K.dot(X(q.x),Y(q.y),'var(--ink-soft)',1.8); });
+  K.dot(X(half),Y(M),'var(--danger)',1.8);
+  K.dot(l,b,'var(--ink-soft)',2); K.dot(X(Lchord),b,'var(--ink-soft)',2);
+  K.pointLabel('PC',l,b,4.5,'var(--ink-soft)',{dir:[-0.6,1],omit:false});
+  K.pointLabel('PT',X(Lchord),b,4.5,'var(--ink-soft)',{dir:[0.6,1],omit:false});
+  rows.forEach((q,i)=>{ if(!q.esPC&&!q.esPT&&i%st===0) K.pointLabel('P'+i,X(q.x),Y(q.y),3,'var(--ink-soft)',{dir:[0,-1],rmin:3.2,rmax:9}); });
+  K.lineLabel(l,b,X(Lchord),b,'C',4.5,'var(--accent)',{out:[0,1],extras:[0,3,6]});
+  K.lineLabel(X(half),b,X(half),Y(M),'M',4.5,'var(--danger)',{out:[1,0],extras:[0,3,6]});
+  if(!many) rows.forEach(q=>{ if(!q.esPC&&!q.esPT&&q.y*sy>14&&Math.abs(q.x-half)>1e-9) K.lineLabel(X(q.x),b,X(q.x),Y(q.y),fmtNum(q.y,3),3,'var(--success)',{out:[1,0],extras:[0,3],margin:1}); });
+  return K.svg();
 }
 
 /* Diagrama de la clotoide (espiral de transicion) */
