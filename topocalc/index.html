@@ -4645,65 +4645,27 @@ function svgDistPuntoLinea(e1, n1, e2, n2, ep, np, r, fuente){
   return K.svg();
 }
 
-/* Diagrama de talud: triángulo rectángulo distancia horizontal / desnivel / pendiente, con
-   arco de ángulo. El dibujo solo lleva letras sueltas (d, h, Talud, α) — nunca el número
-   pegado al trazo — y el valor de cada una vive en una lista propia en la esquina superior
-   izquierda (mismo patrón que svgCurvaArco), con el mismo color entre trazo/letra y su línea
-   en la lista. d y h también están en los campos del formulario, y Pendiente/Ángulo/Relación
-   H:V en el panel de resultados justo encima del SVG, pero el usuario pidió explícitamente que
-   el propio dibujo lleve su lista, igual que en los demás diagramas del estándar. Relación H:V
-   no tiene trazo propio en el dibujo (no es más que una relectura de Talud/Ángulo), así que se
-   deja fuera de la lista para no romper la regla de "un color por magnitud con trazo propio";
-   sigue visible en el panel de resultados. La lista vive en la franja libre entre y=0 y
-   y=y0-roomV (arriba del vértice más alto posible): con la línea Talud llegando a esa altura
-   solo en su extremo derecho (x=x1), la lista —anclada a la izquierda— nunca se cruza con ella.
-   Los vértices se mantienen en tono neutro ink, sin reutilizar los colores de magnitud, igual
-   que en los demás diagramas. Texto reducido a pedido del usuario (relFont con multiplicador y
-   piso más bajos que el resto de los diagramas) para que el texto pese menos frente a la
-   geometría — al ser SVG vectorial no pierde nitidez si el usuario hace zoom para leer un valor.
-   Corrección de layout: el origen "y0" ahora queda a la misma distancia del techo y del piso
-   del SVG (roomV en cada sentido), en vez de pegado al borde inferior como antes — con
-   desnivel negativo (talud descendente) el vértice superior y la línea "h" se salían del
-   canvas porque solo había ~18px de margen hacia abajo contra 96px hacia arriba. */
+/* Diagrama de Talud — v2 (estándar de plantillas de Mario): triángulo rectángulo esquemático (no a escala) con la distancia horizontal d
+   (success), el desnivel h (danger), el talud (accent: es el resultado principal, a lo largo de la pendiente) y el ángulo α (blueprint) en A.
+   Talud descendente (h<0) se dibuja hacia abajo. En el dibujo solo el carácter; los valores van en el listado. */
 function svgTalud(h, d, r, fuente){
-  const w=280, pad=34, headroom=16, roomV=90;
-  const y0 = pad+headroom+roomV, hh = y0+headroom+roomV;
-  const angDraw=toRad(Math.min(Math.max(Math.abs(r.anguloDeg),4),70));
-  const baseW=w-2*pad;
-  const dir=h>=0?-1:1;
-  const riseMag=Math.min(baseW*Math.tan(angDraw), roomV);
-  const x0=pad;
-  const x1=w-pad, y1=y0+dir*riseMag;
-  const realAngle=Math.atan2(y1-y0, x1-x0);
-  const arcR=24;
-  const arcStart={x:x0+arcR,y:y0};
-  const arcEnd={x:x0+arcR*Math.cos(realAngle), y:y0+arcR*Math.sin(realAngle)};
-  const sweepFlag=realAngle>=0?1:0;
-  const labelFont=relFont(w,0.026,6,8);
-  const colD='var(--success)', colH='var(--danger)', colTalud='var(--blueprint)', colAng='var(--accent)';
-  const dimFont=relFont(w,0.022,5.5,7);
-  const legendItems=[
-    {label:'d', value:fmtNum(d,2)+' m', color:colD},
-    {label:'h', value:fmtNum(h,2)+' m', color:colH},
-    {label:'Talud', value:fmtNum(r.pendientePct,2)+' %', color:colTalud},
-    {label:'α', value:fmtAngle(r.anguloDeg), color:colAng}
-  ];
-  const lgX=8, lgY0=6+dimFont, lgStep=dimFont*1.35;
-  const legendSvg = legendItems.map((it,i)=>`<text x="${lgX}" y="${(lgY0+lgStep*i).toFixed(1)}" font-size="${dimFont}" font-family="var(--font-mono)" font-weight="700" fill="${it.color}" text-anchor="start">${it.label}=${it.value}</text>`).join('');
-  return `<svg viewBox="0 0 ${w} ${hh}" xmlns="http://www.w3.org/2000/svg">
-    <path d="M${x0} ${y0} L${x1} ${y0}" stroke="${colD}" stroke-width="1.6" fill="none"/>
-    <path d="M${x1} ${y0} L${x1} ${y1.toFixed(1)}" stroke="${colH}" stroke-width="1.6" stroke-dasharray="3 3" fill="none"/>
-    <path d="M${x0} ${y0} L${x1} ${y1.toFixed(1)}" stroke="${colTalud}" stroke-width="2" fill="none"/>
-    <path d="M${arcStart.x} ${arcStart.y} A${arcR} ${arcR} 0 0 ${sweepFlag} ${arcEnd.x.toFixed(1)} ${arcEnd.y.toFixed(1)}" stroke="${colAng}" stroke-width="1.4" fill="none"/>
-    <circle cx="${x0}" cy="${y0}" r="3" fill="var(--ink)"/>
-    <circle cx="${x1}" cy="${y1.toFixed(1)}" r="3.4" fill="var(--ink)"/>
-    <text x="${(x0+x1)/2}" y="${(y0+14).toFixed(1)}" font-size="${labelFont}" font-family="var(--font-mono)" font-weight="700" fill="${colD}" text-anchor="middle">d</text>
-    ${svgLineLabel(x1,y0,x1,y1, 'h', colH, labelFont, -1, undefined, 700)}
-    ${svgLineLabel(x0,y0,x1,y1, 'Talud', colTalud, labelFont, dir, undefined, 700)}
-    <text x="${(x0+arcR+10).toFixed(1)}" y="${(y0+dir*14).toFixed(1)}" font-size="${dimFont}" font-family="var(--font-mono)" font-weight="700" fill="${colAng}" text-anchor="start">α</text>
-    ${legendSvg}
-    ${fuente?svgFuente(fuente,w,hh):''}
-  </svg>`;
+  const K=svgKit(), up=h>=0, col={d:'var(--success)',h:'var(--danger)',t:'var(--accent)',a:'var(--blueprint)'};
+  K.list([[{k:'Talud',c:col.t,v:`${fmtNum(r.pendientePct,2)} %`},{k:'α',c:col.a,v:fmtAngle(r.anguloDeg)},{k:'H:V',c:'var(--ink)',v:`${fmtNum(r.relacion,2)} : 1`},{k:'d',c:col.d,v:`${fmtNum(d,2)} m`},{k:'h',c:col.h,v:`${fmtNum(h,2)} m`}]],{perCol:3});
+  const top=Math.max(K.listBottom+12,46), bot=fuente?160:172, W=190, ang=toRad(Math.min(Math.max(Math.abs(r.anguloDeg),8),60));
+  const rise=Math.min(W*Math.tan(ang),bot-top-6), x0=(320-W)/2-6, x1=x0+W, s=up?-1:1;
+  const y0=up?(top+bot)/2+rise/2:(top+bot)/2-rise/2, y1=y0+s*rise, A=[x0,y0], B=[x1,y1], C=[x1,y0];
+  const real=Math.atan2(y1-y0,x1-x0)*180/Math.PI, k=4;
+  K.line(...A,...C,col.d,{sw:1.1}); K.line(...C,...B,col.h,{sw:1.1,dash:'3 2'}); K.line(...A,...B,col.t,{sw:1.6});
+  K.poly([[C[0]-k,C[1]],[C[0]-k,C[1]+s*k],[C[0],C[1]+s*k]],{stroke:'var(--ink-soft)',sw:0.6,obs:false});
+  K.arc(A[0],A[1],24,0,real,col.a,{sw:0.9});
+  [A,B].forEach(q=>K.dot(q[0],q[1],'var(--ink-soft)',2));
+  K.lineLabel(...A,...C,'d',4.5,col.d,{out:[0,-s],extras:[0,3,6]});
+  K.lineLabel(...C,...B,'h',4.5,col.h,{out:[1,0],extras:[0,3,6]});
+  K.lineLabel(...A,...B,'Talud',4.5,col.t,{at:0.5,out:[0,s],extras:[0,3,6]});
+  const am=real/2*Math.PI/180; K.pointLabel('α',A[0]+24*Math.cos(am),A[1]+24*Math.sin(am),4.5,col.a,{dir:[Math.cos(am),Math.sin(am)],rmin:2,rmax:9});
+  K.pointLabel('A',A[0],A[1],4.5,'var(--ink-soft)',{dir:[-1,-s*0.3],omit:false}); K.pointLabel('B',B[0],B[1],4.5,'var(--ink-soft)',{dir:[1,s*0.3],omit:false});
+  if(fuente) K.add(svgFuente(fuente,320,190));
+  return K.svg();
 }
 
 /* ---------- TALUDES EN CASCADA (BANCOS) ---------- */
@@ -4736,87 +4698,39 @@ function calcTaludBancosGeometry(glob, benches){
   return results;
 }
 
-/* Sección transversal a escala: plataforma con pendiente de corona, eje de camino y el
-   perfil escalonado completo. El dibujo solo lleva letras sueltas (H, V:H, D) por banco —
-   nunca el número — porque el valor exacto de cada banco ya está en la tabla de resultados
-   justo encima del SVG (Altura, Talud V:H, Dist. a pie, etc.); una leyenda de una línea al
-   pie del dibujo explica qué es cada letra. H (altura) y D (distancia acumulada al eje)
-   tienen cada una su propio color, igual entre su línea de cota en el dibujo y su letra en
-   la leyenda; V:H no tiene una línea propia (solo etiqueta el tramo del perfil compartido),
-   así que se deja en tono neutro en vez de forzarle un color sin un trazo propio que calce.
-   Se evitó reusar --success/--danger para estos colores porque esta misma herramienta ya
-   los usa con otro significado (--danger resalta el tramo de un banco que excede la altura
-   máxima; --success marca "todos los bancos OK" en el panel de resultados). */
+/* Diagrama de Taludes en Cascada (Bancos) — v2 (estándar de plantillas de Mario): sección transversal a escala con la plataforma y su
+   pendiente de corona, el eje de camino punteado y el perfil escalonado. En el dibujo solo el carácter: H (altura de cada banco, accent, a la
+   izquierda), D (distancia acumulada del eje al pie de cada banco, blueprint) y V:H (talud de cada banco, a lo largo de su pendiente); los
+   valores ya están en la tabla del panel. El banco que supera la altura máxima se resalta en danger. Una leyenda al pie explica cada letra. */
 function svgTaludBancos(glob, geo){
-  const halfWidth = Math.max(0, glob.halfWidth||0);
-  const crownDrop = Math.max(0, halfWidth * (glob.crownPct||0)/100);
-  const last = geo[geo.length-1];
-  const totalHeight = last ? last.crestY : 0;
-  const totalX = last ? last.crestX : halfWidth;
-  const n = geo.length;
-
-  const topReserve = 0.6;
-  const worldXmin = -halfWidth - 0.9;
-  const worldXmax = totalX + 0.9;
-  const worldYmin = -(crownDrop + 0.55);
-  const worldYmax = totalHeight + topReserve;
-  const worldW = Math.max(1, worldXmax - worldXmin);
-  const worldH = Math.max(1, worldYmax - worldYmin);
-
-  const w=300, padL=32, padR=14, padT=10, padB=34;
-  const scale = Math.max(6, Math.min(50, (w-padL-padR)/worldW));
-  const h = worldH*scale + padT + padB;
-
-  const X = wx => padL + (wx - worldXmin)*scale;
-  const Y = wy => padT + (worldYmax - wy)*scale;
-  const fs = relFont(w,0.03,7,9.5);
-  const fsSm = relFont(w,0.025,6,7.8);
-  const colH = 'var(--accent)', colD = 'var(--blueprint)';
-
-  let parts = [];
-  const baselineY = Y(worldYmin+0.15);
-  let groundPts = [[X(-halfWidth), baselineY],[X(-halfWidth), Y(0)],[X(0), Y(crownDrop)],[X(halfWidth), Y(0)]];
-  geo.forEach(function(g){ groundPts.push([X(g.toeX), Y(g.toeY)]); groundPts.push([X(g.crestX), Y(g.crestY)]); });
-  const lastPt = groundPts[groundPts.length-1];
-  groundPts.push([lastPt[0], baselineY]);
-  parts.push(`<polygon points="${groundPts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="var(--paper-sunken)" stroke="none"/>`);
-
-  const ejeTopY = Y(worldYmax-0.15);
-  parts.push(`<line x1="${X(0).toFixed(1)}" y1="${ejeTopY.toFixed(1)}" x2="${X(0).toFixed(1)}" y2="${baselineY.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="1,4"/>`);
-  // "eje camino" va vertical, pegado a la línea punteada del eje, en el tramo bajo (entre la
-  // plataforma y la altura del Banco 1) que siempre queda libre de líneas de cota D — más
-  // arriba cada banco tiene su propia línea D a su misma altura y chocaría con el texto.
-  const ejeLabelX = X(0)-7;
-  const ejeLabelY = geo.length ? (baselineY + Y(geo[0].crestY))/2 : (baselineY+ejeTopY)/2;
-  parts.push(`<text x="${ejeLabelX.toFixed(1)}" y="${ejeLabelY.toFixed(1)}" text-anchor="middle" font-family="var(--font-mono)" font-size="${fsSm}" fill="var(--ink-soft)" transform="rotate(-90 ${ejeLabelX.toFixed(1)} ${ejeLabelY.toFixed(1)})">eje camino</text>`);
-
-  parts.push(`<polyline points="${X(-halfWidth).toFixed(1)},${Y(0).toFixed(1)} ${X(0).toFixed(1)},${Y(crownDrop).toFixed(1)} ${X(halfWidth).toFixed(1)},${Y(0).toFixed(1)}" fill="none" stroke="var(--ink)" stroke-width="2"/>`);
-
-  let profile=[[halfWidth,0]];
-  geo.forEach(function(g){ profile.push([g.toeX,g.toeY]); profile.push([g.crestX,g.crestY]); });
-  const profilePts = profile.map(function(p){ return X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1); }).join(' ');
-  parts.push(`<polyline points="${profilePts}" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`);
-
-  geo.forEach(function(g, i){
-    const x1=X(g.prevX), y1=Y(g.prevY), x2=X(g.toeX), y2=Y(g.toeY);
-    if(g.exceedsMax) parts.push(`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="var(--danger)" stroke-width="3.2" stroke-linecap="round" opacity=".85"/>`);
-    const mx=(x1+x2)/2, my=(y1+y2)/2;
-    parts.push(`<text x="${(mx-6).toFixed(1)}" y="${my.toFixed(1)}" text-anchor="end" font-family="var(--font-mono)" font-weight="700" font-size="${fsSm}" fill="var(--ink-soft)">V:H</text>`);
-    const bx=(X(g.toeX)+X(g.crestX))/2, by=Y(g.crestY);
-    parts.push(`<text x="${bx.toFixed(1)}" y="${(by-5).toFixed(1)}" text-anchor="middle" font-family="var(--font-body)" font-weight="700" font-size="${fs}" fill="var(--ink)">B${i+1}</text>`);
-    const hx = X(worldXmin+0.3);
-    parts.push(`<line x1="${hx.toFixed(1)}" y1="${Y(g.prevY).toFixed(1)}" x2="${hx.toFixed(1)}" y2="${Y(g.toeY).toFixed(1)}" stroke="${colH}" stroke-width="1"/>`);
-    parts.push(`<text x="${(hx-5).toFixed(1)}" y="${((Y(g.prevY)+Y(g.toeY))/2+3).toFixed(1)}" text-anchor="end" font-family="var(--font-mono)" font-weight="700" font-size="${fsSm}" fill="${colH}">H</text>`);
-    const dY = Y(g.crestY) - 3;
-    const dX0=X(0), dX1=X(g.toeX);
-    parts.push(`<line x1="${dX0.toFixed(1)}" y1="${dY.toFixed(1)}" x2="${dX1.toFixed(1)}" y2="${dY.toFixed(1)}" stroke="${colD}" stroke-width="1"/>`);
-    parts.push(`<text x="${((dX0+dX1)/2).toFixed(1)}" y="${(dY-4).toFixed(1)}" text-anchor="middle" font-family="var(--font-mono)" font-weight="700" font-size="${fsSm}" fill="${colD}">D</text>`);
+  const K=svgKit(), hw=Math.max(0,glob.halfWidth||0), drop=Math.max(0,hw*(glob.crownPct||0)/100), last=geo[geo.length-1];
+  const totH=last?last.crestY:0, totX=last?last.crestX:hw;
+  const x0=-hw-0.9, x1=totX+0.9, ymin=-(drop+0.55), ymax=totH+0.6;
+  const box={l:24,r:310,t:8,b:168}, sc=Math.min(50,(box.r-box.l)/Math.max(1,x1-x0),(box.b-box.t)/Math.max(1,ymax-ymin));
+  const ox=(box.l+box.r)/2-(x0+x1)/2*sc, oy=(box.t+box.b)/2+(ymin+ymax)/2*sc, X=w=>ox+w*sc, Y=w=>oy-w*sc;
+  const colH='var(--accent)', colD='var(--blueprint)', base=Y(ymin+0.15);
+  // terreno (relleno), eje y plataforma
+  const g=[[X(-hw),base],[X(-hw),Y(0)],[X(0),Y(drop)],[X(hw),Y(0)]]; geo.forEach(q=>{ g.push([X(q.toeX),Y(q.toeY)]); g.push([X(q.crestX),Y(q.crestY)]); });
+  g.push([g[g.length-1][0],base]); K.poly(g,{close:true,fill:'var(--paper-sunken)',obs:false});
+  K.line(X(0),Y(ymax-0.15),X(0),base,'var(--ink-soft)',{sw:0.7,dash:'1 3',noObs:false});
+  K.poly([[X(-hw),Y(0)],[X(0),Y(drop)],[X(hw),Y(0)]],{stroke:'var(--ink)',sw:1.4});
+  const prof=[[X(hw),Y(0)]]; geo.forEach(q=>{ prof.push([X(q.toeX),Y(q.toeY)]); prof.push([X(q.crestX),Y(q.crestY)]); });
+  geo.forEach(q=>{ if(q.exceedsMax) K.line(X(q.prevX),Y(q.prevY),X(q.toeX),Y(q.toeY),'var(--danger)',{sw:3,op:0.85,noObs:false}); });
+  K.poly(prof,{stroke:'var(--ink)',sw:1.5});
+  // cotas H (izquierda), D (a la altura de cada cresta) y rótulos
+  const hx=X(x0+0.3), many=geo.length>6;
+  geo.forEach((q,i)=>{
+    K.line(hx,Y(q.prevY),hx,Y(q.toeY),colH,{sw:0.8}); [q.prevY,q.toeY].forEach(y=>K.line(hx-1.6,Y(y),hx+1.6,Y(y),colH,{sw:0.7,noObs:false}));
+    K.lineLabel(hx,Y(q.prevY),hx,Y(q.toeY),'H',4.5,colH,{out:[-1,0],extras:[0,3]});
+    const dy=Y(q.crestY)-2.5; K.line(X(0),dy,X(q.toeX),dy,colD,{sw:0.8}); [0,q.toeX].forEach(x=>K.line(X(x),dy-1.6,X(x),dy+1.6,colD,{sw:0.7,noObs:false}));
+    K.lineLabel(X(0),dy,X(q.toeX),dy,'D',4.5,colD,{out:[0,-1],extras:[0,3]});
+    if(!many||i%2===0) K.lineLabel(X(q.prevX),Y(q.prevY),X(q.toeX),Y(q.toeY),'V:H',3.2,'var(--ink-soft)',{out:[-1,0],extras:[0,2,4]});
+    K.pointLabel('B'+(i+1),(X(q.toeX)+X(q.crestX))/2,Y(q.crestY),3.6,'var(--ink)',{dir:[0,-1],rmin:3,rmax:9,omit:false});
   });
-
-  const legendY = h - 8;
-  parts.push(`<text x="${padL.toFixed(1)}" y="${legendY.toFixed(1)}" font-family="var(--font-mono)" font-size="${fsSm}" fill="var(--ink-soft)"><tspan font-weight="700" fill="${colH}">H</tspan> altura   <tspan font-weight="700" fill="${colD}">D</tspan> dist. acum.   <tspan font-weight="700">V:H</tspan> talud</text>`);
-
-  return `<svg viewBox="0 0 ${w} ${h.toFixed(1)}" xmlns="http://www.w3.org/2000/svg">${parts.join('')}</svg>`;
+  // leyenda al pie
+  K.eng.rectFill(box.l,176,box.l+160,188);
+  K.add(`<text x="${box.l}" y="185" ${K.FONT} font-size="3.8"><tspan fill="${colH}">H</tspan><tspan fill="var(--ink-soft)"> altura   </tspan><tspan fill="${colD}">D</tspan><tspan fill="var(--ink-soft)"> dist. acum.   </tspan><tspan fill="var(--ink)">V:H</tspan><tspan fill="var(--ink-soft)"> talud</tspan></text>\n`);
+  return K.svg();
 }
 
 /* Diagrama de Inversa Múltiple — v2 (estándar de plantillas de Mario): recorrido abierto A→B→C… a escala con norte arriba; la distancia
@@ -5600,6 +5514,35 @@ function svgNivelacionDiferencial(cotas, filas){
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">\n${out}</svg>`;
 }
 
+/* Diagrama de Perfil Longitudinal — v2 (estándar de plantillas de Mario): perfil del eje con la distancia acumulada en horizontal y la cota
+   en vertical (escalas independientes, perfil esquemático), puntos P1..Pn y líneas de caída punteadas hasta el plano de referencia. La
+   pendiente de cada tramo (accent: resultado principal) se rotula a lo largo de él: hasta 8 tramos solo la letra p(i) y los valores en el
+   listado; con más tramos el rótulo lleva el valor en %. El listado resume largo, desnivel y pendiente media. Rótulo sin lugar libre → se omite. */
+function svgPerfilLongitudinal(puntos){
+  const K=svgKit(), n=puntos.length, nt=n-1, few=nt<=8, acc='var(--accent)';
+  if(n<2) return '';
+  const pend=i=>{ const dd=puntos[i+1].d-puntos[i].d; return dd!==0?(puntos[i+1].cota-puntos[i].cota)/dd*100:NaN; };
+  const L=puntos[n-1].d-puntos[0].d, dz=puntos[n-1].cota-puntos[0].cota;
+  const rows=[{k:'Largo',c:'var(--ink)',v:`${fmtNum(L,2)} m`},{k:'Desnivel',c:'var(--ink)',v:`${fmtNum(dz,3)} m`},{k:'Pend. media',c:'var(--ink-soft)',v:L!==0?`${fmtNum(dz/L*100,2)} %`:'—'}];
+  const blocks=[rows];
+  if(few) blocks.push(Array.from({length:nt},(_,i)=>({k:'p'+(i+1),c:acc,v:isNaN(pend(i))?'—':`${fmtNum(pend(i),2)} %`})));
+  K.list(blocks,{gap:12});
+  const ds=puntos.map(p=>p.d), cs=puntos.map(p=>p.cota), d0=Math.min(...ds), d1=Math.max(...ds), c0=Math.min(...cs), c1=Math.max(...cs);
+  const box={l:24,r:300,t:Math.max(48,K.listBottom+12),b:158}, datum=168;
+  const X=d=>box.l+(d-d0)/Math.max(d1-d0,1e-9)*(box.r-box.l), Y=c=>box.b-(c-c0)/Math.max(c1-c0,1e-9)*(box.b-box.t);
+  const Q=puntos.map(p=>[X(p.d),Y(p.cota)]);
+  K.line(box.l-8,datum,box.r+8,datum,'var(--ink-soft)',{sw:0.7});
+  if(n<=14) Q.forEach(q=>K.line(q[0],q[1],q[0],datum,'var(--ink-soft)',{sw:0.5,dash:'1.4 1.8',noObs:false}));
+  K.poly(Q,{stroke:'var(--blueprint)',sw:1.3});
+  Q.forEach(q=>K.dot(q[0],q[1],'var(--ink-soft)',2));
+  const st=thinLabelStep(n,12);
+  for(let i=0;i<nt;i++){ const a=Q[i], b=Q[i+1]; if(Math.hypot(b[0]-a[0],b[1]-a[1])<6) continue;
+    if(few) K.lineLabel(...a,...b,'p'+(i+1),4.5,acc,{out:[0,-1],extras:[0,3,6]});
+    else if(nt<=16&&!isNaN(pend(i))) K.lineLabel(...a,...b,fmtNum(pend(i),1)+'%',3,acc,{out:[0,-1],extras:[0,3]}); }
+  Q.forEach((q,i)=>{ if(i%st!==0&&i!==n-1) return; K.pointLabel('P'+(i+1),q[0],q[1],4.5,'var(--ink-soft)',{dir:[0,-1],omit:false,rmin:3.6,rmax:12}); });
+  return K.svg();
+}
+
 function svgPerfilNivel(cotas, labels){
   const w=300,h=170,pad=26;
   const vals = cotas.filter(v=>isFinite(v));
@@ -5933,30 +5876,31 @@ function svgInterseccion(e1,n1,az1,e2,n2,az2,eI,nI){
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">\n${out}</svg>`;
 }
 
-/* Diagrama de secciones de volumen de tierra */
-function svgVolumen(A1,A2,Am){
-  const w=300,h=170,pad=30;
-  const maxA=Math.max(A1,A2,Am||0,0.001);
-  const baseY=h-pad;
-  const hFor=A=> (A/maxA)*(h-2*pad);
-  const x1=pad+20, x2=w-pad-20, xm=w/2;
-  const h1=hFor(A1), h2=hFor(A2);
-  let mid='';
-  if(Am!==undefined && !isNaN(Am)){
-    const hm=hFor(Am);
-    mid = `<rect x="${xm-16}" y="${(baseY-hm).toFixed(1)}" width="32" height="${hm.toFixed(1)}" fill="var(--blueprint-soft)" stroke="var(--blueprint)" stroke-width="1.4"/>
-      <text x="${xm}" y="${baseY+14}" font-size="9" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Am</text>`;
-  }
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${pad}" y1="${baseY}" x2="${w-pad}" y2="${baseY}" stroke="var(--line)" stroke-width="1"/>
-    <rect x="${x1-16}" y="${(baseY-h1).toFixed(1)}" width="32" height="${h1.toFixed(1)}" fill="var(--blueprint-soft)" stroke="var(--blueprint)" stroke-width="1.6"/>
-    <rect x="${x2-16}" y="${(baseY-h2).toFixed(1)}" width="32" height="${h2.toFixed(1)}" fill="var(--blueprint-soft)" stroke="var(--blueprint)" stroke-width="1.6"/>
-    ${mid}
-    <line x1="${x1}" y1="${(baseY-h1).toFixed(1)}" x2="${x2}" y2="${(baseY-h2).toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2"/>
-    <text x="${x1}" y="${baseY+14}" font-size="9" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">A1</text>
-    <text x="${x2}" y="${baseY+14}" font-size="9" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">A2</text>
-    <text x="${xm}" y="${pad-8}" font-size="9" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">D</text>
-  </svg>`;
+/* Diagrama de Volumen de Tierra — v2 (estándar de plantillas de Mario): elevación esquemática de dos secciones extremas (A1 blueprint, A2 success)
+   separadas por la distancia D (ink), con la sección media Am (danger) si se entrega; la altura de cada barra es proporcional a su área.
+   El volumen V entre las secciones (accent: resultado principal) va como relleno. En el dibujo solo el carácter; los valores van en el listado
+   (V, V prismoidal si hay Am, A1, A2, Am y D). */
+function svgVolumen(A1,A2,Am,ext){
+  ext=ext||{}; const K=svgKit(), hasM=Am!==undefined&&!isNaN(Am), col={A1:'var(--blueprint)',A2:'var(--success)',Am:'var(--danger)',D:'var(--ink)',V:'var(--accent)'};
+  const rows=[]; if(ext.V!==undefined) rows.push({k:'V',c:col.V,v:`${fmtNum(ext.V,2)} m³`}); if(ext.Vp!==undefined&&ext.Vp!==null) rows.push({k:'V prism.',c:col.V,v:`${fmtNum(ext.Vp,2)} m³`});
+  rows.push({k:'A1',c:col.A1,v:`${fmtNum(A1,2)} m²`}); rows.push({k:'A2',c:col.A2,v:`${fmtNum(A2,2)} m²`}); if(hasM) rows.push({k:'Am',c:col.Am,v:`${fmtNum(Am,2)} m²`});
+  if(ext.D!==undefined) rows.push({k:'D',c:col.D,v:`${fmtNum(ext.D,2)} m`});
+  K.list([rows],{perCol:3});
+  const top=Math.max(K.listBottom+16,50), base=152, maxA=Math.max(A1,A2,hasM?Am:0,1e-9), hmax=base-top, bw=26;
+  const hf=A=>Math.max(3,A/maxA*hmax), x1=66, x2=254, xm=160, h1=hf(A1), h2=hf(A2), hm=hasM?hf(Am):0;
+  // volumen entre las secciones
+  K.poly([[x1+bw/2,base],[x1+bw/2,base-h1],[x2-bw/2,base-h2],[x2-bw/2,base]],{close:true,fill:col.V,fo:0.22,stroke:col.V,sw:0.8,dash:'2.4 2',obs:false});
+  K.line(x1-bw/2-8,base,x2+bw/2+8,base,'var(--ink-soft)',{sw:0.7});
+  const bar=(x,h,c)=>K.poly([[x-bw/2,base],[x-bw/2,base-h],[x+bw/2,base-h],[x+bw/2,base]],{close:true,fill:c,fo:0.18,stroke:c,sw:1.3});
+  bar(x1,h1,col.A1); bar(x2,h2,col.A2); if(hasM) bar(xm,hm,col.Am);
+  // cota D entre ejes de las secciones extremas
+  const yd=base+13; K.line(x1,yd,x2,yd,col.D,{sw:0.9}); [x1,x2].forEach(x=>K.line(x,yd-2.5,x,yd+2.5,col.D,{sw:0.9,noObs:false}));
+  K.lineLabel(x1,yd,x2,yd,'D',4.5,col.D,{out:[0,1],extras:[0,3]});
+  K.pointLabel('A1',x1,base-h1,4.5,col.A1,{dir:[0,-1],omit:false,rmin:4,rmax:10});
+  K.pointLabel('A2',x2,base-h2,4.5,col.A2,{dir:[0,-1],omit:false,rmin:4,rmax:10});
+  if(hasM) K.pointLabel('Am',xm,base-hm,4.5,col.Am,{dir:[0,-1],omit:false,rmin:4,rmax:10});
+  K.near('V',(x1+x2)/2+(hasM?36:0),base-Math.min(h1,h2)*0.45,4.5,col.V,{rmax:30});
+  return K.svg();
 }
 
 /* Diagrama de peralte (seccion transversal de via) */
@@ -8654,7 +8598,7 @@ function renderVolumen(){
     box.innerHTML = `<div class="results" style="margin-top:12px;">
       <div class="result-row"><span class="k">Volumen (áreas extremas)</span><span class="v accent big">${fmtNum(r.vExtremas,2)} m³</span></div>
       ${r.vPrismoidal!==null?`<div class="result-row"><span class="k">Volumen (prismoidal)</span><span class="v accent">${fmtNum(r.vPrismoidal,2)} m³</span></div>`:''}
-      <div class="plot-wrap">${svgVolumen(A1,A2,Am)}</div>
+      <div class="plot-wrap">${svgVolumen(A1,A2,Am,{D:D,V:r.vExtremas,Vp:r.vPrismoidal})}</div>
     </div>`;
   });
   document.getElementById('btnVH').addEventListener('click', ()=>{
@@ -8665,7 +8609,7 @@ function renderVolumen(){
     box.innerHTML = `<div class="results" style="margin-top:12px;">
       <div class="result-row"><span class="k">Método aplicado</span><span class="v">${r.metodo==='promedio'?'Promedio de áreas':'Razón de áreas (corregida)'}</span></div>
       <div class="result-row"><span class="k">Volumen</span><span class="v accent big">${fmtNum(r.volumen,2)} m³</span></div>
-      <div class="plot-wrap">${svgVolumen(A1,A2)}</div>
+      <div class="plot-wrap">${svgVolumen(A1,A2,undefined,{D:D,V:r.volumen})}</div>
       <p class="tool-blurb" style="margin-top:6px;">Fórmula: coordenadas_de_una_curva.xlsx · hoja 'cubicacion'.</p>
     </div>`;
   });
@@ -10074,7 +10018,7 @@ function renderPerfilLongitudinal(){
     tramos.forEach((t,i)=>{ trs += `<tr><td>${i+1}</td><td>${fmtNum(t.d1,1)}–${fmtNum(t.d2,1)}</td><td>${fmtNum(t.cota2-t.cota1,3)}</td><td>${fmtNum(t.pendPct,2)}%</td></tr>`; });
     box.innerHTML = `<div class="results" style="margin-top:14px;">
       <div class="table-wrap"><table class="data-table"><thead><tr><th>Tramo</th><th>Distancia</th><th>Desnivel</th><th>Pendiente</th></tr></thead><tbody>${trs}</tbody></table></div>
-      <div class="plot-wrap">${svgPerfilNivel(puntos.map(p=>p.cota), puntos.map(p=>fmtNum(p.d,0)+'m'))}</div>
+      <div class="plot-wrap">${svgPerfilLongitudinal(puntos)}</div>
     </div>`;
   });
 }
