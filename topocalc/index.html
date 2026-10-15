@@ -6268,60 +6268,64 @@ function svgReplanteoCuerda(R, deltaDeg, rows, Lchord, M){
 }
 
 /* Diagrama de la clotoide (espiral de transicion) */
-/* Diagrama compartido por "Curva de Transición (Clotoide)" y "Clotoide por Progresiva" (el
-   segundo parámetro extra lEstaca/estLabel solo lo usa la segunda). Se quitaron las leyendas
-   "Ls=X m" y "R=X m" que llevaba pegadas al dibujo: ninguna de las dos etiqueta un trazo
-   propio dentro del SVG (no hay un radio dibujado, y la línea de referencia horizontal es
-   solo la base de la escala, no un trazo de "Ls"), y ambas repiten datos que el usuario ya
-   ingresó en el formulario — igual que se quitó el título "Peralte e=X%" en Peralte en Vías.
-   El marcador en accent (con su rótulo "Km X") de Clotoide por Progresiva se mantiene igual:
-   no es un valor pegado a una magnitud, es la identificación de la propia estaca calculada. */
+/* Diagrama de la clotoide — v2 (estándar de plantillas de Mario), compartido por "Curva de Transición (Clotoide)" y "Clotoide por Progresiva".
+   Sin estaca: espiral TE→EC (accent: el parámetro A es la magnitud estrella), tangente al EC hasta el PI de la espiral (Tc, success), tangente
+   larga sobre el eje (Tl, blueprint), cotas Xc (danger) e Yc (ink) y ángulo τ (ink-soft). Con estaca (lEstaca): espiral tenue, tramo recorrido l
+   (accent), cuerda desde el TE (danger) y deflexión (ink); el punto de la estaca lleva su rótulo. Valores en el listado; en el dibujo solo el
+   carácter. Escala uniforme en x, con la vertical exagerada hasta 3× cuando la espiral es muy plana (el ángulo dibujado se deforma igual). */
 function svgClotoide(R, Ls, lEstaca, estLabel, fuente){
-  const n=24;
-  const pts=[];
-  for(let i=0;i<=n;i++){ pts.push(clotoidePunto(R,Ls,Ls*i/n)); }
-  const w=280,h=170,padL=20,padR=20,padT=20,padB=30;
-  const maxX=Math.max(...pts.map(p=>p.x),0.001), maxY=Math.max(...pts.map(p=>p.y),0.001);
-  const scaleX=(w-padL-padR)/maxX;
-  const scaleY=Math.min((h-padT-padB)/maxY, scaleX*3);
-  const ox=padL, oy=h-padB;
-  const toXY=p=>({sx:ox+p.x*scaleX, sy:oy-p.y*scaleY});
-  const path = pts.map(toXY).map((p,i)=>(i===0?'M':'L')+p.sx.toFixed(1)+' '+p.sy.toFixed(1)).join(' ');
-  const te=toXY(pts[0]), ec=toXY(pts[pts.length-1]);
-  let estMark='';
-  if(lEstaca!==undefined && lEstaca!==null && !isNaN(lEstaca)){
-    const lClamped = Math.min(Math.max(lEstaca,0),Ls);
-    const pe = toXY(clotoidePunto(R,Ls,lClamped));
-    // Tangente local de la curva en el punto de la estaca: la etiqueta se rota para quedar
-    // paralela a la línea (en vez de siempre horizontal), así nunca la atraviesa aunque la
-    // pendiente sea pronunciada cerca del EC. El offset perpendicular a esa tangente separa el
-    // texto de la línea; tras normalizar el ángulo a [-90°,90°] ese offset siempre queda "hacia
-    // arriba" de la curva, igual que el offset fijo que tenía antes cerca del TE (pendiente ~0).
-    const dl = Math.max(Ls*0.02, 0.05);
-    const pBack = toXY(clotoidePunto(R,Ls,Math.max(lClamped-dl,0)));
-    const pFwd = toXY(clotoidePunto(R,Ls,Math.min(lClamped+dl,Ls)));
-    let angDeg = Math.atan2(pFwd.sy-pBack.sy, pFwd.sx-pBack.sx)*180/Math.PI;
-    if(angDeg>90) angDeg-=180; else if(angDeg<-90) angDeg+=180;
-    const angRad = angDeg*Math.PI/180, offset=9;
-    const lx = pe.sx + Math.sin(angRad)*offset, ly = pe.sy - Math.cos(angRad)*offset;
-    // Cerca de un extremo (TE o EC) el texto se ancla para que crezca "hacia atrás" (lejos de
-    // ese extremo) en vez de crecer parejo a ambos lados del punto, y así no invada el rótulo
-    // TE/EC que está justo ahí.
-    const nearFrac = Ls>0 ? lClamped/Ls : 0.5;
-    const anchor = nearFrac>0.85 ? 'end' : (nearFrac<0.15 ? 'start' : 'middle');
-    estMark = `<circle cx="${pe.sx.toFixed(1)}" cy="${pe.sy.toFixed(1)}" r="3.4" fill="var(--accent)" stroke="var(--ink)" stroke-width="0.6"/>
-      <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="${anchor}" transform="rotate(${angDeg.toFixed(1)} ${lx.toFixed(1)} ${ly.toFixed(1)})">${estLabel||'Estaca'}</text>`;
+  const K=svgKit(), conEst=(lEstaca!==undefined&&lEstaca!==null&&!isNaN(lEstaca));
+  const cl=calcClotoide(R,Ls), tau=cl.tauDeg;
+  const l=26, r=292, t0=conEst?44:52, rad=a=>a*Math.PI/180;
+  const lc=conEst?Math.min(Math.max(lEstaca,0),Ls):Ls, pe=clotoidePunto(R,Ls,lc);
+  // geometría del dibujo con el mismo modelo que traza la espiral (el EC dibujado coincide con su extremo)
+  const ee=clotoidePunto(R,Ls,Ls), Xd=ee.x, Yd=ee.y, Tcd=Yd/Math.sin(rad(tau));
+  const piX=Xd-Tcd*Math.cos(rad(tau)), xExt=Math.max(Xd, conEst?0:piX, 1e-3);
+  const bot=fuente?160:176, reserve=conEst?6:20, sc0=(r-l)/xExt, kex=Math.min(3,Math.max(1,26/Math.max(Yd*sc0,1e-6)));
+  const sc=Math.min(sc0,(bot-reserve-t0)/Math.max(Yd*kex,1e-6)), H=Yd*sc*kex;
+  const b=t0+((bot-reserve-t0)-H)/2+H;
+  const X=x=>l+x*sc, Y=y=>b-y*sc*kex;
+  const sp=[]; for(let i=0;i<=48;i++){ const p=clotoidePunto(R,Ls,Ls*i/48); sp.push([X(p.x),Y(p.y)]); }
+  const TE=[X(0),Y(0)], EC=[X(Xd),Y(Yd)];
+  if(!conEst){
+    K.list([[{k:'A',c:'var(--accent)',v:fmtNum(cl.A,3)},{k:'τ',c:'var(--ink-soft)',v:fmtAngle(tau)},{k:'Xc',c:'var(--danger)',v:`${fmtNum(cl.Xc,3)} m`},{k:'Yc',c:'var(--ink)',v:`${fmtNum(cl.Yc,3)} m`},{k:'Tl',c:'var(--blueprint)',v:`${fmtNum(cl.Tl,3)} m`},{k:'Tc',c:'var(--success)',v:`${fmtNum(cl.Tc,3)} m`}]]);
+    const PI=[X(piX),Y(0)];
+    K.line(...TE,...PI,'var(--blueprint)');
+    if(Xd>piX+1e-6) K.line(...PI,X(Xd),b,'var(--blueprint)',{op:0.45,dash:'1.6 1.6'});
+    K.line(...PI,...EC,'var(--success)');
+    K.line(...EC,EC[0],b,'var(--ink)',{dash:'1.6 1.6',sw:0.7});
+    K.poly(sp,{stroke:'var(--accent)',sw:1.4});
+    const dy=b+8; K.line(TE[0],dy,EC[0],dy,'var(--danger)',{sw:0.7}); K.line(TE[0],b+4,TE[0],dy+2,'var(--danger)',{sw:0.6,noObs:false}); K.line(EC[0],b+4,EC[0],dy+2,'var(--danger)',{sw:0.6,noObs:false});
+    const a1=Math.atan2(EC[1]-PI[1],EC[0]-PI[0])*180/Math.PI, ra=Math.min(14,Math.hypot(EC[0]-PI[0],EC[1]-PI[1])*0.4);
+    if(ra>3) K.arc(PI[0],PI[1],ra,0,a1,'var(--ink-soft)',{sw:0.8});
+    [TE,EC,PI].forEach(q=>K.dot(q[0],q[1],'var(--ink-soft)',2));
+    K.pointLabel('TE',TE[0],TE[1],4.5,'var(--ink-soft)',{dir:[-0.5,1],omit:false});
+    K.pointLabel('EC',EC[0],EC[1],4.5,'var(--ink-soft)',{dir:[0.5,-1],omit:false});
+    K.pointLabel('PI',PI[0],PI[1],4.5,'var(--ink-soft)',{dir:[0,1],omit:false});
+    K.lineLabel(...TE,...PI,'Tl',4.5,'var(--blueprint)',{out:[0,-1],extras:[0,3,6]});
+    K.lineLabel(...PI,...EC,'Tc',4.5,'var(--success)',{out:[1,-0.5],extras:[0,3,6]});
+    K.lineLabel(EC[0],b,EC[0],EC[1],'Yc',4.5,'var(--ink)',{out:[1,0],extras:[0,3,6]});
+    K.lineLabel(TE[0],dy,EC[0],dy,'Xc',4.5,'var(--danger)',{out:[0,1],extras:[0,3]});
+    if(ra>3){ const am=a1/2*Math.PI/180; K.pointLabel('τ',PI[0]+ra*Math.cos(am),PI[1]+ra*Math.sin(am),4.5,'var(--ink-soft)',{dir:[Math.cos(am),Math.sin(am)],rmin:2,rmax:8}); }
+    const m=sp[24]; K.pointLabel('A',m[0],m[1],4.5,'var(--accent)',{dir:[-0.3,-1],rmin:3,rmax:10});
+  } else {
+    const P=[X(pe.x),Y(pe.y)], ch=Math.hypot(pe.x,pe.y), defl=Math.atan2(pe.y,pe.x)*180/Math.PI;
+    K.list([[{k:'l',c:'var(--accent)',v:`${fmtNum(lc,3)} m`},{k:'Cuerda',c:'var(--danger)',v:`${fmtNum(ch,3)} m`},{k:'Deflexión',c:'var(--ink)',v:fmtAngle(defl)}]]);
+    K.line(TE[0],TE[1],X(xExt),TE[1],'var(--ink-soft)',{dash:'1.6 1.6',op:0.8,sw:0.7});
+    K.poly(sp,{stroke:'var(--blueprint)',sw:0.9,op:0.5});
+    const k=Math.max(2,Math.round(48*lc/Ls)); K.poly(sp.slice(0,k+1),{stroke:'var(--accent)',sw:1.6});
+    K.line(...TE,...P,'var(--danger)',{dash:'3 2',sw:0.8});
+    const a1=Math.atan2(P[1]-TE[1],P[0]-TE[0])*180/Math.PI, ra=Math.min(16,Math.hypot(P[0]-TE[0],P[1]-TE[1])*0.5);
+    if(ra>3&&Math.abs(a1)>0.5) K.arc(TE[0],TE[1],ra,0,a1,'var(--ink)',{sw:0.8});
+    K.dot(...TE,'var(--ink-soft)',2); K.dot(...EC,'var(--ink-soft)',2); K.dot(...P,'var(--accent)',2.4);
+    K.pointLabel('TE',TE[0],TE[1],4.5,'var(--ink-soft)',{dir:[-0.5,1],omit:false});
+    K.pointLabel('EC',EC[0],EC[1],4.5,'var(--ink-soft)',{dir:[0.5,-1],omit:false});
+    K.pointLabel(estLabel||'Estaca',P[0],P[1],4.5,'var(--accent)',{dir:[-0.4,-1],rmin:4,rmax:14,omit:false});
+    K.lineLabel(...TE,...P,'C',4.5,'var(--danger)',{out:[0.3,1],extras:[0,3,6]});
+    if(ra>3&&Math.abs(a1)>0.5){ const am=a1/2*Math.PI/180; K.pointLabel('Δ',TE[0]+ra*Math.cos(am),TE[1]+ra*Math.sin(am),4.5,'var(--ink)',{dir:[Math.cos(am),Math.sin(am)],rmin:2,rmax:9}); }
   }
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${ox}" y1="${oy}" x2="${(ox+maxX*scaleX+10).toFixed(1)}" y2="${oy}" stroke="var(--line-strong)" stroke-width="1.4" stroke-dasharray="2 2"/>
-    <path d="${path}" stroke="var(--blueprint)" stroke-width="2.2" fill="none"/>
-    <circle cx="${te.sx.toFixed(1)}" cy="${te.sy.toFixed(1)}" r="3" fill="var(--ink)"/>
-    <circle cx="${ec.sx.toFixed(1)}" cy="${ec.sy.toFixed(1)}" r="3" fill="var(--ink-soft)"/>
-    ${estMark}
-    <text x="${te.sx.toFixed(1)}" y="${(oy+16).toFixed(1)}" font-size="10" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">TE</text>
-    <text x="${ec.sx.toFixed(1)}" y="${(ec.sy-10).toFixed(1)}" font-size="10" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">EC</text>
-    ${fuente?svgFuente(fuente,w,h):''}
-  </svg>`;
+  if(fuente) K.add(svgFuente(fuente,320,190));
+  return K.svg();
 }
 
 /* Diagrama de curva compuesta / curva de reversa: dos arcos exactos encadenados */
