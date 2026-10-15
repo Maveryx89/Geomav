@@ -1212,6 +1212,8 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
           <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
           <button class="btn-sm" data-action="print">Imprimir</button>
+          <button class="btn-sm" data-action="export-a3-pdf">Exportar PDF (A3)</button>
+          <button class="btn-sm" data-action="export-a3-png">Exportar PNG (A3)</button>
         </div>
       </details>
       <details class="ayuda"><summary aria-label="Ayuda: Plan semanal" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Plan semanal</b><ol class="ay-l"><li>Cada tarjeta es una tarea: la etiqueta indica <b>comuna y pórtico</b>.</li><li>Toca <b>+</b> para agregar una tarea y tócala para editarla.</li><li>Al cierre de semana marca <b>Sí cumplió / No cumplió</b> y la causa.</li><li><b>● sin guardar</b>: el cambio aún no está en la planilla. Toca <b>Guardar</b> (pide PIN).</li><li>Consultar no requiere clave; solo editar.</li></ol><a class="ay-m" href="manual.html#semanal">Ver manual completo &rarr;</a></div></details>
@@ -1286,6 +1288,8 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
           <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
           <button class="btn-sm" data-action="print">Imprimir</button>
+          <button class="btn-sm" data-action="export-a3-pdf">Exportar PDF (A3)</button>
+          <button class="btn-sm" data-action="export-a3-png">Exportar PNG (A3)</button>
         </div>
       </details>
       <details class="ayuda"><summary aria-label="Ayuda: Plan intermedio" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Plan intermedio</b><ol class="ay-l"><li>Programación de las próximas semanas (~2 meses).</li><li>En celular elige la semana con los botones de fecha; en computador usa <b>‹ ›</b>.</li><li><b>! falta autorización</b>: la tarea espera un permiso.</li><li><b>Enviar →</b> pasa una tarea lista al plan semanal.</li></ol><a class="ay-m" href="manual.html#intermedio">Ver manual completo &rarr;</a></div></details>
@@ -1904,6 +1908,215 @@ window.PORTICOS_LISTA = (function(){
       }).join("") + (hayFiltroP() ? '<button type="button" class="lpf-all" data-limpiar="todo">\u2715 Quitar filtros</button><span class="lpf-cnt">' + state.notes.filter(pasaFiltroP).length + ' de ' + state.notes.length + ' tareas</span>' : '');
     }
     function notesIn(catId, weekId){ return state.notes.filter(function(n){ return n.catId===catId && n.weekId===weekId && pasaFiltroP(n); }); }
+    /* ---- Exportar la pizarra como informe A3 (PDF / PNG) ---- */
+    function cargarJsPDF(){
+      if(window.jspdf && window.jspdf.jsPDF) return Promise.resolve();
+      return new Promise(function(ok, mal){
+        var s = document.createElement("script");
+        s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+        s.onload = ok; s.onerror = mal; document.head.appendChild(s);
+      });
+    }
+    function exportA3(fmt, btn){
+      var boardEl = root.querySelector(".board");
+      if(!boardEl || boardEl.getBoundingClientRect().width < 200){
+        alert("Para exportar, abre la pizarra en una pantalla ancha (computador o tablet horizontal)."); return;
+      }
+      var rb0 = boardEl.getBoundingClientRect(), landscape = rb0.width / rb0.height > 1.05; /* horizontal solo si la pizarra es más ancha que alta */
+      var PW = landscape ? 420 : 297, PH = landscape ? 297 : 420, K = 200 / 25.4;
+      var MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+      var TONOS = { copper:"#D49A6A", neutral:"#8C949E", blueprint:"#2C6B7E", amber:"#D6A828", success:"#26694B", violet:"#7A52AA", sky:"#3F8FC4", danger:"#B23B3B" };
+      var FUENTE = 'Inter, system-ui, -apple-system, "Segoe UI", sans-serif';
+      var MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+      var NAVY = "#0A2240", MUTE = "rgba(10,34,64,.65)";
+      var txtBtn = btn ? btn.textContent : ""; if(btn){ btn.disabled = true; btn.textContent = "Generando…"; }
+      function fin(){ if(btn){ btn.disabled = false; btn.textContent = txtBtn; } }
+      var listo = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+      listo.then(function(){
+        /* 1) Leer la pizarra tal como se ve (siempre en tema claro, para imprimir) */
+        var de = document.documentElement, tPrev = de.getAttribute("data-theme");
+        var stl = document.createElement("style"); stl.textContent = "*,*::before,*::after{transition:none!important;animation:none!important}"; document.head.appendChild(stl);
+        de.setAttribute("data-theme", "light");
+        var ops = [], R = boardEl.getBoundingClientRect(), BW = R.width, BH = R.height;
+        try{
+          var transp = function(c){ return !c || c === "transparent" || /rgba\(.*,\s*0\)$/.test(c); };
+          var walk = function(el){
+            var cs = getComputedStyle(el); if(cs.display === "none" || cs.visibility === "hidden" || +cs.opacity === 0) return;
+            var r = el.getBoundingClientRect(), x = r.left - R.left, y = r.top - R.top, w = r.width, h = r.height;
+            if(w > 0 && h > 0){
+              var rad = Math.min(parseFloat(cs.borderTopLeftRadius) || 0, w / 2, h / 2);
+              var S = ["Top","Right","Bottom","Left"];
+              var bw = S.map(function(s){ return parseFloat(cs["border"+s+"Width"]) || 0; });
+              var bc = S.map(function(s){ return cs["border"+s+"Color"]; });
+              var bs = S.map(function(s){ return cs["border"+s+"Style"]; });
+              var hasB = bw.some(function(v, i){ return v > 0 && bs[i] !== "none"; });
+              var uni = bw.every(function(v){ return v === bw[0]; }) && bc.every(function(c){ return c === bc[0]; }) && bs.every(function(s){ return s === bs[0]; });
+              if(!transp(cs.backgroundColor)) ops.push({ t:"rect", x:x, y:y, w:w, h:h, r:rad, fill:cs.backgroundColor });
+              var sh = cs.boxShadow;
+              if(sh && sh !== "none"){
+                sh.split(/,(?![^(]*\))/).forEach(function(part){
+                  var m = part.trim().match(/(rgba?\([^)]*\))\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+([\d.]+)px(?:\s+(-?[\d.]+)px)?\s*(inset)?/);
+                  if(m && m[6] === "inset" && +m[4] === 0){
+                    var ox = +m[2], oy = +m[3];
+                    if(ox > 0 && oy === 0) ops.push({ t:"rect", x:x, y:y, w:ox, h:h, r:0, fill:m[1] });
+                    if(ox === 0 && oy > 0) ops.push({ t:"rect", x:x, y:y, w:w, h:oy, r:0, fill:m[1] });
+                  }
+                });
+              }
+              if(hasB && uni){
+                ops.push({ t:"rect", x:x+bw[0]/2, y:y+bw[0]/2, w:w-bw[0], h:h-bw[0], r:Math.max(0, rad-bw[0]/2), stroke:bc[0], sw:bw[0], dash:bs[0] === "dashed" ? [bw[0]*3, bw[0]*2] : (bs[0] === "dotted" ? [bw[0], bw[0]] : null) });
+              } else if(hasB){
+                var L = function(x1, y1, x2, y2, i){ if(bw[i] > 0 && bs[i] !== "none" && !transp(bc[i])) ops.push({ t:"line", x1:x1, y1:y1, x2:x2, y2:y2, stroke:bc[i], sw:bw[i], dash:bs[i] === "dashed" ? [bw[i]*3, bw[i]*2] : null }); };
+                L(x, y+bw[0]/2, x+w, y+bw[0]/2, 0); L(x+w-bw[1]/2, y, x+w-bw[1]/2, y+h, 1); L(x, y+h-bw[2]/2, x+w, y+h-bw[2]/2, 2); L(x+bw[3]/2, y, x+bw[3]/2, y+h, 3);
+              }
+              ["::before","::after"].forEach(function(pe){
+                var p = getComputedStyle(el, pe);
+                if(p.content && p.content !== "none" && p.content !== "normal" && p.display !== "none"){
+                  var pw = parseFloat(p.width), ph = parseFloat(p.height);
+                  if(!transp(p.backgroundColor) && pw > 0 && ph > 0){
+                    var px = r.left, py = r.top;
+                    if(p.position === "absolute"){
+                      var pl = parseFloat(p.left), pt = parseFloat(p.top), pr = parseFloat(p.right), pb = parseFloat(p.bottom);
+                      px = isNaN(pl) ? (isNaN(pr) ? r.left : r.right - pr - pw) : r.left + pl;
+                      py = isNaN(pt) ? (isNaN(pb) ? r.top : r.bottom - pb - ph) : r.top + pt;
+                    }
+                    ops.push({ t:"rect", x:px-R.left, y:py-R.top, w:pw, h:ph, r:parseFloat(p.borderTopLeftRadius) || 0, fill:p.backgroundColor });
+                  }
+                }
+              });
+            }
+            for(var ci = 0; ci < el.childNodes.length; ci++){
+              var c = el.childNodes[ci];
+              if(c.nodeType === 3) texto(c, cs);
+              else if(c.nodeType === 1 && !/^(SCRIPT|STYLE|SVG|svg)$/.test(c.tagName)) walk(c);
+            }
+          };
+          var texto = function(node, cs){
+            var t = node.nodeValue; if(!t || !t.trim()) return;
+            var rg = document.createRange(), lines = [], cur = null;
+            for(var i = 0; i < t.length; i++){
+              rg.setStart(node, i); rg.setEnd(node, i + 1);
+              var rs = rg.getClientRects(); if(!rs.length) continue; var q = rs[0];
+              if(q.width === 0 && /\s/.test(t[i])){ if(cur) cur.s += " "; continue; }
+              if(!cur || Math.abs(q.top - cur.top) > 3){ cur = { s:"", x:q.left, top:q.top, h:q.height }; lines.push(cur); }
+              cur.s += t[i];
+            }
+            lines.forEach(function(l){
+              var s = l.s.replace(/^\s+|\s+$/g, ""); if(!s) return;
+              if(cs.textTransform === "uppercase") s = s.toUpperCase(); else if(cs.textTransform === "lowercase") s = s.toLowerCase();
+              ops.push({ t:"text", s:s, x:l.x-R.left, y:l.top-R.top+l.h/2, fill:cs.color, font:(cs.fontStyle !== "normal" ? cs.fontStyle + " " : "") + cs.fontWeight + " " + cs.fontSize + " " + cs.fontFamily, ls:cs.letterSpacing === "normal" ? "0px" : cs.letterSpacing });
+            });
+          };
+          walk(boardEl);
+        } finally {
+          if(tPrev === null) de.removeAttribute("data-theme"); else de.setAttribute("data-theme", tPrev);
+          if(stl.parentNode) stl.parentNode.removeChild(stl);
+        }
+        /* 2) Datos del mini informe */
+        var total = 0, ejec = 0, restr = 0, ports = {}, coms = {}, porPart = [];
+        state.categories.forEach(function(c){
+          var n = 0;
+          state.weeks.forEach(function(w){
+            notesIn(c.id, w.id).forEach(function(nt){
+              n++; total++;
+              if(nt.cumplido === true) ejec++;
+              if(!cfg.weekly && restrDe(nt).length) restr++;
+              if(nt.portico){ ports[nt.portico] = 1; var cm = String(etiquetaPortico(nt.portico) || "").split(":"); if(cm.length > 1 && cm[0].trim()) coms[cm[0].trim()] = 1; }
+            });
+          });
+          porPart.push({ name:c.name, n:n, col:TONOS[toneForCat(c.id)] || "#8C949E" });
+        });
+        var nP = Object.keys(ports).length, nC = Object.keys(coms).length;
+        var ini = state.inicio ? parseInputDate(state.inicio) : new Date();
+        var fl = function(d){ return d.getDate() + " de " + MESES[d.getMonth()]; };
+        var titulo, etiqueta;
+        if(cfg.weekly){
+          var fin5 = addDays(ini, 4);
+          titulo = "Semana del " + (ini.getMonth() === fin5.getMonth() ? ini.getDate() : fl(ini)) + " al " + fl(fin5) + " de " + fin5.getFullYear();
+          etiqueta = "PROGRAMACIÓN DE PÓRTICOS DE VIGILANCIA · INFORME SEMANAL";
+        } else {
+          titulo = "Programación intermedia · " + (state.semanas || state.weeks.length) + " semanas desde el " + fl(ini) + " de " + ini.getFullYear();
+          etiqueta = "PROGRAMACIÓN DE PÓRTICOS DE VIGILANCIA · INFORME INTERMEDIO";
+        }
+        var kpis = cfg.weekly
+          ? [[total, "actividades en la semana"], [ejec, "ejecutadas (" + (total ? Math.round(ejec * 100 / total) : 0) + " %)"], [nP, "pórticos"], [nC, nC === 1 ? "comuna" : "comunas"]]
+          : [[total, "actividades programadas"], [restr, "con restricción abierta"], [nP, "pórticos"], [nC, nC === 1 ? "comuna" : "comunas"]];
+        /* 3) Dibujar en canvas (A3 a 200 ppp) */
+        var cv = document.createElement("canvas"); cv.width = Math.round(PW * K); cv.height = Math.round(PH * K);
+        var g = cv.getContext("2d");
+        var rr = function(x, y, w, h, r){ r = Math.max(0, Math.min(r, w / 2, h / 2)); g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
+        var tx = function(s, x, y, size, weight, fam, fill, ls, align){
+          g.font = weight + " " + (size * K) + "px " + fam; g.fillStyle = fill; g.textBaseline = "middle"; g.textAlign = align || "left";
+          if("letterSpacing" in g) g.letterSpacing = ls ? (ls * K) + "px" : "0px";
+          g.fillText(s, x * K, y * K);
+        };
+        g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height);
+        var y0 = 58, sc = Math.min((PW - 32) / BW, (PH - y0 - 17) / BH), W = BW * sc, x0 = (PW - W) / 2;
+        tx(etiqueta, x0, 18, 2.6, 600, MONO, MUTE, 0.35);
+        var tsz = 8; g.font = "700 " + (tsz * K) + "px " + FUENTE; var tw = g.measureText(titulo).width / K; if(tw > W) tsz = tsz * W / tw * 0.98;
+        tx(titulo, x0, 27.5, tsz, 700, FUENTE, NAVY);
+        g.fillStyle = NAVY; g.fillRect(x0 * K, 30.3 * K, W * K, 0.4 * K);
+        var gap = 4, bw4 = (W - 3 * gap) / 4;
+        kpis.forEach(function(kp, i){
+          var bx = x0 + i * (bw4 + gap);
+          g.fillStyle = "rgb(237,235,228)"; rr(bx * K, 34 * K, bw4 * K, 13 * K, 1.2 * K); g.fill();
+          tx(String(kp[0]), bx + 3, 41.6, 7.5, 700, FUENTE, NAVY);
+          g.font = "700 " + (7.5 * K) + "px " + FUENTE; var wv = g.measureText(String(kp[0])).width / K;
+          var lsz = 3.1; g.font = "400 " + (lsz * K) + "px " + FUENTE; var lw = g.measureText(kp[1]).width / K, disp = bw4 - 3 - wv - 2.5 - 2.5; if(lw > disp) lsz = lsz * disp / lw;
+          tx(kp[1], bx + 3 + wv + 2.5, 41.8, lsz, 400, FUENTE, MUTE);
+        });
+        tx("Por partida:", x0, 52.2, 3, 600, FUENTE, NAVY);
+        g.font = "600 " + (3 * K) + "px " + FUENTE; var px = x0 + g.measureText("Por partida:").width / K + 4;
+        var vis = porPart.filter(function(pp){ return pp.n; }), pfs = 3, pgap = 6;
+        g.font = "400 " + (pfs * K) + "px " + FUENTE;
+        var need = vis.reduce(function(a, pp){ return a + 4.4 + g.measureText(pp.name + " " + pp.n).width / K + pgap; }, 0);
+        var disp2 = W - (px - x0);
+        if(need > disp2){ pfs = Math.max(2.2, pfs * disp2 / need * 0.97); pgap = 4; }
+        vis.forEach(function(pp){
+          g.fillStyle = pp.col; rr(px * K, 50.7 * K, 3 * K, 3 * K, 0.6 * K); g.fill();
+          var lab = pp.name + " " + pp.n;
+          tx(lab, px + 4.4, 52.2, pfs, 400, FUENTE, NAVY);
+          g.font = "400 " + (pfs * K) + "px " + FUENTE; px += 4.4 + g.measureText(lab).width / K + pgap;
+        });
+        /* pizarra */
+        g.save(); g.translate(x0 * K, y0 * K); g.scale(sc * K, sc * K);
+        ops.forEach(function(o){
+          if(o.t === "rect"){
+            rr(o.x, o.y, o.w, o.h, o.r);
+            if(o.fill){ g.fillStyle = o.fill; g.fill(); }
+            if(o.stroke){ g.strokeStyle = o.stroke; g.lineWidth = o.sw; g.setLineDash(o.dash || []); g.stroke(); g.setLineDash([]); }
+          } else if(o.t === "line"){
+            g.strokeStyle = o.stroke; g.lineWidth = o.sw; g.setLineDash(o.dash || []); g.beginPath(); g.moveTo(o.x1, o.y1); g.lineTo(o.x2, o.y2); g.stroke(); g.setLineDash([]);
+          } else {
+            g.font = o.font; g.fillStyle = o.fill; g.textBaseline = "middle"; g.textAlign = "left";
+            if("letterSpacing" in g) g.letterSpacing = o.ls;
+            g.fillText(o.s, o.x, o.y);
+          }
+        });
+        g.restore();
+        /* pie */
+        var yb = y0 + BH * sc, hoy = new Date();
+        g.fillStyle = "rgba(10,34,64,.3)"; g.fillRect(x0 * K, (yb + 3) * K, W * K, 0.25 * K);
+        var fh = String(hoy.getDate()).padStart(2, "0") + "-" + String(hoy.getMonth() + 1).padStart(2, "0") + "-" + hoy.getFullYear();
+        tx("Fuente: app Pórticos (GeoMAV) · exportado el " + fh + " · A3 " + (landscape ? "horizontal 420 × 297" : "vertical 297 × 420") + " mm · imprimir al 100 %", x0, yb + 7, 2.6, 400, FUENTE, MUTE);
+        tx("GeoMAV · geomav.me", x0 + W, yb + 7, 2.6, 600, FUENTE, NAVY, 0, "right");
+        /* 4) Entregar */
+        var nombre = "Porticos_" + (cfg.weekly ? "semanal_" : "intermedio_") + (state.inicio || fh) + "_A3";
+        var bajar = function(blob, ext){
+          var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nombre + "." + ext;
+          document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+        };
+        if(fmt === "png"){
+          cv.toBlob(function(b){ fin(); if(b) bajar(b, "png"); else alert("No se pudo generar la imagen."); }, "image/png");
+        } else {
+          cargarJsPDF().then(function(){
+            var pdf = new window.jspdf.jsPDF({ orientation: landscape ? "landscape" : "portrait", unit: "mm", format: "a3", compress: true });
+            pdf.addImage(cv.toDataURL("image/png"), "PNG", 0, 0, PW, PH, undefined, "FAST");
+            bajar(pdf.output("blob"), "pdf"); fin();
+          }, function(){ fin(); alert("No se pudo cargar el generador de PDF (requiere conexión a internet). Prueba con PNG."); });
+        }
+      }).catch(function(err){ fin(); alert("No se pudo exportar: " + (err && err.message ? err.message : err)); });
+    }
     function exportExcel(){
       if(typeof ExcelJS === "undefined"){
         window.LP_cargarExcel().then(exportExcel, function(){
@@ -2574,6 +2787,8 @@ window.PORTICOS_LISTA = (function(){
         if(!irASemana(destino)) alert("A\u00fan no se carga la programaci\u00f3n de la planilla. Espera unos segundos.");
       }
       else if(action === "export-excel"){ exportExcel(); }
+      else if(action === "export-a3-pdf"){ exportA3("pdf", el); }
+      else if(action === "export-a3-png"){ exportA3("png", el); }
       else if(action === "print"){
         var boardKey = cfg.weekly ? "semanal" : "intermedio";
         document.body.setAttribute("data-print-board", boardKey);
