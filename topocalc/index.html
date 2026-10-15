@@ -5710,7 +5710,7 @@ function svgPerfilNivel(cotas, labels){
    arco Lc, cuerda C, externa E, ordenada media M y deflexión Δ. En el dibujo solo el carácter de cada magnitud (nomenclatura estándar);
    todos los valores van en el listado de la esquina, con el mismo color que su trazo. El color accent sigue a la magnitud estrella del panel
    (extras.star: 'T' por defecto, 'R', 'Lc'; con ptLabel — estaca — el punto final). Solo se dibuja lo que se entrega: T si hay Tval;
-   Lc/C/E/M/D si vienen en extras. La deflexión dibujada se acota a 60°–140° para que E y M tengan largo suficiente para rotularse. */
+   Lc/C/E/M/D/defl si vienen en extras (defl = deflexión desde el PC: tangente en el PC y ángulo hasta la cuerda). La deflexión dibujada se acota a 60°–140° para que E y M tengan largo suficiente para rotularse. */
 function svgCurvaArco(R, deltaDeg, puntos, fuente, ptLabel, Tval, extras){
   const K=svgKit(), eng=K.eng, ex=extras||{};
   const d=Math.min(Math.max(deltaDeg,60),140), th=toRad(d/2), thDeg=d/2;
@@ -5725,6 +5725,7 @@ function svgCurvaArco(R, deltaDeg, puntos, fuente, ptLabel, Tval, extras){
   const hasT=Tval!==undefined, has=k=>ex[k]!==undefined;
   const rows=[{k:'R',c:col.R,v:`${fmtNum(R,2)} m`}];
   if(has('D')) rows.push({k:'Δ',c:col.D,v:fmtAngle(deltaDeg)});
+  if(has('defl')) rows.push({k:'δ',c:col.D,v:fmtAngle(ex.defl)});
   if(hasT) rows.push({k:'T',c:col.T,v:`${fmtNum(Tval,2)} m`});
   if(has('Lc')) rows.push({k:'Lc',c:col.Lc,v:`${fmtNum(ex.Lc,2)} m`});
   if(has('C')) rows.push({k:'C',c:col.C,v:`${fmtNum(ex.C,2)} m`});
@@ -5739,6 +5740,14 @@ function svgCurvaArco(R, deltaDeg, puntos, fuente, ptLabel, Tval, extras){
   if(has('E')&&hasT) K.line(...PI_,...MA,col.E,{dash:'1.6 1.6',sw:0.8});
   if(has('M')) K.line(...MA,...MC,col.M,{sw:0.9});
   if(has('D')) K.arc(O[0],O[1],Rs*0.22,-90-thDeg,-90+thDeg,col.D,{sw:0.8});
+  // deflexión desde el PC (estaca): tangente en el PC y ángulo entre tangente y cuerda
+  let dfl=null;
+  if(has('defl')){ const tx=Math.cos(th), ty=-Math.sin(th), cl=Math.hypot(PT[0]-PC[0],PT[1]-PC[1]);
+    const fl=ty<0?Math.min(cl*0.8,(PC[1]-6)/-ty):cl*0.8;
+    K.line(PC[0]-tx*10,PC[1]-ty*10,PC[0]+tx*fl,PC[1]+ty*fl,'var(--ink-soft)',{dash:'1.6 1.6',sw:0.7});
+    K.line(...PC,...PT,col.C,{dash:'3 2',sw:0.8});
+    const ac=Math.atan2(PT[1]-PC[1],PT[0]-PC[0])*180/Math.PI, at0=Math.atan2(ty,tx)*180/Math.PI, ra=Math.min(18,cl*0.35);
+    K.arc(PC[0],PC[1],ra,at0,ac,col.D,{sw:0.8}); dfl={am:(at0+ac)/2*Math.PI/180,ra}; }
   // replanteo: puntos sobre el arco
   if(puntos&&puntos.length){
     const st=thinLabelStep(puntos.length,10), tp=[];
@@ -5762,6 +5771,7 @@ function svgCurvaArco(R, deltaDeg, puntos, fuente, ptLabel, Tval, extras){
   if(has('C')) K.lineLabel(...PC,...PT,'C',L,col.C,{at:0.25,out:[0,1],extras:[0,3,6]});
   if(has('E')&&hasT) K.lineLabel(...PI_,...MA,'E',L,col.E,{at:0.5,out:[1,0],extras:[0,3]});
   if(has('M')) K.lineLabel(...MA,...MC,'M',L,col.M,{at:0.5,out:[1,0],extras:[0,3]});
+  if(dfl) K.pointLabel('δ',PC[0]+dfl.ra*Math.cos(dfl.am),PC[1]+dfl.ra*Math.sin(dfl.am),L,col.D,{dir:[Math.cos(dfl.am),Math.sin(dfl.am)],rmin:2,rmax:9});
   if(has('Lc')) K.pointLabel('Lc',...at(-90+thDeg*0.55),L,col.Lc,{dir:out(at(-90+thDeg*0.55)),rmin:3,rmax:9});
   if(has('D')){ const a=-90, q=[O[0]+Rs*0.22*Math.cos(toRad(a)),O[1]+Rs*0.22*Math.sin(toRad(a))]; K.pointLabel('Δ',q[0],q[1],L,col.D,{dir:[0,-1],rmin:1.5,rmax:8}); }
   if(fuente) K.add(svgFuente(fuente,320,190));
@@ -9226,7 +9236,7 @@ function renderCurvaProgresiva(){
       <div class="result-row"><span class="k">Ángulo de deflexión</span><span class="v">${fmtAngle(r.deflDeg)}</span></div>
       <div class="result-row"><span class="k">Azimut de la cuerda</span><span class="v">${fmtAngle(r.azChordDeg)}</span></div>
       <div class="result-row"><span class="k">Coordenadas de la estaca (E, N)</span><span class="v accent big">${fmtNum(r.XP,3)}, ${fmtNum(r.YP,3)}</span></div>
-      <div class="plot-wrap">${svgCurvaArco(R, 2*r.deflDeg, null, "coordenadas_de_una_curva.xlsx · hoja 'curva'", 'Estaca')}</div>
+      <div class="plot-wrap">${svgCurvaArco(R, 2*r.deflDeg, null, "coordenadas_de_una_curva.xlsx · hoja 'curva'", 'Estaca', undefined, {Lc:r.DC, C:r.chord, defl:r.deflDeg})}</div>
     </div>`;
     const btnGuardar = document.createElement('button');
     btnGuardar.type='button'; btnGuardar.className='btn-sm'; btnGuardar.style.marginTop='8px';
