@@ -5892,29 +5892,35 @@ function svgTaquimetria(hs,hm,hi_lect,anguloDeg){
   </svg>`;
 }
 
-/* Diagrama de sector circular, con centro O, radio R y ángulo central Δ rotulados */
+/* Diagrama de sector circular — v2 (estándar de plantillas de Mario): sector a escala con el vértice O abajo y A–B arriba; el área (accent: es
+   el resultado principal) como relleno, la longitud de arco (success) sobre el arco, los radios (blueprint) y el ángulo central Δ (ink) en O.
+   Valores en el listado (R, Δ, Arco, Área) y en el dibujo solo el carácter; rótulo sin lugar libre → se omite del dibujo. */
 function svgSectorCircular(deltaDeg, Rval){
-  const w=220,h=200,pad=26;
-  const R=Math.min(w,h-16)/2-pad;
-  const cx=w/2, cy=h/2+14;
-  const d=Math.min(Math.max(deltaDeg,2),359.9);
-  const start=-90-d/2, end=-90+d/2;
-  const p1={x:cx+R*Math.cos(toRad(start)), y:cy+R*Math.sin(toRad(start))};
-  const p2={x:cx+R*Math.cos(toRad(end)), y:cy+R*Math.sin(toRad(end))};
-  const large = d>180?1:0;
-  const mid={x:cx+(R*0.5)*Math.cos(toRad(-90)), y:cy+(R*0.5)*Math.sin(toRad(-90))};
-  const rLabel={x:cx+(R*0.55)*Math.cos(toRad(start)), y:cy+(R*0.55)*Math.sin(toRad(start))};
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <path d="M${cx} ${cy} L${p1.x.toFixed(1)} ${p1.y.toFixed(1)} A${R} ${R} 0 ${large} 1 ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} Z" fill="var(--blueprint-soft)" stroke="var(--blueprint)" stroke-width="1.8"/>
-    <circle cx="${cx}" cy="${cy}" r="2.6" fill="var(--ink)"/>
-    <circle cx="${p1.x.toFixed(1)}" cy="${p1.y.toFixed(1)}" r="2.4" fill="var(--ink)"/>
-    <circle cx="${p2.x.toFixed(1)}" cy="${p2.y.toFixed(1)}" r="2.4" fill="var(--ink)"/>
-    <text x="${cx}" y="${(cy+15).toFixed(1)}" font-size="${relFont(w,0.037,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">O</text>
-    ${svgLineLabel(cx,cy,p1.x,p1.y, Rval!==undefined?'R='+fmtNum(Rval,2):'R', 'var(--blueprint)', relFont(w,0.037,7.5,9.5), -1)}
-    <text x="${mid.x.toFixed(1)}" y="${(mid.y-6).toFixed(1)}" font-size="${relFont(w,0.037,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Δ=${fmtNum(d,2)}°</text>
-    <text x="${p1.x.toFixed(1)}" y="${(p1.y+14).toFixed(1)}" font-size="${relFont(w,0.037,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">A</text>
-    <text x="${p2.x.toFixed(1)}" y="${(p2.y+14).toFixed(1)}" font-size="${relFont(w,0.037,7.5,9.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">B</text>
-  </svg>`;
+  const K=svgKit(), d=Math.min(Math.max(deltaDeg,2),359.9), rad=a=>a*Math.PI/180;
+  const R=Rval!==undefined?Rval:1, rows=[];
+  if(Rval!==undefined) rows.push({k:'R',c:'var(--blueprint)',v:`${fmtNum(R,2)} m`});
+  rows.push({k:'Δ',c:'var(--ink)',v:fmtAngle(d)});
+  if(Rval!==undefined){ rows.push({k:'Arco',c:'var(--success)',v:`${fmtNum(R*rad(d),3)} m`}); rows.push({k:'Área',c:'var(--accent)',v:`${fmtNum(R*R*rad(d)/2,3)} m²`}); }
+  K.list([rows]);
+  const wp=[[0,0]], n=Math.max(12,Math.ceil(d/3)); for(let i=0;i<=n;i++){ const a=rad(90+d/2-d*i/n); wp.push([Math.cos(a),Math.sin(a)]); }
+  const fit=K.fit(wp,{l:70,r:290,t:Math.max(K.listBottom+10,26),b:166});
+  const O=[fit.X(0),fit.Y(0)], Rs=fit.sc, P=a=>[O[0]+Rs*Math.cos(rad(a)),O[1]-Rs*Math.sin(rad(a))];
+  const A=P(90+d/2), B=P(90-d/2);
+  K.poly(wp.map(q=>[fit.X(q[0]),fit.Y(q[1])]),{close:true,fill:'var(--accent)',fo:0.16,obs:false});
+  K.line(...O,...A,'var(--blueprint)',{sw:1}); K.line(...O,...B,'var(--blueprint)',{sw:1});
+  K.arc(O[0],O[1],Rs,-(90+d/2),-(90-d/2),'var(--success)',{sw:1.6});
+  const rd=Math.min(Rs*0.22,14); K.arc(O[0],O[1],rd,-(90+d/2),-(90-d/2),'var(--ink)',{sw:0.8});
+  [O,A,B].forEach(q=>K.dot(q[0],q[1],'var(--ink-soft)',2));
+  K.pointLabel('O',O[0],O[1],4.5,'var(--ink-soft)',{dir:[0,1],full:d>180,omit:false});
+  K.pointLabel('A',A[0],A[1],4.5,'var(--ink-soft)',{dir:[Math.cos(rad(90+d/2)),-Math.sin(rad(90+d/2))],omit:false});
+  K.pointLabel('B',B[0],B[1],4.5,'var(--ink-soft)',{dir:[Math.cos(rad(90-d/2)),-Math.sin(rad(90-d/2))],omit:false});
+  K.lineLabel(...O,...A,'R',4.5,'var(--blueprint)',{out:[-1,0],extras:[0,3,6]});
+  K.lineLabel(...O,...B,'R',4.5,'var(--blueprint)',{out:[1,0],extras:[0,3,6]});
+  K.pointLabel('Arco',O[0],O[1]-Rs,4.5,'var(--success)',{dir:[0,-1],rmin:3,rmax:10});
+  K.pointLabel('Δ',O[0],O[1]-rd,4.5,'var(--ink)',{dir:[0,-1],rmin:2,rmax:9});
+  const al=rad(d/2), cd=d>=359?0:(2/3)*Rs*Math.sin(al)/al;
+  K.near('Área',O[0],O[1]-Math.max(cd,rd+8),4.5,'var(--accent)',{rmax:16});
+  return K.svg();
 }
 
 /* Diagrama de dos rectas que se intersectan */
@@ -6066,48 +6072,31 @@ function svgVolumen(A1,A2,Am){
 }
 
 /* Diagrama de peralte (seccion transversal de via) */
-/* Sección transversal completa de la vía peraltada: ambos lados de la calzada (interior y
-   exterior) respecto al eje, girando uniformemente en torno a él. Pendiente exagerada para
-   que sea visible (un peralte real de pocos % es imperceptible a escala real). El dibujo solo
-   lleva los rótulos sueltos "Ext"/"Int" (color de la cota, junto al punto de cada borde) y
-   "Ancho" (color del ancho de pista, junto a cada mitad de la calzada) — sin ningún valor
-   pegado al trazo: la cota de ambos bordes ya está en el panel de resultados justo encima del
-   SVG (mismo color, accent, entre el punto del dibujo y su fila en ese panel) y el ancho de
-   pista es un dato que el usuario ya escribió en el formulario, así que tampoco hace falta
-   repetir su valor acá. Se quitó también el título "Peralte e=X%" que llevaba el dibujo — es
-   redundante con el encabezado de la herramienta y con el campo "e" del formulario, y ningún
-   otro diagrama de la app repite así su propio dato de entrada como título. */
+/* Diagrama de sección de peralte — v2 (estándar de plantillas de Mario): calzada en sección (ancho eje→borde, blueprint) girada en torno
+   al eje respecto de la horizontal de referencia; el peralte e (accent: la magnitud que gobierna el panel) se marca como ángulo en el eje y
+   las cotas de los bordes respecto al eje se acotan en vertical (exterior en success, interior en danger). Valores en el listado y en el
+   dibujo solo el carácter. La inclinación dibujada se exagera (4× e, entre 3° y 60°; con e = 0 la calzada queda horizontal) para que sea visible: sección esquemática. */
 function svgPeralteSeccion(ePct, anchoPista, cotaExt, cotaInt){
-  const w=300, h=200, pad=34;
-  const angDraw = toRad(Math.min(Math.max(Math.abs(ePct)*4,3),60));
-  const halfW = w-2*pad;
-  const dir = ePct>=0 ? 1 : -1;
-  const yEje = 118;
-  // Presupuesto de espacio hacia arriba y hacia abajo por separado (abajo hay línea de
-  // referencia + etiqueta + pie de nota), para que ningún borde de la calzada quede
-  // recortado contra el viewBox.
-  const topBudget = yEje-16, botBudget = (h-40)-yEje;
-  const maxRise = Math.max(10, Math.min(topBudget, botBudget));
-  const rise = Math.min(halfW*Math.tan(angDraw), maxRise);
-  const xEje=w/2;
-  const xExt=w-pad, yExt=yEje-dir*rise;
-  const xInt=pad, yInt=yEje+dir*rise;
-  const font=relFont(w,0.03,7.5,9.5);
-  const colCota='var(--accent)', colAncho='var(--blueprint)';
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${pad}" y1="${h-14}" x2="${w-pad}" y2="${h-14}" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 2"/>
-    <text x="${w-pad}" y="${h-18}" font-size="6.8" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="end">horizontal</text>
-    <path d="M${xInt} ${yInt.toFixed(1)} L${xEje} ${yEje} L${xExt} ${yExt.toFixed(1)}" stroke="${colAncho}" stroke-width="2.4" fill="none" stroke-linejoin="round"/>
-    <circle cx="${xEje}" cy="${yEje}" r="3" fill="var(--ink)"/>
-    <circle cx="${xExt}" cy="${yExt.toFixed(1)}" r="3" fill="${colCota}"/>
-    <circle cx="${xInt}" cy="${yInt.toFixed(1)}" r="3" fill="${colCota}"/>
-    <text x="${xEje}" y="${(yEje+16).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Eje</text>
-    <text x="${xExt}" y="${(yExt+(dir>0?-8:14)).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" font-weight="700" fill="${colCota}" text-anchor="end">Ext</text>
-    <text x="${xInt}" y="${(yInt+(dir>0?14:-8)).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" font-weight="700" fill="${colCota}" text-anchor="start">Int</text>
-    ${svgLineLabel(xEje,yEje,xExt,yExt,'Ancho',colAncho,font,-1,undefined,700)}
-    ${svgLineLabel(xEje,yEje,xInt,yInt,'Ancho',colAncho,font,1,undefined,700)}
-    <text x="${xEje}" y="${(h-4).toFixed(1)}" font-size="6.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(pendiente exagerada para visibilidad, sección esquemática)</text>
-  </svg>`;
+  const K=svgKit(), sg=v=>`${v>=0?'+':''}${fmtNum(v===0?0:v,3)} m`;
+  K.list([[{k:'e',c:'var(--accent)',v:`${fmtNum(ePct,2)} %`},{k:'Ancho',c:'var(--blueprint)',v:`${fmtNum(anchoPista,2)} m`},{k:'Ext',c:'var(--success)',v:sg(cotaExt)},{k:'Int',c:'var(--danger)',v:sg(cotaInt)}]]);
+  const dir=ePct>=0?1:-1, ang=(ePct===0?0:Math.min(Math.max(Math.abs(ePct)*4,3),60))*Math.PI/180, halfW=106;
+  const yEje=Math.max(K.listBottom+44,108), xEje=160;
+  const rise=Math.min(halfW*Math.tan(ang), Math.min(yEje-K.listBottom-8,176-yEje-14));
+  const EXT=[xEje+halfW,yEje-dir*rise], INT=[xEje-halfW,yEje+dir*rise], EJE=[xEje,yEje];
+  K.line(xEje-halfW-10,yEje,xEje+halfW+10,yEje,'var(--ink-soft)',{dash:'1.6 1.6',sw:0.6});
+  K.line(...INT,...EJE,'var(--blueprint)',{sw:1.6}); K.line(...EJE,...EXT,'var(--blueprint)',{sw:1.6});
+  K.line(EXT[0],yEje,...EXT,'var(--success)',{sw:0.8}); K.line(INT[0],yEje,...INT,'var(--danger)',{sw:0.8});
+  const ra=Math.min(34,halfW*0.35), a0=0, a1=-dir*ang*180/Math.PI;
+  K.arc(xEje,yEje,ra,a0,a1,'var(--accent)',{sw:1});
+  [EJE,EXT,INT].forEach(q=>K.dot(q[0],q[1],'var(--ink-soft)',2));
+  K.pointLabel('Eje',EJE[0],EJE[1],4.5,'var(--ink-soft)',{dir:[0,dir>0?1:-1],omit:false});
+  K.pointLabel('Ext',EXT[0],EXT[1],4.5,'var(--success)',{dir:[0.4,-dir],omit:false});
+  K.pointLabel('Int',INT[0],INT[1],4.5,'var(--danger)',{dir:[-0.4,dir],omit:false});
+  K.lineLabel(...EJE,...EXT,'Ancho',4.5,'var(--blueprint)',{out:[0,-dir],extras:[0,3,6]});
+  K.lineLabel(...INT,...EJE,'Ancho',4.5,'var(--blueprint)',{out:[0,dir],extras:[0,3,6]});
+  const am=a1/2*Math.PI/180; if(ePct!==0) K.pointLabel('e',xEje+ra*Math.cos(am),yEje+ra*Math.sin(am),4.5,'var(--accent)',{dir:[Math.cos(am),Math.sin(am)],rmin:2,rmax:9});
+  K.txt('(inclinación exagerada, sección esquemática)',3,'var(--ink-soft)',{x:160,y:184,anchor:'middle'});
+  return K.svg();
 }
 
 /* Diagrama de orientación astronómica: rosa con rayo al sol y a la línea de referencia */
