@@ -4652,70 +4652,53 @@ function svgRumboAzimut(e1, n1, e2, n2, r, fuente){
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">\n${out}</svg>`;
 }
 
-/* Diagrama de distancia punto-línea: recta A-B (prolongada para dar contexto visual),
-   punto externo P, perpendicular punteada hasta el pie F sobre la recta. */
+/* Diagrama de Distancia Punto-Línea — v2 (estándar de plantillas de Mario): recta A–B (extensión tenue), punto P, pie F con ángulo recto y
+   perpendicular P→F (accent: es la magnitud estrella); tramo A→F en success y longitud A→B en blueprint; valores en el listado y en el dibujo. */
 function svgDistPuntoLinea(e1, n1, e2, n2, ep, np, r, fuente){
-  const w=280, h=220, pad=48;
-  const Fe=r.footE, Fn=r.footN;
-  const allE=[e1,e2,ep,Fe], allN=[n1,n2,np,Fn];
-  const minE=Math.min(...allE), maxE=Math.max(...allE);
-  const minN=Math.min(...allN), maxN=Math.max(...allN);
-  const spanE=Math.max(maxE-minE,0.001), spanN=Math.max(maxN-minN,0.001);
-  const scale=Math.min((w-2*pad)/spanE, (h-2*pad)/spanN);
-  const px=e=>pad+(e-minE)*scale, py=n=>(h-pad)-(n-minN)*scale;
-  const Ax=px(e1),Ay=py(n1), Bx=px(e2),By=py(n2), Px=px(ep),Py=py(np), Fx=px(Fe),Fy=py(Fn);
-  const dx=Bx-Ax, dy=By-Ay, len=Math.hypot(dx,dy)||1;
-  const ux=dx/len, uy=dy/len;
-  const ext=Math.max(len*0.28, 46);
-  const Ex1={x:Ax-ux*ext,y:Ay-uy*ext}, Ex2={x:Bx+ux*ext,y:By+uy*ext};
-  const font=relFont(w,0.03,7.5,9.5);
-
-  // A, B y F (los tres sobre la recta) se rotulan perpendicular a AB, del lado contrario a
-  // donde cae P — así quedan del lado "exterior" de la figura y nunca compiten con P ni con
-  // el segmento punteado P→F.
-  const nx1=-dy/len, ny1=dx/len;
-  const pDot=(Px-Ax)*nx1+(Py-Ay)*ny1;
-  const abSide = pDot>0 ? -1 : 1;
-  const offPoint=(px0,py0,dxp,dyp,dist,side)=>{
-    const l=Math.hypot(dxp,dyp)||1, s=side===-1?-1:1;
-    const nx=-(dyp/l)*s, ny=(dxp/l)*s;
-    return {x:px0+nx*dist, y:py0+ny*dist};
-  };
-  const aPos=offPoint(Ax,Ay,dx,dy,12,abSide);
-  const bPos=offPoint(Bx,By,dx,dy,12,abSide);
-  const fPos=offPoint(Fx,Fy,dx,dy,12,abSide);
-  const pPos=offPoint(Px,Py, Fx-Px, Fy-Py, 12, 1);
-
-  // El rótulo "AB:" se ubica sobre la prolongación de la recta, a una distancia fija (no
-  // proporcional al largo de A-B, que puede verse muy corto en pantalla si P/F quedan lejos)
-  // más allá del extremo de A o de B que esté más lejos de F — así nunca compite con esos
-  // marcadores ni con el pie de la perpendicular, que puede caer en cualquier punto de la
-  // recta, incluso fuera del tramo A-B (con los valores por defecto de esta calculadora cae
-  // justo en el punto medio de A-B).
-  const extraPx=38;
-  const beyondB = r.tFraction < 0.5;
-  const Mx=(beyondB?Bx:Ax)+(beyondB?ux:-ux)*extraPx, My=(beyondB?By:Ay)+(beyondB?uy:-uy)*extraPx;
-  const segHalf=10;
-  const abLblA={x:Mx-ux*segHalf,y:My-uy*segHalf}, abLblB={x:Mx+ux*segHalf,y:My+uy*segHalf};
-  const abOffset=svgLineLabelAutoOffset(abLblA.x,abLblA.y,abLblB.x,abLblB.y,abSide,font);
-  const dOffset=svgLineLabelAutoOffset(Px,Py,Fx,Fy,-1,font);
-
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${Ex1.x.toFixed(1)}" y1="${Ex1.y.toFixed(1)}" x2="${Ex2.x.toFixed(1)}" y2="${Ex2.y.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.8"/>
-    <line x1="${Px.toFixed(1)}" y1="${Py.toFixed(1)}" x2="${Fx.toFixed(1)}" y2="${Fy.toFixed(1)}" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="3 3"/>
-    <circle cx="${Ax.toFixed(1)}" cy="${Ay.toFixed(1)}" r="3" fill="var(--ink)"/>
-    <circle cx="${Bx.toFixed(1)}" cy="${By.toFixed(1)}" r="3" fill="var(--ink)"/>
-    <circle cx="${Px.toFixed(1)}" cy="${Py.toFixed(1)}" r="3.4" fill="var(--accent)"/>
-    <circle cx="${Fx.toFixed(1)}" cy="${Fy.toFixed(1)}" r="3" fill="var(--blueprint)"/>
-    <text x="${aPos.x.toFixed(1)}" y="${aPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">A</text>
-    <text x="${bPos.x.toFixed(1)}" y="${bPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">B</text>
-    <text x="${pPos.x.toFixed(1)}" y="${pPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">P</text>
-    <text x="${fPos.x.toFixed(1)}" y="${fPos.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">F</text>
-    ${svgLineLabel(abLblA.x,abLblA.y,abLblB.x,abLblB.y, 'AB', 'var(--blueprint)', font, abSide, abOffset, 700)}
-    ${svgLineLabel(Px,Py,Fx,Fy, 'D', 'var(--line-strong)', font, -1, dOffset, 700)}
-    ${svgNorthArrow(w-20,h-20)}
-    ${fuente?svgFuente(fuente,w,h):''}
-  </svg>`;
+  const K=svgKit(), eng=K.eng, f=K.f;
+  K.north();
+  K.list([[
+    {k:'D',c:'var(--accent)',v:`${fmtNum(r.dist,3)} m`},
+    {k:'A→F',c:'var(--success)',v:`${fmtNum(r.distDesdeA,3)} m`},
+    {k:'A→B',c:'var(--blueprint)',v:`${fmtNum(r.len,3)} m`},
+    {k:'Lado',c:'var(--ink)',v:r.lado},
+    {k:'F Este',c:'var(--ink)',v:fmtNum(r.footE,3)},
+    {k:'F Norte',c:'var(--ink)',v:fmtNum(r.footN,3)}]]);
+  const box={l:62,r:268,t:Math.max(54,K.listBottom+8),b:164};
+  const fit=K.fit([[e1,n1],[e2,n2],[ep,np],[r.footE,r.footN]],box);
+  const A=[fit.X(e1),fit.Y(n1)], B=[fit.X(e2),fit.Y(n2)], P=[fit.X(ep),fit.Y(np)], F=[fit.X(r.footE),fit.Y(r.footN)];
+  const dx=B[0]-A[0], dy=B[1]-A[1], len=Math.hypot(dx,dy)||1, ux=dx/len, uy=dy/len;
+  const proj=q=>(q[0]-A[0])*ux+(q[1]-A[1])*uy;               // coordenada sobre la recta, medida desde A
+  const tmin=Math.min(0,len,proj(F))-14, tmax=Math.max(0,len,proj(F))+14;
+  const at=t=>[A[0]+ux*t, A[1]+uy*t];
+  // recta: tramo A–B sólido y prolongaciones tenues
+  if(tmin<0) K.line(...at(tmin),...at(0),'var(--blueprint)',{op:0.45,dash:'1.6 1.6'});
+  if(tmax>len) K.line(...at(len),...at(tmax),'var(--blueprint)',{op:0.45,dash:'1.6 1.6'});
+  K.line(...A,...B,'var(--blueprint)');
+  // lado opuesto a P (para cotas y letras de la recta)
+  const nrm=[-uy,ux], sP=((P[0]-A[0])*nrm[0]+(P[1]-A[1])*nrm[1])>=0?1:-1, away=[-nrm[0]*sP,-nrm[1]*sP], toP=[nrm[0]*sP,nrm[1]*sP];
+  // perpendicular P→F y marca de ángulo recto
+  K.line(...P,...F,'var(--accent)');
+  const d=Math.hypot(P[0]-F[0],P[1]-F[1]);
+  if(d>6){ const k=3, a=[F[0]+ux*k*Math.sign(proj(F)<len/2?1:-1)*1, F[1]+uy*k*Math.sign(proj(F)<len/2?1:-1)*1], v=[toP[0]*k,toP[1]*k], s=Math.sign(proj(F)<len/2?1:-1);
+    K.poly([[F[0]+ux*s*k,F[1]+uy*s*k],[F[0]+ux*s*k+v[0],F[1]+uy*s*k+v[1]],[F[0]+v[0],F[1]+v[1]]],{stroke:'var(--ink-soft)',sw:0.6,obs:false}); }
+  // cota A→F (success), paralela a la recta, del lado opuesto a P
+  const off=5, a0=[A[0]+away[0]*off,A[1]+away[1]*off], f0=[F[0]+away[0]*off,F[1]+away[1]*off];
+  if(Math.hypot(F[0]-A[0],F[1]-A[1])>2){
+    K.line(...a0,...f0,'var(--success)',{sw:0.7});
+    [A,F].forEach((q,i)=>{ const c=i?f0:a0; K.line(q[0]+away[0]*1.5,q[1]+away[1]*1.5,q[0]+away[0]*(off+1.6),q[1]+away[1]*(off+1.6),'var(--success)',{sw:0.6,noObs:false}); });
+    K.lineLabel(...a0,...f0,`A→F = ${fmtNum(r.distDesdeA,3)} m`,3,'var(--success)',{out:away,extras:[0,3,6]});
+  }
+  // puntos y letras
+  [A,B,P,F].forEach(q=>K.dot(q[0],q[1],'var(--ink-soft)',2));
+  K.lineLabel(...P,...F,`D = ${fmtNum(r.dist,3)} m`,3,'var(--accent)',{out:[ux,uy]});
+  K.lineLabel(...A,...B,`A→B = ${fmtNum(r.len,3)} m`,3,'var(--blueprint)',{out:toP,extras:[0,3,6]});
+  const pdir=[P[0]-F[0],P[1]-F[1]], pl=Math.hypot(...pdir)||1;
+  K.pointLabel('A',A[0],A[1],4.5,'var(--ink-soft)',{dir:away,full:true});
+  K.pointLabel('B',B[0],B[1],4.5,'var(--ink-soft)',{dir:away,full:true});
+  K.pointLabel('F',F[0],F[1],4.5,'var(--ink-soft)',{dir:away,full:true});
+  K.pointLabel('P',P[0],P[1],4.5,'var(--ink-soft)',{dir:[pdir[0]/pl,pdir[1]/pl]});
+  return K.svg();
 }
 
 /* Diagrama de talud: triángulo rectángulo distancia horizontal / desnivel / pendiente, con
@@ -7752,6 +7735,63 @@ function renderProgresivaOffset(){
 
 /* Motor de colocación de rótulos para diagramas SVG: reúne obstáculos (trazos, terreno, listado, otros rótulos)
    como nubes de puntos y elige para cada rótulo la posición candidata con menos choques. */
+/* Kit de diagramas SVG (estándar de plantillas de Mario): mesa 320×190, valores en listado arriba a la izquierda (valor pegado al
+   descriptor, columnas de 10 filas) y también en el dibujo; rótulos con el motor de colisiones (sin lugar libre → se omiten). */
+function svgKit(W,H){
+  W=W||320; H=H||190;
+  const eng=svgLblEngine(W,H);
+  const f=v=>(+v).toFixed(2).replace(/\.?0+$/,'');
+  const FONT='font-family="var(--font-body)" font-weight="700"';
+  let out='', cols=[], hasNorth=false;
+  const K={eng,W,H,f,FONT,listBottom:0,listRight:0};
+  const rad=a=>a*Math.PI/180;
+  K.add=s=>{out+=s;};
+  K.line=(x1,y1,x2,y2,col,o)=>{o=o||{}; out+=`<path d="M${f(x1)} ${f(y1)} L${f(x2)} ${f(y2)}" fill="none" stroke="${col}" stroke-width="${o.sw||0.8}"${o.dash?` stroke-dasharray="${o.dash}"`:''}${o.op?` stroke-opacity="${o.op}"`:''} stroke-linecap="round"/>\n`; if(!o.noObs) eng.seg(x1,y1,x2,y2);};
+  K.poly=(pts,o)=>{o=o||{}; const d='M'+pts.map(p=>f(p[0])+' '+f(p[1])).join(' L')+(o.close?' Z':'');
+    out+=`<path d="${d}" fill="${o.fill||'none'}"${o.fo!=null?` fill-opacity="${o.fo}"`:''} stroke="${o.stroke||'none'}"${o.stroke?` stroke-width="${o.sw||0.8}" stroke-linecap="round" stroke-linejoin="round"`:''}${o.dash&&o.stroke?` stroke-dasharray="${o.dash}"`:''}/>\n`;
+    if(o.stroke&&o.obs!==false){ for(let i=0;i+1<pts.length;i++) eng.seg(pts[i][0],pts[i][1],pts[i+1][0],pts[i+1][1]); if(o.close) eng.seg(pts[pts.length-1][0],pts[pts.length-1][1],pts[0][0],pts[0][1]); } };
+  K.dot=(x,y,col,r)=>{r=r||2; out+=`<circle cx="${f(x)}" cy="${f(y)}" r="${r}" fill="${col}"/>\n`; eng.circle(x,y,r+0.3);};
+  // arco de centro (cx,cy), radio r, ángulos de pantalla en grados (0=este, crece en sentido horario) de a0 a a1 (sentido = signo de a1-a0)
+  K.arc=(cx,cy,r,a0,a1,col,o)=>{o=o||{}; const d=a1-a0; if(Math.abs(d)<0.05) return;
+    const P=a=>[cx+r*Math.cos(rad(a)), cy+r*Math.sin(rad(a))];
+    if(Math.abs(d)>=359.9){ out+=`<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r)}" fill="none" stroke="${col}" stroke-width="${o.sw||0.8}"${o.dash?` stroke-dasharray="${o.dash}"`:''}/>\n`; }
+    else { const p=P(a0), q=P(a1); out+=`<path d="M${f(p[0])} ${f(p[1])} A${f(r)} ${f(r)} 0 ${Math.abs(d)>180?1:0} ${d>0?1:0} ${f(q[0])} ${f(q[1])}" fill="none" stroke="${col}" stroke-width="${o.sw||0.8}"${o.dash?` stroke-dasharray="${o.dash}"`:''} stroke-linecap="round"/>\n`; }
+    if(o.noObs) return; const n=Math.max(8,Math.min(400,Math.ceil(Math.abs(rad(d))*r/0.8))); for(let k=0;k<=n;k++) eng.pts.push(P(a0+d*k/n)); };
+  K.txt=(t,fs,col,c)=>{const q=eng.txtAttrs(c); out+=`<text ${q.pos} ${FONT} font-size="${fs}" fill="${col}"${q.an}>${t}</text>\n`;};
+  K.put=(t,fs,col,cands,o)=>{o=o||{}; if(!cands.length) return null; if(o.omit!==false && Math.min(...cands.map(q=>eng.count(eng.box(t,fs,q),0.5)))>0) return null; const c=eng.pick(t,fs,cands); K.txt(t,fs,col,c); return c;};
+  // rótulo a lo largo de un segmento (centro en at∈[0,1]); out=[ox,oy] lado preferido (hacia afuera); desliza, se aleja o cambia de lado
+  K.lineLabel=(x1,y1,x2,y2,t,fs,col,o)=>{o=o||{}; const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy)||1; let ang=Math.atan2(dy,dx)*180/Math.PI; if(ang>90) ang-=180; if(ang<=-90) ang+=180;
+    const th=rad(ang), u=[Math.cos(th),Math.sin(th)], g=[Math.sin(th),-Math.cos(th)], w=eng.tw(t,fs), at=o.at==null?0.5:o.at, mx=x1+dx*at, my=y1+dy*at;
+    const lo=-len*at+w/2+(o.margin==null?2:o.margin), hi=len*(1-at)-w/2-(o.margin==null?2:o.margin); const ss=[]; if(lo<=hi){ for(let s=0;s<=Math.max(-lo,hi)+1e-6;s+=2){ if(s<=hi) ss.push(s); if(s>0&&-s>=lo) ss.push(-s); } } else if(o.force) ss.push(0);
+    const out_=o.out||[g[0],g[1]], pref=(g[0]*out_[0]+g[1]*out_[1])>=0?1:-1, cands=[], ex=o.extras||[0,fs*1.2,fs*2.4,fs*3.6];
+    ss.forEach(s=>{ [pref,-pref].forEach((side,si)=>{ ex.forEach((e,ei)=>{ const n=[g[0]*side,g[1]*side], d=(side===1?0.5*fs:1.37*fs)+e;
+      cands.push({x:mx+u[0]*s+n[0]*d, y:my+u[1]*s+n[1]*d, rot:ang, anchor:'middle', pen:Math.abs(s)*0.4+si*(o.noFlip?1000:10)+ei*1.5}); }); }); });
+    return K.put(t,fs,col,cands,o);};
+  // rótulo junto a un punto (hacia la dirección dir=[ux,uy], o alrededor si no hay)
+  K.pointLabel=(t,x,y,fs,col,o)=>{o=o||{}; const cands=[], rmin=o.rmin||4.6, rmax=o.rmax||11, dir=o.dir, w=eng.tw(t,fs);
+    const base=dir?Math.atan2(dir[1],dir[0]):0, span=(dir&&!o.full)?80:180, dpen=o.full?0.12:0.05;
+    for(let r=rmin;r<=rmax;r+=1.2) for(let da=-span;da<=span;da+=((dir&&!o.full)?16:22.5)){ const a=base+rad(da), cx=x+Math.cos(a)*(r+(Math.abs(Math.cos(a))*w/2)), cy=y+Math.sin(a)*r+fs*0.364; cands.push({x:cx,y:cy,anchor:'middle',pen:(r-rmin)*1.5+Math.abs(da)*dpen}); }
+    return K.put(t,fs,col,cands,o);};
+  // rótulo horizontal en posición libre cercana a (x,y) con desplazamientos
+  K.near=(t,x,y,fs,col,o)=>{o=o||{}; const cands=[]; for(let r=0;r<=(o.rmax||14);r+=1.5) for(let a=0;a<360;a+=(r?30:360)){ cands.push({x:x+r*Math.cos(rad(a)), y:y+r*Math.sin(rad(a)), anchor:'middle', pen:r*0.8}); } return K.put(t,fs,col,cands,o);};
+  K.north=()=>{hasNorth=true; out+=`<path d="M300 36 L300 14" fill="none" stroke="var(--ink-soft)" stroke-width="0.7" stroke-linecap="round"/>\n<path d="M300 10 L298.2 14.5 L301.8 14.5 Z" fill="var(--ink-soft)"/>\n<text x="300" y="7.5" ${FONT} font-size="4.5" fill="var(--ink-soft)" text-anchor="middle">N</text>\n`; eng.rectFill(292,3,308,38);};
+  // listado: bloques de filas {k,c,v}; cada bloque empieza columna nueva; columnas de pc filas (crece hasta que quepa)
+  K.list=(blocks,o)=>{o=o||{}; const ROW_Y0=12.521, ROW_DY=5.761, LIM=o.lim||(hasNorth?286:312), rowW=r=>eng.tw(`${r.k} = ${r.v}`,4.32);
+    let pc=o.perCol||10, res;
+    const lay=pc=>{const c=[]; let x=10.026; blocks.forEach((b,bi)=>{ for(let s=0;s<b.length;s+=pc){ const rows=b.slice(s,s+pc), w=Math.max(...rows.map(rowW)); c.push({x,rows,w}); x=Math.max(x+(o.minGap||0), x+5.185+w+(o.gap||12)); } }); return c;};
+    for(;pc<=30;pc++){ res=lay(pc); const l=res[res.length-1]; if(l.x+5.185+l.w<=LIM) break; }
+    cols=res; K.listRight=Math.max(...cols.map(c=>c.x+5.185+c.w))+1; K.listBottom=ROW_Y0+(Math.min(Math.max(...blocks.map(b=>b.length)),pc)-1)*ROW_DY+1; K.perCol=pc;
+    eng.rectFill(8.5,6.5,K.listRight,K.listBottom+0.5); return K;};
+  // ajuste a escala de puntos del mundo (E/N, norte arriba) a una caja {l,r,t,b}; devuelve {X,Y,sc}
+  K.fit=(pts,box,o)=>{o=o||{}; const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]), mnx=Math.min(...xs), mxx=Math.max(...xs), mny=Math.min(...ys), mxy=Math.max(...ys);
+    const sx=Math.max(mxx-mnx,1e-9), sy=Math.max(mxy-mny,1e-9); let sc=Math.min((box.r-box.l)/sx,(box.b-box.t)/sy); if(o.maxSc) sc=Math.min(sc,o.maxSc);
+    const ox=(box.l+box.r)/2-(mnx+mxx)/2*sc, oy=(box.t+box.b)/2+(mny+mxy)/2*sc; return {sc,X:e=>ox+e*sc,Y:n=>oy-n*sc};};
+  K.svg=()=>{ const ROW_Y0=12.521, ROW_DY=5.761; let s=out;
+    cols.forEach(c=>c.rows.forEach((r,i)=>{ const by=ROW_Y0+i*ROW_DY; s+=`<rect x="${f(c.x)}" y="${f(by-3.457)}" width="3.457" height="3.457" fill="${r.c}"/>\n<text x="${f(c.x+5.185)}" y="${f(by)}" ${FONT} font-size="4.32"><tspan fill="${r.c}">${r.k}</tspan><tspan fill="var(--ink)"> = ${r.v}</tspan></text>\n`; }));
+    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">\n${s}</svg>`; };
+  return K;
+}
+
 function svgLblEngine(W,H){
   const pts = [];
   const CW = {'0':.63,'1':.63,'2':.63,'3':.63,'4':.63,'5':.63,'6':.63,'7':.63,'8':.63,'9':.63,',':.28,'.':.28,' ':.26,'=':.6,
