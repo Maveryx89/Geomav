@@ -4875,41 +4875,35 @@ function svgTaludBancos(glob, geo){
   return `<svg viewBox="0 0 ${w} ${h.toFixed(1)}" xmlns="http://www.w3.org/2000/svg">${parts.join('')}</svg>`;
 }
 
-/* Diagrama de inversa múltiple: recorrido abierto A→B→C... a escala real, con distancia
-   y azimut rotulados a lo largo de cada tramo (espaciados si hay muchos puntos). */
+/* Diagrama de Inversa Múltiple — v2 (estándar de plantillas de Mario): recorrido abierto A→B→C… a escala con norte arriba; la distancia
+   (accent: magnitud estrella) se rotula a lo largo de cada tramo y el total va en el listado (con cada tramo si son ≤ 8). El azimut y el rumbo de
+   cada tramo ya están en la tabla del panel. Con más de 8 tramos el rótulo lleva solo el valor; rótulo sin lugar libre → se omite del dibujo. */
 function svgInversaMultiple(pts, tramos){
-  const w=290, h=230, pad=26;
-  const minE=Math.min(...pts.map(p=>p.e)), maxE=Math.max(...pts.map(p=>p.e));
-  const minN=Math.min(...pts.map(p=>p.n)), maxN=Math.max(...pts.map(p=>p.n));
-  const spanE=Math.max(maxE-minE,0.001), spanN=Math.max(maxN-minN,0.001);
-  const scale=Math.min((w-2*pad)/spanE,(h-2*pad)/spanN);
-  const px=e=>pad+(e-minE)*scale, py=n=>(h-pad)-(n-minN)*scale;
-  const pathD=pts.map((p,i)=> `${i===0?'M':'L'} ${px(p.e).toFixed(1)} ${py(p.n).toFixed(1)}`).join(' ');
-  const ptFont=relFont(w,0.03,7,9);
-  const stepPt=thinLabelStep(pts.length,14);
-  let dots='';
-  for(let i=0;i<pts.length;i++){
-    const isFirst=i===0;
-    const showLabel = isFirst || (i%stepPt===0) || i===pts.length-1;
-    dots += `<circle cx="${px(pts[i].e).toFixed(1)}" cy="${py(pts[i].n).toFixed(1)}" r="3" fill="${isFirst?'var(--ink)':'var(--accent)'}"/>`;
-    if(showLabel){
-      dots += `<text x="${px(pts[i].e).toFixed(1)}" y="${(py(pts[i].n)-7).toFixed(1)}" font-size="${ptFont}" font-family="var(--font-mono)" fill="${isFirst?'var(--ink)':'var(--accent)'}" text-anchor="middle">${POL_LABELS[i]}</text>`;
-    }
-  }
-  const distFont=relFont(w,0.026,6.5,8.5);
-  const stepSeg=thinLabelStep(tramos.length,10);
-  let segLabels='';
-  for(let i=0;i<tramos.length;i+=stepSeg){
-    const a=pts[i], b=pts[i+1];
-    const ax=px(a.e),ay=py(a.n),bx=px(b.e),by=py(b.n);
-    segLabels += svgLineLabel(ax,ay,bx,by, fmtNum(tramos[i].dist,2)+' m', 'var(--blueprint)', distFont, 1);
-  }
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <path d="${pathD}" fill="none" stroke="var(--blueprint)" stroke-width="1.8" stroke-linejoin="round"/>
-    ${dots}
-    ${segLabels}
-    ${svgNorthArrow(w-20,20)}
-  </svg>`;
+  const K=svgKit(), n=pts.length, many=tramos.length>8, f=K.f;
+  const total=tramos.reduce((s,t)=>s+t.dist,0);
+  K.north();
+  const rows=[{k:'Total',c:'var(--accent)',v:`${fmtNum(total,3)} m`}];
+  if(!many) tramos.forEach((t,i)=>rows.push({k:`${POL_LABELS[i]}→${POL_LABELS[i+1]}`,c:'var(--accent)',v:`${fmtNum(t.dist,3)} m`}));
+  K.list([rows]);
+  const fit=K.fit(pts.map(p=>[p.e,p.n]),{l:22,r:288,t:Math.max(22,K.listBottom+7),b:176});
+  const Q=pts.map(p=>[fit.X(p.e),fit.Y(p.n)]);
+  K.poly(Q,{stroke:'var(--accent)',sw:0.9});
+  Q.forEach(q=>K.dot(q[0],q[1],'var(--ink-soft)',2));
+  // letras de los puntos: hacia afuera de la quebrada
+  const unit=(a,b)=>{const dx=b[0]-a[0], dy=b[1]-a[1], l=Math.hypot(dx,dy); return l>1e-6?[dx/l,dy/l]:null;};
+  Q.forEach((q,i)=>{
+    const v1=i>0?unit(q,Q[i-1]):null, v2=i<n-1?unit(q,Q[i+1]):null;
+    let d=null;
+    if(v1&&v2){ const s=[v1[0]+v2[0],v1[1]+v2[1]], l=Math.hypot(...s); d=l>0.3?[-s[0]/l,-s[1]/l]:[-v1[1],v1[0]]; }
+    else if(v1) d=[-v1[0],-v1[1]]; else if(v2) d=[-v2[0],-v2[1]];
+    K.pointLabel(POL_LABELS[i],q[0],q[1],4.5,'var(--ink-soft)',{dir:d||undefined,full:!d||(v1&&v2),omit:false});
+  });
+  // distancia de cada tramo, a lo largo de él (lado exterior del giro si lo hay)
+  tramos.forEach((t,i)=>{
+    const a=Q[i], b=Q[i+1]; if(Math.hypot(b[0]-a[0],b[1]-a[1])<6) return;
+    K.lineLabel(a[0],a[1],b[0],b[1],many?fmtNum(t.dist,2):`${fmtNum(t.dist,2)} m`,3,'var(--accent)',{extras:[0,3,6]});
+  });
+  return K.svg();
 }
 
 /* Diagrama de la prueba de las dos estacas para chequeo de nivel: dos montajes del
