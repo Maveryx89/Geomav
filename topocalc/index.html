@@ -5094,173 +5094,81 @@ function svgEstacionEDM(distAB,distBC,distAC,r){
   </svg>`;
 }
 
-/* Diagrama de rasante: perfil con dos puntos sobre la pendiente de proyecto (escala
-   vertical exagerada para que la pendiente sea visible; se rotula explícitamente).
-   Los rótulos van sueltos (sin valor pegado): "Origen"/"Eval" identifican los puntos (Kini/Cini
-   y Keval ya los escribió el usuario en el formulario, y la Cota en Keval ya se muestra en grande
-   en el panel de resultados) y "S" identifica la línea de pendiente (D ya está en el panel como
-   "Distancia parcial"). Encontrado probando pendientes pronunciadas (no pedido, pero en la misma
-   función): con el offset vertical fijo "-9" de antes, la propia línea podía atravesar el rótulo
-   "Origen"/"Eval" cuando la pendiente era empinada (el punto queda cerca del rótulo del extremo
-   opuesto, y el trazo sube/baja rápido justo debajo del texto). Se corrigió ubicando ambos rótulos
-   en la dirección perpendicular real de la línea (siempre "hacia arriba" en pantalla, ya que el
-   eje horizontal x1→x2 nunca se invierte) — mismo lado que usa el rótulo "S" (side=-1), separados
-   lo suficiente de él por estar junto a los extremos y no al medio. */
+/* Diagrama de Cota por Progresiva y Pendiente — v2 (estándar de plantillas de Mario): perfil esquemático (no a escala, pendiente exagerada)
+   del tramo recto desde el origen (Kini, Cini) hasta la progresiva evaluada (Keval): la pendiente S (blueprint) a lo largo de la línea, la
+   distancia parcial D (success) en horizontal y el desnivel ΔH (danger) en vertical. La cota evaluada Ceval (accent: resultado principal) es el
+   punto final. En el dibujo solo el carácter; los valores van en el listado. */
 function svgCotaProgresiva(Kini,Cini,S,Keval,r){
-  const w=280, h=170, pad=32;
-  const minC=Math.min(Cini,r.Ceval), maxC=Math.max(Cini,r.Ceval,minC+0.01);
-  const y=c=>(h-pad)-(c-minC)/(maxC-minC)*(h-2*pad);
-  const x1=pad, x2=w-pad;
-  const y1=y(Cini), y2=y(r.Ceval);
-  const font=relFont(w,0.03,7.5,9.5);
-  const dxL=x2-x1, dyL=y2-y1, lenL=Math.hypot(dxL,dyL)||1;
-  const perpUp={x:dyL/lenL, y:-dxL/lenL};
-  const originLabel={x:x1+perpUp.x*13, y:y1+perpUp.y*13};
-  const evalLabel={x:x2+perpUp.x*13, y:y2+perpUp.y*13};
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${x1}" y1="${y1.toFixed(1)}" x2="${x2}" y2="${y2.toFixed(1)}" stroke="var(--blueprint)" stroke-width="2"/>
-    <circle cx="${x1}" cy="${y1.toFixed(1)}" r="3.4" fill="var(--ink)"/>
-    <circle cx="${x2}" cy="${y2.toFixed(1)}" r="3.4" fill="var(--accent)"/>
-    <text x="${originLabel.x.toFixed(1)}" y="${(originLabel.y-3).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">Origen</text>
-    <text x="${evalLabel.x.toFixed(1)}" y="${(evalLabel.y-3).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Eval</text>
-    ${svgLineLabel(x1,y1,x2,y2, 'S', 'var(--blueprint)', font, -1)}
-    <text x="${(x1+x2)/2}" y="${(h-8).toFixed(1)}" font-size="${relFont(w,0.026,6.5,8)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(escala vertical exagerada, no a escala real)</text>
-  </svg>`;
+  const K=svgKit(), col={S:'var(--blueprint)',D:'var(--success)',dH:'var(--danger)',C:'var(--accent)'};
+  K.list([[{k:'Ceval',c:col.C,v:`${fmtNum(r.Ceval,3)} m`},{k:'Cini',c:'var(--ink)',v:`${fmtNum(Cini,3)} m`},{k:'S',c:col.S,v:`${fmtNum(S,2)} %`},{k:'D',c:col.D,v:`${fmtNum(r.D,2)} m`},{k:'ΔH',c:col.dH,v:`${fmtNum(r.dH,3)} m`},{k:'Kini',c:'var(--ink-soft)',v:`${fmtNum(Kini,2)} m`},{k:'Keval',c:'var(--ink-soft)',v:`${fmtNum(Keval,2)} m`}]],{perCol:4});
+  const flat=Math.abs(S)<1e-9, up=S>=0, s=up?-1:1, top=Math.max(K.listBottom+12,48), bot=168, W=190;
+  const ang=toRad(Math.min(Math.max(Math.abs(Math.atan(S/100))*180/Math.PI*6,7),32)), rise=flat?0:Math.min(W*Math.tan(ang),bot-top-8);
+  const x0=(320-W)/2-6, x1=x0+W, y0=up?(top+bot)/2+rise/2:(top+bot)/2-rise/2, y1=y0+s*rise, A=[x0,y0], B=[x1,y1], C=[x1,y0];
+  K.line(...A,...C,col.D,{sw:1.1,dash:'3 2'}); if(!flat) K.line(...C,...B,col.dH,{sw:1.1}); K.line(...A,...B,col.S,{sw:1.6});
+  K.dot(...A,'var(--ink-soft)',2); K.dot(...B,col.C,2.6);
+  K.lineLabel(...A,...C,'D',4.5,col.D,{out:[0,-s],extras:[0,3,6]});
+  if(!flat) K.lineLabel(...C,...B,'ΔH',4.5,col.dH,{out:[1,0],extras:[0,3,6]});
+  K.lineLabel(...A,...B,'S',4.5,col.S,{at:0.5,out:[0,s],extras:[0,3,6]});
+  K.pointLabel('Kini',A[0],A[1],4.5,'var(--ink-soft)',{dir:[-1,-s*0.4],omit:false,rmin:4.5,rmax:12});
+  K.pointLabel('Keval',B[0],B[1],4.5,col.C,{dir:[1,s*0.4],omit:false,rmin:4.5,rmax:12});
+  return K.svg();
 }
 
-/* Diagrama de plantillado de zanja: radier teórico, fondo de excavación (bajo la cama)
-   y la lectura de mira esperada desde la altura instrumental del nivel.
-   Los rótulos van sueltos (sin valor pegado): K1/Cp1/S/Kx/hcama/HI ya los escribe el usuario en
-   el formulario, y Cradier/Cexc/Lmira ya se muestran en el panel de resultados ("Cota de radier
-   teórico", "Cota de fondo de excavación", "Lectura de mira esperada"). "Pozo inicial" identifica
-   el punto de partida; "Radier" y "Fondo" identifican los puntos calculados en Kx (mantienen el
-   mismo color que su fila en el panel: blueprint y accent respectivamente, ya que el punto en sí
-   es la magnitud medida); "S" identifica la línea de pendiente, "hcama" el tramo de cama de apoyo,
-   "HI" la línea de nivel instrumental y "Mira" el tramo de lectura de mira.
-   Hallazgos de esta pasada (no pedidos, encontrados probando varias combinaciones — ya existían en
-   producción, nunca se habían verificado programáticamente para este diagrama):
-   (1) "Radier" usa offset perpendicular a la línea de pendiente (misma técnica que Cota por
-   Progresiva y Pendiente) para que la propia línea no atraviese el rótulo en pendientes empinadas,
-   acotado (clampMid) para no invadir la columna de "Mira" a la derecha. "Pozo inicial" NO puede
-   usar la misma técnica: al estar pegado al borde izquierdo (x1=pad) y ser un texto largo (dos
-   palabras), la distancia que hay para moverlo en esa dirección es demasiado chica y clampear su
-   posición horizontal rompe la garantía de separación del offset perpendicular — probando pendientes
-   muy pronunciadas se encontró que igual terminaba cruzado por la línea. En vez de eso, "Pozo
-   inicial" se queda anclado en x1 (nunca se mueve horizontalmente, nunca se sale del canvas) y solo
-   se decide arriba/abajo según hacia dónde se aleja la línea a lo largo del ancho del propio rótulo
-   (si la línea baja, el rótulo va arriba; si sube, va abajo) — como es un tramo recto (no curvo),
-   alcanza con mirar hacia dónde se aleja en ese tramo para garantizar que nunca la cruce.
-   (2) El rótulo "hcama" vivía a la izquierda de Kx, en el punto medio entre Radier y Fondo — con
-   la cama de apoyo físicamente delgada frente a la escala completa del diagrama (dominada por HI),
-   ese punto medio casi siempre cae pegado a Radier, y ahí la línea de pendiente (que también
-   termina en Radier) lo atraviesa. Se corrigió moviendo "hcama" al lado derecho de Kx (su propia
-   columna, junto a "Mira", con espacio propio para no quedar pegado a los círculos de Radier/Fondo),
-   fuera del alcance geométrico de la línea de pendiente (que solo existe entre K1 y Kx) — así no
-   hace falta forzar su posición vertical para esquivarla.
-   (3) La columna de "Mira" (línea + rótulo) se separó de "hcama" y se le dio margen propio en el
-   canvas: el rótulo "Lmira=X" original (con su valor pegado) ya se recortaba levemente contra el
-   borde derecho del viewBox. */
+/* Diagrama de Plantillado de Zanja — v2 (estándar de plantillas de Mario): perfil esquemático (no a escala, cama exagerada) con la línea de
+   nivel instrumental HI, la tubería con pendiente S (blueprint) desde el pozo inicial K1 hasta la progresiva Kx, el radier teórico, la cama de
+   apoyo hc (danger) y el fondo de excavación. La lectura de mira Lmira (accent: resultado principal) baja desde HI hasta el fondo. En el
+   dibujo solo el carácter; los valores van en el listado. */
 function svgPlantillaZanja(K1,Cp1,S,Kx,hcama,HI,r){
-  const w=330, h=200, pad=32;
-  const vals=[Cp1,r.Cradier,r.Cexc,HI];
-  const minC=Math.min(...vals), maxC=Math.max(...vals,minC+0.01);
-  const y=c=>(h-pad)-(c-minC)/(maxC-minC)*(h-2*pad);
-  const x1=pad, x2=258;
-  const yCp1=y(Cp1), yRadier=y(r.Cradier), yExc=y(r.Cexc), yHI=y(HI);
-  const font=relFont(w,0.028,7,9);
-  const dxL=x2-x1, dyL=yRadier-yCp1, lenL=Math.hypot(dxL,dyL)||1;
-  const perpUp={x:dyL/lenL, y:-dxL/lenL};
-  const clampMid=(cx,text,fs)=>{
-    const hw=(text.length*fs*0.62)/2;
-    return Math.min(Math.max(cx, 4+hw), w-4-hw);
-  };
-  const hcamaX=x2+9, miraLineX=x2+36;
-  const pozoLabelW='Pozo inicial'.length*font*0.62;
-  const pozoLineDrop=(dyL/dxL)*pozoLabelW;
-  const pozoClearance=font*0.9+4;
-  const pozoLabel={x:x1, y: pozoLineDrop>=0 ? (yCp1-pozoClearance) : (yCp1+pozoClearance)};
-  let radierX=clampMid(x2+perpUp.x*13, 'Radier', font);
-  radierX=Math.min(radierX, hcamaX-('Radier'.length*font*0.62)/2-4);
-  const radierLabel={x:radierX, y:yRadier+perpUp.y*13};
-  const hcamaFont=relFont(w,0.024,6,7.5);
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${x1}" y1="${yHI.toFixed(1)}" x2="${x2}" y2="${yHI.toFixed(1)}" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="3 2"/>
-    <text x="${x1}" y="${(yHI-6).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">HI</text>
-    <line x1="${x1}" y1="${yCp1.toFixed(1)}" x2="${x2}" y2="${yRadier.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.8"/>
-    <circle cx="${x1}" cy="${yCp1.toFixed(1)}" r="3.2" fill="var(--ink)"/>
-    <text x="${pozoLabel.x.toFixed(1)}" y="${pozoLabel.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="start">Pozo inicial</text>
-    ${svgLineLabel(x1,yCp1,x2,yRadier, 'S', 'var(--blueprint)', font, -1)}
-    <circle cx="${x2}" cy="${yRadier.toFixed(1)}" r="3" fill="var(--blueprint)"/>
-    <text x="${radierLabel.x.toFixed(1)}" y="${radierLabel.y.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">Radier</text>
-    <line x1="${x2}" y1="${yRadier.toFixed(1)}" x2="${x2}" y2="${yExc.toFixed(1)}" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="2 2"/>
-    <text x="${hcamaX.toFixed(1)}" y="${((yRadier+yExc)/2).toFixed(1)}" font-size="${hcamaFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">hcama</text>
-    <circle cx="${x2}" cy="${yExc.toFixed(1)}" r="3.4" fill="var(--accent)"/>
-    <text x="${x2}" y="${(yExc+14).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="end">Fondo</text>
-    <line x1="${miraLineX.toFixed(1)}" y1="${yHI.toFixed(1)}" x2="${miraLineX.toFixed(1)}" y2="${yExc.toFixed(1)}" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="2 2"/>
-    <text x="${(miraLineX+4).toFixed(1)}" y="${((yHI+yExc)/2).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="start">Mira</text>
-    <text x="${(x1+x2)/2}" y="${(h-6).toFixed(1)}" font-size="${relFont(w,0.024,6,7.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(escala vertical esquemática)</text>
-  </svg>`;
+  const K=svgKit(), col={S:'var(--blueprint)',HI:'var(--ink)',hc:'var(--danger)',L:'var(--accent)',R:'var(--success)'};
+  K.list([[{k:'Lmira',c:col.L,v:`${fmtNum(r.Lmira,3)} m`},{k:'HI',c:col.HI,v:`${fmtNum(HI,3)} m`},{k:'Cradier',c:col.R,v:`${fmtNum(r.Cradier,3)} m`},{k:'Cexc',c:'var(--ink)',v:`${fmtNum(r.Cexc,3)} m`},{k:'Cp1',c:'var(--ink-soft)',v:`${fmtNum(Cp1,3)} m`},{k:'S',c:col.S,v:`${fmtNum(S,2)} %`},{k:'hc',c:col.hc,v:`${fmtNum(hcama,3)} m`}]],{perCol:4});
+  const top=Math.max(K.listBottom+14,50), bot=168, vals=[Cp1,r.Cradier,r.Cexc,HI], mn=Math.min(...vals), mx=Math.max(...vals,mn+0.01);
+  const y=c=>bot-(c-mn)/(mx-mn)*(bot-top), x1=30, x2=214, x3=262;
+  const yHI=y(HI), yP=y(Cp1), yR=y(r.Cradier); let yF=y(r.Cexc); if(yF-yR<10) yF=Math.min(yR+10,bot+4);
+  // nivel instrumental, tubería, cama, mira
+  K.line(x1-8,yHI,x3+10,yHI,col.HI,{sw:0.8,dash:'3 2'});
+  K.line(x1,yP,x2,yR,col.S,{sw:1.5});
+  K.line(x2,yR,x2,yF,col.hc,{sw:1.1}); [yR,yF].forEach(v=>K.line(x2-2,v,x2+2,v,col.hc,{sw:0.9,noObs:false}));
+  K.line(x2,yF,x3+3,yF,'var(--ink-soft)',{sw:0.6,dash:'1.6 1.6',noObs:false});
+  K.line(x3,yHI,x3,yF,col.L,{sw:1.2}); [yHI,yF].forEach(v=>K.line(x3-2,v,x3+2,v,col.L,{sw:1,noObs:false}));
+  K.dot(x1,yP,'var(--ink-soft)',2); K.dot(x2,yR,col.R,2.2); K.dot(x2,yF,'var(--ink)',2.2);
+  K.lineLabel(x1-8,yHI,x3+10,yHI,'HI',4.5,col.HI,{at:0.12,out:[0,-1],extras:[0,3]});
+  K.lineLabel(x1,yP,x2,yR,'S',4.5,col.S,{at:0.5,out:[0,-1],extras:[0,3,6]});
+  K.lineLabel(x3,yHI,x3,yF,'Lmira',4.5,col.L,{out:[1,0],extras:[0,3]});
+  K.lineLabel(x2,yR,x2,yF,'hc',4.5,col.hc,{out:[1,0],extras:[0,3]});
+  K.pointLabel('K1',x1,yP,4.5,'var(--ink-soft)',{dir:[-1,0.6],omit:false,rmin:4.5,rmax:12});
+  K.pointLabel('Radier',x2,yR,3.6,col.R,{dir:[-0.6,-1],omit:false,rmin:4,rmax:12});
+  K.pointLabel('Fondo',x2,yF,3.6,'var(--ink)',{dir:[-1,0.7],omit:false,rmin:4,rmax:12});
+  return K.svg();
 }
 
-/* Diagrama de capas de pavimento: sección transversal esquemática con el paquete
-   estructural y la caída por bombeo hacia ambos bordes.
-   Rótulos sueltos (sin valor pegado): Cras/i/d/e1/e2/e3 ya los escribe el usuario en el
-   formulario, y las tres cotas (eje, borde izquierdo, borde derecho) ya se muestran en el
-   panel de resultados. "Eje — <capa>" identifica el punto calculado en el eje (usa accent,
-   el mismo énfasis que su fila "Cota en el eje" en el panel, ya que el punto en sí es la
-   magnitud principal calculada); "Izq"/"Der" identifican los puntos de borde (blueprint,
-   magnitud secundaria — misma cota entre sí por tratarse de un bombeo simétrico). Las líneas
-   de capa (Carpeta/Base/Subbase) y la rasante se mantienen en tono neutro: son solo referencia
-   estructural de entrada, no magnitudes calculadas.
-   Nota de geometría: todas las posiciones de este diagrama son fijas (esquemático, no a
-   escala) y dependen solo de qué capa se seleccione (Base/Subbase/Subrasante) — ningún valor
-   numérico ingresado cambia el layout, así que basta con probar las 3 selecciones de capa.
-   Hallazgos de esta pasada (no pedidos, ya existían en producción, nunca verificados
-   programáticamente para este diagrama):
-   (1) el rótulo de la línea de capa que coincide con la capa seleccionada (ej. "Carpeta"
-   cuando se calcula la cota de Base, ya que esa cota cae justo en el límite inferior de la
-   Carpeta) quedaba pegado al círculo del punto "Eje" que cae justo sobre esa misma línea —
-   se corrigió separando el rótulo 9px más a la derecha del eje (mismo criterio ya usado en
-   Plantillado de Zanja para el mismo tipo de choque texto-círculo).
-   (2) la línea guía vertical punteada hacia el rótulo "Eje" pasaba exactamente por debajo del
-   rótulo "Rasante" (ambos centrados en el eje, x idéntica) — se corrigió anclando "Rasante" al
-   borde izquierdo en vez de centrado, fuera del paso de esa línea guía.
-   (3) con la capa "Subbase" seleccionada, el rótulo "Izq"/"Der" (bajo el punto de borde) caía
-   justo encima de la línea de Subbase (yE3) y quedaba atravesado por ella — se corrigió
-   empujando el rótulo por debajo de esa línea cuando la posición natural cae demasiado cerca. */
+/* Diagrama de Capas de Pavimento — v2 (estándar de plantillas de Mario): sección transversal simétrica esquemática (no a escala) con la
+   rasante y las líneas de Carpeta, Base y Subbase. El punto del eje en la capa elegida (accent: resultado principal) y las líneas que caen
+   por bombeo hasta los bordes Izq/Der (blueprint); la caída c (success) y la distancia d (ink) se acotan en el borde, y los espesores e1, e2,
+   e3 (ink-soft) a la izquierda. En el dibujo solo el carácter; los valores van en el listado. */
 function svgCapasPavimento(Cras,i,d,e1,e2,e3,capa,r){
-  const w=300, h=180, pad=26;
-  const xEje=w/2, xR=w-pad, xL=pad;
-  const yRas=34, yE1=52, yE2=72, yE3=96;
-  const font=relFont(w,0.028,7,9);
-  const smallFont=relFont(w,0.024,6,7.5);
-  const capaY = capa===1?yE3 : capa===2?yE2 : yE1;
-  const capaLabel = capa===1?'Subrasante' : capa===2?'Subbase' : 'Base';
-  const dropPx=14;
-  const lblX=xEje+9;
-  const borderY=capaY+dropPx;
-  let borderLabelY=borderY+16;
-  if(Math.abs(borderLabelY-yE3)<12) borderLabelY=yE3+18;
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${xL}" y1="${yRas}" x2="${xR}" y2="${yRas}" stroke="var(--ink-soft)" stroke-width="1.4"/>
-    <text x="${xL}" y="${yRas-8}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Rasante</text>
-    <line x1="${xL}" y1="${yE1}" x2="${xR}" y2="${yE1}" stroke="var(--line)" stroke-width="1"/>
-    <text x="${lblX}" y="${(yE1-3).toFixed(1)}" font-size="${smallFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Carpeta</text>
-    <line x1="${xL}" y1="${yE2}" x2="${xR}" y2="${yE2}" stroke="var(--line)" stroke-width="1"/>
-    <text x="${lblX}" y="${(yE2-3).toFixed(1)}" font-size="${smallFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Base</text>
-    <line x1="${xL}" y1="${yE3}" x2="${xR}" y2="${yE3}" stroke="var(--line)" stroke-width="1"/>
-    <text x="${lblX}" y="${(yE3-3).toFixed(1)}" font-size="${smallFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="start">Subbase</text>
-    <line x1="${xEje}" y1="20" x2="${xEje}" y2="${capaY}" stroke="var(--accent)" stroke-width="0.8" stroke-dasharray="2 2"/>
-    <circle cx="${xEje}" cy="${capaY}" r="3.4" fill="var(--accent)"/>
-    <text x="${xEje}" y="14" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Eje — ${capaLabel}</text>
-    <line x1="${xEje}" y1="${capaY}" x2="${xL}" y2="${borderY.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.8"/>
-    <line x1="${xEje}" y1="${capaY}" x2="${xR}" y2="${borderY.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.8"/>
-    <circle cx="${xL}" cy="${borderY.toFixed(1)}" r="3" fill="var(--blueprint)"/>
-    <circle cx="${xR}" cy="${borderY.toFixed(1)}" r="3" fill="var(--blueprint)"/>
-    <text x="${xL}" y="${borderLabelY.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="start">Izq</text>
-    <text x="${xR}" y="${borderLabelY.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="end">Der</text>
-    <text x="${xEje}" y="${(h-6).toFixed(1)}" font-size="${smallFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(sección simétrica, esquemática)</text>
-  </svg>`;
+  const K=svgKit(), col={E:'var(--accent)',B:'var(--blueprint)',c:'var(--success)',d:'var(--ink)',e:'var(--ink-soft)'};
+  K.list([[{k:'Eje',c:col.E,v:`${fmtNum(r.CejeCapa,3)} m`},{k:'Izq',c:col.B,v:`${fmtNum(r.CbordeIzq,3)} m`},{k:'Der',c:col.B,v:`${fmtNum(r.CbordeDer,3)} m`},{k:'c',c:col.c,v:`${fmtNum(r.drop,4)} m`},{k:'i',c:col.B,v:`${fmtNum(i,2)} %`}],
+    [{k:'Cras',c:col.e,v:`${fmtNum(Cras,3)} m`},{k:'d',c:col.d,v:`${fmtNum(d,2)} m`},{k:'e1',c:col.e,v:`${fmtNum(e1,2)} m`},{k:'e2',c:col.e,v:`${fmtNum(e2,2)} m`},{k:'e3',c:col.e,v:`${fmtNum(e3,2)} m`}]],{perCol:5});
+  const xEje=170, xL=60, xR=280, yRas=56, yE1=74, yE2=96, yE3=122, capaY=capa===1?yE3:capa===2?yE2:yE1, dropPx=14, yB=capaY+dropPx;
+  const layer=(y,c,sw)=>K.line(xL-14,y,xR+8,y,c,{sw:sw||0.6,noObs:false});
+  layer(yRas,'var(--ink-soft)',1.2); layer(yE1,'var(--line-strong)'); layer(yE2,'var(--line-strong)'); layer(yE3,'var(--line-strong)');
+  // espesores a la izquierda
+  const ex=xL-26; [[yRas,yE1,'e1'],[yE1,yE2,'e2'],[yE2,yE3,'e3']].forEach(([a,b,t])=>{ K.line(ex,a,ex,b,col.e,{sw:0.8}); [a,b].forEach(y=>K.line(ex-2,y,ex+2,y,col.e,{sw:0.7,noObs:false})); K.lineLabel(ex,a,ex,b,t,3.6,col.e,{out:[-1,0],extras:[0,3]}); });
+  // eje, líneas con bombeo y bordes
+  K.line(xEje,yRas-10,xEje,capaY,col.E,{sw:0.7,dash:'2 2',noObs:false});
+  K.line(xEje,capaY,xL,yB,col.B,{sw:1.5}); K.line(xEje,capaY,xR,yB,col.B,{sw:1.5});
+  K.dot(xEje,capaY,col.E,2.6); K.dot(xL,yB,col.B,2.2); K.dot(xR,yB,col.B,2.2);
+  // caída c (en el borde derecho) y distancia d (abajo)
+  const cx=xR+12; K.line(cx,capaY,cx,yB,col.c,{sw:1}); [capaY,yB].forEach(y=>K.line(cx-2,y,cx+2,y,col.c,{sw:0.8,noObs:false})); K.line(xR,capaY,cx+2,capaY,'var(--ink-soft)',{sw:0.5,dash:'1.4 1.6',noObs:false});
+  const yd=yB+22; K.line(xEje,yd,xR,yd,col.d,{sw:0.9}); [xEje,xR].forEach(x=>K.line(x,yd-2.5,x,yd+2.5,col.d,{sw:0.8,noObs:false})); K.line(xR,yB+3,xR,yd,'var(--ink-soft)',{sw:0.5,dash:'1.4 1.6',noObs:false}); K.line(xEje,capaY+3,xEje,yd,'var(--ink-soft)',{sw:0.5,dash:'1.4 1.6',noObs:false});
+  K.lineLabel(xEje,yd,xR,yd,'d',4.5,col.d,{out:[0,1],extras:[0,3]});
+  K.pointLabel('c',cx,(capaY+yB)/2,4.5,col.c,{dir:[1,0],omit:false,rmin:3,rmax:9});
+  K.pointLabel('Eje',xEje,capaY,4.5,col.E,{dir:[0.2,-1],omit:false,rmin:4,rmax:12});
+  K.pointLabel('Izq',xL,yB,4.5,col.B,{dir:[-0.3,1],omit:false,rmin:4,rmax:12});
+  K.pointLabel('Der',xR,yB,4.5,col.B,{dir:[-0.3,1],omit:false,rmin:4,rmax:12});
+  K.pointLabel('Rasante',xL-12,yRas,3.6,'var(--ink-soft)',{dir:[0.6,-1],omit:false,rmin:3,rmax:10});
+  [[yE1,'Carpeta'],[yE2,'Base'],[yE3,'Subbase']].forEach(([y,t])=>K.pointLabel(t,xR-14,y,3.2,'var(--ink-soft)',{dir:[0,-1],rmin:2.5,rmax:8}));
+  return K.svg();
 }
 
 /* Diagrama de Progresiva y Offset desde un Eje — v2 (estándar de plantillas de Mario): eje P1–P2 a escala (blueprint, con prolongaciones
@@ -7283,90 +7191,35 @@ function calcDisenoEscalera(H, Cp, P, A, maxPorTramo, fondoDescanso){
   return {n, CpReal, blondelCm, blondelEstado, pasoSugerido, tramos, contrahuellasPorTramo, huellasPorTramo, horizPorTramo, numDescansos, longHorizontalTotal, huellasTotal};
 }
 
+/* Diagrama de Diseño y Trazado de Escalera — v2 (estándar de plantillas de Mario): perfil esquemático (no a escala; se dibujan como máximo 6
+   peldaños por tramo) con tramos y descansos. En el dibujo solo el carácter: Cp (contrahuella real, blueprint) y P (huella, danger) en el
+   primer peldaño, H (altura total, success) a la izquierda, L (longitud horizontal total en planta, accent: resultado principal) al pie, y
+   T(i)/Dc sobre cada tramo y descanso. Los valores van en el listado. */
 function svgDisenoEscalera(r, P, fondoDescanso){
-  const w=340, h=200, pad=28;
-  const font = relFont(w,0.026,6.5,8.5);
-  const maxDisplaySteps = 6;
-  const rows = [];
-  r.contrahuellasPorTramo.forEach((c,i)=>{
-    const shown = Math.min(c, maxDisplaySteps);
-    for(let k=0;k<shown;k++) rows.push({type:'step', seg:'t'+i});
-    if(i < r.contrahuellasPorTramo.length-1) rows.push({type:'landing', seg:'d'+i});
-  });
-  const stepRows = rows.filter(x=>x.type==='step').length;
-  const landingRows = rows.filter(x=>x.type==='landing').length;
-  const availW = w - 2*pad;
-  const unit = availW / Math.max(stepRows + landingRows*1.4, 1);
-  const tw = unit, lw = unit*1.4;
-  const bottomReserve = 26, topReserve = 14;
-  const rh = (h - pad - bottomReserve - topReserve) / Math.max(stepRows,1);
-  const baseline = h - pad - bottomReserve;
-
-  let x = pad, y = baseline;
-  let outline = [{x,y}];
-  let firstStep = null;
-  const segRanges = {};
-  rows.forEach(seg=>{
-    const segId = seg.seg;
-    if(!segRanges[segId]) segRanges[segId] = {x0:x, y:y, isLanding: seg.type==='landing'};
-    if(seg.type==='step'){
-      const y0=y;
-      y -= rh;
-      outline.push({x,y});
-      const x0=x;
-      x += tw;
-      outline.push({x,y});
-      if(!firstStep) firstStep = {x0, y0, x1:x, y1:y};
-    } else {
-      x += lw;
-      outline.push({x,y});
-    }
-    segRanges[segId].x1 = x;
-  });
-  const topX = x, topY = y;
-
-  const pathPts = outline.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L');
-  const fillPath = `M${pad},${baseline} L${pathPts} L${topX.toFixed(1)},${baseline} Z`;
-
-  const dimY = baseline + 12;
-  let dimTicks = '';
-  Object.keys(segRanges).forEach(segId=>{
-    const seg = segRanges[segId];
-    const mid = (seg.x0+seg.x1)/2;
-    const idx = parseInt(segId.slice(1),10);
-    const label = seg.isLanding ? fmtNum(fondoDescanso,2) : fmtNum(r.horizPorTramo[idx],2);
-    dimTicks += `<line x1="${seg.x0.toFixed(1)}" y1="${(dimY-3).toFixed(1)}" x2="${seg.x0.toFixed(1)}" y2="${(dimY+3).toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>`;
-    dimTicks += `<text x="${mid.toFixed(1)}" y="${(dimY+11).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">${label}</text>`;
-    if(seg.isLanding){
-      dimTicks += `<text x="${mid.toFixed(1)}" y="${(seg.y-6).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Descanso</text>`;
-    }
-  });
-  dimTicks += `<line x1="${topX.toFixed(1)}" y1="${(dimY-3).toFixed(1)}" x2="${topX.toFixed(1)}" y2="${(dimY+3).toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>`;
-  const dimLine = `<line x1="${pad}" y1="${dimY.toFixed(1)}" x2="${topX.toFixed(1)}" y2="${dimY.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>`;
-
-  const hDimX = pad - 12;
-  const hMidY = (baseline+topY)/2;
-  const hDim = `<line x1="${hDimX.toFixed(1)}" y1="${baseline.toFixed(1)}" x2="${hDimX.toFixed(1)}" y2="${topY.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>
-    <line x1="${(hDimX-3).toFixed(1)}" y1="${baseline.toFixed(1)}" x2="${(hDimX+3).toFixed(1)}" y2="${baseline.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>
-    <line x1="${(hDimX-3).toFixed(1)}" y1="${topY.toFixed(1)}" x2="${(hDimX+3).toFixed(1)}" y2="${topY.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>
-    <text x="${(hDimX-4).toFixed(1)}" y="${hMidY.toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="end" transform="rotate(-90 ${(hDimX-4).toFixed(1)} ${hMidY.toFixed(1)})">H = ${fmtNum(r.n*r.CpReal,2)} m</text>`;
-
-  let dims = '';
-  if(firstStep){
-    dims += svgLineLabel(firstStep.x0, firstStep.y0, firstStep.x0, firstStep.y1, 'Cp', 'var(--blueprint)', font, -1);
-    dims += svgLineLabel(firstStep.x0, firstStep.y1, firstStep.x1, firstStep.y1, 'P', 'var(--blueprint)', font, -1);
-  }
-  const truncated = r.contrahuellasPorTramo.some(c=>c>maxDisplaySteps);
-  const note = truncated ? `<text x="${w/2}" y="${h-4}" font-size="${relFont(w,0.022,6,7)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(esquemático — ver tabla para el detalle real de peldaños)</text>` : '';
-
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <path d="${fillPath}" fill="var(--ink)" fill-opacity=".08" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
-    ${dimLine}
-    ${dimTicks}
-    ${hDim}
-    ${dims}
-    ${note}
-  </svg>`;
+  const K=svgKit(), nt=r.contrahuellasPorTramo.length, col={Cp:'var(--blueprint)',P:'var(--danger)',H:'var(--success)',L:'var(--accent)',T:'var(--ink-soft)'};
+  const rows=[{k:'L',c:col.L,v:`${fmtNum(r.longHorizontalTotal,2)} m`},{k:'H',c:col.H,v:`${fmtNum(r.n*r.CpReal,2)} m`},{k:'N',c:'var(--ink)',v:`${r.n}`},{k:'Cp',c:col.Cp,v:`${fmtNum(r.CpReal,3)} m`},{k:'P',c:col.P,v:`${fmtNum(P,3)} m`}];
+  if(nt>1){ rows.push({k:'Dc',c:col.T,v:`${fmtNum(fondoDescanso,2)} m`}); r.horizPorTramo.forEach((h,i)=>rows.push({k:'T'+(i+1),c:col.T,v:`${fmtNum(h,2)} m`})); }
+  K.list([rows],{perCol:4});
+  const maxShow=6, seq=[]; r.contrahuellasPorTramo.forEach((c,i)=>{ for(let k=0;k<Math.min(c,maxShow);k++) seq.push({t:'s',seg:i}); if(i<nt-1) seq.push({t:'d',seg:i}); });
+  const ns=seq.filter(q=>q.t==='s').length, nd=seq.filter(q=>q.t==='d').length, x0=44, availW=262, unit=availW/Math.max(ns+nd*1.4,1), lw=unit*1.4;
+  const top=Math.max(K.listBottom+12,46), base=nt>1?144:150, rh=Math.min((base-top-4)/Math.max(ns,1),16);
+  let x=x0, y=base, first={}; const pts=[[x,y]], segs={};
+  seq.forEach(q=>{ const id=q.t+q.seg; if(!segs[id]) segs[id]={x0:x,y,t:q.t,seg:q.seg};
+    if(q.t==='s'){ const ya=y; y-=rh; pts.push([x,y]); const xa=x; x+=unit; pts.push([x,y]); if(!first.x0&&first.x0!==0) first={x0:xa,y0:ya,x1:x,y1:y}; } else { x+=lw; pts.push([x,y]); }
+    segs[id].x1=x; });
+  const xt=x, yt=y;
+  K.poly([[x0,base],...pts,[xt,base]],{close:true,fill:'var(--ink)',fo:0.08,stroke:'var(--ink)',sw:1.3});
+  // tramos y descansos
+  const yd=base+9; if(nt>1){ K.line(x0,yd,xt,yd,col.T,{sw:0.7}); Object.values(segs).forEach(s=>{ K.line(s.x0,yd-2,s.x0,yd+2,col.T,{sw:0.7,noObs:false}); K.lineLabel(s.x0,yd,s.x1,yd,s.t==='s'?'T'+(s.seg+1):'Dc',3.6,col.T,{out:[0,1],extras:[0,2]}); }); K.line(xt,yd-2,xt,yd+2,col.T,{sw:0.7,noObs:false}); }
+  // L total
+  const yl=base+(nt>1?22:12); K.line(x0,yl,xt,yl,col.L,{sw:1}); [x0,xt].forEach(v=>K.line(v,yl-2.5,v,yl+2.5,col.L,{sw:0.9,noObs:false})); K.lineLabel(x0,yl,xt,yl,'L',4.5,col.L,{out:[0,1],extras:[0,3]});
+  // H total
+  const hx=x0-14; K.line(hx,base,hx,yt,col.H,{sw:1}); [base,yt].forEach(v=>K.line(hx-2.5,v,hx+2.5,v,col.H,{sw:0.9,noObs:false})); K.lineLabel(hx,base,hx,yt,'H',4.5,col.H,{out:[-1,0],extras:[0,3]});
+  // Cp y P del primer peldaño
+  K.lineLabel(first.x0,first.y0,first.x0,first.y1,'Cp',3.6,col.Cp,{out:[-1,0],extras:[0,2,4]});
+  K.lineLabel(first.x0,first.y1,first.x1,first.y1,'P',3.6,col.P,{out:[0,-1],extras:[0,2,4]});
+  if(r.contrahuellasPorTramo.some(c=>c>maxShow)) K.add(`<text x="160" y="187" ${K.FONT} font-size="3.6" fill="var(--ink-soft)" text-anchor="middle">(esquemático — ver tabla para el detalle real de peldaños)</text>\n`);
+  return K.svg();
 }
 
 function renderDisenoEscalera(){
