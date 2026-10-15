@@ -1925,11 +1925,18 @@ window.PORTICOS_LISTA = (function(){
       });
     }
     function exportA3(fmt, btn){
-      var boardEl = root.querySelector(".board");
-      if(!boardEl || boardEl.getBoundingClientRect().width < 200){
-        alert("Para exportar, abre la pizarra en una pantalla ancha (computador o tablet horizontal)."); return;
+      var boardEl = root.querySelector(".board"), scrollEl = root.querySelector(".board-scroll"), tmpStl = null;
+      if(!boardEl || !scrollEl){ alert("No se encontró la pizarra para exportar."); return; }
+      /* En el celular la pizarra de escritorio está oculta: se muestra fuera de pantalla, solo mientras se lee */
+      if(boardEl.getBoundingClientRect().width < 200){
+        scrollEl.setAttribute("data-exp", "1");
+        tmpStl = document.createElement("style");
+        tmpStl.textContent = '.pizarra-block .board-scroll[data-exp="1"]{ display:block !important; position:fixed !important; left:-30000px !important; top:0 !important; width:1750px !important; height:auto !important; overflow:visible !important; padding:0 !important; visibility:visible !important; } .pizarra-block .board-scroll[data-exp="1"] .corner, .pizarra-block .board-scroll[data-exp="1"] .month-head, .pizarra-block .board-scroll[data-exp="1"] .week-head, .pizarra-block .board-scroll[data-exp="1"] .row-label{ position:static !important; left:auto !important; top:auto !important; }';
+        document.head.appendChild(tmpStl);
       }
-      var rb0 = boardEl.getBoundingClientRect(), landscape = rb0.width / rb0.height > 1.05; /* horizontal solo si la pizarra es más ancha que alta */
+      var quitarTmp = function(){ scrollEl.removeAttribute("data-exp"); if(tmpStl && tmpStl.parentNode) tmpStl.parentNode.removeChild(tmpStl); tmpStl = null; };
+      if(boardEl.getBoundingClientRect().width < 200){ quitarTmp(); alert("No se pudo preparar la pizarra para exportar."); return; }
+      var rb0 = boardEl.getBoundingClientRect(), landscape = !cfg.weekly && rb0.width / rb0.height > 1.25; /* A3 vertical; horizontal solo en la Intermedio si es muy ancha */
       var PW = landscape ? 420 : 297, PH = landscape ? 297 : 420, K = 200 / 25.4;
       var MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
       var TONOS = { copper:"#D49A6A", neutral:"#8C949E", blueprint:"#2C6B7E", amber:"#D6A828", success:"#26694B", violet:"#7A52AA", sky:"#3F8FC4", danger:"#B23B3B" };
@@ -1937,7 +1944,7 @@ window.PORTICOS_LISTA = (function(){
       var MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
       var NAVY = "#0A2240", MUTE = "rgba(10,34,64,.65)";
       var txtBtn = btn ? btn.textContent : ""; if(btn){ btn.disabled = true; btn.textContent = "Generando…"; }
-      function fin(){ if(btn){ btn.disabled = false; btn.textContent = txtBtn; } }
+      function fin(){ quitarTmp(); if(btn){ btn.disabled = false; btn.textContent = txtBtn; } }
       var listo = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
       listo.then(function(){
         /* 1) Leer la pizarra tal como se ve (siempre en tema claro, para imprimir) */
@@ -2018,6 +2025,7 @@ window.PORTICOS_LISTA = (function(){
         } finally {
           if(tPrev === null) de.removeAttribute("data-theme"); else de.setAttribute("data-theme", tPrev);
           if(stl.parentNode) stl.parentNode.removeChild(stl);
+          quitarTmp();
         }
         /* 2) Datos del mini informe */
         var total = 0, ejec = 0, restr = 0, ports = {}, coms = {}, porPart = [];
@@ -2102,7 +2110,7 @@ window.PORTICOS_LISTA = (function(){
         });
         g.restore();
         /* pie */
-        var yb = y0 + BH * sc, hoy = new Date();
+        var yb = PH - 14, hoy = new Date(); /* pie siempre al fondo de la hoja */
         g.fillStyle = "rgba(10,34,64,.3)"; g.fillRect(x0 * K, (yb + 3) * K, W * K, 0.25 * K);
         var fh = String(hoy.getDate()).padStart(2, "0") + "-" + String(hoy.getMonth() + 1).padStart(2, "0") + "-" + hoy.getFullYear();
         tx("Fuente: app Pórticos (GeoMAV) · exportado el " + fh + " · A3 " + (landscape ? "horizontal 420 × 297" : "vertical 297 × 420") + " mm · imprimir al 100 %", x0, yb + 7, 2.6, 400, FUENTE, MUTE);
