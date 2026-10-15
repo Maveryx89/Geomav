@@ -3998,7 +3998,7 @@ function renderPoligonal(){
   document.getElementById('btnPol').addEventListener('click', calcularPoligonalUI);
 }
 
-const POL_LABELS = "ABCDEFGHIJKLMNOP".split('');
+const POL_LABELS = "ABCDEFGHIJKLMNOPQRST".split('');
 const POL_EXAMPLE = [
   [74,34,20,166.2],[148,0,40,171.4],[127,27,40,160.7],[49,8,10,162.6],
   [231,52,30,113.7],[120,20,20,117.2],[108,37,30,45],[219,59,10,70.3]
@@ -4204,6 +4204,162 @@ function svgPoligonalCerrada(coordE, coordN){
     out += `<rect x="${f(10.026+oxl)}" y="${f(by-3.457)}" width="3.457" height="3.457" fill="${r.c}"/>\n`;
     out += `<text x="${f(15.211+oxl)}" y="${f(by)}" ${FONT} font-size="4.32"><tspan fill="${r.c}">${r.k}</tspan><tspan fill="var(--ink)"> = ${r.v}</tspan></text>\n`;
   });
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">\n${out}</svg>`;
+}
+
+/* Diagrama de Área por Coordenadas — v2.
+   Basado en la plantilla de Illustrator de Mario (plantilla_area_coordenadas_mv.svg): mesa 320×190, contorno y relleno accent
+   (el área es el resultado principal), arcos de ángulo interior en success con su valor sobre la bisectriz, lados en blueprint
+   con su valor por fuera, vértices neutros con su letra, área al centro, norte arriba a la derecha y listado
+   (valor pegado al descriptor) arriba a la izquierda: Área, Perímetro y lados en un bloque; ángulos interiores en otro.
+   Con más de 8 vértices, el dibujo lleva solo el valor (sin nombre). Si un rótulo no tiene lugar libre, se omite del dibujo
+   (su valor sigue en el listado). */
+function svgAreaCoordenadas(pts){
+  const W=320, H=190;
+  const f = v => v.toFixed(2).replace(/\.?0+$/,'');
+  const FONT = 'font-family="var(--font-body)" font-weight="700"';
+  const FS_LADO = 2, FS_ANG = 1.5;                       // tamaños de la plantilla de Mario
+  const eng = svgLblEngine(W,H);
+  const n = pts.length;
+  const name = i => POL_LABELS[i];
+  const sideName = i => POL_LABELS[i] + POL_LABELS[(i+1)%n];
+  const corto = n > 8;
+
+  // ---- cálculo: lados, perímetro, área e ángulos interiores (según el sentido real del polígono) ----
+  const dist = pts.map((p,i)=>{ const q=pts[(i+1)%n]; return Math.hypot(q.e-p.e, q.n-p.n); });
+  const perim = dist.reduce((a,b)=>a+b,0);
+  let a2=0; for(let i=0;i<n;i++){ const p=pts[i], q=pts[(i+1)%n]; a2 += p.e*q.n - q.e*p.n; }
+  const areaM2 = Math.abs(a2)/2, areaHa = areaM2/10000, sg = a2>=0 ? 1 : -1;
+  const angInt = pts.map((p,i)=>{
+    const a=pts[(i+n-1)%n], b=pts[(i+1)%n];
+    const vn=[b.e-p.e, b.n-p.n], vp=[a.e-p.e, a.n-p.n];
+    let t=Math.atan2(sg*(vn[0]*vp[1]-vn[1]*vp[0]), vn[0]*vp[0]+vn[1]*vp[1]); if(t<0) t+=2*Math.PI;
+    return t*180/Math.PI;
+  });
+  const dTxt = i => `${fmtNum(dist[i],2)} m`;
+  const aTxt = i => fmtAngle(angInt[i]);
+
+  // ---- listado: bloque 1 (Área, Perímetro, lados) y bloque 2 (ángulos), columnas de PER_COL filas ----
+  const blk1 = [{k:'Área',c:'var(--accent)',v:`${fmtNum(areaHa,4)} ha`},{k:'Área',c:'var(--accent)',v:`${fmtNum(areaM2,2)} m²`},{k:'Perímetro',c:'var(--ink)',v:`${fmtNum(perim,2)} m`, solo:true}];
+  for(let i=0;i<n;i++) blk1.push({k:sideName(i), c:'var(--blueprint)', v:dTxt(i)});
+  const blk2 = []; for(let i=0;i<n;i++) blk2.push({k:name(i), c:'var(--success)', v:aTxt(i)});
+  const ROW_Y0=12.521, ROW_DY=5.761, LIM=286;
+  const rowW = r => eng.tw(`${r.k} = ${r.v}`,4.32);
+  let PER_COL=10, cols;
+  const layout = pc => {
+    const out=[]; let x=10.026;
+    [blk1,blk2].forEach(b=>{
+      for(let s=0;s<b.length;s+=pc){
+        const rows=b.slice(s,s+pc), w=Math.max(...rows.map(rowW));
+        out.push({x, rows, w}); x = Math.max(x+70, x+5.185+w+10);
+      }
+      // el bloque 2 empieza en columna nueva; (el avance ya está hecho)
+    });
+    return out;
+  };
+  for(; PER_COL<=24; PER_COL++){ cols=layout(PER_COL); const last=cols[cols.length-1]; if(last.x+5.185+last.w <= LIM) break; }
+  const listRight = Math.max(...cols.map(c=>c.x+5.185+c.w))+1;
+  const listBottom = ROW_Y0 + (Math.min(Math.max(blk1.length,blk2.length),PER_COL)-1)*ROW_DY + 1;
+  eng.rectFill(8.5, 6.5, listRight, listBottom+0.5);
+  eng.rectFill(292, 3, 308, 38);                                  // flecha norte
+
+  // ---- polígono a escala ----
+  const top=Math.max(50, listBottom+(n>8?12:7)), bot=168, left=75, right=265;
+  const minE=Math.min(...pts.map(p=>p.e)), maxE=Math.max(...pts.map(p=>p.e));
+  const minN=Math.min(...pts.map(p=>p.n)), maxN=Math.max(...pts.map(p=>p.n));
+  const spanE=Math.max(maxE-minE,0.001), spanN=Math.max(maxN-minN,0.001);
+  const sc=Math.min((right-left)/spanE,(bot-top)/spanN);
+  const ox=(left+right)/2-(spanE*sc)/2, oy=(top+bot)/2+(spanN*sc)/2;
+  const V = pts.map(p=>({x:ox+(p.e-minE)*sc, y:oy-(p.n-minN)*sc}));
+  const s2 = V.reduce((s,p,i)=>{ const q=V[(i+1)%n]; return s+p.x*q.y-q.x*p.y; },0);
+
+  let out='';
+  out += `<path d="M${V.map(p=>f(p.x)+' '+f(p.y)).join(' L')} Z" fill="var(--accent)" fill-opacity="0.14" stroke="none"/>\n`;
+  out += `<path d="M${V.map(p=>f(p.x)+' '+f(p.y)).join(' L')} Z" fill="none" stroke="var(--accent)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+  V.forEach((p,i)=>{ const q=V[(i+1)%n]; eng.seg(p.x,p.y,q.x,q.y); });
+
+  // arcos de ángulo interior (success) — se registran como obstáculos
+  const sgS = s2>=0 ? 1 : -1, bis=[];
+  V.forEach((p,i)=>{
+    const a=V[(i+n-1)%n], b=V[(i+1)%n];
+    const ln=Math.hypot(b.x-p.x,b.y-p.y)||1, lp=Math.hypot(a.x-p.x,a.y-p.y)||1;
+    const vn=[(b.x-p.x)/ln,(b.y-p.y)/ln], vp=[(a.x-p.x)/lp,(a.y-p.y)/lp];
+    let t=Math.atan2(sgS*(vn[0]*vp[1]-vn[1]*vp[0]), vn[0]*vp[0]+vn[1]*vp[1]); if(t<0) t+=2*Math.PI;
+    const r=Math.max(2.5, Math.min(7, 0.4*Math.min(ln,lp)));
+    const sw = sgS>0 ? 1 : 0, large = t>Math.PI ? 1 : 0;
+    out += `<path d="M${f(p.x+vn[0]*r)} ${f(p.y+vn[1]*r)} A${f(r)} ${f(r)} 0 ${large} ${sw} ${f(p.x+vp[0]*r)} ${f(p.y+vp[1]*r)}" fill="none" stroke="var(--success)" stroke-width="0.8" stroke-linecap="round"/>\n`;
+    for(let k=0;k<=12;k++){ const th=sgS*t*k/12, c=Math.cos(th), s=Math.sin(th); eng.pts.push([p.x+r*(vn[0]*c-vn[1]*s), p.y+r*(vn[0]*s+vn[1]*c)]); }
+    const th=sgS*t/2, c=Math.cos(th), s=Math.sin(th);
+    bis.push({u:[vn[0]*c-vn[1]*s, vn[0]*s+vn[1]*c], r});
+  });
+  V.forEach(p=>{ out += `<circle cx="${f(p.x)}" cy="${f(p.y)}" r="2" fill="var(--ink-soft)"/>\n`; eng.circle(p.x,p.y,2.3); });
+  // norte
+  out += `<path d="M300 36 L300 14" fill="none" stroke="var(--ink-soft)" stroke-width="0.7" stroke-linecap="round"/>\n`;
+  out += `<path d="M300 10 L298.2 14.5 L301.8 14.5 Z" fill="var(--ink-soft)"/>\n`;
+  out += `<text x="300" y="7.5" ${FONT} font-size="4.5" fill="var(--ink-soft)" text-anchor="middle">N</text>\n`;
+
+  const lab = (t,fs,col,c) => { const q=eng.txtAttrs(c); out += `<text ${q.pos} ${FONT} font-size="${fs}" fill="${col}"${q.an}>${t}</text>\n`; };
+  const omit = (t,fs,cands) => Math.min(...cands.map(q=>eng.count(eng.box(t,fs,q),0.5)))>0;
+  const outN = i => { const p=V[i], q=V[(i+1)%n], dx=q.x-p.x, dy=q.y-p.y, l=Math.hypot(dx,dy)||1; const k=s2>0?1:-1; return [k*dy/l,-k*dx/l]; };
+
+  // ángulos interiores: sobre la bisectriz, leídos a lo largo de ella (a la derecha), pegados al arco
+  for(let i=0;i<n;i++){
+    const t = corto ? aTxt(i) : `${name(i)} = ${aTxt(i)}`, w=eng.tw(t,FS_ANG), u=bis[i].u;
+    let ang=Math.atan2(u[1],u[0])*180/Math.PI; if(ang>90) ang-=180; if(ang<-90) ang+=180;
+    const th=ang*Math.PI/180, up=[Math.sin(th),-Math.cos(th)], cands=[];
+    for(let g=bis[i].r+1.6; g<=bis[i].r+16; g+=1.2){
+      const d=g+w/2, cx=V[i].x+u[0]*d, cy=V[i].y+u[1]*d;
+      cands.push({x:cx-up[0]*0.364*FS_ANG, y:cy-up[1]*0.364*FS_ANG, rot:ang, anchor:'middle', pen:(g-bis[i].r)*0.6});
+    }
+    if(omit(t,FS_ANG,cands)) continue;
+    lab(t,FS_ANG,'var(--success)',eng.pick(t,FS_ANG,cands));
+  }
+  // lados: a lo largo de su línea, por fuera; si no cabe se desliza, se aleja o pasa al interior
+  for(let i=0;i<n;i++){
+    const p=V[i], q=V[(i+1)%n], dx=q.x-p.x, dy=q.y-p.y, len=Math.hypot(dx,dy)||1;
+    let ang=Math.atan2(dy,dx)*180/Math.PI; if(ang>90) ang-=180; if(ang<-90) ang+=180;
+    const th=ang*Math.PI/180, g=[Math.sin(th),-Math.cos(th)], u=[Math.cos(th),Math.sin(th)], no=outN(i);
+    const mx=(p.x+q.x)/2, my=(p.y+q.y)/2;
+    const t = corto ? dTxt(i) : `${sideName(i)} = ${dTxt(i)}`;
+    const tmax=Math.max(0, len/2 - eng.tw(t,FS_LADO)/2 - 3), cands=[];
+    for(let s=0;s<=tmax+1e-6;s+=2) for(const sgn of [1,-1]){ if(s===0&&sgn===-1) continue;
+      [[1,0],[1,2],[1,4],[1,6],[-1,0],[-1,2]].forEach(([side,extra])=>{
+        const nn=[no[0]*side,no[1]*side], d=((g[0]*nn[0]+g[1]*nn[1])>0 ? 0.4 : 1.05)*FS_LADO + extra;
+        cands.push({x:mx+u[0]*s*sgn+nn[0]*d, y:my+u[1]*s*sgn+nn[1]*d, rot:ang, anchor:'middle', pen:s*0.4+(side<0?10:0)+extra*1.2});
+      });
+    }
+    if(omit(t,FS_LADO,cands)) continue;
+    lab(t,FS_LADO,'var(--blueprint)',eng.pick(t,FS_LADO,cands));
+  }
+  // vértices: letra hacia afuera
+  for(let i=0;i<n;i++){
+    const a=outN((i+n-1)%n), b=outN(i); let ux=a[0]+b[0], uy=a[1]+b[1]; const l=Math.hypot(ux,uy)||1; ux/=l; uy/=l;
+    const cands=[];
+    for(let r=4.6; r<=11; r+=1.2) for(let da=-70; da<=70; da+=14){
+      const ca=Math.cos(da*Math.PI/180), sa=Math.sin(da*Math.PI/180), vx=ux*ca-uy*sa, vy=ux*sa+uy*ca;
+      cands.push({x:V[i].x+vx*r, y:V[i].y+vy*r+1.6, anchor:'middle', pen:(r-4.6)*1.5+Math.abs(da)*0.05});
+    }
+    lab(name(i),4.5,'var(--ink-soft)',eng.pick(name(i),4.5,cands));
+  }
+  // área: en el interior, lo más lejos posible de los bordes
+  {
+    const inside=(x,y)=>{ let c=false; for(let i=0,j=n-1;i<n;j=i++){ const a=V[i], b=V[j]; if(((a.y>y)!==(b.y>y)) && (x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)) c=!c; } return c; };
+    const dEdge=(x,y)=>{ let m=1e9; for(let i=0;i<n;i++){ const a=V[i], b=V[(i+1)%n], dx=b.x-a.x, dy=b.y-a.y, l2=dx*dx+dy*dy||1; let t=((x-a.x)*dx+(y-a.y)*dy)/l2; t=Math.max(0,Math.min(1,t)); m=Math.min(m,Math.hypot(x-a.x-t*dx,y-a.y-t*dy)); } return m; };
+    const t=`Área = ${fmtNum(areaHa,4)} ha`, cands=[]; let best=0;
+    const xs=V.map(p=>p.x), ys=V.map(p=>p.y), pp=[];
+    for(let x=Math.min(...xs); x<=Math.max(...xs); x+=2.5) for(let y=Math.min(...ys); y<=Math.max(...ys); y+=2.5) if(inside(x,y)){ const d=dEdge(x,y); pp.push([x,y,d]); best=Math.max(best,d); }
+    pp.forEach(([x,y,d])=>cands.push({x, y:y+1.5, anchor:'middle', pen:(best-d)*0.8}));
+    const tw0=eng.tw(t,4.5), mxx=Math.max(...xs), mnx=Math.min(...xs), my0=(Math.min(...ys)+Math.max(...ys))/2;
+    for(let dy=-40; dy<=40; dy+=6){ cands.push({x:mxx+8+tw0/2, y:my0+dy, anchor:'middle', pen:30+Math.abs(dy)*0.1}); cands.push({x:mnx-8-tw0/2, y:my0+dy, anchor:'middle', pen:30+Math.abs(dy)*0.1}); }
+    if(!cands.length) cands.push({x:(Math.min(...xs)+Math.max(...xs))/2, y:(Math.min(...ys)+Math.max(...ys))/2, anchor:'middle', pen:0});
+    lab(t,4.5,'var(--accent)',eng.pick(t,4.5,cands));
+  }
+  // listado
+  cols.forEach(c=>c.rows.forEach((r,row)=>{
+    const by=ROW_Y0+row*ROW_DY;
+    out += `<rect x="${f(c.x)}" y="${f(by-3.457)}" width="3.457" height="3.457" fill="${r.c}"/>\n`;
+    out += `<text x="${f(c.x+5.185)}" y="${f(by)}" ${FONT} font-size="4.32"><tspan fill="${r.c}">${r.k}</tspan><tspan fill="var(--ink)"> = ${r.v}</tspan></text>\n`;
+  }));
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">\n${out}</svg>`;
 }
 
@@ -6529,7 +6685,7 @@ function renderArea(){
     box.innerHTML = `<div class="results" style="margin-top:14px;">
       <div class="result-row"><span class="k">Área</span><span class="v accent big">${fmtNum(r.areaHa,4)} ha</span></div>
       <div class="result-row"><span class="k">Área</span><span class="v">${fmtNum(r.areaM2,2)} m²</span></div>
-      <div class="plot-wrap">${renderPolygonSVG([...pts.map(p=>p.e),pts[0].e], [...pts.map(p=>p.n),pts[0].n])}</div>
+      <div class="plot-wrap">${svgAreaCoordenadas(pts)}</div>
     </div>`;
     const csvRows = ['nombre,este,norte,cota'];
     pts.forEach((p,i)=> csvRows.push(`${POL_LABELS[i]},${p.e},${p.n},`));
