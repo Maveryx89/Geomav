@@ -2120,72 +2120,203 @@ window.PORTICOS_LISTA = (function(){
     function exportExcel(){
       if(typeof ExcelJS === "undefined"){
         window.LP_cargarExcel().then(exportExcel, function(){
-          alert("No se pudo exportar a Excel: el motor de Excel se descarga desde internet y este equipo no tiene conexi\u00f3n en este momento.\n\nTus datos no se perdieron. Con\u00e9ctate y vuelve a intentar, o usa Imprimir mientras tanto.");
+          alert("No se pudo exportar a Excel: el motor de Excel se descarga desde internet y este equipo no tiene conexión en este momento.\n\nTus datos no se perdieron. Conéctate y vuelve a intentar, o usa Imprimir mientras tanto.");
         });
         return;
       }
-      /* Mismos colores que la pizarra en pantalla: tonos de las notas + fondo de encabezados/categor\u00edas */
+      /* Mismo estilo que el informe A3: titulo, resumen, desglose por partida y pizarra con los colores de pantalla */
       var TONE_ARGB = { copper: "FFF6E8DE", blueprint: "FFEAF0F2", success: "FFE3F1EA", danger: "FFF7E7E5", neutral: "FFEDEBE4", amber: "FFF8EDC6", violet: "FFEDE6F4", sky: "FFE1EEF8" };
-      var HEAD_ARGB = "FFEDEBE4";
-      var INK_ARGB = "FF0A2240";
-      var BORDER_ARGB = "FFE2E4E8";
+      var STRIPE = { copper:"D49A6A", neutral:"8C949E", blueprint:"2C6B7E", amber:"D6A828", success:"26694B", violet:"7A52AA", sky:"3F8FC4", danger:"B23B3B" };
+      var HEAD_ARGB = "FFEDEBE4", INK_ARGB = "FF0A2240", MUTE_ARGB = "FF5B6B80", BORDER_ARGB = "FFD9DCE1", WHITE = "FFFFFFFF";
+      var MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+      var FONT = "Calibri";
       var thin = { style: "thin", color: { argb: BORDER_ARGB } };
       var allBorders = { top: thin, bottom: thin, left: thin, right: thin };
+      var nW = state.weeks.length, nCols = 1 + nW;
 
-      var header = ["Categor\u00eda"].concat(state.weeks.map(function(w){ return w.month + " " + w.label; }));
-      var dataRows = [];
-      var toneGrid = [];
-      state.categories.forEach(function(cat){
-        var row = [cat.name];
-        var toneRow = [null];
-        state.weeks.forEach(function(w){
-          var notesHere = notesIn(cat.id, w.id);
-          var cellLines = notesHere.map(function(n){
-            var tx = textoNota(n), line = n.portico ? etiquetaPortico(n.portico) + (tx ? " \u00b7 " + tx : "") : tx;
-            if(n.responsable) line += " \u2014 " + n.responsable;
-            if(cfg.weekly){
-              if(n.percent !== "" && n.percent !== null && n.percent !== undefined) line += " (" + n.percent + "%)";
-              if(n.cumplido === true) line = "\u2713 " + line;
-              else if(n.cumplido === false) line = "\u2717 " + line;
-            }
-            var rx = restrDe(n); if(rx.length) line += " [\u26a0 " + rx.map(function(x){ return x.t; }).join("; ") + "]";
-            return line;
+      /* Datos del resumen */
+      var total = 0, ejec = 0, restr = 0, ports = {}, coms = {}, porPart = [];
+      var cellNotes = state.categories.map(function(cat){
+        var n = 0;
+        var perWeek = state.weeks.map(function(w){
+          var ns = notesIn(cat.id, w.id);
+          ns.forEach(function(nt){
+            n++; total++;
+            if(nt.cumplido === true) ejec++;
+            if(!cfg.weekly && restrDe(nt).length) restr++;
+            if(nt.portico){ ports[nt.portico] = 1; var cm = String(etiquetaPortico(nt.portico) || "").split(":"); if(cm.length > 1 && cm[0].trim()) coms[cm[0].trim()] = 1; }
           });
-          row.push(cellLines.join("\n"));
-          toneRow.push(notesHere.length ? (TONE_ARGB[notesHere[0].tone] || null) : null);
+          return ns;
         });
-        dataRows.push(row);
-        toneGrid.push(toneRow);
+        porPart.push({ name: cat.name, n: n, hex: STRIPE[toneForCat(cat.id)] || "8C949E" });
+        return perWeek;
       });
+      var nP = Object.keys(ports).length, nC = Object.keys(coms).length;
+      var ini = state.inicio ? parseInputDate(state.inicio) : new Date();
+      var fl = function(d){ return d.getDate() + " de " + MESES[d.getMonth()]; };
+      var titulo, etiqueta;
+      if(cfg.weekly){
+        var fin5 = addDays(ini, 4);
+        titulo = "Semana del " + (ini.getMonth() === fin5.getMonth() ? ini.getDate() : fl(ini)) + " al " + fl(fin5) + " de " + fin5.getFullYear();
+        etiqueta = "PROGRAMACIÓN DE PÓRTICOS DE VIGILANCIA · INFORME SEMANAL";
+      } else {
+        titulo = "Programación intermedia · " + (state.semanas || nW) + " semanas desde el " + fl(ini) + " de " + ini.getFullYear();
+        etiqueta = "PROGRAMACIÓN DE PÓRTICOS DE VIGILANCIA · INFORME INTERMEDIO";
+      }
+      var kpis = cfg.weekly
+        ? [[total, "actividades en la semana"], [ejec, "ejecutadas (" + (total ? Math.round(ejec * 100 / total) : 0) + " %)"], [nP, "pórticos"], [nC, nC === 1 ? "comuna" : "comunas"]]
+        : [[total, "actividades programadas"], [restr, "con restricción abierta"], [nP, "pórticos"], [nC, nC === 1 ? "comuna" : "comunas"]];
+      var hoy = new Date(), fh = String(hoy.getDate()).padStart(2, "0") + "-" + String(hoy.getMonth() + 1).padStart(2, "0") + "-" + hoy.getFullYear();
 
       var wb = new ExcelJS.Workbook();
       var sheetName = (cfg.weekly ? "Semanal" : "Intermedio").slice(0, 31);
-      var ws = wb.addWorksheet(sheetName);
-      ws.columns = [{ width: 26 }].concat(state.weeks.map(function(){ return { width: 34 }; }));
+      var ws = wb.addWorksheet(sheetName, { views: [{ showGridLines: false }] });
+      var wDia = cfg.weekly ? 30 : 22, wCat = 16;
+      ws.columns = [{ width: wCat }].concat(state.weeks.map(function(){ return { width: wDia }; }));
+      var rowN = 0;
+      var merge = function(r, c1, c2){ if(c2 > c1) ws.mergeCells(r, c1, r, c2); };
 
-      var headRow = ws.addRow(header);
-      headRow.height = 26;
-      headRow.eachCell(function(cell){
-        cell.font = { bold: true, color: { argb: INK_ARGB } };
-        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEAD_ARGB } };
-        cell.border = allBorders;
-        cell.alignment = { wrapText: true, vertical: "middle", horizontal: "center" };
+      /* Encabezado */
+      rowN++; ws.getRow(rowN).height = 16; merge(rowN, 1, nCols);
+      ws.getCell(rowN, 1).value = etiqueta; ws.getCell(rowN, 1).font = { name: "Consolas", size: 9, bold: true, color: { argb: MUTE_ARGB } };
+      rowN++; ws.getRow(rowN).height = 34; merge(rowN, 1, nCols);
+      ws.getCell(rowN, 1).value = titulo; ws.getCell(rowN, 1).font = { name: FONT, size: 22, bold: true, color: { argb: INK_ARGB } };
+      ws.getCell(rowN, 1).alignment = { vertical: "middle" };
+      rowN++; ws.getRow(rowN).height = 4;
+      for(var c = 1; c <= nCols; c++) ws.getCell(rowN, c).border = { top: { style: "medium", color: { argb: INK_ARGB } } };
+      rowN++; ws.getRow(rowN).height = 8;
+      /* Cuadros resumen */
+      rowN++; ws.getRow(rowN).height = 36;
+      for(var k = 0; k < 4; k++){
+        var c1 = Math.round(k * nCols / 4) + 1, c2 = Math.round((k + 1) * nCols / 4);
+        if(c2 < c1) continue;
+        merge(rowN, c1, c2);
+        var cell = ws.getCell(rowN, c1);
+        cell.value = { richText: [ { text: String(kpis[k][0]) + "  ", font: { name: FONT, size: 22, bold: true, color: { argb: INK_ARGB } } }, { text: kpis[k][1], font: { name: FONT, size: 11, color: { argb: MUTE_ARGB } } } ] };
+        for(var cc = c1; cc <= c2; cc++){
+          var ce = ws.getCell(rowN, cc);
+          ce.fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEAD_ARGB } };
+          ce.alignment = { vertical: "middle", horizontal: "left", indent: 1 };
+          ce.border = { left: cc === c1 ? { style: "thick", color: { argb: WHITE } } : undefined, right: cc === c2 ? { style: "thick", color: { argb: WHITE } } : undefined };
+        }
+      }
+      rowN++; ws.getRow(rowN).height = 8;
+      /* Por partida */
+      rowN++; ws.getRow(rowN).height = 20; merge(rowN, 1, nCols);
+      var leg = [{ text: "Por partida:   ", font: { name: FONT, size: 11, bold: true, color: { argb: INK_ARGB } } }];
+      porPart.forEach(function(pp){
+        if(!pp.n) return;
+        leg.push({ text: "■ ", font: { name: FONT, size: 12, color: { argb: "FF" + pp.hex } } });
+        leg.push({ text: pp.name + " " + pp.n + "      ", font: { name: FONT, size: 11, color: { argb: INK_ARGB } } });
       });
+      ws.getCell(rowN, 1).value = { richText: leg }; ws.getCell(rowN, 1).alignment = { vertical: "middle" };
+      rowN++; ws.getRow(rowN).height = 10;
 
-      dataRows.forEach(function(row, ri){
-        var r = ws.addRow(row);
-        r.height = 70;
-        r.eachCell({ includeEmpty: true }, function(cell, colNumber){
-          var isCat = (colNumber === 1);
-          cell.border = allBorders;
-          cell.alignment = { wrapText: true, vertical: "top", horizontal: "left" };
-          cell.font = { bold: isCat, color: { argb: INK_ARGB } };
-          var fillColor = isCat ? HEAD_ARGB : toneGrid[ri][colNumber - 1];
-          if(fillColor) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: fillColor } };
+      /* Pizarra: fila de meses + fila de dias */
+      var rMes = ++rowN, rDia = ++rowN;
+      ws.getRow(rMes).height = 16; ws.getRow(rDia).height = 26;
+      ws.getCell(rMes, 1).fill = ws.getCell(rDia, 1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEAD_ARGB } };
+      ws.getCell(rMes, 1).border = { top: thin, left: thin }; ws.getCell(rDia, 1).border = { left: thin, bottom: thin };
+      var i0 = 0;
+      while(i0 < nW){
+        var mes = String(state.weeks[i0].month || ""), i1 = i0;
+        while(i1 + 1 < nW && String(state.weeks[i1 + 1].month || "") === mes) i1++;
+        merge(rMes, i0 + 2, i1 + 2);
+        var cm0 = ws.getCell(rMes, i0 + 2); cm0.value = mes.toUpperCase();
+        for(var q = i0; q <= i1; q++){
+          var cq = ws.getCell(rMes, q + 2);
+          cq.fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEAD_ARGB } };
+          cq.font = { name: "Consolas", size: 9, bold: true, color: { argb: MUTE_ARGB } };
+          cq.alignment = { vertical: "middle", horizontal: "left", indent: 1 };
+          cq.border = { top: thin };
+        }
+        i0 = i1 + 1;
+      }
+      state.weeks.forEach(function(w, i){
+        var ch = ws.getCell(rDia, i + 2); ch.value = String(w.label);
+        ch.font = { name: FONT, size: 12, bold: true, color: { argb: INK_ARGB } };
+        ch.fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEAD_ARGB } };
+        ch.alignment = { vertical: "middle", horizontal: "left", indent: 1 };
+        ch.border = { left: thin, right: thin, bottom: { style: "thin", color: { argb: "FF9AA5B4" } } };
+      });
+      ws.getCell(rMes, nCols).border = { top: thin, right: thin }; 
+
+      /* Filas por partida (si una celda no cabe en una fila de Excel, la partida se reparte en varias filas) */
+      var cpl = function(wd){ return Math.max(8, Math.floor(wd * 1.15)); };
+      var MAXL = 27, totalH = 0;
+      state.categories.forEach(function(cat, ri){
+        var tone = toneForCat(cat.id), fillArgb = TONE_ARGB[tone] || null, stripe = "FF" + (STRIPE[tone] || "8C949E");
+        var porSemana = state.weeks.map(function(w, wi){
+          var chunks = [], cur = { parts: [], lines: 0 };
+          cellNotes[ri][wi].forEach(function(n){
+            var tx = textoNota(n), lab = n.portico ? etiquetaPortico(n.portico) : "", rest = tx ? (lab ? " · " + tx : tx) : "";
+            if(n.responsable) rest += " — " + n.responsable;
+            if(cfg.weekly && n.percent !== "" && n.percent !== null && n.percent !== undefined) rest += " (" + n.percent + "%)";
+            var rx = restrDe(n); if(rx.length) rest += "  [⚠ " + rx.map(function(x){ return x.t; }).join("; ") + "]";
+            var mark = "";
+            if(cfg.weekly){ if(n.cumplido === true) mark = "✓ "; else if(n.cumplido === false) mark = "✗ "; }
+            else if(n.liberada && !rx.length) mark = "✓ ";
+            var ln = Math.max(1, Math.ceil((mark.length + lab.length + rest.length) / cpl(wDia)));
+            if(cur.parts.length && cur.lines + ln > MAXL){ chunks.push(cur); cur = { parts: [], lines: 0 }; }
+            if(cur.parts.length) cur.parts.push({ text: "\n", font: { name: FONT, size: 10 } });
+            if(mark) cur.parts.push({ text: mark, font: { name: FONT, size: 10, bold: true, color: { argb: mark === "✓ " ? "FF26694B" : "FFB23B3B" } } });
+            if(lab) cur.parts.push({ text: lab, font: { name: FONT, size: 10, bold: true, color: { argb: stripe } } });
+            cur.parts.push({ text: rest, font: { name: FONT, size: 10, color: { argb: INK_ARGB } } });
+            cur.lines += ln;
+          });
+          chunks.push(cur);
+          return chunks;
         });
+        var nSub = porSemana.reduce(function(m, ch){ return Math.max(m, ch.length); }, 1);
+        var r0 = rowN + 1;
+        for(var sr = 0; sr < nSub; sr++){
+          rowN++;
+          var maxLines = 1;
+          state.weeks.forEach(function(w, wi){
+            var ck = porSemana[wi][sr], cell = ws.getCell(rowN, wi + 2);
+            cell.alignment = { wrapText: true, vertical: "top", horizontal: "left", indent: 1 };
+            cell.border = allBorders;
+            if(ck && ck.parts.length){
+              cell.value = { richText: ck.parts };
+              if(fillArgb) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: fillArgb } };
+              if(ck.lines > maxLines) maxLines = ck.lines;
+            }
+          });
+          var hRow = Math.min(409, Math.max(nSub > 1 ? 20 : 34, maxLines * 13.5 + 10));
+          ws.getRow(rowN).height = hRow; totalH += hRow;
+        }
+        if(nSub > 1) ws.mergeCells(r0, 1, rowN, 1);
+        var cc0 = ws.getCell(r0, 1); cc0.value = cat.name;
+        cc0.font = { name: FONT, size: 11, bold: true, color: { argb: INK_ARGB } };
+        for(var rr0 = r0; rr0 <= rowN; rr0++){
+          var cA = ws.getCell(rr0, 1);
+          cA.fill = { type: "pattern", pattern: "solid", fgColor: { argb: HEAD_ARGB } };
+          cA.alignment = { wrapText: true, vertical: "top", horizontal: "left", indent: 1 };
+          cA.border = { top: rr0 === r0 ? thin : undefined, bottom: rr0 === rowN ? thin : undefined, right: thin, left: { style: "thick", color: { argb: stripe } } };
+        }
       });
+      var lastBoard = rowN;
+      /* Pie */
+      rowN++; ws.getRow(rowN).height = 8;
+      rowN++; ws.getRow(rowN).height = 16;
+      for(var cf = 1; cf <= nCols; cf++) ws.getCell(rowN, cf).border = { top: { style: "thin", color: { argb: "FFBCC3CD" } } };
+      rowN++; ws.getRow(rowN).height = 16;
+      var fin1 = Math.max(1, nCols - 1);
+      merge(rowN, 1, fin1);
+      ws.getCell(rowN, 1).value = "Fuente: app Pórticos (GeoMAV) · exportado el " + fh + " · A3 ajustado a una hoja";
+      ws.getCell(rowN, 1).font = { name: FONT, size: 9, color: { argb: MUTE_ARGB } };
+      var cR = ws.getCell(rowN, nCols); if(nCols > 1){ cR.value = "GeoMAV · geomav.me"; cR.font = { name: FONT, size: 9, bold: true, color: { argb: INK_ARGB } }; cR.alignment = { horizontal: "right" }; }
+      var lastRow = rowN;
 
-      ws.views = [{ state: "frozen", xSplit: 1, ySplit: 1 }];
+      /* Impresion: A3, margenes, una sola hoja */
+      var anchoPx = (wCat + nW * wDia) * 7 + 5 * nCols, altoPx = (lastRow ? (totalH + 330) : 0) * 1.333;
+      ws.pageSetup = {
+        paperSize: 8, orientation: anchoPx / altoPx > 1.05 ? "landscape" : "portrait",
+        fitToPage: true, fitToWidth: 1, fitToHeight: 1, horizontalCentered: true,
+        margins: { left: 0.6, right: 0.6, top: 0.55, bottom: 0.55, header: 0.3, footer: 0.3 },
+        printArea: "A1:" + ws.getColumn(nCols).letter + lastRow
+      };
+      ws.views = [{ showGridLines: false, state: "frozen", xSplit: 1 }];
 
       var base = (state.title || (cfg.weekly ? "Planificacion Semanal" : "Planificacion Intermedio"));
       var nombre = base.replace(/[\\/:*?"<>|]/g, "").trim() + " - " + sheetName + ".xlsx";
