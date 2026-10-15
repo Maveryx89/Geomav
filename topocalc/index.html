@@ -6609,33 +6609,91 @@ function svgTraslape(footAncho, footAlto, baseVuelo){
 }
 
 /* Diagrama de area irregular por ordenadas */
+/* Diagrama de Área Irregular por Ordenadas — v2.
+   Basado en la plantilla de Illustrator de Mario (plantilla_area_irregular_mv.svg): mesa 320×190, línea base en ink-soft,
+   lindero en blueprint, relleno accent suave (Simpson es el resultado principal), ordenadas punteadas en success con su
+   valor a lo largo de la línea, cota del intervalo h bajo la base y áreas al pie. El listado (valor pegado al descriptor)
+   va arriba a la izquierda: áreas e intervalo en un bloque, ordenadas en otro. Con más de 12 ordenadas el dibujo lleva solo
+   el valor; un rótulo sin lugar libre se omite del dibujo (su valor sigue en el listado). Sin Simpson (N° par de ordenadas),
+   el resultado principal pasa a Trapecios. */
 function svgAreaOrdenadas(hInterval, ys){
-  const w=300,hc=190,padL=20,padR=20,padT=26,padB=42;
-  const n=ys.length-1;
-  const maxY=Math.max(...ys,0.001);
-  const scaleX=(w-padL-padR)/Math.max(hInterval*n,0.001);
-  const scaleY=(hc-padT-padB)/maxY;
-  const baseY=hc-padB;
-  const pts=ys.map((y,i)=>({x: padL+i*hInterval*scaleX, y: baseY-y*scaleY}));
-  const path=pts.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
-  const step=thinLabelStep(pts.length,10);
-  const yFont=relFont(w,0.026,6.5,8);
-  let ticks='';
-  pts.forEach((p,i)=>{
-    ticks += `<line x1="${p.x.toFixed(1)}" y1="${baseY}" x2="${p.x.toFixed(1)}" y2="${p.y.toFixed(1)}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2 2"/><circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.2" fill="var(--accent)"/>`;
-    if(i%step===0 || i===pts.length-1){
-      ticks += `<text x="${p.x.toFixed(1)}" y="${(p.y-6).toFixed(1)}" font-size="${yFont}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">y${i}=${fmtNum(ys[i],2)}</text>`;
-    }
+  const W=320, H=190;
+  const f = v => v.toFixed(2).replace(/\.?0+$/,'');
+  const FONT = 'font-family="var(--font-body)" font-weight="700"';
+  const eng = svgLblEngine(W,H);
+  const N = ys.length, n = N-1;
+  const areaT = calcAreaTrapecios(hInterval, ys), areaS = calcAreaSimpson(hInterval, ys);
+  const hasS = areaS!==null;
+  const corto = N > 12;
+  const mTxt = v => `${fmtNum(v,2)} m`;
+  const aTxt = v => `${fmtNum(v,2)} m²`;
+  const oTxt = i => corto ? mTxt(ys[i]) : `y${i} = ${mTxt(ys[i])}`;
+
+  // ---- listado: bloque 1 (áreas e intervalo), bloque 2 (ordenadas, columnas de 10 filas) ----
+  const blk1 = [];
+  blk1.push(hasS ? {k:'Simpson',c:'var(--accent)',v:aTxt(areaS)} : {k:'Simpson',c:'var(--ink-soft)',v:'no aplica'});
+  blk1.push({k:'Trapecios', c:hasS?'var(--ink)':'var(--accent)', v:aTxt(areaT)});
+  blk1.push({k:'h', c:'var(--ink)', v:mTxt(hInterval)});
+  const blk2 = ys.map((y,i)=>({k:`y${i}`, c:'var(--success)', v:mTxt(y)}));
+  const ROW_Y0=12.521, ROW_DY=5.761, PER_COL=10;
+  const rowW = r => eng.tw(`${r.k} = ${r.v}`,4.32);
+  const cols=[]; let x=10.026;
+  { const w=Math.max(...blk1.map(rowW)); cols.push({x, rows:blk1, w}); x=Math.max(80.026, x+5.185+w+12); }
+  for(let s=0;s<blk2.length;s+=PER_COL){ const rows=blk2.slice(s,s+PER_COL), w=Math.max(...rows.map(rowW)); cols.push({x, rows, w}); x=x+5.185+w+10; }
+  const listRight = Math.max(...cols.map(c=>c.x+5.185+c.w))+1;
+  const listBottom = ROW_Y0 + (Math.min(Math.max(blk1.length,blk2.length),PER_COL)-1)*ROW_DY + 1;
+  eng.rectFill(8.5, 6.5, listRight, listBottom+0.5);
+
+  // ---- terreno (escala vertical independiente, como el diagrama anterior) ----
+  const X0=50, X1=270, BY=150;
+  const maxPx = Math.max(30, Math.min(80, BY-(listBottom+10)));
+  const maxY = Math.max(...ys, 0.001);
+  const px = ys.map((y,i)=>({x: X0+(X1-X0)*i/n, y: BY - Math.max(0,y)/maxY*maxPx}));
+  const lind = px.map(p=>f(p.x)+' '+f(p.y)).join(' L');
+  let out='';
+  out += `<path d="M${lind} L${f(px[n].x)} ${BY} L${f(px[0].x)} ${BY} Z" fill="var(--accent)" fill-opacity="0.14" stroke="none"/>\n`;
+  out += `<path d="M${X0} ${BY} L${X1} ${BY}" fill="none" stroke="var(--ink-soft)" stroke-width="0.8" stroke-linecap="round"/>\n`;
+  out += `<path d="M${lind}" fill="none" stroke="var(--blueprint)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>\n`;
+  eng.seg(X0,BY,X1,BY); for(let i=0;i<n;i++) eng.seg(px[i].x,px[i].y,px[i+1].x,px[i+1].y);
+  px.forEach(p=>{ out += `<path d="M${f(p.x)} ${BY} L${f(p.x)} ${f(p.y)}" fill="none" stroke="var(--success)" stroke-width="0.7" stroke-dasharray="1.6 1.6" stroke-linecap="round"/>\n`; eng.seg(p.x,BY,p.x,p.y); });
+  px.forEach(p=>{
+    out += `<circle cx="${f(p.x)}" cy="${BY}" r="1.5" fill="var(--ink-soft)"/><circle cx="${f(p.x)}" cy="${f(p.y)}" r="1.5" fill="var(--success)"/>\n`;
+    eng.circle(p.x,BY,1.8); eng.circle(p.x,p.y,1.8);
   });
-  const midFirst=(pts[0].x+(pts[1]?pts[1].x:pts[0].x+20))/2;
-  return `<svg viewBox="0 0 ${w} ${hc}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${padL}" y1="${baseY}" x2="${(padL+hInterval*n*scaleX).toFixed(1)}" y2="${baseY}" stroke="var(--line-strong)" stroke-width="1.4"/>
-    <path d="${path} L${pts[pts.length-1].x.toFixed(1)} ${baseY} L${pts[0].x.toFixed(1)} ${baseY} Z" fill="var(--blueprint)" fill-opacity=".1" stroke="none"/>
-    <path d="${path}" stroke="var(--blueprint)" stroke-width="2" fill="none"/>
-    ${ticks}
-    <line x1="${pts[0].x.toFixed(1)}" y1="${(baseY+14).toFixed(1)}" x2="${(pts[1]?pts[1].x:pts[0].x+20).toFixed(1)}" y2="${(baseY+14).toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1"/>
-    <text x="${midFirst.toFixed(1)}" y="${(baseY+26).toFixed(1)}" font-size="${relFont(w,0.027,6.5,8.5)}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">h=${fmtNum(hInterval,2)} m</text>
-  </svg>`;
+  // cota del intervalo h (bajo la base, entre y0 e y1)
+  const hy=BY+3.634;
+  out += `<path d="M${f(px[0].x)} ${f(hy)} L${f(px[1].x)} ${f(hy)}" fill="none" stroke="var(--ink)" stroke-width="0.7" stroke-linecap="round"/>\n`;
+  out += `<path d="M${f(px[0].x)} ${f(hy-1.6)} L${f(px[0].x)} ${f(hy+1.6)}" fill="none" stroke="var(--ink)" stroke-width="0.7" stroke-linecap="round"/>\n`;
+  out += `<path d="M${f(px[1].x)} ${f(hy-1.6)} L${f(px[1].x)} ${f(hy+1.6)}" fill="none" stroke="var(--ink)" stroke-width="0.7" stroke-linecap="round"/>\n`;
+  eng.seg(px[0].x,hy-1.6,px[0].x,hy+1.6); eng.seg(px[1].x,hy-1.6,px[1].x,hy+1.6); eng.seg(px[0].x,hy,px[1].x,hy);
+
+  const lab = (t,fs,col,c) => { const q=eng.txtAttrs(c); out += `<text ${q.pos} ${FONT} font-size="${fs}" fill="${col}"${q.an}>${t}</text>\n`; };
+  const omit = (t,fs,cands) => !cands.length || Math.min(...cands.map(q=>eng.count(eng.box(t,fs,q),0.5)))>0;
+  // h
+  { const t=`h = ${mTxt(hInterval)}`, c={x:(px[0].x+px[1].x)/2, y:hy+4.506, anchor:'middle'}; lab(t,3,'var(--ink)',eng.pick(t,3,[c])); }
+  // áreas al pie
+  { const cx=(X0+X1)/2;
+    if(hasS){ const t=`Simpson = ${aTxt(areaS)}`; lab(t,4,'var(--accent)',eng.pick(t,4,[{x:cx,y:178.145,anchor:'middle'}]));
+              const u=`Trapecios = ${aTxt(areaT)}`; lab(u,3.5,'var(--ink)',eng.pick(u,3.5,[{x:cx,y:182.5,anchor:'middle'}])); }
+    else { const u=`Trapecios = ${aTxt(areaT)}`; lab(u,4,'var(--accent)',eng.pick(u,4,[{x:cx,y:178.145,anchor:'middle'}])); } }
+  // ordenadas: a lo largo de su línea, a la derecha; si no cabe se desliza, pasa a la izquierda o se omite
+  const FS=3;
+  px.forEach((p,i)=>{
+    const t=oTxt(i), w=eng.tw(t,FS), L=BY-p.y, lim=L/2-w/2-1.5, cands=[];
+    if(lim>=0) for(let off=0; off<=lim+1e-6; off+=1.5) for(const sg of [1,-1]){ if(off===0&&sg===-1) continue;
+      cands.push({x:p.x+0.97*FS, y:(p.y+BY)/2 + sg*off, rot:-90, anchor:'middle', pen:off*0.4});
+      cands.push({x:p.x-0.4*FS,  y:(p.y+BY)/2 + sg*off, rot:-90, anchor:'middle', pen:off*0.4+6});
+    }
+    if(omit(t,FS,cands)) return;
+    lab(t,FS,'var(--success)',eng.pick(t,FS,cands));
+  });
+  // listado
+  cols.forEach(c=>c.rows.forEach((r,row)=>{
+    const by=ROW_Y0+row*ROW_DY;
+    out += `<rect x="${f(c.x)}" y="${f(by-3.457)}" width="3.457" height="3.457" fill="${r.c}"/>\n`;
+    out += `<text x="${f(c.x+5.185)}" y="${f(by)}" ${FONT} font-size="4.32"><tspan fill="${r.c}">${r.k}</tspan><tspan fill="var(--ink)"> = ${r.v}</tspan></text>\n`;
+  }));
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">\n${out}</svg>`;
 }
 
 /* Diagrama de declinacion solar respecto al ecuador celeste */
