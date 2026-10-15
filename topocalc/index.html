@@ -4466,111 +4466,55 @@ function thinLabelStep(n, maxLabels){
   return Math.ceil(n/(maxLabels||10));
 }
 
-/* Diagrama de triángulo rectángulo: distancia inclinada Di, ángulo desde el horizonte, Dh y Dv.
-   Rótulos abreviados ("DI:", "DH:", "DV:") en negrita, mismo tamaño de fuente los 3, orientados
-   a lo largo de cada lado; el ángulo va como número rotado (paralelo a la hipotenusa) junto al
-   vértice, y "DV" queda en dos columnas de texto rotadas -90° a la derecha del cateto vertical. */
-function svgTrianguloVertical(anguloDeg, Dh, hi, hm, desnivel){
-  const w=300,h=228;
-  const V={x:54,y:120};
-  const rodX=236;
-  const dx=rodX-V.x;
-  let aVis=Math.max(-70,Math.min(anguloDeg,70));
-  if(Math.abs(aVis)<3) aVis = aVis<0 ? -3 : 3;
-  let dy=dx*Math.tan(toRad(aVis));
-  dy=Math.max(-68,Math.min(dy,68));
-  const P={x:rodX, y:V.y-dy}; // punto visado (B), a la altura de la visual
-
-  // Brackets esquemáticos (no a escala) para Hi y hp — su longitud real casi nunca es
-  // comparable a Dh, así que se fija un tramo de píxeles razonable en vez de escalarlos.
-  const hiPx=24, hpPx=26;
-  const groundA={x:V.x, y:V.y+hiPx};
-  const groundB={x:rodX, y:Math.min(P.y+hpPx, h-8)};
-
-  function arcPt(cx,cy,angDeg,r){ const a=angDeg*Math.PI/180; return {x:cx+r*Math.cos(a), y:cy-r*Math.sin(a)}; }
-  const rAlpha=22, rZ=40;
-  const alphaSweep = aVis>=0 ? 0 : 1;
-  const a0=arcPt(V.x,V.y,0,rAlpha), a1=arcPt(V.x,V.y,aVis,rAlpha);
-  const alphaMid=arcPt(V.x,V.y,aVis/2,rAlpha+13);
-  const z0=arcPt(V.x,V.y,aVis,rZ), z1=arcPt(V.x,V.y,90,rZ);
-  const zSweep = aVis>=0 ? 0 : 1;
-  const zMid=arcPt(V.x,V.y,(aVis+90)/2,rZ+11);
-  const nTipY=V.y-rZ-12;
-
-  // Terreno: curva café entre la base del trípode y la base del jalón/prisma
-  const gStartX=V.x-16, gStartY=groundA.y+3;
-  const gEndX=rodX+16, gEndY=groundB.y+3;
-  const gc1x=gStartX+(gEndX-gStartX)*0.32, gc1y=gStartY+(gEndY-gStartY)*0.18;
-  const gc2x=gStartX+(gEndX-gStartX)*0.68, gc2y=gEndY-(gEndY-gStartY)*0.18;
-  const legFootY=groundA.y-2;
-
-  // Bracket Hi (a la izquierda del trípode)
-  const hiX=V.x-15;
-  // Bracket hp (pegado al jalón, a la derecha)
-  const hpX=rodX+11;
-  // Bracket ΔH (más a la derecha, entre la prolongación horizontal de groundA y groundB)
-  const dhX=rodX+37;
-  let arrowUpY = groundA.y<groundB.y ? groundA.y : groundB.y; // extremo superior real del bracket
-  let arrowDnY = groundA.y<groundB.y ? groundB.y : groundA.y;
-  // Separación mínima visual para que el bracket ΔH siga siendo legible cuando el
-  // desnivel resulta muy pequeño en píxeles (no altera el valor numérico, solo el dibujo).
-  const minGap=15;
-  if(arrowDnY-arrowUpY<minGap){
-    const mid=(arrowUpY+arrowDnY)/2;
-    arrowUpY=mid-minGap/2; arrowDnY=mid+minGap/2;
-  }
-
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <path d="M ${gStartX.toFixed(1)} ${gStartY.toFixed(1)} C ${gc1x.toFixed(1)} ${gc1y.toFixed(1)}, ${gc2x.toFixed(1)} ${gc2y.toFixed(1)}, ${gEndX.toFixed(1)} ${gEndY.toFixed(1)}" fill="none" stroke="#8B6B47" stroke-width="1.6"/>
-
-    <line x1="${V.x}" y1="${V.y}" x2="${V.x}" y2="${nTipY}" stroke="var(--ink-soft)" stroke-width="1.2"/>
-    <polygon points="${V.x-4},${nTipY+8} ${V.x+4},${nTipY+8} ${V.x},${nTipY}" fill="var(--ink-soft)"/>
-    <text x="${V.x}" y="${nTipY-6}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="middle">N</text>
-
-    <line x1="${V.x}" y1="${V.y}" x2="${rodX}" y2="${V.y}" stroke="var(--ink-soft)" stroke-width="1.3" stroke-dasharray="3 2"/>
-    ${svgLineLabel(V.x,V.y,rodX,V.y,'Dh','var(--ink-soft)',9,1,0.9,700)}
-
-    <line x1="${V.x}" y1="${V.y}" x2="${P.x}" y2="${P.y}" stroke="var(--blueprint)" stroke-width="1.6"/>
-    ${svgLineLabel(V.x,V.y,P.x,P.y,'Di','var(--blueprint)',9,-1,0.9,700)}
-
-    <path d="M ${a0.x.toFixed(1)} ${a0.y.toFixed(1)} A ${rAlpha} ${rAlpha} 0 0 ${alphaSweep} ${a1.x.toFixed(1)} ${a1.y.toFixed(1)}" fill="none" stroke="var(--blueprint)" stroke-width="1"/>
-    <text x="${alphaMid.x.toFixed(1)}" y="${alphaMid.y.toFixed(1)}" font-size="8.5" font-family="var(--font-mono)" font-weight="700" fill="var(--blueprint)" text-anchor="middle">α</text>
-
-    <path d="M ${z0.x.toFixed(1)} ${z0.y.toFixed(1)} A ${rZ} ${rZ} 0 0 ${zSweep} ${z1.x.toFixed(1)} ${z1.y.toFixed(1)}" fill="none" stroke="var(--ink-soft)" stroke-width="0.9" stroke-dasharray="2 2"/>
-    <text x="${zMid.x.toFixed(1)}" y="${zMid.y.toFixed(1)}" font-size="8.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Z</text>
-
-    <line x1="${hiX}" y1="${groundA.y.toFixed(1)}" x2="${hiX}" y2="${V.y}" stroke="var(--ink-soft)" stroke-width="1.3"/>
-    <line x1="${hiX-3}" y1="${groundA.y.toFixed(1)}" x2="${hiX+3}" y2="${groundA.y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.3"/>
-    <line x1="${hiX-3}" y1="${V.y}" x2="${hiX+3}" y2="${V.y}" stroke="var(--ink-soft)" stroke-width="1.3"/>
-    <text x="${(hiX-5).toFixed(1)}" y="${((groundA.y+V.y)/2+3).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="end">Hi</text>
-
-    <line x1="${hpX}" y1="${groundB.y.toFixed(1)}" x2="${hpX}" y2="${P.y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.3"/>
-    <line x1="${hpX-3}" y1="${groundB.y.toFixed(1)}" x2="${hpX+3}" y2="${groundB.y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.3"/>
-    <line x1="${hpX-3}" y1="${P.y.toFixed(1)}" x2="${hpX+3}" y2="${P.y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.3"/>
-    <text x="${(hpX+5).toFixed(1)}" y="${((groundB.y+P.y)/2+3).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="start">hp</text>
-
-    <line x1="${gEndX.toFixed(1)}" y1="${groundA.y.toFixed(1)}" x2="${dhX}" y2="${groundA.y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2"/>
-    <line x1="${rodX}" y1="${groundB.y.toFixed(1)}" x2="${dhX}" y2="${groundB.y.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2"/>
-    <line x1="${dhX}" y1="${arrowUpY.toFixed(1)}" x2="${dhX}" y2="${arrowDnY.toFixed(1)}" stroke="var(--accent)" stroke-width="1.6"/>
-    <polygon points="${dhX-3},${(arrowUpY+6).toFixed(1)} ${dhX+3},${(arrowUpY+6).toFixed(1)} ${dhX},${arrowUpY.toFixed(1)}" fill="var(--accent)"/>
-    <polygon points="${dhX-3},${(arrowDnY-6).toFixed(1)} ${dhX+3},${(arrowDnY-6).toFixed(1)} ${dhX},${arrowDnY.toFixed(1)}" fill="var(--accent)"/>
-    <text x="${(dhX+7).toFixed(1)}" y="${((arrowUpY+arrowDnY)/2+3).toFixed(1)}" font-size="9.5" font-family="var(--font-mono)" font-weight="700" fill="var(--accent-text)" text-anchor="start">ΔH</text>
-
-    <line x1="${(V.x-3).toFixed(1)}" y1="${(V.y+2).toFixed(1)}" x2="${(V.x-11).toFixed(1)}" y2="${legFootY.toFixed(1)}" stroke="var(--ink)" stroke-width="1.4"/>
-    <line x1="${(V.x+3).toFixed(1)}" y1="${(V.y+2).toFixed(1)}" x2="${(V.x+8).toFixed(1)}" y2="${legFootY.toFixed(1)}" stroke="var(--ink)" stroke-width="1.4"/>
-    <line x1="${V.x}" y1="${(V.y+3).toFixed(1)}" x2="${(V.x-1).toFixed(1)}" y2="${legFootY.toFixed(1)}" stroke="var(--ink)" stroke-width="1.4"/>
-    <line x1="${V.x}" y1="${(V.y-1).toFixed(1)}" x2="${(V.x+9).toFixed(1)}" y2="${(V.y-1).toFixed(1)}" stroke="var(--ink)" stroke-width="1.6"/>
-    <rect x="${(V.x-4.5).toFixed(1)}" y="${(V.y-4).toFixed(1)}" width="9" height="6" rx="1.3" fill="var(--ink)"/>
-    <circle cx="${V.x}" cy="${(V.y-1).toFixed(1)}" r="1.6" fill="var(--paper)"/>
-    <text x="${(V.x-13).toFixed(1)}" y="${(V.y+9).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink)" text-anchor="end">A</text>
-
-    <line x1="${rodX}" y1="${groundB.y.toFixed(1)}" x2="${rodX}" y2="${(P.y+3).toFixed(1)}" stroke="var(--ink)" stroke-width="1.6"/>
-    <rect x="${rodX-3.3}" y="${(P.y-5).toFixed(1)}" width="6.6" height="6.6" rx="1" fill="var(--ink)"/>
-    <circle cx="${rodX}" cy="${(P.y-1.7).toFixed(1)}" r="1.2" fill="var(--paper)"/>
-    <text x="${(rodX+6).toFixed(1)}" y="${(groundB.y+9).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink)" text-anchor="start">B</text>
-
-    <text x="${w/2}" y="${h-4}" font-size="7.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(esquemático, no a escala)</text>
-  </svg>`;
+/* Diagrama de triángulo vertical — v2 (estándar de plantillas de Mario): corte lateral esquemático (no a escala) con distancia
+   inclinada Di (blueprint), horizontal Dh (success), ángulo vertical α, desnivel ΔH entre los puntos del terreno A y B y, si hay alturas
+   de instrumento y de señal (Nivelación Trigonométrica), los tramos Hi y hp. accent sigue a la magnitud estrella del panel: ΔH por defecto
+   o α (ext.star='a', Pendiente entre Dos Puntos). En el dibujo solo el carácter; los valores van en el listado. */
+function svgTrianguloVertical(anguloDeg, Dh, hi, hm, desnivel, ext){
+  ext=ext||{}; const K=svgKit(), hasH=hi!==undefined&&hm!==undefined&&!isNaN(hi)&&!isNaN(hm);
+  const col={DH:'var(--success)',DI:'var(--blueprint)',dH:'var(--accent)',a:'var(--ink)',Hi:'var(--ink-soft)',hp:'var(--danger)'};
+  if(ext.star==='a'){ col.a='var(--accent)'; col.dH='var(--ink)'; }
+  const Di=ext.Di!==undefined?ext.Di:Dh/Math.max(Math.cos(toRad(anguloDeg)),1e-9);
+  const rows=[{k:'ΔH',c:col.dH,v:`${fmtNum(desnivel,3)} m`},{k:'Dh',c:col.DH,v:`${fmtNum(Dh,3)} m`},{k:'Di',c:col.DI,v:`${fmtNum(Di,3)} m`},{k:'α',c:col.a,v:fmtAngle(anguloDeg)}];
+  if(ext.pct!==undefined) rows.push({k:'Pendiente',c:col.a,v:`${fmtNum(ext.pct,2)} %`});
+  if(hasH){ rows.push({k:'Hi',c:col.Hi,v:`${fmtNum(hi,3)} m`}); rows.push({k:'hp',c:col.hp,v:`${fmtNum(hm,3)} m`}); }
+  K.list([rows],{perCol:3});
+  let a=Math.max(-35,Math.min(anguloDeg,35)); if(Math.abs(a)<4) a=a<0?-4:4; if(ext.sign<0&&a>0) a=-a;
+  const top=Math.max(K.listBottom+10,44), bot=176, vx=56, rodX=226, dx=rodX-vx;
+  const dy=Math.min(58,dx*Math.tan(toRad(Math.abs(a))))*Math.sign(a);        // dy>0: B más arriba que el instrumento
+  const hiPx=hasH?22:0, hpPx=hasH?22:0;
+  const ymin=Math.min(0,-dy)-5, ymax=Math.max(hiPx,-dy+hpPx);
+  const vy=(top+bot)/2-(ymin+ymax)/2, V=[vx,vy], P=[rodX,vy-dy], GA=[vx,vy+hiPx], GB=[rodX,vy-dy+hpPx];
+  // terreno y mástiles
+  if(hasH){ K.line(vx-14,GA[1]+(GA[1]-GB[1])*0.08,rodX+16,GB[1]-(GA[1]-GB[1])*0.08,'#8B6B47',{sw:1.2,noObs:false});
+    K.line(...V,...GA,'var(--ink-soft)',{sw:0.8}); K.line(...P,...GB,'var(--ink-soft)',{sw:0.8}); }
+  // horizontal (Dh), visual (Di) y ángulo
+  K.line(vx,vy,rodX,vy,col.DH,{sw:1,dash:'2.4 2'}); K.line(rodX,vy,rodX,P[1],'var(--ink-soft)',{sw:0.7,dash:'1.6 1.6',noObs:false});
+  K.line(...V,...P,col.DI,{sw:1.3});
+  const ra=26; K.arc(vx,vy,ra,0,-a,col.a,{sw:0.9});
+  // desnivel ΔH entre los puntos del terreno (a la derecha), con rayas de referencia
+  const dhX=rodX+36; let u=Math.min(GA[1],GB[1]), d=Math.max(GA[1],GB[1]); if(d-u<14){ const m=(u+d)/2; u=m-7; d=m+7; }
+  K.line(GA[0]+3,GA[1],dhX+3,GA[1],'var(--ink-soft)',{sw:0.6,dash:'1.6 1.6',noObs:false}); K.line(GB[0]+3,GB[1],dhX+3,GB[1],'var(--ink-soft)',{sw:0.6,dash:'1.6 1.6',noObs:false});
+  K.line(dhX,u,dhX,d,col.dH,{sw:1.1});
+  [u,d].forEach(y=>K.line(dhX-2,y,dhX+2,y,col.dH,{sw:1,noObs:false}));
+  // Hi y hp
+  if(hasH){ const hx=vx-12, px=rodX+11;
+    K.line(hx,GA[1],hx,vy,col.Hi,{sw:1}); [GA[1],vy].forEach(y=>K.line(hx-2,y,hx+2,y,col.Hi,{sw:0.9,noObs:false}));
+    K.line(px,GB[1],px,P[1],col.hp,{sw:1}); [GB[1],P[1]].forEach(y=>K.line(px-2,y,px+2,y,col.hp,{sw:0.9,noObs:false}));
+    K.pointLabel('Hi',hx,(GA[1]+vy)/2,4.5,col.Hi,{dir:[-1,0],rmin:3,rmax:9,omit:false});
+    K.pointLabel('hp',px,(GB[1]+P[1])/2,4.5,col.hp,{dir:[1,0],rmin:3,rmax:9,omit:false}); }
+  // puntos
+  K.dot(...GA,'var(--ink-soft)',2); K.dot(...GB,'var(--ink-soft)',2);
+  if(hasH){ K.dot(...V,'var(--ink)',2.4); K.dot(...P,'var(--ink)',2.4); }
+  K.pointLabel('A',GA[0],GA[1],4.5,'var(--ink-soft)',{dir:[-0.6,hasH?0.8:0.8],omit:false});
+  K.pointLabel('B',GB[0],GB[1],4.5,'var(--ink-soft)',{dir:[0.6,0.8],omit:false});
+  // magnitudes
+  const up=a>0;
+  K.lineLabel(vx,vy,rodX,vy,'Dh',4.5,col.DH,{at:0.62,out:[0,up?1:-1],extras:[0,3,6]});
+  K.lineLabel(...V,...P,'Di',4.5,col.DI,{at:0.5,out:[0,up?-1:1],extras:[0,3,6]});
+  K.lineLabel(dhX,u,dhX,d,'ΔH',4.5,col.dH,{out:[1,0],extras:[0,3]});
+  const am=-a/2*Math.PI/180; K.pointLabel('α',vx+ra*Math.cos(am),vy+ra*Math.sin(am),4.5,col.a,{dir:[Math.cos(am),Math.sin(am)],rmin:2,rmax:9});
+  return K.svg();
 }
 
 /* Diagrama de Rumbo y Distancia — v2 (estándar de plantillas de Mario): A→B a escala, meridiano punteado por A, arco de azimut
@@ -5405,74 +5349,50 @@ function svgCapasPavimento(Cras,i,d,e1,e2,e3,capa,r){
   </svg>`;
 }
 
-/* Diagrama de progresiva y offset: eje P1-P2 (prolongado), punto P3, perpendicular
-   punteada hasta su pie sobre el eje (la progresiva Kp), con el offset rotulado.
-   Los rótulos "K" y "Offset" van sueltos (sin valor pegado): el panel de resultados, justo
-   encima del SVG, ya muestra "Progresiva (K)" y "Offset" en grande — y K1 (P1) es un dato que
-   el usuario ya escribió en el formulario, así que tampoco hace falta repetirlo junto al punto.
-   El rótulo "Offset" usa var(--ink-soft) (no var(--line-strong), muy tenue para una palabra
-   completa) para que se lea con buen contraste. El margen interno (pad) se amplió de 30 a 42px:
-   ver comentario junto al rótulo "Offset" más abajo para el porqué. */
+/* Diagrama de Progresiva y Offset desde un Eje — v2 (estándar de plantillas de Mario): eje P1–P2 a escala (blueprint, con prolongaciones
+   tenues), punto P3 y su pie F sobre el eje con ángulo recto. El Offset (accent: resultado principal) es la perpendicular P3→F; la progresiva
+   K se mide sobre el eje desde P1 hasta F (success, cota paralela al eje del lado opuesto a P3). Valores en el listado; en el dibujo solo el
+   carácter (K, Off) y las letras de los puntos. Rótulo sin lugar libre → se omite del dibujo. */
 function svgProgresivaOffset(n1,e1,k1,n2,e2,np,ep,r){
-  const w=290, h=220, pad=42;
-  const allE=[e1,e2,ep,r.footE], allN=[n1,n2,np,r.footN];
-  const minE=Math.min(...allE), maxE=Math.max(...allE);
-  const minN=Math.min(...allN), maxN=Math.max(...allN);
-  const spanE=Math.max(maxE-minE,0.001), spanN=Math.max(maxN-minN,0.001);
-  const scale=Math.min((w-2*pad)/spanE,(h-2*pad)/spanN);
-  const px=e=>pad+(e-minE)*scale, py=n=>(h-pad)-(n-minN)*scale;
-  const Ax=px(e1),Ay=py(n1), Bx=px(e2),By=py(n2), Px=px(ep),Py=py(np), Fx=px(r.footE),Fy=py(r.footN);
-  const dx=Bx-Ax, dy=By-Ay, len=Math.hypot(dx,dy)||1;
-  const ux=dx/len, uy=dy/len;
-  const ext=Math.max(len*0.25,18);
-  const Ex1={x:Ax-ux*ext,y:Ay-uy*ext}, Ex2={x:Bx+ux*ext,y:By+uy*ext};
-  const font=relFont(w,0.03,7.5,9.5);
-  // La etiqueta de progresiva K se ubica en el lado del eje OPUESTO a P3, para no competir
-  // nunca con la etiqueta del offset (que vive del lado de P3), sea cual sea la orientación del eje.
-  const perp={x:-uy,y:ux};
-  const haciaP3=(Px-Fx)*perp.x+(Py-Fy)*perp.y;
-  const lejos = haciaP3>=0 ? {x:-perp.x,y:-perp.y} : perp;
-  const kLabel={x:Fx+lejos.x*16, y:Fy+lejos.y*16};
-  // Rótulos P1/P2: desplazados en la dirección PERPENDICULAR del eje (mismo lado que "K", lejos
-  // de P3) en vez de siempre "hacia arriba" en pantalla. Con un desplazamiento fijo hacia arriba,
-  // si el eje quedaba vertical en pantalla ese desplazamiento corría a lo largo de la propia línea
-  // y el rótulo terminaba montado sobre ella (y sobre su prolongación); moverlo en perpendicular
-  // lo saca de la línea sin importar su orientación, y al ser el lado opuesto a P3/Offset tampoco
-  // choca con esas etiquetas. La magnitud del desplazamiento varía con la orientación: cuando el
-  // eje es más bien horizontal en pantalla, ese perpendicular es más vertical y hay que separar más
-  // (21px) para despegar el texto de la línea; cuando el eje es más vertical, el perpendicular es
-  // más horizontal y con menos separación (13px) ya se distingue bien, sin quedar demasiado lejos.
-  const pushP12 = 13 + 8*Math.abs(lejos.y);
-  const p1Label={x:Ax+lejos.x*pushP12, y:Ay+lejos.y*pushP12};
-  const p2Label={x:Bx+lejos.x*pushP12, y:By+lejos.y*pushP12};
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${Ex1.x.toFixed(1)}" y1="${Ex1.y.toFixed(1)}" x2="${Ex2.x.toFixed(1)}" y2="${Ex2.y.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.8"/>
-    <line x1="${Px.toFixed(1)}" y1="${Py.toFixed(1)}" x2="${Fx.toFixed(1)}" y2="${Fy.toFixed(1)}" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="3 3"/>
-    <circle cx="${Ax.toFixed(1)}" cy="${Ay.toFixed(1)}" r="3.2" fill="var(--ink)"/>
-    <circle cx="${Bx.toFixed(1)}" cy="${By.toFixed(1)}" r="3" fill="var(--ink)"/>
-    <circle cx="${Px.toFixed(1)}" cy="${Py.toFixed(1)}" r="3.4" fill="var(--accent)"/>
-    <circle cx="${Fx.toFixed(1)}" cy="${Fy.toFixed(1)}" r="3" fill="var(--blueprint)"/>
-    <text x="${p1Label.x.toFixed(1)}" y="${(p1Label.y-4).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">P1</text>
-    <text x="${p2Label.x.toFixed(1)}" y="${(p2Label.y-4).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink)" text-anchor="middle">P2</text>
-    <text x="${Px.toFixed(1)}" y="${(Py-9).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">P3</text>
-    <text x="${kLabel.x.toFixed(1)}" y="${(kLabel.y-6).toFixed(1)}" font-size="${relFont(w,0.026,6.5,8)}" font-family="var(--font-mono)" fill="var(--blueprint)" text-anchor="middle">K</text>
-    ${(function(){
-      // Etiqueta del offset: ubicada en la dirección PERPENDICULAR real del eje (mismo lado que P3,
-      // lado contrario a "K"), no rotada sobre el segmento P3-F — ese segmento suele ser muy corto en
-      // esta escala (offsets típicos de pocos metros vs. ejes de cientos de metros) y rotarla la deja
-      // siempre montada sobre el propio eje. Cuando el offset es chico frente al largo del eje (el caso
-      // más común), P3 queda pixelmente pegado a F y un desplazamiento fijo de 18px no basta para librar
-      // la etiqueta "P3": se mide entonces desde P3 (no desde F) para quedar siempre más allá de él. Si
-      // P3 ya está lejos de F (offset grande en la escala del dibujo) se mantiene el desplazamiento fijo
-      // de siempre, sin empujar la etiqueta más allá de P3 -evita que se salga del lienzo-.
-      const ladoOffset = haciaP3>=0 ? perp : {x:-perp.x,y:-perp.y};
-      const perpDistP3 = Math.abs(haciaP3);
-      const pushOffset = perpDistP3<24 ? perpDistP3+26 : 18;
-      const offLabel = {x:Fx+ladoOffset.x*pushOffset, y:Fy+ladoOffset.y*pushOffset};
-      return `<text x="${offLabel.x.toFixed(1)}" y="${(offLabel.y-6).toFixed(1)}" font-size="${font}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Offset</text>`;
-    })()}
-    ${svgNorthArrow(w-20,h-20)}
-  </svg>`;
+  const K=svgKit(), len0=Math.hypot(e2-e1,n2-n1);
+  K.north();
+  K.list([[
+    {k:'K',c:'var(--success)',v:`${fmtNum(r.Kp,2)} m`},
+    {k:'Off',c:'var(--accent)',v:`${fmtNum(Math.abs(r.offset),3)} m`},
+    {k:'Lado',c:'var(--ink)',v:r.lado},
+    {k:'Az eje',c:'var(--blueprint)',v:fmtAngle(r.az)},
+    {k:'K P1',c:'var(--ink)',v:`${fmtNum(k1,2)} m`},
+    {k:'P1→P2',c:'var(--blueprint)',v:`${fmtNum(len0,2)} m`}]]);
+  const box={l:62,r:268,t:Math.max(54,K.listBottom+8),b:164};
+  const fit=K.fit([[e1,n1],[e2,n2],[ep,np],[r.footE,r.footN]],box);
+  const A=[fit.X(e1),fit.Y(n1)], B=[fit.X(e2),fit.Y(n2)], P=[fit.X(ep),fit.Y(np)], F=[fit.X(r.footE),fit.Y(r.footN)];
+  const dx=B[0]-A[0], dy=B[1]-A[1], len=Math.hypot(dx,dy)||1, ux=dx/len, uy=dy/len;
+  const proj=q=>(q[0]-A[0])*ux+(q[1]-A[1])*uy, pf=proj(F);
+  const tmin=Math.min(0,len,pf)-12, tmax=Math.max(0,len,pf)+12, at=t=>[A[0]+ux*t,A[1]+uy*t];
+  if(tmin<0) K.line(...at(tmin),...at(0),'var(--blueprint)',{op:0.45,dash:'1.6 1.6'});
+  if(tmax>len) K.line(...at(len),...at(tmax),'var(--blueprint)',{op:0.45,dash:'1.6 1.6'});
+  K.line(...A,...B,'var(--blueprint)',{sw:1.2});
+  const nrm=[-uy,ux], sP=((P[0]-A[0])*nrm[0]+(P[1]-A[1])*nrm[1])>=0?1:-1, away=[-nrm[0]*sP,-nrm[1]*sP], toP=[nrm[0]*sP,nrm[1]*sP];
+  const d=Math.hypot(P[0]-F[0],P[1]-F[1]);
+  if(d>0.5) K.line(...P,...F,'var(--accent)',{sw:1});
+  if(d>6){ const k=3, s=pf<len/2?1:-1, v=[toP[0]*k,toP[1]*k];
+    K.poly([[F[0]+ux*s*k,F[1]+uy*s*k],[F[0]+ux*s*k+v[0],F[1]+uy*s*k+v[1]],[F[0]+v[0],F[1]+v[1]]],{stroke:'var(--ink-soft)',sw:0.6,obs:false}); }
+  // cota K: de P1 a F, paralela al eje, del lado opuesto a P3
+  const off=5, a0=[A[0]+away[0]*off,A[1]+away[1]*off], f0=[F[0]+away[0]*off,F[1]+away[1]*off];
+  if(Math.abs(pf)>2){
+    K.line(...a0,...f0,'var(--success)',{sw:0.7});
+    [A,F].forEach(q=>K.line(q[0]+away[0]*1.5,q[1]+away[1]*1.5,q[0]+away[0]*(off+1.6),q[1]+away[1]*(off+1.6),'var(--success)',{sw:0.6,noObs:false}));
+    K.lineLabel(...a0,...f0,'K',4.5,'var(--success)',{out:away,extras:[0,3,6]});
+  }
+  [A,B].forEach(q=>K.dot(q[0],q[1],'var(--ink-soft)',2));
+  K.dot(F[0],F[1],'var(--ink-soft)',1.8); K.dot(P[0],P[1],'var(--accent)',2.4);
+  if(d>6) K.lineLabel(...P,...F,'Off',4.5,'var(--accent)',{out:[ux,uy]});
+  const pd=d>0.5?[(P[0]-F[0])/d,(P[1]-F[1])/d]:toP;
+  K.pointLabel('P1',A[0],A[1],4.5,'var(--ink-soft)',{dir:away,full:true,omit:false});
+  K.pointLabel('P2',B[0],B[1],4.5,'var(--ink-soft)',{dir:away,full:true,omit:false});
+  K.pointLabel('P3',P[0],P[1],4.5,'var(--accent)',{dir:pd,omit:false});
+  K.pointLabel('F',F[0],F[1],4.5,'var(--ink-soft)',{dir:away,full:true});
+  return K.svg();
 }
 
 /* Nivelación diferencial: esquema de campo (trípode + mira + terreno), como Taquimetría/Nivelación Trig.
@@ -5815,81 +5735,49 @@ function svgCurvaVertical(p1,p2,L,fracs){
   return K.svg();
 }
 
-/* Diagrama de taquimetría: mira con 3 hilos + linea de vista */
-function svgTaquimetria(hs,hm,hi_lect,anguloDeg){
-  const w=300,h=220;
-  const V={x:52,y:122};
-  const rodX=242;
-  const dx=rodX-V.x;
-  let aVis=Math.max(-70,Math.min(anguloDeg,70));
-  if(Math.abs(aVis)<3) aVis = aVis<0 ? -3 : 3;
-  let dy=dx*Math.tan(toRad(aVis));
-  dy=Math.max(-75,Math.min(dy,75));
-  const centerY=V.y-dy;
-  const span=Math.max(hs-hi_lect,1e-6);
-  const fracHs=Math.min(Math.max((hs-hm)/span,0),1);
-  const fracHi=1-fracHs;
-  const pxSpan=32;
-  const y_hs=Math.max(16, centerY-fracHs*pxSpan);
-  const y_hi=Math.min(h-16, centerY+fracHi*pxSpan);
-  const y_hm=centerY;
-  function arcPt(cx,cy,angDeg,r){ const a=angDeg*Math.PI/180; return {x:cx+r*Math.cos(a), y:cy-r*Math.sin(a)}; }
-  const rAlpha=22, rVr=42;
-  const alphaSweep = aVis>=0 ? 0 : 1;
-  const a0=arcPt(V.x,V.y,0,rAlpha), a1=arcPt(V.x,V.y,aVis,rAlpha);
-  const alphaMid=arcPt(V.x,V.y,aVis/2,rAlpha+12);
-  const v0=arcPt(V.x,V.y,aVis,rVr), v1=arcPt(V.x,V.y,90,rVr);
-  const vrMid=arcPt(V.x,V.y,(aVis+90)/2,rVr+9);
-  // El brazo de N solo necesita llegar un poco más arriba que el arco de Vr (no hasta
-  // el borde del lienzo) — el resto de ese espacio sobrante arriba se recorta del
-  // viewBox (topCrop) para que el dibujo útil ocupe más del marco visible.
-  const nTipY=V.y-rVr-12;
-  const topCrop=44;
-  const groundStartX=V.x-16, groundStartY=V.y+17;
-  const groundEndX=rodX+6, groundEndY=Math.min(y_hi+14, h-8);
-  const gc1x=groundStartX+(groundEndX-groundStartX)*0.32, gc1y=groundStartY+9;
-  const gc2x=groundStartX+(groundEndX-groundStartX)*0.68, gc2y=groundEndY-7;
-  const legFootY=groundStartY-2;
-  const rodTopVisible=Math.max(16, y_hs-10);
-  const rodBase=groundEndY;
-  let dashedProj='';
-  if(V.y < rodTopVisible){
-    dashedProj = `<line x1="${rodX}" y1="${rodTopVisible.toFixed(1)}" x2="${rodX}" y2="${V.y}" stroke="var(--ink-soft)" stroke-width="1.6" stroke-dasharray="3 2"/>`;
-  } else if(V.y > rodBase){
-    dashedProj = `<line x1="${rodX}" y1="${rodBase.toFixed(1)}" x2="${rodX}" y2="${V.y}" stroke="var(--ink-soft)" stroke-width="1.6" stroke-dasharray="3 2"/>`;
-  }
-  return `<svg viewBox="0 ${topCrop} ${w} ${h-topCrop}" xmlns="http://www.w3.org/2000/svg">
-    <path d="M ${groundStartX.toFixed(1)} ${groundStartY.toFixed(1)} C ${gc1x.toFixed(1)} ${gc1y.toFixed(1)}, ${gc2x.toFixed(1)} ${gc2y.toFixed(1)}, ${groundEndX.toFixed(1)} ${groundEndY.toFixed(1)}" fill="none" stroke="#8B6B47" stroke-width="1.6"/>
-    <line x1="${V.x}" y1="${V.y}" x2="${V.x}" y2="${nTipY}" stroke="var(--ink-soft)" stroke-width="1.2"/>
-    <polygon points="${V.x-4},${nTipY+8} ${V.x+4},${nTipY+8} ${V.x},${nTipY}" fill="var(--ink-soft)"/>
-    <text x="${V.x}" y="${nTipY-6}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="middle">N</text>
-    <line x1="${V.x}" y1="${V.y}" x2="${rodX}" y2="${V.y}" stroke="var(--accent)" stroke-width="1.3" stroke-dasharray="3 2"/>
-    ${svgLineLabel(V.x,V.y,rodX,V.y,'DH','var(--accent)',9,1,0.9,700)}
-    ${dashedProj}
-    <line x1="${rodX}" y1="${rodTopVisible.toFixed(1)}" x2="${rodX}" y2="${rodBase.toFixed(1)}" stroke="var(--ink)" stroke-width="2.4"/>
-    <line x1="${V.x}" y1="${V.y}" x2="${rodX}" y2="${y_hs.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2"/>
-    <line x1="${V.x}" y1="${V.y}" x2="${rodX}" y2="${y_hi.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 2"/>
-    <line x1="${V.x}" y1="${V.y}" x2="${rodX}" y2="${y_hm.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.6"/>
-    ${svgLineLabel(V.x,V.y,rodX,y_hm,'Di','var(--blueprint)',9,-1,0.9,700)}
-    <line x1="${rodX-6}" y1="${y_hs.toFixed(1)}" x2="${rodX+6}" y2="${y_hs.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.6"/>
-    <line x1="${rodX-6}" y1="${y_hm.toFixed(1)}" x2="${rodX+6}" y2="${y_hm.toFixed(1)}" stroke="var(--blueprint)" stroke-width="1.8"/>
-    <line x1="${rodX-6}" y1="${y_hi.toFixed(1)}" x2="${rodX+6}" y2="${y_hi.toFixed(1)}" stroke="var(--ink-soft)" stroke-width="1.6"/>
-    <text x="${rodX+11}" y="${(y_hs+3).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="start">Hs</text>
-    <text x="${rodX+11}" y="${(y_hm+3).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--blueprint)" text-anchor="start">Hm</text>
-    <text x="${rodX+11}" y="${(y_hi+3).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink-soft)" text-anchor="start">Hi</text>
-    <path d="M ${a0.x.toFixed(1)} ${a0.y.toFixed(1)} A ${rAlpha} ${rAlpha} 0 0 ${alphaSweep} ${a1.x.toFixed(1)} ${a1.y.toFixed(1)}" fill="none" stroke="var(--blueprint)" stroke-width="1"/>
-    <text x="${alphaMid.x.toFixed(1)}" y="${alphaMid.y.toFixed(1)}" font-size="8.5" font-family="var(--font-mono)" font-weight="700" fill="var(--blueprint)" text-anchor="middle">α</text>
-    <path d="M ${v0.x.toFixed(1)} ${v0.y.toFixed(1)} A ${rVr} ${rVr} 0 0 0 ${v1.x.toFixed(1)} ${v1.y.toFixed(1)}" fill="none" stroke="var(--ink-soft)" stroke-width="0.9" stroke-dasharray="2 2"/>
-    <text x="${vrMid.x.toFixed(1)}" y="${vrMid.y.toFixed(1)}" font-size="8.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">Vr</text>
-    <line x1="${(V.x-3).toFixed(1)}" y1="${(V.y+2).toFixed(1)}" x2="${(V.x-11).toFixed(1)}" y2="${legFootY.toFixed(1)}" stroke="var(--ink)" stroke-width="1.4"/>
-    <line x1="${(V.x+3).toFixed(1)}" y1="${(V.y+2).toFixed(1)}" x2="${(V.x+8).toFixed(1)}" y2="${legFootY.toFixed(1)}" stroke="var(--ink)" stroke-width="1.4"/>
-    <line x1="${V.x}" y1="${(V.y+3).toFixed(1)}" x2="${(V.x-1).toFixed(1)}" y2="${legFootY.toFixed(1)}" stroke="var(--ink)" stroke-width="1.4"/>
-    <line x1="${V.x}" y1="${(V.y-1).toFixed(1)}" x2="${(V.x+9).toFixed(1)}" y2="${(V.y-1).toFixed(1)}" stroke="var(--ink)" stroke-width="1.6"/>
-    <rect x="${(V.x-4.5).toFixed(1)}" y="${(V.y-4).toFixed(1)}" width="9" height="6" rx="1.3" fill="var(--ink)"/>
-    <circle cx="${V.x}" cy="${(V.y-1).toFixed(1)}" r="1.6" fill="var(--paper)"/>
-    <text x="${(V.x-13).toFixed(1)}" y="${(V.y+9).toFixed(1)}" font-size="9" font-family="var(--font-mono)" font-weight="700" fill="var(--ink)" text-anchor="end">A</text>
-    <text x="${w/2}" y="${h-4}" font-size="7.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">(esquemático, no a escala)</text>
-  </svg>`;
+/* Diagrama de Taquimetría — v2 (estándar de plantillas de Mario): corte lateral esquemático (no a escala) con el instrumento en A, la mira a la
+   derecha y las lecturas de hilo superior Hs, medio Hm e inferior Hi. La distancia horizontal Dh (accent: resultado principal) va sobre la
+   horizontal del instrumento, la distancia vertical Dv (success) sobre la mira y el ángulo vertical α (blueprint) entre la horizontal y la
+   visual al hilo medio. En el dibujo solo el carácter; los valores van en el listado (Dh, Dv, α, Hs, Hm, Hi y desnivel). */
+function svgTaquimetria(hs,hm,hi_lect,anguloDeg,r){
+  const K=svgKit(), rows=[];
+  if(r){ rows.push({k:'Dh',c:'var(--accent)',v:`${fmtNum(r.Dh,3)} m`}); rows.push({k:'Dv',c:'var(--success)',v:`${fmtNum(r.Dv,3)} m`}); }
+  rows.push({k:'α',c:'var(--blueprint)',v:fmtAngle(anguloDeg)});
+  rows.push({k:'Hs',c:'var(--danger)',v:`${fmtNum(hs,3)} m`}); rows.push({k:'Hm',c:'var(--ink)',v:`${fmtNum(hm,3)} m`}); rows.push({k:'Hi',c:'var(--ink-soft)',v:`${fmtNum(hi_lect,3)} m`});
+  if(r) rows.push({k:'Desnivel',c:'var(--ink)',v:`${fmtNum(r.desnivel,3)} m`});
+  K.list([rows],{perCol:4});
+  const A=[52,0], rodX=244, dx=rodX-A[0], top=Math.max(K.listBottom+10,56), bot=176;
+  let a=Math.max(-16,Math.min(anguloDeg,16)); if(Math.abs(a)<5) a=a<0?-5:5;
+  const dy=Math.min(55,dx*Math.tan(toRad(Math.abs(a))))*Math.sign(a);   // dy>0 = la mira queda más arriba
+  const span=Math.max(hs-hi_lect,1e-6), fS=Math.min(Math.max((hs-hm)/span,0.12),0.88), L=Math.min(40,(bot-top)-Math.abs(dy)-16);
+  const up=fS*L, dn=(1-fS)*L;
+  // yM: posición del hilo medio; se centra el conjunto y se acota para que la mira completa quede dentro del marco
+  const lo=Math.max(top+up+6, top+Math.max(0,-dy)+4), hi=Math.min(bot-dn-6, bot-Math.max(0,dy)-4);
+  const yM=Math.min(Math.max((top+bot)/2-dy/2,lo),Math.max(lo,hi)); A[1]=yM+dy;
+  const yS=yM-up, yI=yM+dn;
+  const rt=Math.max(top-2,yS-8), rb=Math.min(bot,yI+8);
+  // terreno bajo la mira y la mira
+  K.line(rodX-26,rb,rodX+26,rb,'#8B6B47',{sw:1.2,noObs:false});
+  K.line(rodX,rt,rodX,rb,'var(--ink)',{sw:1.8});
+  // horizontal del instrumento (Dh) y vertical sobre la mira (Dv)
+  K.line(...A,rodX,A[1],'var(--accent)',{sw:1,dash:'2.4 2'});
+  K.line(rodX-9,A[1],rodX-9,yM,'var(--success)',{sw:1});
+  // visuales
+  K.line(...A,rodX,yS,'var(--danger)',{sw:0.7,dash:'1.6 1.6'}); K.line(...A,rodX,yI,'var(--ink-soft)',{sw:0.7,dash:'1.6 1.6'});
+  K.line(...A,rodX,yM,'var(--ink)',{sw:1.1});
+  [[yS,'var(--danger)'],[yM,'var(--ink)'],[yI,'var(--ink-soft)']].forEach(([y,c])=>K.line(rodX-5,y,rodX+5,y,c,{sw:1.4,noObs:false}));
+  // ángulo α
+  const ra=26; K.arc(A[0],A[1],ra,0,-a,'var(--blueprint)',{sw:0.9});
+  K.dot(...A,'var(--ink-soft)',2);
+  // letras
+  K.pointLabel('Hs',rodX+5,yS,4.5,'var(--danger)',{dir:[1,0],rmin:3,rmax:10,omit:false});
+  K.pointLabel('Hm',rodX+5,yM,4.5,'var(--ink)',{dir:[1,0],rmin:3,rmax:10,omit:false});
+  K.pointLabel('Hi',rodX+5,yI,4.5,'var(--ink-soft)',{dir:[1,0],rmin:3,rmax:10,omit:false});
+  K.pointLabel('A',A[0],A[1],4.5,'var(--ink-soft)',{dir:[-1,0.5],omit:false});
+  const am=-a/2*Math.PI/180; K.pointLabel('α',A[0]+ra*Math.cos(am),A[1]+ra*Math.sin(am),4.5,'var(--blueprint)',{dir:[Math.cos(am),Math.sin(am)],rmin:2,rmax:9});
+  K.lineLabel(...A,rodX,A[1],'Dh',4.5,'var(--accent)',{at:0.55,out:[0,a>0?1:-1],extras:[0,3,6]});
+  if(Math.abs(A[1]-yM)>8) K.lineLabel(rodX-9,A[1],rodX-9,yM,'Dv',4.5,'var(--success)',{out:[-1,0],extras:[0,3]});
+  return K.svg();
 }
 
 /* Diagrama de sector circular — v2 (estándar de plantillas de Mario): sector a escala con el vértice O abajo y A–B arriba; el área (accent: es
@@ -6985,7 +6873,7 @@ function renderTaqui(){
       <div class="result-row"><span class="k">Distancia horizontal</span><span class="v accent big">${fmtNum(r.Dh,3)} m</span></div>
       <div class="result-row"><span class="k">Distancia vertical</span><span class="v">${fmtNum(r.Dv,3)} m</span></div>
       <div class="result-row"><span class="k">Desnivel</span><span class="v accent">${fmtNum(r.desnivel,3)} m</span></div>
-      <div class="plot-wrap">${svgTaquimetria(hs,hm,hi,ang)}</div>
+      <div class="plot-wrap">${svgTaquimetria(hs,hm,hi,ang,r)}</div>
     </div>`;
   });
 }
@@ -7026,7 +6914,7 @@ function renderNivel(){
       <div class="result-row"><span class="k">Distancia horizontal usada</span><span class="v">${fmtNum(D,3)} m</span></div>
       ${crRow}
       <div class="result-row"><span class="k">Desnivel</span><span class="v accent big">${fmtNum(desnivel,3)} m</span></div>
-      <div class="plot-wrap">${svgTrianguloVertical(ang, D, hi, hm, desnivel)}</div>
+      <div class="plot-wrap">${svgTrianguloVertical(ang, D, hi, hm, desnivel, {Di:D/Math.max(Math.cos(toRad(ang)),1e-9)})}</div>
     </div>`;
   });
 }
@@ -9157,39 +9045,40 @@ function renderCurvaReversa(){
   });
 }
 
-/* Diagrama del eje de proyecto: polilínea de vértices por progresiva, con estaca opcional resaltada */
+/* Diagrama del Eje de Proyecto Vial — v2 (estándar de plantillas de Mario): polilínea del eje a escala (blueprint) con vértices V0..Vn,
+   norte arriba y estaca (accent: es el resultado principal) cuando se busca una progresiva. Hasta 8 tramos: cada tramo lleva su letra
+   L(i) (blueprint) y Az(i) (success) y todos los valores van en el listado; con más tramos el dibujo lleva solo la longitud de cada uno
+   y el listado el resumen. Rótulo sin lugar libre → se omite del dibujo (el valor queda en el listado). */
 function svgEjePolilinea(verts, estaca, fuente){
-  const all = verts.concat(estaca?[{X:estaca.X,Y:estaca.Y}]:[]);
-  const minE=Math.min(...all.map(p=>p.X)), maxE=Math.max(...all.map(p=>p.X));
-  const minN=Math.min(...all.map(p=>p.Y)), maxN=Math.max(...all.map(p=>p.Y));
-  const w=300,h=220,pad=28;
-  const spanE=Math.max(maxE-minE,0.001), spanN=Math.max(maxN-minN,0.001);
-  const scale=Math.min((w-2*pad)/spanE,(h-2*pad)/spanN);
-  const px=e=>pad+(e-minE)*scale, py=n=>(h-pad)-(n-minN)*scale;
-  const path = verts.map((v,i)=>(i===0?'M':'L')+px(v.X).toFixed(1)+' '+py(v.Y).toFixed(1)).join(' ');
-  let dots='';
-  verts.forEach((v,i)=>{
-    dots += `<circle cx="${px(v.X).toFixed(1)}" cy="${py(v.Y).toFixed(1)}" r="3" fill="var(--ink)"/>
-      <text x="${px(v.X).toFixed(1)}" y="${(py(v.Y)-8).toFixed(1)}" font-size="8.5" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">V${i}</text>`;
-  });
-  let distLabels='';
-  const distFont2=relFont(w,0.026,6.5,8.5);
-  for(let i=0;i<verts.length-1;i++){
-    const dist=Math.hypot(verts[i+1].X-verts[i].X, verts[i+1].Y-verts[i].Y);
-    const ax=px(verts[i].X), ay=py(verts[i].Y), bx=px(verts[i+1].X), by=py(verts[i+1].Y);
-    distLabels += svgLineLabel(ax,ay,bx,by, fmtNum(dist,2)+' m', 'var(--blueprint)', distFont2, 1);
-  }
-  let est='';
-  if(estaca){
-    est = `<circle cx="${px(estaca.X).toFixed(1)}" cy="${py(estaca.Y).toFixed(1)}" r="3.6" fill="var(--accent)" stroke="var(--ink)" stroke-width="0.6"/>
-      <text x="${px(estaca.X).toFixed(1)}" y="${(py(estaca.Y)+15).toFixed(1)}" font-size="9" font-family="var(--font-mono)" fill="var(--accent-text)" text-anchor="middle">Estaca</text>`;
-  }
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <path d="${path}" stroke="var(--blueprint)" stroke-width="2" fill="none"/>
-    ${dots}${distLabels}${est}
-    ${svgNorthArrow(w-20,20)}
-    ${fuente?svgFuente(fuente,w,h):''}
-  </svg>`;
+  const K=svgKit(), n=verts.length-1, few=n<=8;
+  K.north();
+  const seg=i=>{ const dx=verts[i+1].X-verts[i].X, dy=verts[i+1].Y-verts[i].Y; return {L:Math.hypot(dx,dy), az:((Math.atan2(dx,dy)*180/Math.PI)%360+360)%360}; };
+  const S=[]; for(let i=0;i<n;i++) S.push(seg(i));
+  const tot=verts[n].km-verts[0].km;
+  const b1=[{k:'Largo total',c:'var(--blueprint)',v:`${fmtNum(tot,2)} m`},{k:'Km inicial',c:'var(--ink)',v:`${fmtNum(verts[0].km,2)} m`},{k:'Km final',c:'var(--ink)',v:`${fmtNum(verts[n].km,2)} m`}];
+  if(estaca&&estaca.km!==undefined) b1.push({k:'Estaca',c:'var(--accent)',v:`${fmtNum(estaca.km,2)} m`});
+  const blocks=[b1];
+  if(few){ blocks.push(S.map((s,i)=>({k:'L'+(i+1),c:'var(--blueprint)',v:`${fmtNum(s.L,2)} m`}))); blocks.push(S.map((s,i)=>({k:'Az'+(i+1),c:'var(--success)',v:fmtAngle(s.az)}))); }
+  K.list(blocks,{gap:9});
+  const box={l:28,r:272,t:Math.max(44,K.listBottom+8),b:fuente?158:172};
+  const pts=verts.map(v=>[v.X,v.Y]); if(estaca) pts.push([estaca.X,estaca.Y]);
+  const fit=K.fit(pts,box), P=verts.map(v=>[fit.X(v.X),fit.Y(v.Y)]), E=estaca?[fit.X(estaca.X),fit.Y(estaca.Y)]:null;
+  K.poly(P,{stroke:'var(--blueprint)',sw:1.3});
+  P.forEach(q=>K.dot(q[0],q[1],'var(--ink-soft)',2));
+  if(E) K.dot(E[0],E[1],'var(--accent)',2.6);
+  // letras de vértices hacia el exterior del giro
+  const st=thinLabelStep(n+1,12), unit=(a,b)=>{ const l=Math.hypot(b[0]-a[0],b[1]-a[1])||1; return [(b[0]-a[0])/l,(b[1]-a[1])/l]; };
+  P.forEach((q,i)=>{ if(i%st!==0&&i!==n) return; let d;
+    if(i===0) d=[-unit(q,P[1])[0],-unit(q,P[1])[1]]; else if(i===n) d=unit(P[n-1],q);
+    else { const a=unit(P[i-1],q), b=unit(q,P[i]); d=[a[0]-b[0],a[1]-b[1]]; const l=Math.hypot(...d); d=l<0.3?[-a[1],a[0]]:[d[0]/l,d[1]/l]; }
+    K.pointLabel('V'+i,q[0],q[1],4.5,'var(--ink-soft)',{dir:d,full:false}); });
+  // rótulos de tramo
+  for(let i=0;i<n;i++){ const a=P[i], b=P[i+1];
+    if(few){ K.lineLabel(...a,...b,'L'+(i+1),3.6,'var(--blueprint)',{out:[0,-1]}); K.lineLabel(...a,...b,'Az'+(i+1),3.6,'var(--success)',{out:[0,1]}); }
+    else if(n<=14) K.lineLabel(...a,...b,fmtNum(S[i].L,1),3,'var(--blueprint)',{out:[0,-1]}); }
+  if(E){ const lbl=estaca.km!==undefined?`Km ${fmtNum(estaca.km,2)}`:'Estaca'; K.pointLabel(lbl,E[0],E[1],3.6,'var(--accent)',{rmin:5,rmax:16}); }
+  if(fuente) K.add(svgFuente(fuente,320,190));
+  return K.svg();
 }
 
 /* ---------- CURVA CIRCULAR POR PROGRESIVA ---------- */
@@ -9338,7 +9227,7 @@ function renderEjeProyecto(){
     box.innerHTML = `<div class="results" style="margin-top:12px;">
       <div class="result-row"><span class="k">Tramo</span><span class="v">${i+1}</span></div>
       <div class="result-row"><span class="k">Coordenadas de la estaca (E, N)</span><span class="v accent big">${fmtNum(r.X,3)}, ${fmtNum(r.Y,3)}</span></div>
-      <div class="plot-wrap">${svgEjePolilinea(ejeVertsCache, {X:r.X,Y:r.Y})}</div>
+      <div class="plot-wrap">${svgEjePolilinea(ejeVertsCache, {X:r.X,Y:r.Y,km:km})}</div>
     </div>`;
     const btnGuardar = document.createElement('button');
     btnGuardar.type='button'; btnGuardar.className='btn-sm'; btnGuardar.style.marginTop='8px';
@@ -10141,7 +10030,7 @@ function renderPendienteDosPuntos(){
       <div class="result-row"><span class="k">Pendiente</span><span class="v accent big">${fmtNum(r.pendientePct,2)} %</span></div>
       <div class="result-row"><span class="k">Pendiente angular</span><span class="v">${fmtAngle(Math.abs(r.pendienteDeg))}</span></div>
       <div class="result-row"><span class="k">Relación H:V</span><span class="v">${relHV}</span></div>
-      <div class="plot-wrap">${svgTrianguloVertical(Math.abs(r.pendienteDeg), r.distInclinada, r.distH, Math.abs(r.desnivel))}</div>
+      <div class="plot-wrap">${svgTrianguloVertical(Math.abs(r.pendienteDeg), r.distH, undefined, undefined, r.desnivel, {Di:r.distInclinada, pct:r.pendientePct, star:'a', sign:r.desnivel<0?-1:1})}</div>
     </div>`;
   });
 }
