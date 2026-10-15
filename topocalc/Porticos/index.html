@@ -1939,8 +1939,8 @@ window.PORTICOS_LISTA = (function(){
       var quitarTmp = function(){ scrollEl.removeAttribute("data-exp"); if(tmpStl && tmpStl.parentNode) tmpStl.parentNode.removeChild(tmpStl); tmpStl = null; };
       if(boardEl.getBoundingClientRect().width < 200){ quitarTmp(); alert("No se pudo preparar la pizarra para exportar."); return; }
       var rb0 = boardEl.getBoundingClientRect(), landscape = !cfg.weekly && rb0.width / rb0.height > 1.25; /* A3 vertical; horizontal solo en la Intermedio si es muy ancha */
-      var PW = landscape ? 420 : 297, PH = landscape ? 297 : 420, DPI = (fmt === "pdf") ? 200 : 300, K = DPI / 25.4;
-      /* PNG/JPG a 300 ppp (A3 = 3508 x 4961); se limita el total de píxeles para que el celular no falle */
+      var PW = landscape ? 420 : 297, PH = landscape ? 297 : 420, DPI = 300, K = DPI / 25.4;
+      /* PNG/JPG/PDF a 300 ppp (A3 = 3508 x 4961); se limita el total de píxeles para que el celular no falle */
       if(PW * PH * K * K > 16000000) K = Math.sqrt(16000000 / (PW * PH));
       var MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
       var TONOS = { copper:"#D49A6A", neutral:"#8C949E", blueprint:"#2C6B7E", amber:"#D6A828", success:"#26694B", violet:"#7A52AA", sky:"#3F8FC4", danger:"#B23B3B" };
