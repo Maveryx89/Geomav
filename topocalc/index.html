@@ -6342,61 +6342,53 @@ function rotateTranslatePts(pts, angleRad, ox, oy){
   const c=Math.cos(angleRad), s=Math.sin(angleRad);
   return pts.map(p=>({x: ox+p.x*c-p.y*s, y: oy+p.x*s+p.y*c}));
 }
-/* Diagrama compartido por Curva Circular Compuesta y Curva de Reversa (parámetro "reversa"):
-   dos arcos tangentes en PCC/PRC. Cada arco lleva un carácter suelto ("1"/"2"), en el mismo
-   color de su trazo, y un listado propio en la esquina superior izquierda con R/T/Lc/C de ese
-   tramo (mismo color que su arco) — a pedido explícito del usuario, aunque la tabla de
-   resultados de ambas calculadoras ya trae las mismas columnas por tramo (el listado en el SVG
-   no la reemplaza, la complementa para no tener que mirar fuera del dibujo). Como aquí lo que
-   distingue cada línea de la lista es el TRAMO (no una magnitud distinta cada vez), un mismo
-   color agrupa las 4 magnitudes de un tramo en su renglón, en vez de un color por magnitud.
-   Colores: tramo 1 = var(--blueprint), tramo 2 = var(--accent) (los mismos que ya traía el
-   diagrama). Los puntos PC/PCC(o PRC)/PT siguen en tono neutro ink/ink-soft, sin reutilizar los
-   colores de tramo. La lista se ancla arriba a la izquierda porque los arcos siempre arrancan
-   desde abajo (PC cerca del origen) y solo se acercan a esa esquina muy cerca de PT, lejos en
-   horizontal de donde vive la lista — probado con radios muy dispares y con curva de reversa
-   (forma en S) sin cruces entre el listado y el trazo. */
-function svgCurvaDoble(R1, d1Deg, R2, d2Deg, reversa){
-  const n=20;
-  const pts1 = curveArcPoints(R1,d1Deg,n,false);
-  const pcc = pts1[pts1.length-1];
-  const pts2 = rotateTranslatePts(curveArcPoints(R2,d2Deg,n,!!reversa), toRad(d1Deg), pcc.x, pcc.y);
-  const all = pts1.concat(pts2);
-  const xs=all.map(p=>p.x).concat([0]), ys=all.map(p=>p.y).concat([0]);
-  const minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys);
-  const w=300,h=200,pad=26;
-  const scale=Math.min((w-2*pad)/Math.max(maxX-minX,0.001), (h-2*pad)/Math.max(maxY-minY,0.001));
-  const ox=pad-minX*scale, oy=h-pad+minY*scale;
-  const toXY=p=>({sx:ox+p.x*scale, sy:oy-p.y*scale});
-  const path1=pts1.map(toXY).map((p,i)=>(i===0?'M':'L')+p.sx.toFixed(1)+' '+p.sy.toFixed(1)).join(' ');
-  const path2=pts2.map(toXY).map((p,i)=>(i===0?'M':'L')+p.sx.toFixed(1)+' '+p.sy.toFixed(1)).join(' ');
-  const pccS=toXY(pcc), startS=toXY(pts1[0]), endS=toXY(pts2[pts2.length-1]);
-  const mid1S=toXY(pts1[Math.floor(n/2)]), mid2S=toXY(pts2[Math.floor(n/2)]);
-  const col1='var(--blueprint)', col2='var(--accent)';
-  const ptFont=relFont(w,0.03,7,9), segFont=relFont(w,0.032,7.5,9.5);
-  const listFont=relFont(w,0.022,5.5,7);
-  const t1r=toRad(d1Deg/2), t2r=toRad(d2Deg/2);
-  const T1=R1*Math.tan(t1r), T2=R2*Math.tan(t2r);
-  const Lc1=R1*toRad(d1Deg), Lc2=R2*toRad(d2Deg);
-  const C1=2*R1*Math.sin(t1r), C2=2*R2*Math.sin(t2r);
-  const lgX=8, lgY0=6+listFont, lgStep=listFont*1.4;
-  const rowTxt=(n,R,T,Lc,C)=>`${n}: R=${fmtNum(R,2)} T=${fmtNum(T,3)} Lc=${fmtNum(Lc,3)} C=${fmtNum(C,3)}`;
-  const legendSvg = `
-    <text x="${lgX}" y="${lgY0.toFixed(1)}" font-size="${listFont}" font-family="var(--font-mono)" font-weight="700" fill="${col1}" text-anchor="start">${rowTxt(1,R1,T1,Lc1,C1)}</text>
-    <text x="${lgX}" y="${(lgY0+lgStep).toFixed(1)}" font-size="${listFont}" font-family="var(--font-mono)" font-weight="700" fill="${col2}" text-anchor="start">${rowTxt(2,R2,T2,Lc2,C2)}</text>`;
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <path d="${path1}" stroke="${col1}" stroke-width="2.2" fill="none"/>
-    <path d="${path2}" stroke="${col2}" stroke-width="2.2" fill="none"/>
-    <circle cx="${startS.sx.toFixed(1)}" cy="${startS.sy.toFixed(1)}" r="3" fill="var(--ink)"/>
-    <circle cx="${pccS.sx.toFixed(1)}" cy="${pccS.sy.toFixed(1)}" r="3" fill="var(--ink)"/>
-    <circle cx="${endS.sx.toFixed(1)}" cy="${endS.sy.toFixed(1)}" r="3" fill="var(--ink)"/>
-    <text x="${startS.sx.toFixed(1)}" y="${(startS.sy+14).toFixed(1)}" font-size="${ptFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">PC</text>
-    <text x="${pccS.sx.toFixed(1)}" y="${(pccS.sy-8).toFixed(1)}" font-size="${ptFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">${reversa?'PRC':'PCC'}</text>
-    <text x="${endS.sx.toFixed(1)}" y="${(endS.sy+14).toFixed(1)}" font-size="${ptFont}" font-family="var(--font-mono)" fill="var(--ink-soft)" text-anchor="middle">PT</text>
-    <text x="${mid1S.sx.toFixed(1)}" y="${(mid1S.sy-6).toFixed(1)}" font-size="${segFont}" font-family="var(--font-mono)" font-weight="700" fill="${col1}" text-anchor="middle">1</text>
-    <text x="${mid2S.sx.toFixed(1)}" y="${(mid2S.sy-6).toFixed(1)}" font-size="${segFont}" font-family="var(--font-mono)" font-weight="700" fill="${col2}" text-anchor="middle">2</text>
-    ${legendSvg}
-  </svg>`;
+/* Diagrama de curva circular compuesta / curva de reversa (S) — v2 (estándar de plantillas de Mario): dos arcos encadenados a escala, cada tramo
+   con su color (tramo 1 = blueprint, tramo 2 = accent; el tramo recto intermedio de la reversa, si existe, en ink). De cada tramo se dibuja
+   el arco (Lc), la cuerda (C) y las tangentes (T) hasta sus PI; el listado trae R, Δ, T, Lc y C de cada tramo en su color y un tercer
+   bloque (ink) con los totales. En el dibujo solo el carácter de cada magnitud con el índice de su tramo. */
+function svgCurvaDoble(R1, d1Deg, R2, d2Deg, reversa, dt){
+  const K=svgKit(), n=24, g=dt>0&&reversa?dt:0, rad=a=>a*Math.PI/180;
+  const c1='var(--blueprint)', c2='var(--accent)';
+  const T1=R1*Math.tan(rad(d1Deg/2)), T2=R2*Math.tan(rad(d2Deg/2)), Lc1=R1*rad(d1Deg), Lc2=R2*rad(d2Deg), C1=2*R1*Math.sin(rad(d1Deg/2)), C2=2*R2*Math.sin(rad(d2Deg/2));
+  const A1=curveArcPoints(R1,d1Deg,n,false), pcc=A1[n], u=[Math.cos(rad(d1Deg)),Math.sin(rad(d1Deg))];
+  const prc2=g?{x:pcc.x+g*u[0],y:pcc.y+g*u[1]}:pcc;
+  const A2=rotateTranslatePts(curveArcPoints(R2,d2Deg,n,!!reversa), rad(d1Deg), prc2.x, prc2.y);
+  const PC=A1[0], PT=A2[n], PI1={x:pcc.x-T1*u[0],y:pcc.y-T1*u[1]}, PI2={x:prc2.x+T2*u[0],y:prc2.y+T2*u[1]};
+  const rows1=[{k:'R1',c:c1,v:`${fmtNum(R1,2)} m`},{k:'Δ1',c:c1,v:fmtAngle(d1Deg)},{k:'T1',c:c1,v:`${fmtNum(T1,3)} m`},{k:'Lc1',c:c1,v:`${fmtNum(Lc1,3)} m`},{k:'C1',c:c1,v:`${fmtNum(C1,3)} m`}];
+  const rows2=[{k:'R2',c:c2,v:`${fmtNum(R2,2)} m`},{k:'Δ2',c:c2,v:fmtAngle(d2Deg)},{k:'T2',c:c2,v:`${fmtNum(T2,3)} m`},{k:'Lc2',c:c2,v:`${fmtNum(Lc2,3)} m`},{k:'C2',c:c2,v:`${fmtNum(C2,3)} m`}];
+  const tot=reversa?[{k:'PI1–PI2',c:'var(--ink)',v:`${fmtNum(T1+g+T2,3)} m`},{k:'Lc total',c:'var(--ink)',v:`${fmtNum(Lc1+Lc2,3)} m`}]:[{k:'Δ total',c:'var(--ink)',v:fmtAngle(d1Deg+d2Deg)},{k:'Lc total',c:'var(--ink)',v:`${fmtNum(Lc1+Lc2,3)} m`}];
+  if(g) tot.push({k:'Tang. interm.',c:'var(--ink)',v:`${fmtNum(g,3)} m`});
+  K.list([rows1,rows2,tot],{gap:8});
+  const all=A1.concat(A2,[PI1,PI2]).map(p=>[p.x,p.y]);
+  const fit=K.fit(all,{l:22,r:298,t:Math.max(K.listBottom+8,40),b:176});
+  const S=p=>[fit.X(p.x),fit.Y(p.y)];
+  const s1=A1.map(S), s2=A2.map(S), sPC=S(PC), sPCC=S(pcc), sPRC2=S(prc2), sPT=S(PT), sPI1=S(PI1), sPI2=S(PI2);
+  // tangentes, intermedia y cuerdas
+  K.line(...sPC,...sPI1,c1,{sw:0.6,dash:'1.6 1.6'}); K.line(...sPI2,...sPT,c2,{sw:0.6,dash:'1.6 1.6'});
+  K.line(...sPI1,...sPCC,c1,{sw:0.6,dash:'1.6 1.6'}); K.line(...sPRC2,...sPI2,c2,{sw:0.6,dash:'1.6 1.6'});
+  if(g) K.line(...sPCC,...sPRC2,'var(--ink)',{sw:0.9});
+  K.line(...sPC,...sPCC,c1,{sw:0.8,dash:'3 2'}); K.line(...sPRC2,...sPT,c2,{sw:0.8,dash:'3 2'});
+  K.poly(s1,{stroke:c1,sw:1.5}); K.poly(s2,{stroke:c2,sw:1.5});
+  [sPC,sPCC,sPRC2,sPT,sPI1,sPI2].forEach((q,i)=>{ if(i===2&&!g) return; K.dot(q[0],q[1],'var(--ink-soft)',i<4?2:1.6); });
+  // letras de puntos
+  const nm=reversa?'PRC':'PCC', un=v=>{const l=Math.hypot(v[0],v[1])||1; return [v[0]/l,v[1]/l];};
+  const away=(p,ref)=>un([p[0]-ref[0],p[1]-ref[1]]);
+  const m1=s1[n/2], m2=s2[n/2], ch1=[(sPC[0]+sPCC[0])/2,(sPC[1]+sPCC[1])/2], ch2=[(sPRC2[0]+sPT[0])/2,(sPRC2[1]+sPT[1])/2];
+  K.pointLabel('PC',sPC[0],sPC[1],4.5,'var(--ink-soft)',{dir:away(sPC,m1),omit:false});
+  K.pointLabel(g?nm+'1':nm,sPCC[0],sPCC[1],4.5,'var(--ink-soft)',{dir:away(sPCC,ch1),omit:false});
+  if(g) K.pointLabel(nm+'2',sPRC2[0],sPRC2[1],4.5,'var(--ink-soft)',{dir:away(sPRC2,ch2),omit:false});
+  K.pointLabel('PT',sPT[0],sPT[1],4.5,'var(--ink-soft)',{dir:away(sPT,m2),omit:false});
+  K.pointLabel('PI1',sPI1[0],sPI1[1],3.4,'var(--ink-soft)',{dir:away(sPI1,m1)});
+  K.pointLabel('PI2',sPI2[0],sPI2[1],3.4,'var(--ink-soft)',{dir:away(sPI2,m2)});
+  // magnitudes de cada tramo
+  const outFrom=(a,b,ref)=>{ const mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2; return away([mx,my],ref); };
+  K.lineLabel(...sPC,...sPI1,'T1',4.5,c1,{out:outFrom(sPC,sPI1,m1),extras:[0,3,6]});
+  K.lineLabel(...sPI2,...sPT,'T2',4.5,c2,{out:outFrom(sPI2,sPT,m2),extras:[0,3,6]});
+  K.lineLabel(...sPC,...sPCC,'C1',4.5,c1,{out:away(ch1,m1),extras:[0,3,6]});
+  K.lineLabel(...sPRC2,...sPT,'C2',4.5,c2,{out:away(ch2,m2),extras:[0,3,6]});
+  K.pointLabel('Lc1',m1[0],m1[1],4.5,c1,{dir:away(m1,ch1),rmin:3,rmax:11});
+  K.pointLabel('Lc2',m2[0],m2[1],4.5,c2,{dir:away(m2,ch2),rmin:3,rmax:11});
+  return K.svg();
 }
 
 /* Diagrama de radiacion: rayos desde una estacion a varios puntos */
@@ -9167,7 +9159,7 @@ function renderCurvaReversa(){
       </tbody></table></div>
       <div class="result-row" style="margin-top:6px;"><span class="k">Distancia entre PI1 y PI2</span><span class="v">${fmtNum(r.distPI1PI2,3)} m</span></div>
       <div class="result-row"><span class="k">Longitud total de curvas</span><span class="v accent big">${fmtNum(r.LcTotal,3)} m</span></div>
-      <div class="plot-wrap">${svgCurvaDoble(R1,d1,R2,d2,true)}</div>
+      <div class="plot-wrap">${svgCurvaDoble(R1,d1,R2,d2,true,dt)}</div>
     </div>`;
   });
 }
