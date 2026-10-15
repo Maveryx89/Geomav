@@ -1157,6 +1157,13 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .ipt-alerta{ color:#C0392B; font-weight:700; }
 .capas-ley.sin-com span:nth-child(-n+3), .capas-ley.sin-vial span:nth-child(4){ display:none; }
 </style>
+<style id="nota-cabecera">
+.note .note-head{ display:flex; align-items:center; flex-wrap:wrap; gap:2px 3px; margin-bottom:4px; }
+.note .note-head .portico-tag{ margin-bottom:0; max-width:100%; font-size:.6rem; padding:1px 5px; letter-spacing:0; }
+.note .note-head .badge-ok, .note .note-head .badge-no, .note .note-head .badge-warn{ margin-right:0; font-size:.78rem; line-height:1; }
+.note .note-head .pct{ font-family:var(--font-mono); font-size:9px; font-weight:600; color:var(--ink-soft); letter-spacing:-.2px; }
+@media (max-width:760px){ .note .note-head .pct{ font-size:9px; } }
+</style>
 </head>
 
 <body>
@@ -2641,6 +2648,14 @@ window.PORTICOS_LISTA = (function(){
       var c = String(p.comuna || "").trim();
       return (c && !/^por definir$/i.test(c)) ? c + ": " + p.nombre : p.nombre;
     }
+    var ABREV_COMUNA = { "san fernando":"S.Fdo.", "santa cruz":"S.Cruz", "chimbarongo":"Chimb.", "nancagua":"Nanc.", "chépica":"Chép.", "placilla":"Plac.", "pichilemu":"Pich.", "peralillo":"Peral.", "palmilla":"Palm.", "pumanque":"Pum.", "paredones":"Pared.", "marchigüe":"March.", "litueche":"Lit.", "navidad":"Nav.", "la estrella":"L.Estr.", "lolol":"Lolol" };
+    function etiquetaCorta(num){
+      var p = datoPortico(num); if(!p) return "Pórtico " + num;
+      var c = String(p.comuna || "").trim();
+      if(!c || /^por definir$/i.test(c)) return p.nombre;
+      var k = c.toLowerCase(), ab = ABREV_COMUNA[k] || (c.length > 8 ? c.slice(0, 4) + "." : c);
+      return ab + ": " + p.nombre;
+    }
     function textoNota(note){
       var t = String(note.text || "");
       if(note.portico){ var p = datoPortico(note.portico); if(p && t.trim() && t.trim() === String(p.comuna || "").trim()) t = ""; }
@@ -2652,22 +2667,23 @@ window.PORTICOS_LISTA = (function(){
       if(!editing){
         var metaBits = [];
         if(note.responsable) metaBits.push(escapeHtml(note.responsable));
-        var badge = "";
+        var badge = "", pct = "";
         if(cfg.weekly){
           if(note.cumplido === true) badge = '<span class="badge-ok" title="Cumplido">\u2713</span>';
           else if(note.cumplido === false) badge = '<span class="badge-no" title="No cumplido">\u2715</span>';
-          if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%");
+          if(note.percent !== "" && note.percent !== null && note.percent !== undefined) pct = note.percent+"%";
         } else {
           if(restrDe(note).length) badge = '<span class="badge-warn" title="Restricci\u00f3n abierta">!</span>';
           else if(note.liberada) badge = '<span class="badge-ok" title="Restricci\u00f3n liberada">\u2713</span>';
-          if(note.percent !== "" && note.percent !== null && note.percent !== undefined) metaBits.push(note.percent+"%");
+          if(note.percent !== "" && note.percent !== null && note.percent !== undefined) pct = note.percent+"%";
         }
         return '<div class="note note-'+note.tone+'" style="'+extraStyle+'" data-action="open-note" data-note="'+note.id+'">'
           + (note.pendiente ? '<div class="pend-tag" title="Cambios sin guardar en la planilla">\u25cf sin guardar</div>'
               : ((window.PORTICOS_PEND || {})[note.id] === "error" ? '<div class="pend-tag" title="No se pudo guardar: usa Reintentar en el aviso inferior">\u26a0 no se guard\u00f3</div>'
               : ((window.PORTICOS_PEND || {})[note.id] ? '<div class="pend-tag env" title="Envi\u00e1ndose a la planilla">\u23f3 guardando\u2026</div>' : "")))
-          + (note.portico ? '<div class="portico-tag tag-'+note.tone+'">'+escapeHtml(etiquetaPortico(note.portico))+'</div>' : "")
-          + ((textoNota(note) || badge || !note.portico) ? '<div class="txt">'+badge+escapeHtml(textoNota(note) || (note.portico ? "" : "Nueva tarea"))+'</div>' : "")
+          + (note.portico ? '<div class="note-head"><div class="portico-tag tag-'+note.tone+'" title="'+escapeHtml(etiquetaPortico(note.portico))+'">'+escapeHtml(etiquetaCorta(note.portico))+'</div>'+badge+(pct ? '<span class="pct">'+escapeHtml(pct)+'</span>' : "")+'</div>' : "")
+          + ((textoNota(note) || (!note.portico && badge) || !note.portico) ? '<div class="txt">'+(note.portico ? "" : badge)+escapeHtml(textoNota(note) || (note.portico ? "" : "Nueva tarea"))+'</div>' : "")
+          + ((!note.portico && pct) ? (metaBits.push(pct), "") : "")
           + (metaBits.length ? '<div class="meta"><span>'+metaBits.join(" \u00b7 ")+'</span></div>' : "")
           + restrLinea(note)
           + '</div>';
