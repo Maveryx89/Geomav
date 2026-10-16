@@ -1875,9 +1875,10 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         s.onload = ok; s.onerror = mal; document.head.appendChild(s);
       });
     }
-    function exportA3(fmt, btn){
+    function exportA3(fmt, btn, cb){
+      var avisar = function(m){ if(cb) cb(null, m); else alert(m); };
       var boardEl = root.querySelector(cfg.mensual ? ".gantt" : ".board"), scrollEl = root.querySelector(cfg.mensual ? ".gantt-wrap" : ".board-scroll"), tmpStl = null;
-      if(!boardEl || !scrollEl){ alert("No se encontró la pizarra para exportar."); return; }
+      if(!boardEl || !scrollEl){ avisar("No se encontró la pizarra para exportar."); return; }
       /* En el celular la pizarra de escritorio está oculta: se muestra fuera de pantalla, solo mientras se lee */
       if(boardEl.getBoundingClientRect().width < (cfg.mensual ? 900 : 200)){
         scrollEl.setAttribute("data-exp", "1");
@@ -1886,7 +1887,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         document.head.appendChild(tmpStl);
       }
       var quitarTmp = function(){ scrollEl.removeAttribute("data-exp"); if(tmpStl && tmpStl.parentNode) tmpStl.parentNode.removeChild(tmpStl); tmpStl = null; };
-      if(boardEl.getBoundingClientRect().width < 200){ quitarTmp(); alert("No se pudo preparar la pizarra para exportar."); return; }
+      if(boardEl.getBoundingClientRect().width < 200){ quitarTmp(); avisar("No se pudo preparar la pizarra para exportar."); return; }
       var rb0 = boardEl.getBoundingClientRect(), landscape = !cfg.weekly && rb0.width / rb0.height > 1.25; /* A3 vertical; horizontal solo en la Intermedio si es muy ancha */
       var PW = landscape ? 420 : 297, PH = landscape ? 297 : 420, DPI = 300, K = DPI / 25.4;
       /* PNG/JPG/PDF a 300 ppp (A3 = 3508 x 4961); se limita el total de píxeles para que el celular no falle */
@@ -2072,7 +2073,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         var yb = PH - 14, hoy = new Date(); /* pie siempre al fondo de la hoja */
         g.fillStyle = "rgba(10,34,64,.3)"; g.fillRect(hx * K, (yb + 3) * K, HW * K, 0.25 * K);
         var fh = String(hoy.getDate()).padStart(2, "0") + "-" + String(hoy.getMonth() + 1).padStart(2, "0") + "-" + hoy.getFullYear();
-        tx("Fuente: app " + APPN + " (GeoMAV) · exportado el " + fh + " · A3 " + (landscape ? "horizontal 420 × 297" : "vertical 297 × 420") + " mm · imprimir al 100 %", hx, yb + 7, 2.6, 400, FUENTE, MUTE);
+        tx((window.__LP_HOJA ? window.__LP_HOJA + " · " : "") + "Fuente: app " + APPN + " (GeoMAV) · exportado el " + fh + " · A3 " + (landscape ? "horizontal 420 × 297" : "vertical 297 × 420") + " mm · imprimir al 100 %", hx, yb + 7, 2.6, 400, FUENTE, MUTE);
         tx("GeoMAV · geomav.me", hx + HW, yb + 7, 2.6, 600, FUENTE, NAVY, 0, "right");
         /* 4) Entregar */
         var nombre = "LastPlanner_" + (cfg.weekly ? "semanal_" : (cfg.mensual ? "maestro_" : "intermedio_")) + (state.inicio || fh) + "_A3";
@@ -2080,6 +2081,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
           var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nombre + "." + ext;
           document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
         };
+        if(fmt === "canvas"){ fin(); cb({ cv:cv, PW:PW, PH:PH, landscape:landscape }); return; }
         if(fmt === "png" || fmt === "jpg"){
           cv.toBlob(function(b){ fin(); if(b) bajar(b, fmt); else alert("No se pudo generar la imagen."); }, fmt === "jpg" ? "image/jpeg" : "image/png", 0.95);
         } else {
@@ -2089,7 +2091,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
             bajar(pdf.output("blob"), "pdf"); fin();
           }, function(){ fin(); alert("No se pudo cargar el generador de PDF (requiere conexión a internet). Prueba con PNG."); });
         }
-      }).catch(function(err){ fin(); alert("No se pudo exportar: " + (err && err.message ? err.message : err)); });
+      }).catch(function(err){ fin(); avisar("No se pudo exportar: " + (err && err.message ? err.message : err)); });
     }
     function exportExcel(){
       if(typeof ExcelJS === "undefined"){
@@ -3156,6 +3158,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
           responsable:data.responsable||"", cumplido:null, causa:"", liberada:false, tipoRestriccion:"", respLiberacion:"", fechaCompromiso:"", fechaLiberacion:""};
         state.notes.push(note); saveState(); render();
       },
+      exportCanvas: function(){ return new Promise(function(ok, no){ exportA3("canvas", null, function(r, e){ if(r) ok(r); else no(new Error(e || "No se pudo exportar la pizarra.")); }); }); },
       getSummaryData: function(){
         if(cfg.weekly){
           var ppc = computePPC();
@@ -3281,7 +3284,13 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
     if(document.body.getAttribute("data-print-board") === "resumen") document.body.removeAttribute("data-print-board");
   });
   var resumenBtn = document.getElementById("printResumenBtn");
-  if(resumenBtn) resumenBtn.addEventListener("click", buildResumenPrintable);
+  function cargarInformeLP(){
+    if(window.LP_INFORME) return Promise.resolve();
+    return new Promise(function(ok, mal){ var sc = document.createElement("script"); sc.src = "informe-lp.js?v=20261016"; sc.onload = ok; sc.onerror = function(){ mal(new Error("No se pudo cargar el generador del resumen (requiere conexi\u00f3n).")); }; document.head.appendChild(sc); });
+  }
+  if(resumenBtn) resumenBtn.addEventListener("click", function(){
+    cargarInformeLP().then(function(){ return window.LP_INFORME.pdf(resumenBtn); }).catch(function(e){ alert("No se pudo generar el Resumen ejecutivo: " + (e && e.message ? e.message : e)); });
+  });
 })();
 </script>
 <script>
@@ -3724,6 +3733,116 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   });
   document.addEventListener("change", function(e){ if(e.target && e.target.id === "evSemana"){ semEval = +e.target.value; render(); } });
 
+
+  /* ---- Hoja de Indicadores para el Resumen ejecutivo (canvas A3 vertical, 300 ppp) ---- */
+  function pagina(hoja){
+    var r0 = rango; rango = "todo";
+    try{
+      var PW = 297, PH = 420, K = 300 / 25.4; if(PW * PH * K * K > 16000000) K = Math.sqrt(16000000 / (PW * PH));
+      var F = 'Inter, system-ui, -apple-system, "Segoe UI", sans-serif', MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+      var NAVY = "#0A2240", MUTE = "rgba(10,34,64,.65)", AZ = "#2C6B7E", ROJO = "#B23B3B", VERDE = "#26694B", AMB = "#B7791F", GR = "#E3E1DA";
+      var cv = document.createElement("canvas"); cv.width = Math.round(PW * K); cv.height = Math.round(PH * K);
+      var g = cv.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height); g.scale(K, K);
+      var hx = 16, HW = PW - 32, s = st.semanas;
+      function rr(x, y, w, h, r){ r = Math.min(r, w / 2, h / 2); g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+      function tx(t, x, y, size, w, fam, fill, al, ls){ g.font = w + " " + size + "px " + fam; g.fillStyle = fill; g.textBaseline = "middle"; g.textAlign = al || "left"; if("letterSpacing" in g) g.letterSpacing = ls ? ls + "px" : "0px"; g.fillText(t, x, y); }
+      function ajusta(t, w, size, wt){ g.font = wt + " " + size + "px " + F; while(g.measureText(t).width > w && size > 1.5){ size -= 0.1; g.font = wt + " " + size + "px " + F; } return size; }
+      function ln(x1, y1, x2, y2, c, w, d){ g.strokeStyle = c; g.lineWidth = w; g.setLineDash(d || []); g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); g.setLineDash([]); }
+      var APPN = String(document.title || "").replace(/\s*[·|-]\s*GeoMav.*$/i, "").trim() || "Pizarra de planificación";
+      var obra = String((document.getElementById("proyTitulo") || {}).textContent || "").trim() || APPN;
+      /* encabezado */
+      tx((obra + " · INDICADORES").toUpperCase(), hx, 18, 2.6, 600, MONO, MUTE, "left", 0.35);
+      var tit = s.length ? "Indicadores del plan semanal · semanas " + s[0].n + " a " + s[s.length-1].n : "Indicadores del plan semanal";
+      tx(tit, hx, 27.5, ajusta(tit, HW, 8, 700), 700, F, NAVY); g.fillStyle = NAVY; g.fillRect(hx, 30.3, HW, 0.4);
+      var ult = s[s.length-1], P = s.reduce(function(a,w){ return a + w.prog; }, 0), L = s.reduce(function(a,w){ return a + w.log; }, 0), sobre = s.filter(function(w){ return pct(w) >= META; }).length;
+      var kp = s.length ? [[pct(ult) + "%", "PPC semana " + ult.n], [(P ? Math.round(L / P * 100) : 0) + "%", "PPC acumulado"], [sobre + " de " + s.length, "semanas ≥ " + META + " %"], [P.toLocaleString("es-CL"), "actividades programadas"]] : [];
+      var gap = 4, bw4 = (HW - 3 * gap) / 4;
+      kp.forEach(function(k, i){
+        var bx = hx + i * (bw4 + gap); g.fillStyle = "rgb(237,235,228)"; rr(bx, 34, bw4, 13, 1.2); g.fill();
+        tx(k[0], bx + 3, 41.6, 7.5, 700, F, NAVY); g.font = "700 7.5px " + F; var wv = g.measureText(k[0]).width;
+        tx(k[1], bx + 3 + wv + 2.5, 41.8, ajusta(k[1], bw4 - 3 - wv - 5, 3.1, 400), 400, F, MUTE);
+      });
+      if(!s.length){ tx("Sin semanas registradas todavía.", hx, 60, 4, 400, F, MUTE); }
+      var y = 53;
+      function titulo(t, sub){ tx(t, hx, y + 3, 4, 700, F, NAVY); if(sub){ g.font = "700 4px " + F; var w = g.measureText(t).width; tx(sub, hx + w + 3, y + 3, 3, 400, F, MUTE); } ln(hx, y + 6.2, hx + HW, y + 6.2, GR, 0.3); y += 9; }
+      function linea(pts, c, w, d, op){ g.globalAlpha = op || 1; g.strokeStyle = c; g.lineWidth = w; g.setLineDash(d || []); g.lineJoin = "round"; g.beginPath(); pts.forEach(function(p, i){ i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]); }); g.stroke(); g.setLineDash([]); g.globalAlpha = 1; }
+      function grafico(h, maxV, ticks, series, meta, leyenda){
+        var l = 14, r = 3, t = 2, b = 8, iw = HW - l - r, ih = h - t - b, n = s.length;
+        function X(i){ return hx + l + (n > 1 ? i * iw / (n - 1) : iw / 2); } function Y(v){ return y + t + ih - v / maxV * ih; }
+        ticks.forEach(function(v){ ln(hx + l, Y(v), hx + HW - r, Y(v), GR, 0.25); tx(String(v), hx + l - 2, Y(v), 3, 400, F, MUTE, "right"); });
+        if(meta != null) ln(hx + l, Y(meta), hx + HW - r, Y(meta), ROJO, 0.4, [2, 1.4]);
+        series.forEach(function(se){ linea(se.v.map(function(v, i){ return [X(i), Y(v)]; }), se.c, se.w, se.d, se.o); if(se.dots) se.v.forEach(function(v, i){ g.fillStyle = v >= meta ? VERDE : ROJO; g.beginPath(); g.arc(X(i), Y(v), 0.9, 0, 6.2832); g.fill(); }); });
+        var paso = Math.max(1, Math.ceil(n / 14)); s.forEach(function(w, i){ if(i % paso === 0 || i === n - 1) tx("S" + w.n, X(i), y + h - 3, 3, 400, F, MUTE, "center"); });
+        var lx = hx + l; leyenda.forEach(function(le){ if(le.d) ln(lx, y + h + 2.2, lx + 6, y + h + 2.2, le.c, le.w, le.d); else ln(lx, y + h + 2.2, lx + 6, y + h + 2.2, le.c, le.w); tx(le.t, lx + 8, y + h + 2.2, 3, 400, F, MUTE); g.font = "400 3px " + F; lx += 8 + g.measureText(le.t).width + 6; });
+        y += h + 7;
+      }
+      if(s.length > 1){
+        titulo("Curva PPC semanal");
+        var acP = 0, acL = 0;
+        grafico(58, 100, [0, 20, 40, 60, 80, 100], [
+          { v: s.map(function(w){ acL += w.log; acP += w.prog; return acP ? acL / acP * 100 : 0; }), c: NAVY, w: 0.4, o: 0.55 },
+          { v: s.map(pct), c: AZ, w: 0.5, dots: true } ], META,
+          [{ t: "PPC semanal", c: AZ, w: 0.6 }, { t: "PPC acumulado", c: NAVY, w: 0.4 }, { t: "Meta " + META + " %", c: ROJO, w: 0.4, d: [2, 1.4] }]);
+        y += 2; titulo("Curva S · actividades comprometidas vs cumplidas (acumulado)");
+        var ap = 0, al = 0, PP = [], LL = []; s.forEach(function(w){ ap += w.prog; al += w.log; PP.push(ap); LL.push(al); });
+        var mx = Math.max(1, ap), tk = [0, .25, .5, .75, 1].map(function(f){ return Math.round(mx * f); });
+        grafico(58, mx, tk, [{ v: PP, c: "#9aa3ad", w: 0.6, d: [2.2, 1.4] }, { v: LL, c: AZ, w: 0.8 }], null, [{ t: "Programadas", c: "#9aa3ad", w: 0.6, d: [2.2, 1.4] }, { t: "Cumplidas", c: AZ, w: 0.8 }]);
+        tx("A la fecha: " + al + " cumplidas de " + ap + " programadas · brecha de " + (ap - al) + " actividades (" + Math.round(al / ap * 100) + " %).", hx, y - 2, 3, 400, F, MUTE);
+        y += 6;
+      }
+      /* Pareto */
+      var c9 = [0,0,0,0,0,0,0,0,0]; s.forEach(function(w){ (w.causas || []).forEach(function(v, i){ c9[i] += v || 0; }); });
+      var tot = c9.reduce(function(a,b){ return a + b; }, 0);
+      if(tot){
+        var arr = c9.map(function(v, i){ return { i:i, v:v }; }).filter(function(o){ return o.v; }).sort(function(a,b){ return b.v - a.v; });
+        titulo("Pareto de causas de no cumplimiento", "(" + tot + " en todo el proyecto)");
+        var cx = [hx + 3, hx + 98, hx + 200, hx + 220, hx + 245], mxv = arr[0].v, ac = 0;
+        tx("N°", hx + 207, y, 2.8, 600, F, MUTE, "right"); tx("%", hx + 227, y, 2.8, 600, F, MUTE, "right"); tx("Acum.", hx + HW, y, 2.8, 600, F, MUTE, "right"); y += 4.5;
+        arr.forEach(function(o){
+          ac += o.v; var vit = ac / tot <= 0.8 || o === arr[0];
+          tx(CAUSAS9[o.i][1], hx, y + 2, 3.4, 500, F, NAVY);
+          g.fillStyle = "rgb(237,235,228)"; rr(hx + 78, y + 0.4, 100, 3.2, 1.6); g.fill();
+          g.fillStyle = vit ? ROJO : "#9aa3ad"; rr(hx + 78, y + 0.4, Math.max(2, o.v / mxv * 100), 3.2, 1.6); g.fill();
+          tx(String(o.v), hx + 207, y + 2, 3.2, 400, F, NAVY, "right"); tx(Math.round(o.v / tot * 100) + "%", hx + 227, y + 2, 3.2, 400, F, NAVY, "right");
+          tx(Math.round(ac / tot * 100) + "%", hx + HW, y + 2, 3.2, vit ? 700 : 400, F, vit ? ROJO : NAVY, "right"); y += 5.2;
+        });
+        tx("En rojo, las causas que acumulan el 80 % de los incumplimientos: atacarlas primero.", hx, y + 1.5, 2.8, 400, F, MUTE); y += 7;
+      }
+      /* Ranking */
+      var t = {}, ev = {};
+      s.forEach(function(w){ Object.keys(w.resp || {}).forEach(function(k){ var e = t[k] || (t[k] = [0,0]); e[0] += w.resp[k][0]; e[1] += w.resp[k][1]; }); Object.keys(w.ev || {}).forEach(function(k){ (ev[k] || (ev[k] = [])).push(w.ev[k]); }); });
+      var nom = Object.keys(t).filter(function(k){ return t[k][0] >= 10 || ev[k]; }); Object.keys(ev).forEach(function(k){ if(nom.indexOf(k) < 0) nom.push(k); });
+      var filas = nom.map(function(k){ var e = t[k] || [0,0], evs = ev[k] || [], pc = CRIT.map(function(c, j){ return prom(evs.map(function(a){ return a[j]; })); }), p = prom(pc.filter(function(v){ return v != null; })), pe = null;
+        pc.forEach(function(v, j){ if(v != null && (pe == null || v < pc[pe])) pe = j; });
+        return { k:k, prog:e[0], ppc: e[0] ? Math.round(e[1] / e[0] * 100) : null, ev:p, peor:(p != null && pe != null && pc[pe] < 4) ? CRIT[pe][1] : "" }; }).sort(function(a,b){ return b.prog - a.prog; });
+      if(filas.length){
+        titulo("Ranking de subcontratos y responsables");
+        var libre = PH - 16 - y, rh = 5.4, porCol = Math.max(6, Math.floor((libre - 12) / rh)), nc = filas.length > porCol ? 2 : 1, cw = nc === 2 ? (HW - 6) / 2 : HW;
+        var vis = filas.slice(0, porCol * nc);
+        for(var c = 0; c < nc; c++){
+          var ox = hx + c * (cw + 6), yy = y;
+          tx("Responsable", ox, yy, 2.8, 600, F, MUTE); tx("Activ.", ox + cw - 38, yy, 2.8, 600, F, MUTE, "right"); tx("PPC", ox + cw - 20, yy, 2.8, 600, F, MUTE, "right"); tx("Eval.", ox + cw, yy, 2.8, 600, F, MUTE, "right"); yy += 3.4;
+          vis.slice(c * porCol, (c + 1) * porCol).forEach(function(f){
+            ln(ox, yy - 0.4, ox + cw, yy - 0.4, GR, 0.2);
+            var nm = f.k, fz = ajusta(nm, cw - 62 - (f.peor ? 26 : 0), 3.3, 600); tx(nm, ox, yy + 2.5, fz, 600, F, NAVY);
+            if(f.peor){ g.font = "600 " + fz + "px " + F; tx("\u00b7 bajo en " + f.peor.toLowerCase(), ox + g.measureText(nm).width + 1.5, yy + 2.5, 2.4, 400, F, ROJO); }
+            tx(f.prog ? String(f.prog) : "–", ox + cw - 38, yy + 2.5, 3.2, 400, F, NAVY, "right");
+            tx(f.ppc == null ? "–" : f.ppc + "%", ox + cw - 20, yy + 2.5, 3.2, 700, F, f.ppc == null ? NAVY : (f.ppc >= META ? VERDE : (f.ppc >= 65 ? AMB : ROJO)), "right");
+            if(f.ev == null) tx("–", ox + cw, yy + 2.5, 3.2, 400, F, NAVY, "right"); else { g.fillStyle = f.ev >= 4.5 ? VERDE : (f.ev >= 3.5 ? AMB : ROJO); g.beginPath(); g.arc(ox + cw - 9, yy + 2.4, 1, 0, 6.2832); g.fill(); tx(f.ev.toFixed(1), ox + cw, yy + 2.5, 3.2, 400, F, NAVY, "right"); }
+            yy += rh;
+          });
+        }
+        if(filas.length > vis.length) tx("Y " + (filas.length - vis.length) + " responsable(s) más.", hx, PH - 19, 2.8, 400, F, MUTE);
+      }
+      /* pie */
+      var yb = PH - 14, hoy = new Date(), fh = String(hoy.getDate()).padStart(2, "0") + "-" + String(hoy.getMonth() + 1).padStart(2, "0") + "-" + hoy.getFullYear();
+      g.fillStyle = "rgba(10,34,64,.3)"; g.fillRect(hx, yb + 3, HW, 0.25);
+      tx((hoja ? hoja + " · " : "") + "Fuente: app " + APPN + " (GeoMAV) · exportado el " + fh + " · A3 vertical 297 × 420 mm · imprimir al 100 %", hx, yb + 7, 2.6, 400, F, MUTE);
+      tx("GeoMAV · geomav.me", hx + HW, yb + 7, 2.6, 600, F, NAVY, "right");
+      return { cv: cv, PW: PW, PH: PH, landscape: false };
+    } finally { rango = r0; }
+  }
+
   window.PIZARRA_BOARDS = window.PIZARRA_BOARDS || {};
   window.PIZARRA_BOARDS.indicadores = {
     key: "indicadores",
@@ -3738,7 +3857,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       + '<div class="rp-section"><h3>\u00daltimas 12 semanas</h3><div class="rp-2col">' + pareto() + ranking(12) + '</div></div>';
     rango = r0; return h;
   }
-  window.LP_IND = { registrarSemana: registrarSemana, semanas: function(){ return st.semanas; }, resumenHtml: resumenHtml };
+  window.LP_IND = { pagina: function(h){ return Promise.resolve().then(function(){ return document.fonts && document.fonts.ready; }).then(function(){ return pagina(h); }); }, registrarSemana: registrarSemana, semanas: function(){ return st.semanas; }, resumenHtml: resumenHtml };
   render();
 })();
 </script>
@@ -4384,7 +4503,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
     { sel:"#proyTitulo", t:"Nombre del proyecto", p:"T\u00f3calo para editarlo. Se usa en todos los tableros y en las impresiones." },
     { sel:".ayuda > summary", t:"Ayuda en cada pantalla", p:"Toca <b>?</b> para ver una explicaci\u00f3n corta de la secci\u00f3n en la que est\u00e1s." },
     { sel:"#btnManual", t:"Manual completo", p:"Gu\u00eda paso a paso, glosario Last Planner y preguntas frecuentes. Se puede descargar en PDF." },
-    { sel:"#printResumenBtn", t:"Resumen ejecutivo", p:"Una hoja con el estado del proyecto, lista para imprimir o guardar como PDF." },
+    { sel:"#printResumenBtn", t:"Resumen ejecutivo", p:"Descarga directo un PDF A3 de 4 hojas: Semanal, Intermedio, Plan Maestro e Indicadores (PPC y causas)." },
     { t:"Guardar y compartir", p:"Tus cambios quedan en este equipo. Para que todos los vean, toca <b>\u2601 Guardar en planilla</b>: se pide tu nombre y el <b>PIN del equipo</b>." }
   ];
 
