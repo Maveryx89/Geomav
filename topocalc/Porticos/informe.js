@@ -697,34 +697,18 @@ function generar(paso){
 }
 function bajar(blob, nombre){ var a = document.createElement("a"), u = URL.createObjectURL(blob); a.href = u; a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(u); }, 4000); }
 
-function abrir(){
-  var ov = document.createElement("div");
-  ov.setAttribute("style", "position:fixed;inset:0;z-index:99999;background:rgba(10,34,64,.55);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Inter,system-ui,sans-serif");
-  var card = document.createElement("div");
-  card.setAttribute("style", "background:var(--paper-raised,#fff);color:var(--ink,#0A2240);border-radius:14px;max-width:760px;width:100%;max-height:92vh;overflow:auto;padding:18px 18px 16px;box-shadow:0 20px 60px rgba(0,0,0,.35)");
-  card.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin:0;font-size:1.05rem">Resumen ejecutivo · Informe de avance</h3><button type="button" data-x style="all:unset;cursor:pointer;font-size:1.4rem;line-height:1;padding:4px 8px" aria-label="Cerrar">×</button></div>'
-    + '<p data-msg style="margin:10px 0 12px;font-size:.9rem;opacity:.8">Preparando…</p><div data-prev style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px"></div><div data-acc style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px"></div>';
-  ov.appendChild(card); document.body.appendChild(ov);
-  var msg = card.querySelector("[data-msg]"), prev = card.querySelector("[data-prev]"), acc = card.querySelector("[data-acc]"), vivo = true;
-  function cerrar(){ vivo = false; if(ov.parentNode) ov.parentNode.removeChild(ov); }
-  card.querySelector("[data-x]").addEventListener("click", cerrar); ov.addEventListener("click", function(e){ if(e.target === ov) cerrar(); });
-  function btn(txt, fn){ var b = document.createElement("button"); b.type = "button"; b.className = "btn-sm"; b.textContent = txt; b.addEventListener("click", function(){ fn(b); }); acc.appendChild(b); return b; }
-  generar(function(t){ if(vivo) msg.textContent = t; }).then(function(R_){
-    if(!vivo) return; var hojas = R_.hojas, M = R_.M, fecha = M.hoy;
-    msg.textContent = "Listo: 4 hojas A3 vertical (mapa · semanal · intermedio · indicadores), con los datos de hoy.";
-    hojas.forEach(function(s, i){ var im = document.createElement("img"); im.alt = "Hoja " + (i + 1); im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s); im.setAttribute("style", "width:100%;border:1px solid var(--line,#D8D5CB);border-radius:6px;background:#fff"); prev.appendChild(im); });
-    btn("Descargar PDF (4 hojas, 300 ppp)", function(b){
-      var t0 = b.textContent; b.disabled = true; b.textContent = "Generando PDF…";
-      var pw = Math.round(297 / 25.4 * 300), ph = Math.round(420 / 25.4 * 300), K = 1;
-      if(pw * ph > 16000000){ K = Math.sqrt(16000000 / (pw * ph)); pw = Math.round(pw * K); ph = Math.round(ph * K); }
-      var imgs = [], seq = Promise.resolve();
-      hojas.forEach(function(s, i){ seq = seq.then(function(){ b.textContent = "Hoja " + (i + 1) + " de 4…"; return rasterizar(s, pw, ph); }).then(function(j){ imgs.push(j); }); });
-      seq.then(function(){ bajar(pdfDesde(imgs, pw, ph), "Porticos_Informe_Avance_" + fecha + ".pdf"); b.textContent = t0; b.disabled = false; })
-        .catch(function(e){ b.textContent = t0; b.disabled = false; msg.textContent = "No se pudo generar el PDF: " + (e && e.message ? e.message : e); });
-    });
-    btn("Descargar SVG (4 hojas, .zip)", function(){ bajar(zipDesde(hojas.map(function(s, i){ return { name:"Porticos_Informe_" + NOMBRES[i] + ".svg", data:s }; })), "Porticos_Informe_SVG_" + fecha + ".zip"); });
-    btn("Cerrar", cerrar);
-  }).catch(function(e){ if(vivo) msg.textContent = "No se pudo armar el informe: " + (e && e.message ? e.message : e); });
+function pdfDirecto(btn){
+  var t0 = btn ? btn.innerHTML : "";
+  function estado(t){ if(btn){ btn.textContent = t; } }
+  if(btn) btn.disabled = true;
+  function fin(){ if(btn){ btn.innerHTML = t0; btn.disabled = false; } }
+  estado("Generando…");
+  return generar(estado).then(function(R_){
+    var hojas = R_.hojas, pw = Math.round(297 / 25.4 * 300), ph = Math.round(420 / 25.4 * 300), imgs = [], seq = Promise.resolve();
+    if(pw * ph > 16000000){ var K = Math.sqrt(16000000 / (pw * ph)); pw = Math.round(pw * K); ph = Math.round(ph * K); }
+    hojas.forEach(function(s, i){ seq = seq.then(function(){ estado("Hoja " + (i + 1) + " de 4…"); return rasterizar(s, pw, ph); }).then(function(j){ imgs.push(j); }); });
+    return seq.then(function(){ bajar(pdfDesde(imgs, pw, ph), "Porticos_Informe_Avance_" + R_.M.hoy + ".pdf"); });
+  }).then(fin, function(e){ fin(); alert("No se pudo generar el informe: " + (e && e.message ? e.message : e)); });
 }
-window.PORTICOS_INFORME = { abrir:abrir, generar:generar, _t:{ parseFuentes:parseFuentes, cssFuentes:cssFuentes, modelo:modelo, hoja1:hoja1, hoja2:hoja2, hoja3:hoja3, hoja4:hoja4, initOrden:initOrden } };
+window.PORTICOS_INFORME = { pdf:pdfDirecto, generar:generar, _t:{ parseFuentes:parseFuentes, cssFuentes:cssFuentes, modelo:modelo, hoja1:hoja1, hoja2:hoja2, hoja3:hoja3, hoja4:hoja4, initOrden:initOrden } };
 })();
