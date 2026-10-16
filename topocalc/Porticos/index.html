@@ -3199,7 +3199,15 @@ window.PORTICOS_LISTA = (function(){
     if(document.body.getAttribute("data-print-board") === "resumen") document.body.removeAttribute("data-print-board");
   });
   var resumenBtn = document.getElementById("printResumenBtn");
-  if(resumenBtn) resumenBtn.addEventListener("click", buildResumenPrintable);
+  /* Resumen ejecutivo = informe de 4 hojas A3 (mapa · semanal · intermedio · indicadores), PDF y SVG */
+  function abrirInformeEjecutivo(){
+    function ir(){ if(window.PORTICOS_INFORME) window.PORTICOS_INFORME.abrir(); }
+    if(window.PORTICOS_INFORME){ ir(); return; }
+    var sc = document.createElement("script"); sc.src = "informe.js?v=20261016"; sc.onload = ir;
+    sc.onerror = function(){ alert("No se pudo cargar el generador del informe. Revisa tu conexi\u00f3n e int\u00e9ntalo de nuevo."); };
+    document.head.appendChild(sc);
+  }
+  if(resumenBtn) resumenBtn.addEventListener("click", abrirInformeEjecutivo);
 })();
 </script>
 
@@ -3253,6 +3261,8 @@ window.PORTICOS_LISTA = (function(){
   function orden(){ return Object.keys(window.PARTIDA_TONE || {}); }
   function fmt(f){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f || ""); return m ? m[3]+"-"+m[2]+"-"+m[1] : (f || ""); }
   function hoyISO(){ var d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  /* datos vivos para el informe (Resumen ejecutivo) */
+  window.PORTICOS_DATOS = function(){ return { lista: lista(), avance: REMOTO.avance, prog: window.PROGRAMACION || [], restr: window.RESTR_REMOTAS || [], causas: window.CAUSAS_LP || [], hoy: hoyISO() }; };
   function getPin(){ try{ return sessionStorage.getItem(SS_PIN) || ""; }catch(e){ return ""; } }
   function setPin(p){ try{ if(p) sessionStorage.setItem(SS_PIN, p); else sessionStorage.removeItem(SS_PIN); }catch(e){} }
 
@@ -5328,7 +5338,7 @@ window.PORTICOS_LISTA = (function(){
     { sel:"#mTabs", t:"Secciones", p:"Semanal e Intermedio: programaci\u00f3n. P\u00f3rticos: listado, fotos y mapa. Avance: lo ejecutado cada semana. Indicadores: el resumen del proyecto." },
     { sel:".ayuda > summary", t:"Ayuda en cada pantalla", p:"Toca <b>?</b> para ver una explicaci\u00f3n corta de la secci\u00f3n en la que est\u00e1s." },
     { sel:"#btnManual", t:"Manual completo", p:"Gu\u00eda paso a paso, glosario y preguntas frecuentes. Se puede descargar en PDF." },
-    { sel:"#printResumenBtn", t:"Resumen ejecutivo", p:"Una hoja con el estado del proyecto, lista para imprimir o guardar como PDF." },
+    { sel:"#printResumenBtn", t:"Resumen ejecutivo", p:"Informe de 4 hojas A3: mapa de pórticos trazados, semanal, intermedio e indicadores. Se descarga en PDF o SVG." },
     { t:"\u00bfVas a modificar datos?", p:"Registrar avance, subir fotos o programar tareas requiere el <b>PIN del equipo</b>. Si solo vas a consultar, no necesitas nada m\u00e1s." }
   ];
   var capa, hl, card, i = 0, pasos = [];
