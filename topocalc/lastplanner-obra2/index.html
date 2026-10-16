@@ -1936,7 +1936,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
           return window.LP_SYNC.semana(iso).then(function(j){
             if(!j || !j.ok) return porIntermedio(iso);
             var cats = (j.meta && j.meta.categorias) || [];
-            return { iso:iso, guardada:true, tareas:(j.notas || []).filter(function(n){ return String(n.tarea || "").trim(); }).map(function(n){ return { text:n.tarea, cat:cats[n.cat] || "Sin fase", tone:n.color || "neutral", dia:Math.max(0, Math.min(4, +n.col || 0)), cumplido:n.cumplido }; }) };
+            return { iso:iso, guardada:true, tareas:(j.notas || []).filter(function(n){ return String(n.tarea || "").trim(); }).map(function(n){ return { text:n.tarea, cat:cats[n.cat] || "Sin fase", tone:n.color || "neutral", dia:Math.max(0, Math.min(4, +n.col || 0)), cumplido:n.cumplido, causa:n.causa || "", accion:n.accion || "" }; }) };
           }).catch(function(){ return porIntermedio(iso); });
         }));
       };
@@ -2082,7 +2082,8 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
           var d0 = parseInputDate(info.iso), d4 = addDays(d0, 4);
           var rango = (d0.getMonth() === d4.getMonth() ? d0.getDate() : fl(d0)) + " al " + fl(d4);
           var ok = ts.filter(function(t){ return t.cumplido === true; }).length;
-          var sub = ts.length + (ts.length === 1 ? " tarea" : " tareas") + (info.guardada ? " \u00b7 " + ok + (ok === 1 ? " cumplida" : " cumplidas") : " \u00b7 programadas desde el Intermedio");
+          var nok = ts.filter(function(t){ return t.cumplido === false; }).length, nsm = ts.length - ok - nok;
+          var sub = ts.length + (ts.length === 1 ? " tarea" : " tareas") + (info.guardada ? " \u00b7 " + ok + (ok === 1 ? " cumplida" : " cumplidas") + " \u00b7 " + nok + " no cumplida" + (nok === 1 ? "" : "s") + (nsm ? " \u00b7 " + nsm + " sin marcar" : "") + ((ok + nok) ? " \u00b7 PPC " + Math.round(ok * 100 / (ok + nok)) + " %" : "") : " \u00b7 programadas desde el Intermedio");
           if(dibuja){
             tx(titulo + " \u00b7 " + rango, x, y, 3.4, 700, FUENTE, NAVY); tx(sub, x + w, y, 2.4, 400, FUENTE, MUTE, 0, "right");
             g.fillStyle = NAVY; g.fillRect(x * K, (y + 2.6) * K, w * K, 0.3 * K);
@@ -2106,8 +2107,13 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
             for(var i = 0; i < 5; i++){
               var cell = [], hh = 0.8;
               fs.filter(function(t){ return t.dia === i; }).forEach(function(t){
-                var ls = cortar(t.text, 2.1, 600, cw - 2 - 3.2 - (info.guardada ? 2.2 : 0), 2), ch = 1.5 + ls.length * 2.6;
-                cell.push({ t:t, ls:ls, hh:hh, ch:ch }); hh += ch + 0.7;
+                var ls = cortar(t.text, 2.1, 600, cw - 2 - 3.2 - (info.guardada ? 2.2 : 0), 2), ch = 1.5 + ls.length * 2.6, cl = [];
+                if(info.guardada && t.cumplido === false){
+                  cl = cortar("Por qu\u00e9: " + (t.causa ? causaLabel(t.causa) : "sin causa registrada"), 2, 600, cw - 2 - 2.8, 2);
+                  if(String(t.accion || "").trim()) cl = cl.concat(cortar("\u2192 " + t.accion, 2, 400, cw - 2 - 2.8, 1));
+                  ch += 0.4 + cl.length * 2.4;
+                }
+                cell.push({ t:t, ls:ls, cl:cl, hh:hh, ch:ch }); hh += ch + 0.7;
               });
               celdas.push(cell); rh = Math.max(rh, hh);
             }
@@ -2118,8 +2124,11 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
               celdas.forEach(function(cell, i){
                 cell.forEach(function(q){
                   var cx = x + lw + i * cw + 1, cy = yy + q.hh;
-                  g.fillStyle = mez(TONOS[q.t.tone] || "#8C949E", 0.26); rr(cx * K, cy * K, (cw - 2) * K, q.ch * K, 0.9 * K); g.fill();
+                  var est = info.guardada ? (q.t.cumplido === true ? "#26694B" : (q.t.cumplido === false ? "#B23B3B" : "#8C949E")) : (TONOS[q.t.tone] || "#8C949E");
+                  g.fillStyle = mez(est, info.guardada ? 0.2 : 0.26); rr(cx * K, cy * K, (cw - 2) * K, q.ch * K, 0.9 * K); g.fill();
+                  if(info.guardada){ g.fillStyle = est; rr(cx * K, cy * K, 0.9 * K, q.ch * K, 0.45 * K); g.fill(); }
                   q.ls.forEach(function(l, j){ tx(l, cx + 1.4, cy + 2.2 + j * 2.6, 2.1, 600, FUENTE, NAVY); });
+                  q.cl.forEach(function(l, j){ tx(l, cx + 1.4, cy + 2.2 + q.ls.length * 2.6 + 0.6 + j * 2.4, 2, j === 0 || l.charAt(0) !== "\u2192" ? 600 : 400, FUENTE, "#B23B3B"); });
                   if(info.guardada && (q.t.cumplido === true || q.t.cumplido === false)){
                     var mx = cx + cw - 5.2, my = cy + 2;
                     g.lineCap = "round"; g.lineJoin = "round"; g.lineWidth = 0.35 * K;
@@ -2133,6 +2142,12 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
             yy += rh;
           });
           if(dibuja){ g.fillStyle = "#D8D5CB"; for(var i = 0; i < 6; i++) g.fillRect((x + lw + i * cw) * K, top * K, 0.2 * K, (yy - top) * K); }
+          if(info.guardada && nok){
+            var cnt = {}; ts.forEach(function(t){ if(t.cumplido === false){ var k = t.causa ? causaLabel(t.causa) : "Sin causa registrada"; cnt[k] = (cnt[k] || 0) + 1; } });
+            var txtc = "No cumplidas por: " + Object.keys(cnt).sort(function(a, b){ return cnt[b] - cnt[a]; }).map(function(k){ return k + " (" + cnt[k] + ")"; }).join(" \u00b7 "), lc = cortar(txtc, 2.6, 600, w, 2);
+            if(dibuja) lc.forEach(function(l, j){ tx(l, x, yy + 3.2 + j * 3.1, 2.6, 600, FUENTE, "#B23B3B"); });
+            yy += 1.5 + lc.length * 3.1;
+          }
           return yy;
         };
         var band = 0;
