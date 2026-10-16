@@ -1921,7 +1921,26 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       var txtBtn = btn ? btn.textContent : ""; if(btn){ btn.disabled = true; btn.textContent = "Generando…"; }
       function fin(){ quitarTmp(); if(btn){ btn.disabled = false; btn.textContent = txtBtn; } }
       var listo = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-      listo.then(function(){
+      var vecinas = function(){
+        if(!cfg.weekly) return Promise.resolve(null);
+        var cur = inicioDe(state), ps = [isoD(addDays(parseInputDate(cur), -7)), isoD(addDays(parseInputDate(cur), 7))];
+        var hist = (window.LP_SYNC && window.LP_SYNC.historial && window.LP_SYNC.historial()) || [];
+        var DIAS5 = ["Lun","Mar","Mi\u00e9","Jue","Vie"];
+        function porIntermedio(iso){
+          var l = (BOARDS.intermedio && BOARDS.intermedio.tareasDeSemana) ? BOARDS.intermedio.tareasDeSemana(iso) : [], turno = {};
+          return { iso:iso, guardada:false, tareas: l.map(function(t){ var k = turno[t.cat] || 0; turno[t.cat] = k + 1; return { text:t.text, cat:t.cat, tone:t.tone, dia:k % 5, cumplido:null }; }) };
+        }
+        return Promise.all(ps.map(function(iso){
+          var hay = hist.some(function(x){ return x.tablero === "semanal" && x.semana === iso; });
+          if(!hay || !window.LP_SYNC || !window.LP_SYNC.semana) return porIntermedio(iso);
+          return window.LP_SYNC.semana(iso).then(function(j){
+            if(!j || !j.ok) return porIntermedio(iso);
+            var cats = (j.meta && j.meta.categorias) || [];
+            return { iso:iso, guardada:true, tareas:(j.notas || []).filter(function(n){ return String(n.tarea || "").trim(); }).map(function(n){ return { text:n.tarea, cat:cats[n.cat] || "Sin fase", tone:n.color || "neutral", dia:Math.max(0, Math.min(4, +n.col || 0)), cumplido:n.cumplido }; }) };
+          }).catch(function(){ return porIntermedio(iso); });
+        }));
+      };
+      vecinas().then(function(vec){ return listo.then(function(){ return vec; }); }).then(function(vec){
         /* 1) Leer la pizarra tal como se ve (siempre en tema claro, para imprimir) */
         var de = document.documentElement, tPrev = de.getAttribute("data-theme");
         var stl = document.createElement("style"); stl.textContent = "*,*::before,*::after{transition:none!important;animation:none!important}"; document.head.appendChild(stl);
@@ -2047,7 +2066,79 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
           g.fillText(s, x * K, y * K);
         };
         g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height);
-        var y0 = 58, sc = Math.min((PW - 32) / BW, (PH - y0 - 17) / BH), W = BW * sc, x0 = (PW - W) / 2, hx = 16, HW = PW - 32;
+        var y0 = 58, hx = 16, HW = PW - 32;
+        /* semana anterior y siguiente (Semanal): tableros compactos bajo el de la semana presente */
+        var miniSem = function(y, titulo, info, dibuja){
+          var x = hx, w = HW, lw = 30, cw = (w - lw) / 5, F = FUENTE, DIA5 = ["Lun","Mar","Mi\u00e9","Jue","Vie"], ts = info.tareas;
+          var mw = function(t, sz, wt){ g.font = wt + " " + (sz * 100) + "px " + F; return g.measureText(t).width / 100; };
+          var cortar = function(t, sz, wt, maxw, maxl){
+            var ws = String(t).split(/\s+/), ls = [], cur = "";
+            ws.forEach(function(p){ var q = (cur + " " + p).trim(); if(mw(q, sz, wt) <= maxw || !cur) cur = q; else { ls.push(cur); cur = p; } });
+            if(cur) ls.push(cur);
+            if(ls.length > maxl){ ls = ls.slice(0, maxl); var l = ls[maxl - 1]; while(l && mw(l + "\u2026", sz, wt) > maxw) l = l.slice(0, -1); ls[maxl - 1] = l.replace(/\s+$/, "") + "\u2026"; }
+            return ls;
+          };
+          var mez = function(hex, k){ var h = hex.replace("#", ""), c = [0, 2, 4].map(function(i){ return Math.round(255 - (255 - parseInt(h.substr(i, 2), 16)) * k); }); return "rgb(" + c.join(",") + ")"; };
+          var d0 = parseInputDate(info.iso), d4 = addDays(d0, 4);
+          var rango = (d0.getMonth() === d4.getMonth() ? d0.getDate() : fl(d0)) + " al " + fl(d4);
+          var ok = ts.filter(function(t){ return t.cumplido === true; }).length;
+          var sub = ts.length + (ts.length === 1 ? " tarea" : " tareas") + (info.guardada ? " \u00b7 " + ok + (ok === 1 ? " cumplida" : " cumplidas") : " \u00b7 programadas desde el Intermedio");
+          if(dibuja){
+            tx(titulo + " \u00b7 " + rango, x, y, 3.4, 700, FUENTE, NAVY); tx(sub, x + w, y, 2.4, 400, FUENTE, MUTE, 0, "right");
+            g.fillStyle = NAVY; g.fillRect(x * K, (y + 2.6) * K, w * K, 0.3 * K);
+          }
+          var yy = y + 5;
+          if(dibuja){
+            g.fillStyle = "rgb(237,235,228)"; rr(x * K, yy * K, w * K, 5.2 * K, 0.8 * K); g.fill();
+            for(var i = 0; i < 5; i++){
+              var n = ts.filter(function(t){ return t.dia === i; }).length;
+              tx(DIA5[i] + " " + addDays(d0, i).getDate(), x + lw + i * cw + 1.8, yy + 2.7, 2.5, 700, FUENTE, NAVY);
+              if(n) tx(String(n), x + lw + (i + 1) * cw - 1.6, yy + 2.7, 2.2, 600, FUENTE, MUTE, 0, "right");
+            }
+          }
+          yy += 6.2; var top = yy;
+          if(!ts.length){ if(dibuja) tx("Sin tareas guardadas ni programadas para esta semana.", x + 2, yy + 3, 2.7, 400, FUENTE, MUTE); return yy + 7; }
+          var orden = state.categories.map(function(c){ return c.name; }), fases = [];
+          ts.forEach(function(t){ if(fases.indexOf(t.cat) < 0) fases.push(t.cat); });
+          fases.sort(function(a, b){ var ia = orden.indexOf(a), ib = orden.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
+          fases.forEach(function(c){
+            var fs = ts.filter(function(t){ return t.cat === c; }), col = TONOS[fs[0].tone] || "#8C949E", celdas = [], rh = 0;
+            for(var i = 0; i < 5; i++){
+              var cell = [], hh = 0.8;
+              fs.filter(function(t){ return t.dia === i; }).forEach(function(t){
+                var ls = cortar(t.text, 2.1, 600, cw - 2 - 3.2 - (info.guardada ? 2.2 : 0), 2), ch = 1.5 + ls.length * 2.6;
+                cell.push({ t:t, ls:ls, hh:hh, ch:ch }); hh += ch + 0.7;
+              });
+              celdas.push(cell); rh = Math.max(rh, hh);
+            }
+            var nm = cortar(c, 2.4, 700, lw - 3.6, 3); rh = Math.max(rh + 0.3, nm.length * 2.9 + 2.2);
+            if(dibuja){
+              g.fillStyle = mez(col, 0.16); g.fillRect(x * K, yy * K, lw * K, rh * K); g.fillStyle = col; g.fillRect(x * K, yy * K, 0.9 * K, rh * K);
+              nm.forEach(function(l, j){ tx(l, x + 2.3, yy + 2.6 + j * 2.9, 2.4, 700, FUENTE, NAVY); });
+              celdas.forEach(function(cell, i){
+                cell.forEach(function(q){
+                  var cx = x + lw + i * cw + 1, cy = yy + q.hh;
+                  g.fillStyle = mez(TONOS[q.t.tone] || "#8C949E", 0.26); rr(cx * K, cy * K, (cw - 2) * K, q.ch * K, 0.9 * K); g.fill();
+                  q.ls.forEach(function(l, j){ tx(l, cx + 1.4, cy + 2.2 + j * 2.6, 2.1, 600, FUENTE, NAVY); });
+                  if(info.guardada && (q.t.cumplido === true || q.t.cumplido === false)){
+                    var mx = cx + cw - 5.2, my = cy + 2;
+                    g.lineCap = "round"; g.lineJoin = "round"; g.lineWidth = 0.35 * K;
+                    if(q.t.cumplido){ g.strokeStyle = "#26694B"; g.beginPath(); g.moveTo(mx * K, (my + 0.13) * K); g.lineTo((mx + 0.45) * K, (my + 0.65) * K); g.lineTo((mx + 1.3) * K, (my - 0.7) * K); g.stroke(); }
+                    else { g.strokeStyle = "#B23B3B"; g.beginPath(); g.moveTo(mx * K, (my - 0.5) * K); g.lineTo((mx + 1) * K, (my + 0.5) * K); g.moveTo(mx * K, (my + 0.5) * K); g.lineTo((mx + 1) * K, (my - 0.5) * K); g.stroke(); }
+                  }
+                });
+              });
+              g.fillStyle = "#D8D5CB"; g.fillRect(x * K, (yy + rh) * K, w * K, 0.2 * K);
+            }
+            yy += rh;
+          });
+          if(dibuja){ g.fillStyle = "#D8D5CB"; for(var i = 0; i < 6; i++) g.fillRect((x + lw + i * cw) * K, top * K, 0.2 * K, (yy - top) * K); }
+          return yy;
+        };
+        var band = 0;
+        if(vec) band = miniSem(0, "", vec[0], false) + 7 + miniSem(0, "", vec[1], false) + 7;
+        var sc = Math.min((PW - 32) / BW, (PH - y0 - 15 - band) / BH), W = BW * sc, x0 = (PW - W) / 2;
+
         tx(etiqueta, hx, 18, 2.6, 600, MONO, MUTE, 0.35);
         var tsz = 8; g.font = "700 " + (tsz * K) + "px " + FUENTE; var tw = g.measureText(titulo).width / K; if(tw > HW) tsz = tsz * HW / tw * 0.98;
         tx(titulo, hx, 27.5, tsz, 700, FUENTE, NAVY);
@@ -2090,6 +2181,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
           }
         });
         g.restore();
+        if(vec){ var ym = y0 + BH * sc + 7; ym = miniSem(ym, "Semana anterior", vec[0], true) + 7; miniSem(ym, "Semana siguiente", vec[1], true); }
         /* pie */
         var yb = PH - 14, hoy = new Date(); /* pie siempre al fondo de la hoja */
         g.fillStyle = "rgba(10,34,64,.3)"; g.fillRect(hx * K, (yb + 3) * K, HW * K, 0.25 * K);
