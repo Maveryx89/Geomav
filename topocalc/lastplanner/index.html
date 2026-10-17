@@ -1607,7 +1607,16 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
     }
     function inicioDe(st){
       if(st.inicio && /^\d{4}-\d{2}-\d{2}$/.test(st.inicio)) return st.inicio;
-      var d = fechaEtiqueta(st.weeks[0]); return d ? lunesISO(d) : lunesISO(new Date());
+      var w0 = st.weeks[0], y = anioDe(st), d = w0 ? fechaEtiqueta(w0, y ? new Date(y, Math.max(0, MESES.indexOf(w0.month)), 15) : undefined) : null;
+      return d ? lunesISO(d) : lunesISO(new Date());
+    }
+    /* anio de referencia si el tablero no guardo su fecha de inicio: el de su subtitulo/titulo o el del Semanal; si no, el mas cercano a hoy */
+    function anioDe(st){
+      var m = /\b(20\d\d)\b/.exec((st.subtitle || "") + " " + (st.title || ""));
+      if(m){ window.LP_ANIO_REF = +m[1]; return +m[1]; }
+      if(window.LP_ANIO_REF) return window.LP_ANIO_REF;
+      try{ var o = JSON.parse(localStorage.getItem("pizarra-semanal-v1") || "null"), m2 = o && /\b(20\d\d)\b/.exec((o.subtitle || "") + " " + (o.title || "")); if(m2) return +m2[1]; }catch(e){}
+      return null;
     }
     function fechasCols(st){
       var ini = parseInputDate(inicioDe(st));
@@ -1928,7 +1937,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       vecinas().then(function(vec){ return listo.then(function(){ return vec; }); }).then(function(vec){
         /* 1) Leer la pizarra tal como se ve (siempre en tema claro, para imprimir) */
         var de = document.documentElement, tPrev = de.getAttribute("data-theme");
-        var stl = document.createElement("style"); stl.textContent = "*,*::before,*::after{transition:none!important;animation:none!important}"; document.head.appendChild(stl);
+        var stl = document.createElement("style"); stl.textContent = "*,*::before,*::after{transition:none!important;animation:none!important} .add-note,.week-x,.g-mes-x,.row-tools,.m-add,.m-chip-add,[data-action^=\"del-\"],[data-action=\"add-note\"]{display:none!important}"; document.head.appendChild(stl);
         de.setAttribute("data-theme", "light");
         var ops = [], R = boardEl.getBoundingClientRect(), BW = R.width, BH = R.height;
         try{
