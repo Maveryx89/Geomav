@@ -2147,6 +2147,8 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         var band = 0;
         if(vec) band = miniSem(0, "", vec[0], false) + 7 + miniSem(0, "", vec[1], false) + 7;
         var sc = Math.min((PW - 32) / BW, (PH - y0 - 15 - band) / BH), W = BW * sc, x0 = (PW - W) / 2;
+        /* semanas con pocas tareas: el espacio sobrante se reparte para que la hoja no quede vacía abajo */
+        var extra = Math.max(0, PH - y0 - 15 - band - BH * sc), offY = vec ? Math.min(extra / 5, 30) : Math.min(extra / 2, 60), gapY = vec ? Math.min(extra / 5, 30) : 0;
 
         tx(etiqueta, hx, 18, 2.6, 600, MONO, MUTE, 0.35);
         var tsz = 8; g.font = "700 " + (tsz * K) + "px " + FUENTE; var tw = g.measureText(titulo).width / K; if(tw > HW) tsz = tsz * HW / tw * 0.98;
@@ -2175,7 +2177,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
           g.font = "400 " + (pfs * K) + "px " + FUENTE; px += 4.4 + g.measureText(lab).width / K + pgap;
         });
         /* pizarra */
-        g.save(); g.translate(x0 * K, y0 * K); g.scale(sc * K, sc * K);
+        g.save(); g.translate(x0 * K, (y0 + offY) * K); g.scale(sc * K, sc * K);
         ops.forEach(function(o){
           if(o.t === "rect"){
             rr(o.x, o.y, o.w, o.h, o.r);
@@ -2190,7 +2192,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
           }
         });
         g.restore();
-        if(vec){ var ym = y0 + BH * sc + 7; ym = miniSem(ym, "Semana anterior", vec[0], true) + 7; miniSem(ym, "Semana siguiente", vec[1], true); }
+        if(vec){ var ym = y0 + offY + BH * sc + 7 + gapY; ym = miniSem(ym, "Semana anterior", vec[0], true) + 7 + gapY; miniSem(ym, "Semana siguiente", vec[1], true); }
         /* pie */
         var yb = PH - 14, hoy = new Date(); /* pie siempre al fondo de la hoja */
         g.fillStyle = "rgba(10,34,64,.3)"; g.fillRect(hx * K, (yb + 3) * K, HW * K, 0.25 * K);
