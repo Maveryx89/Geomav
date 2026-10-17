@@ -13,8 +13,44 @@ function fmt(i){var p=parts(i);return p[0]?p.join("/"):"";}
 function cargoDe(n){var p=PERS.filter(function(x){return x[0].toLowerCase()===String(n).toLowerCase();})[0];return p?p[1]:"";}
 function aviso(t){var d=document.createElement("div");d.className="comp-toast";d.setAttribute("role","status");d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.classList.add("on");},10);setTimeout(function(){d.classList.remove("on");setTimeout(function(){d.remove();},300);},2400);}
 /* ---------- almacenamiento ---------- */
-function guardar(){try{localStorage.setItem(LS,JSON.stringify(S.recs));}catch(e){}}
+function guardar(){if(S.cur&&!S.cur.ej)S.cur.mod=Date.now();try{localStorage.setItem(LS,JSON.stringify(S.recs));}catch(e){}}
 function cargar(){try{var r=JSON.parse(localStorage.getItem(LS));if(r&&r.length)return r;}catch(e){}return null;}
+
+/* ---------- sincronización con la planilla (Apps Script) ---------- */
+var LSB="pac-borrados-v1",LSP="pac-ultimo-sync-v1",API=(window.LP_SYNC&&window.LP_SYNC.api)||"";
+function ssg(k){try{return sessionStorage.getItem(k)||"";}catch(e){return "";}}
+function ssp(k,v){try{sessionStorage.setItem(k,v);}catch(e){}}
+function tomb(id){try{var b=JSON.parse(localStorage.getItem(LSB)||"[]");b.push({id:id,mod:Date.now()});localStorage.setItem(LSB,JSON.stringify(b));}catch(e){}}
+function synMsg(t,err){var e=document.getElementById("pcSyn");if(e){e.textContent=t;e.className="pc-syn"+(err?" err":"");}}
+function credenciales(){return new Promise(function(res){
+  var pin=ssg("lastplanner-pin"),au=ssg("lastplanner-autor");if(pin&&au)return res({pin:pin,autor:au});
+  var ov=document.createElement("div");ov.className="sel-overlay";
+  ov.innerHTML='<div class="sel-box" role="dialog" aria-modal="true" aria-label="Sincronizar PAC"><h3>Sincronizar PAC con la planilla</h3><p>Tu nombre queda en la bitácora. El PIN se pide una vez por sesión.</p><label for="pcAu">Tu nombre</label><input id="pcAu" maxlength="60" value="'+esc(au)+'"><label for="pcPin">PIN de edición</label><input id="pcPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8"><div class="sel-msg"></div><div class="sel-actions"><button type="button" class="btn-sm" data-c="no">Cancelar</button><button type="button" class="btn-sm sel-ok" data-c="si">Sincronizar</button></div></div>';
+  document.body.appendChild(ov);var a=ov.querySelector("#pcAu"),p=ov.querySelector("#pcPin"),m=ov.querySelector(".sel-msg");(a.value?p:a).focus();
+  function fin(v){document.removeEventListener("keydown",tec);ov.remove();res(v);}
+  function ok(){if(!a.value.trim()){m.textContent="Escribe tu nombre.";a.focus();return;}if(!/^\d{4,8}$/.test(p.value.trim())){m.textContent="El PIN tiene de 4 a 8 dígitos.";p.focus();return;}ssp("lastplanner-pin",p.value.trim());ssp("lastplanner-autor",a.value.trim());fin({pin:p.value.trim(),autor:a.value.trim()});}
+  function tec(e){if(e.key==="Escape")fin(null);else if(e.key==="Enter")ok();}
+  document.addEventListener("keydown",tec);
+  ov.addEventListener("click",function(e){var c=e.target.dataset&&e.target.dataset.c;if(e.target===ov||c==="no")fin(null);else if(c==="si")ok();});});}
+function empaquetar(r){var c=JSON.parse(JSON.stringify(r)),f={};Object.keys(c.fi||{}).forEach(function(k){if(c.fi[k].sig){f[k]=c.fi[k].sig;c.fi[k].sig="";}});delete c.sy;return {id:r.id,tid:r.tid,mod:r.mod||0,json:JSON.stringify(c),firmas:f};}
+function desempaquetar(x){var r=JSON.parse(x.json);r.mod=x.mod;r.sy=x.mod;Object.keys(x.firmas||{}).forEach(function(k){if(r.fi&&r.fi[k])r.fi[k].sig=x.firmas[k];});return r;}
+var sincronizando=false;
+function sincronizar(){
+  if(sincronizando)return;if(!API){synMsg("Sin conexión con la planilla.",1);return;}
+  credenciales().then(function(c){if(!c)return;sincronizando=true;synMsg("Sincronizando…");
+    var sube=S.recs.filter(function(r){return !r.ej&&(r.mod||0)>(r.sy||0);}).map(empaquetar),bor=[];try{bor=JSON.parse(localStorage.getItem(LSB)||"[]");}catch(e){}
+    var desde=+localStorage.getItem(LSP)||0;
+    return fetch(API,{method:"POST",body:JSON.stringify({accion:"pacSync",pin:c.pin,autor:c.autor,desde:desde,registros:sube,borrados:bor}),redirect:"follow"}).then(function(r){return r.json();}).then(function(j){
+      sincronizando=false;
+      if(!j||!j.ok){var er=(j&&j.error)||"No se pudo sincronizar.";if(/desconocida|accion/i.test(er))er="Falta actualizar el script de la planilla (Apps Script) para PAC.";if(/PIN/i.test(er))ssp("lastplanner-pin","");synMsg(er,1);return;}
+      var nuevos=0,ids={};S.recs.forEach(function(r){ids[r.id]=r;});
+      sube.forEach(function(p){if(ids[p.id]&&(ids[p.id].mod||0)===p.mod)ids[p.id].sy=p.mod;});
+      (j.registros||[]).forEach(function(x){var l=ids[x.id];if(l&&(l.mod||0)>=x.mod)return;var r=desempaquetar(x);if(l)S.recs[S.recs.indexOf(l)]=r;else{S.recs.push(r);}nuevos++;});
+      (j.borrados||[]).forEach(function(id){var l=ids[id];if(l&&!l.ej){S.recs.splice(S.recs.indexOf(l),1);nuevos++;}});
+      try{localStorage.setItem(LSB,"[]");localStorage.setItem(LSP,String(j.ahora||Date.now()));}catch(e){}
+      if(S.cur&&!S.recs.some(function(r){return r===S.cur;}))S.cur=S.recs.filter(function(r){return S.cur&&r.id===S.cur.id;})[0]||null;
+      guardar();lista();synMsg("Listo: "+sube.length+" enviado"+(sube.length===1?"":"s")+", "+nuevos+" recibido"+(nuevos===1?"":"s")+".");
+    });}).catch(function(){sincronizando=false;synMsg("Sin conexión con la planilla (tus registros siguen en este equipo).",1);});}
 /* ---------- registros ---------- */
 function nuevo(tid){
   var t=T[tid],r={id:"r"+Date.now()+Math.floor(Math.random()*99),tid:tid,creado:iso(),hdr:{},resp:{},it:{},op:{},ca:{},ob:"",fi:{}};
@@ -141,7 +177,7 @@ function nomCorto(n){var w=String(n).split(" ");if(w.length<=2)return n;return /
 function persSel(pth,actual){var h='<select class="pc-in pc-pers" data-pers="'+pth+'">';PERS.forEach(function(p,i){var sel=actual&&p[0].toLowerCase()===String(actual).toLowerCase();h+='<option value="'+i+'"'+(sel?" selected":"")+' data-full="'+esc(p[0]+" — "+(p[1]||"s/cargo"))+'" data-short="'+esc(nomCorto(p[0])+" · "+cargoCorto(p[1]))+'">'+esc(sel?p[0]+" — "+(p[1]||"s/cargo"):nomCorto(p[0])+" · "+cargoCorto(p[1]))+'</option>';});return h+'</select>';}
 function etiq(sel,abierto){Array.prototype.forEach.call(sel.options,function(o){o.textContent=(!abierto&&o.selected)?o.dataset.full:o.dataset.short;});}
 function lista(){
-  var h='<div class="pc-bar"><div class="pc-new"><label class="pc-l" for="pcTpl">Nuevo registro</label><select id="pcTpl" class="pc-in pc-pers pc-tpl">'+D.templates.map(function(t,k){var cor=t.id==="trze"?"Trazados · Emplantillado":t.nombre;return '<option value="'+t.id+'" data-full="'+esc(t.codigo+" · "+t.nombre)+'" data-short="'+esc(cor)+'"'+(k?"":" selected")+'>'+esc(k?cor:t.codigo+" · "+t.nombre)+'</option>';}).join("")+'</select><button type="button" class="btn-sm pc-pri" data-pc="nuevo">+ Crear</button></div></div>';
+  var h='<div class="pc-bar"><div class="pc-new"><label class="pc-l" for="pcTpl">Nuevo registro</label><select id="pcTpl" class="pc-in pc-pers pc-tpl">'+D.templates.map(function(t,k){var cor=t.id==="trze"?"Trazados · Emplantillado":t.nombre;return '<option value="'+t.id+'" data-full="'+esc(t.codigo+" · "+t.nombre)+'" data-short="'+esc(cor)+'"'+(k?"":" selected")+'>'+esc(k?cor:t.codigo+" · "+t.nombre)+'</option>';}).join("")+'</select><button type="button" class="btn-sm pc-pri" data-pc="nuevo">+ Crear</button></div><div class="pc-sync"><button type="button" class="btn-sm" data-pc="sync">\u2601 Sincronizar con la planilla</button><span class="pc-syn" id="pcSyn" role="status"></span></div></div>';
   h+='<div class="pc-grid">';
   S.recs.slice().sort(function(a,b){return b.id<a.id?-1:1;}).forEach(function(r){var t=T[r.tid],a=avance(r),f=firmados(r);
     h+='<article class="pc-card"><header><span class="pc-cod">'+esc(t.codigo)+'</span>'+(r.ej?'<span class="tag-ej">ejemplo</span>':'')+'</header><h3>'+esc(t.nombre)+'</h3><p class="pc-sub">'+esc(r.hdr.item||"s/ítem")+' · '+esc(r.hdr.plano||"s/plano")+' · '+fmt(r.hdr.fecha)+'</p>'
@@ -202,8 +238,9 @@ function clic(e){
   var a=b.dataset.pc;
   if(a==="nuevo"){S.cur=nuevo($("#pcTpl").value);S.recs.push(S.cur);guardar();S.tab="form";editor();window.scrollTo(0,0);}
   else if(a==="abrir"){S.cur=S.recs.filter(function(x){return x.id===b.dataset.id;})[0];S.tab="form";editor();window.scrollTo(0,0);}
-  else if(a==="dup"){var o=S.recs.filter(function(x){return x.id===b.dataset.id;})[0],c=JSON.parse(JSON.stringify(o));c.id="r"+Date.now();c.ej=0;c.it={};c.fi={};T[c.tid].firmas.forEach(function(f){c.fi[f.k]={n:o.fi[f.k].n,c:o.fi[f.k].c,f:"",sig:""};});c.hdr.fecha=iso();S.recs.push(c);guardar();lista();aviso("Duplicado sin avances ni firmas");}
-  else if(a==="del"){if(confirm("¿Eliminar este registro?")){S.recs=S.recs.filter(function(x){return x.id!==b.dataset.id;});guardar();lista();}}
+  else if(a==="dup"){var o=S.recs.filter(function(x){return x.id===b.dataset.id;})[0],c=JSON.parse(JSON.stringify(o));c.id="r"+Date.now();c.ej=0;c.mod=Date.now();c.sy=0;c.it={};c.fi={};T[c.tid].firmas.forEach(function(f){c.fi[f.k]={n:o.fi[f.k].n,c:o.fi[f.k].c,f:"",sig:""};});c.hdr.fecha=iso();S.recs.push(c);guardar();lista();aviso("Duplicado sin avances ni firmas");}
+  else if(a==="del"){if(confirm("¿Eliminar este registro?")){var bo=S.recs.filter(function(x){return x.id===b.dataset.id;})[0];S.recs=S.recs.filter(function(x){return x.id!==b.dataset.id;});if(bo&&!bo.ej)tomb(bo.id);guardar();lista();}}
+  else if(a==="sync"){sincronizar();}
   else if(a==="volver"){S.cur=null;lista();}
   else if(a==="tab-form"||a==="tab-prev"){S.tab=a==="tab-form"?"form":"prev";document.querySelector(".pc-split").className="pc-split pc-show-"+S.tab;document.querySelectorAll(".pc-tabs button").forEach(function(x){x.classList.toggle("on",x.dataset.pc===a);});}
   else if(a==="todo"){var t2=T[r.tid];t2.blocks[+b.dataset.b].items.forEach(function(i){var d=it(r,i.id);if(!d.c){d.c="si";d.f=iso();}});guardar();editor();}
