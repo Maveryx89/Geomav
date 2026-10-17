@@ -38,7 +38,7 @@ var sincronizando=false;
 function sincronizar(){
   if(sincronizando)return;if(!API){synMsg("Sin conexión con la planilla.",1);return;}
   credenciales().then(function(c){if(!c)return;sincronizando=true;synMsg("Sincronizando…");
-    var sube=S.recs.filter(function(r){return !r.ej&&(r.mod||0)>(r.sy||0);}).map(empaquetar),bor=[];try{bor=JSON.parse(localStorage.getItem(LSB)||"[]");}catch(e){}
+    S.recs.forEach(function(r){if(!r.ej&&!r.mod&&!r.sy)r.mod=Date.now();});var sube=S.recs.filter(function(r){return !r.ej&&(r.mod||0)>(r.sy||0);}).map(empaquetar),bor=[];try{bor=JSON.parse(localStorage.getItem(LSB)||"[]");}catch(e){}
     var desde=+localStorage.getItem(LSP)||0;
     return fetch(API,{method:"POST",body:JSON.stringify({accion:"pacSync",pin:c.pin,autor:c.autor,desde:desde,registros:sube,borrados:bor}),redirect:"follow"}).then(function(r){return r.json();}).then(function(j){
       sincronizando=false;
