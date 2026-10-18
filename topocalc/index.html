@@ -2642,7 +2642,7 @@ function coordsToDXFPolyline(coordE, coordN, closed){
 function puntosToKML(puntos, zona, hemi){
   let placemarks = '';
   puntos.forEach(p=>{
-    const ll = utmToLatLon(p.E, p.N, zona, hemi);
+    const ll = utmToLatLon(p.E, p.N, p.huso||zona, p.hemi||hemi);
     const z = (p.cota!==null && p.cota!==undefined) ? p.cota : 0;
     placemarks += `<Placemark><name>${p.nombre}</name><Point><coordinates>${ll.lon},${ll.lat},${z}</coordinates></Point></Placemark>\n`;
   });
@@ -2658,7 +2658,7 @@ function coordsToKMLPolygon(coordE, coordN, zona, hemi, nombre){
 function puntosToGPX(puntos, zona, hemi){
   let wpts = '';
   puntos.forEach(p=>{
-    const ll = utmToLatLon(p.E, p.N, zona, hemi);
+    const ll = utmToLatLon(p.E, p.N, p.huso||zona, p.hemi||hemi);
     wpts += `<wpt lat="${ll.lat}" lon="${ll.lon}">${(p.cota!==null&&p.cota!==undefined)?`<ele>${p.cota}</ele>`:''}<name>${p.nombre}</name></wpt>\n`;
   });
   return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Topo de Bolsillo" xmlns="http://www.topografix.com/GPX/1/1">\n${wpts}</gpx>`;
@@ -2709,16 +2709,37 @@ function capturarGPSPromediado(numLecturas, onProgress, onDone, onError){
 }
 
 /* ===================== LIBRETA DE PUNTOS (compartida entre herramientas) ===================== */
+/* Georreferencia de cada punto: huso, hemisferio, datum y sistema ('UTM' | 'PTL' | 'local').
+   Los puntos guardados antes de este cambio no la tenían: se completan UNA vez con la preferencia de huso del
+   Mapa (la que ya se usaba para todos) y se guardan, para que un cambio posterior de esa preferencia no los mueva. */
+function puntoMetaDefault(){ const pr = loadMapaZonaPref(); return {huso:pr.zona, hemi:pr.hemi, datum:'WGS84', sistema:'UTM'}; }
+function normalizarPunto(p){
+  const d = puntoMetaDefault();
+  if(!p.huso) p.huso = d.huso;
+  if(!p.hemi) p.hemi = d.hemi;
+  if(!p.datum) p.datum = d.datum;
+  if(!p.sistema) p.sistema = d.sistema;
+  return p;
+}
+function puntoSistemaTxt(p){ return p.sistema==='UTM' ? `${p.huso}${p.hemi} · ${p.datum}` : `${p.sistema} · ${p.datum}`; }
 function loadPuntos(){
-  try{ return JSON.parse(localStorage.getItem('topocalc-libreta')||'[]'); }catch(e){ return []; }
+  try{
+    const raw = JSON.parse(localStorage.getItem('topocalc-libreta')||'[]');
+    const cambio = raw.some(p=> !p.huso || !p.hemi || !p.datum || !p.sistema);
+    const out = raw.map(normalizarPunto);
+    if(cambio) localStorage.setItem('topocalc-libreta', JSON.stringify(out));
+    return out;
+  }catch(e){ return []; }
 }
 function savePuntosStore(){
   try{ localStorage.setItem('topocalc-libreta', JSON.stringify(PUNTOS)); }catch(e){}
 }
 let PUNTOS = loadPuntos();
 let puntoAutoId = PUNTOS.reduce((m,p)=>Math.max(m,p.id||0),0)+1;
-function agregarPunto(nombre, E, N, cota, descripcion){
-  const p = {id:puntoAutoId++, nombre: nombre || ('P'+puntoAutoId), E, N, cota: (cota===undefined||cota===null||isNaN(cota))?null:cota, descripcion: descripcion||''};
+function agregarPunto(nombre, E, N, cota, descripcion, meta){
+  const m = Object.assign(puntoMetaDefault(), meta||{});
+  const p = {id:puntoAutoId++, nombre: nombre || ('P'+puntoAutoId), E, N, cota: (cota===undefined||cota===null||isNaN(cota))?null:cota, descripcion: descripcion||'',
+             huso:m.huso, hemi:m.hemi, datum:m.datum, sistema:m.sistema};
   PUNTOS.push(p);
   savePuntosStore();
   return p;
@@ -2726,6 +2747,18 @@ function agregarPunto(nombre, E, N, cota, descripcion){
 function eliminarPunto(id){
   PUNTOS = PUNTOS.filter(p=>p.id!==id);
   savePuntosStore();
+}
+/* Selector reutilizable "Traer de la Libreta": el botón entrega el punto elegido a onPick(p). */
+function libretaPickerHTML(selId, btnId, label){
+  if(!PUNTOS.length) return `<div class="field-row" style="margin-top:14px;"><label>${label}</label><p class="tool-blurb" style="margin:0;">La Libreta está vacía: guarda puntos desde otra herramienta para poder traerlos aquí.</p></div>`;
+  return `<div class="field-row" style="margin-top:14px;"><label for="${selId}">${label}</label>
+    <select id="${selId}">${PUNTOS.map(p=>`<option value="${p.id}">${p.nombre} · ${p.sistema==='UTM'?p.huso+p.hemi:p.sistema}</option>`).join('')}</select>
+    <button type="button" class="btn-sm" id="${btnId}" style="margin-top:6px;">⬇ Traer de la Libreta</button></div>`;
+}
+function libretaPickerWire(selId, btnId, onPick){
+  const btn = document.getElementById(btnId), sel = document.getElementById(selId);
+  if(!btn || !sel) return;
+  btn.addEventListener('click', ()=>{ const p = PUNTOS.find(q=>String(q.id)===sel.value); if(p) onPick(p); });
 }
 /* Exporta en el formato estándar de equipos GPS/estación total: P,N,E,D,C
    (Punto, Norte, Este, Descripción, Cota). */
@@ -2877,7 +2910,7 @@ function renderLibreta(){
     let trs = '';
     PUNTOS.forEach(p=>{
       trs += `<tr>
-        <td>${p.nombre}</td><td>${fmtNum(p.E,3)}</td><td>${fmtNum(p.N,3)}</td><td>${(p.cota!==null&&p.cota!==undefined)?fmtNum(p.cota,2):'—'}</td><td>${p.descripcion||'—'}</td>
+        <td>${p.nombre}<br><small style="color:var(--ink-soft)">${puntoSistemaTxt(p)}</small></td><td>${fmtNum(p.E,3)}</td><td>${fmtNum(p.N,3)}</td><td>${(p.cota!==null&&p.cota!==undefined)?fmtNum(p.cota,2):'—'}</td><td>${p.descripcion||'—'}</td>
         <td><button type="button" class="btn-sm" data-del="${p.id}">🗑</button></td>
       </tr>`;
     });
@@ -3207,7 +3240,7 @@ function cerrarTrackYCalcularArea(){
 function guardarTrackEnLibreta(){
   trackPoints.forEach((p,i)=>{
     const u = latLonToUTM(p.lat,p.lon);
-    agregarPunto(`T${i+1}`, u.este, u.norte, null);
+    agregarPunto(`T${i+1}`, u.este, u.norte, null, '', {huso:u.zona, hemi:u.hemisferio});
   });
 }
 
@@ -3233,7 +3266,7 @@ function drawPuntosEnMapa(){
   const bounds = [];
   PUNTOS.forEach(p=>{
     try{
-      const ll = utmToLatLon(p.E, p.N, pref.zona, pref.hemi);
+      const ll = utmToLatLon(p.E, p.N, p.huso||pref.zona, p.hemi||pref.hemi);
       if(!isFinite(ll.lat) || !isFinite(ll.lon)) return;
       const marker = L.marker([ll.lat, ll.lon]).addTo(mapaInstance);
       marker.bindPopup(`<strong>${p.nombre}</strong><br>E: ${fmtNum(p.E,3)}  N: ${fmtNum(p.N,3)}${(p.cota!==null&&p.cota!==undefined)?'<br>Cota: '+fmtNum(p.cota,2):''}`);
@@ -3261,7 +3294,7 @@ function onMapaClick(latlng){
     <button class="btn-sm" id="btnMPSave" type="button" style="margin-top:6px;">💾 Guardar este punto en la Libreta</button>
   `;
   document.getElementById('btnMPSave').addEventListener('click', (e)=>{
-    agregarPunto('Mapa', utm.este, utm.norte, null);
+    agregarPunto('Mapa', utm.este, utm.norte, null, '', {huso:utm.zona, hemi:utm.hemisferio});
     e.currentTarget.textContent = 'Guardado ✓';
     drawPuntosEnMapa();
   });
@@ -3868,7 +3901,7 @@ function renderUTM(){
     btnGuardar.type='button'; btnGuardar.className='btn-sm'; btnGuardar.style.marginTop='8px';
     btnGuardar.textContent='💾 Guardar en la Libreta';
     btnGuardar.addEventListener('click', ()=>{
-      agregarPunto(`UTM ${r.zona}${r.banda}`, r.este, r.norte, null);
+      agregarPunto(`UTM ${r.zona}${r.banda}`, r.este, r.norte, null, '', {huso:r.zona, hemi:r.hemisferio});
       btnGuardar.textContent = 'Guardado ✓';
     });
     box.appendChild(btnGuardar);
@@ -3981,9 +4014,11 @@ function renderPoligonal(){
     <div class="field-inline2">
       ${fieldRow(`Mínima div. limbo (${smallUnitLabel()})`,'pol_min', angleSystem==='cent'? 62:20)}
     </div>
+    ${libretaPickerHTML('pol_lib','pol_lib_btn','Punto A (inicial) desde la Libreta')}
+    <p class="tool-blurb" id="pol_lib_msg" style="margin:0 0 8px;"></p>
     <div class="field-inline2">
-      ${fieldRow('Coord. Este inicial','pol_e0',5000)}
-      ${fieldRow('Coord. Norte inicial','pol_n0',10000)}
+      ${fieldRow('Coord. Este inicial','pol_e0',257966.91)}
+      ${fieldRow('Coord. Norte inicial','pol_n0',6076388.97)}
     </div>
     <div class="field-row"><label for="pol_metodo">Método de compensación</label>
       <select id="pol_metodo"><option value="transit" selected>Regla del Tránsito</option><option value="bowditch">Regla de Bowditch (Compás)</option></select></div>
@@ -3993,11 +4028,22 @@ function renderPoligonal(){
   <div id="resPol"></div>`;
   toolShell('poligonal','Calcula el cierre angular, ajusta coordenadas por regla del Tránsito o de Bowditch (a elección), obtiene coordenadas, error de cierre y área de una poligonal cerrada de campo.', body, ['Ec']);
   renderPolStations();
+  polOrigenMeta = null;
+  libretaPickerWire('pol_lib','pol_lib_btn', p=>{
+    document.getElementById('pol_e0').value = p.E;
+    document.getElementById('pol_n0').value = p.N;
+    polOrigenMeta = {huso:p.huso, hemi:p.hemi, datum:p.datum, sistema:p.sistema};
+    document.getElementById('pol_lib_msg').textContent = `Punto A tomado de la Libreta: ${p.nombre} · ${puntoSistemaTxt(p)}. Los vértices que guardes heredarán ese sistema.`;
+  });
+  ['pol_e0','pol_n0'].forEach(id=> document.getElementById(id).addEventListener('input', ()=>{
+    polOrigenMeta = null; document.getElementById('pol_lib_msg').textContent = '';
+  }));
   document.getElementById('polMinus').addEventListener('click', ()=>{ if(polN>3){polN--; document.getElementById('polNVal').textContent=polN; renderPolStations();}});
   document.getElementById('polPlus').addEventListener('click', ()=>{ if(polN<16){polN++; document.getElementById('polNVal').textContent=polN; renderPolStations();}});
   document.getElementById('btnPol').addEventListener('click', calcularPoligonalUI);
 }
 
+let polOrigenMeta = null;   // georreferencia del punto A cuando viene de la Libreta
 const POL_LABELS = "ABCDEFGHIJKLMNOPQRST".split('');
 const POL_EXAMPLE = [
   [74,34,20,166.2],[148,0,40,171.4],[127,27,40,160.7],[49,8,10,162.6],
@@ -4085,14 +4131,14 @@ function calcularPoligonalUI(){
   addCSVButton(box, 'poligonal.csv', csvRows.join('\n'));
   addExportButtons(box, 'poligonal', {
     dxf: ()=> coordsToDXFPolyline(r.coordE.slice(0,polN), r.coordN.slice(0,polN), true),
-    kml: ()=>{ const pr=loadMapaZonaPref(); return coordsToKMLPolygon(r.coordE.slice(0,polN), r.coordN.slice(0,polN), pr.zona, pr.hemi, 'Poligonal Cerrada'); }
+    kml: ()=>{ const pr=loadMapaZonaPref(), om=polOrigenMeta||{}; return coordsToKMLPolygon(r.coordE.slice(0,polN), r.coordN.slice(0,polN), om.huso||pr.zona, om.hemi||pr.hemi, 'Poligonal Cerrada'); }
   });
 
   const btnGuardar = document.createElement('button');
   btnGuardar.type='button'; btnGuardar.className='btn-sm'; btnGuardar.style.marginTop='8px'; btnGuardar.style.marginLeft='8px';
   btnGuardar.textContent='💾 Guardar vértices en la Libreta';
   btnGuardar.addEventListener('click', ()=>{
-    for(let i=0;i<polN;i++) agregarPunto(POL_LABELS[i], r.coordE[i], r.coordN[i], null);
+    for(let i=0;i<polN;i++) agregarPunto(POL_LABELS[i], r.coordE[i], r.coordN[i], null, '', polOrigenMeta||undefined);
     btnGuardar.textContent = `Guardado (${polN} puntos) ✓`;
   });
   box.appendChild(btnGuardar);
