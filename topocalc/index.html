@@ -419,6 +419,17 @@ table.data-table th, table.data-table td{
 table.data-table th{color:var(--ink-soft); font-weight:500; text-align:right; font-family:var(--font-body); font-size:11px; text-transform:uppercase; letter-spacing:.04em;}
 table.data-table td:first-child, table.data-table th:first-child{text-align:left;}
 .table-wrap{overflow-x:auto; margin:-4px; padding:4px;}
+/* Tabla de datos y resultados que se arma sola bajo cada diagrama (independiente del dibujo) */
+.data-sheet{margin-top:10px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--paper-raised); padding:10px 10px 4px;}
+.data-sheet h3{font-size:13px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-soft); margin:0 0 4px; font-family:var(--font-body); font-weight:600;}
+.data-sheet .ds-cap{font-family:var(--font-body); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:600; margin:10px 0 2px;}
+.data-sheet .table-wrap{margin-bottom:4px;}
+.data-sheet table.data-table th{white-space:normal; vertical-align:bottom; min-width:4.5em; line-height:1.25;}
+.data-sheet table.data-table td:first-child{white-space:normal; min-width:6em;}
+.data-sheet table.ds-kv td:first-child{white-space:normal; font-family:var(--font-body); color:var(--ink-soft); width:50%;}
+.data-sheet table.ds-kv td:last-child{white-space:normal;}
+.data-sheet tr.ds-sec td{font-family:var(--font-body); font-weight:700; color:var(--blueprint); text-align:left; padding-top:9px;}
+.data-sheet td.ds-acc{color:var(--accent-text); font-weight:600;}
 
 .plot-wrap{margin-top:6px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--paper-raised); padding:8px;}
 /* Selector de HIJO DIRECTO (no descendiente): los diagramas propios de la app (svgX()) van
@@ -479,6 +490,13 @@ footer.app-foot .foot-copy{font-size:10px; opacity:.75;}
 #printArea table.pr-fields td.k{ color:#606F83; }
 #printArea table.pr-fields td.v{ font-family:var(--font-mono); text-align:right; font-weight:600; }
 #printArea .pr-results{ background:#EDEBE4; border-radius:6px; padding:2px 14px; }
+#printArea .data-sheet{ border:none; background:none; padding:0; margin:0; }
+#printArea .data-sheet h3{ display:none; }
+#printArea .data-sheet .ds-cap{ font-family:var(--font-mono); font-size:9.5px; color:#606F83; margin:8px 0 2px; }
+#printArea .data-sheet table.data-table{ font-size:11px; }
+#printArea .data-sheet table.data-table th, #printArea .data-sheet table.data-table td{ padding:3px 6px; border-bottom:1px solid #EDEBE4; white-space:normal; }
+#printArea .data-sheet tr.ds-sec td{ color:#2C6B7E; }
+#printArea .data-sheet td.ds-acc{ color:#9A5B2A; font-weight:700; }
 #printArea .pr-signoff{ margin-top:18px; padding-top:10px; border-top:1px solid #E2E4E8; display:flex; justify-content:space-between; font-size:10.5px; color:#606F83; }
 #printArea .pr-signoff .box{ border-top:1px solid #0A2240; width:200px; padding-top:4px; text-align:center; margin-top:26px; }
 
@@ -2465,6 +2483,162 @@ function buildInformeVerificacion(toolId){
 /* Recorre el formulario y los resultados ya en pantalla de la herramienta actual (sin
    volver a calcular nada) para armar el mismo tipo de informe que usamos en la revisión
    en papel: logo, título, datos de entrada, resultados y diagrama(s). */
+/* ===================== TABLA DE DATOS Y RESULTADOS (bajo cada diagrama) =====================
+   Se arma sola, para todas las herramientas con diagrama, cada vez que el diagrama se dibuja o se redibuja:
+   lee los campos del formulario de esa herramienta (sueltos, ángulos ° ' " y bloques repetidos como estaciones
+   o vértices, una fila por bloque) y su bloque de resultados. Es independiente del diagrama: crece con los datos.
+   Refleja lo usado en el último cálculo (si cambias un campo sin recalcular, la tabla no cambia). */
+const SHEET_CUBIERTOS = new WeakSet();   // campos y bloques de resultados que ya van en una tabla (el informe no los repite)
+const SHEET_EXTRA = {};                  // tablas propias por herramienta: id -> (resBox)=>[{cap, cols, filas}]
+function sheetTxt(el, quitar){
+  if(!el) return '';
+  const c = el.cloneNode(true);
+  c.querySelectorAll(quitar || 'small, .pill, button, select, input').forEach(x=>x.remove());
+  return c.textContent.replace(/\s+/g,' ').trim();
+}
+function sheetNum(v){
+  const s = String(v).trim();
+  if(!/^-?\d+(\.\d+)?$/.test(s)) return s;
+  const dec = (s.split('.')[1]||'').length;
+  return fmtNumTrim(parseFloat(s), Math.min(dec, 8));
+}
+/* Valor de un .field-row: {label, value} o null si no aplica (vacío, selector de la Libreta, archivo, etc.) */
+function sheetCampo(fr){
+  const lab = fr.querySelector(':scope > label') || fr.querySelector('label');
+  const label = sheetTxt(lab);
+  const sub = [...fr.querySelectorAll(':scope .field-row')];
+  if(sub.length){   // campo compuesto, p. ej. ángulo sexagesimal (° ' ")
+    const partes = sub.map(s=>({l: sheetTxt(s.querySelector('label')), i: s.querySelector('input')})).filter(p=>p.i && p.i.value!=='');
+    if(!partes.length || !label) return null;
+    const gms = partes.every(p=>['°',"'",'"'].includes(p.l));
+    return {label, value: gms ? partes.map(p=>p.i.value+p.l).join(' ') : partes.map(p=>`${p.l} ${sheetNum(p.i.value)}`).join(' · ')};
+  }
+  const nval = fr.querySelector('.n-val');
+  if(nval && label) return {label, value: nval.textContent.trim()};
+  const ins = [...fr.querySelectorAll('input, select')].filter(i=>!['file','hidden','button','submit'].includes(i.type));
+  if(!ins.length || !label) return null;
+  const vals = ins.map(i=>{
+    if(i.tagName==='SELECT'){ if(i.value==='') return ''; const o = i.options[i.selectedIndex]; return o ? o.textContent.trim() : ''; }
+    if(i.type==='checkbox') return i.checked ? 'Sí' : 'No';
+    return sheetNum(i.value);
+  }).filter(v=>v!=='');
+  return vals.length ? {label, value: vals.join(' · ')} : null;
+}
+function sheetFuera(el, box){
+  if(el.closest('.results, .data-sheet, .action-bar, .glosario, #printArea')) return true;
+  if(box && box.contains(el) && !box.matches('.field-card')) return true;
+  const card = el.closest('.field-card');   // otra tarjeta con su propio diagrama: sus campos van en la tabla de esa tarjeta
+  return !!(card && box && !card.contains(box) && [...card.querySelectorAll('.plot-wrap')].some(pw=>sheetCaja(pw)!==box));
+}
+function sheetConstruir(box){
+  const tv = document.querySelector('.tool-view'); if(!tv) return null;
+  const id = currentRoute();
+  const card = box.closest('.field-card');
+  const enCard = card && [...card.querySelectorAll('.field-row')].some(fr=>!sheetFuera(fr, box));
+  const scope = enCard ? card : tv;
+  const tablas = [];
+  // 1) Campos sueltos, con el subtítulo (h3/h4) que los agrupa
+  const kv = []; let sec = null;
+  scope.querySelectorAll('h3, h4, .field-row').forEach(el=>{
+    if(sheetFuera(el, box) || el.closest('.station-block:not([data-kv])')) return;
+    if(el.matches('h3, h4')){ sec = sheetTxt(el); return; }
+    if(el.parentElement.closest('.field-row')) return;   // sub-campo de un ángulo: ya va en su campo
+    const c = sheetCampo(el); if(!c) return;
+    SHEET_CUBIERTOS.add(el);
+    if(sec && /^\(/.test(c.label)){ c.label = `${sec} ${c.label}`; sec = null; }
+    if(sec){ kv.push({sec}); sec = null; }
+    kv.push(c);
+  });
+  if(kv.length) tablas.push({cap:'Datos ingresados', kv});
+  // 2) Bloques repetidos (estaciones, vértices, tramos): una fila por bloque, una columna por dato
+  const grupos = new Map();
+  scope.querySelectorAll('.station-block:not([data-kv])').forEach(sb=>{ if(sheetFuera(sb, box)) return; const k = sb.parentElement; if(!grupos.has(k)) grupos.set(k, []); grupos.get(k).push(sb); });
+  grupos.forEach(bloques=>{
+    const cols = [], filas = [];
+    bloques.forEach(sb=>{
+      const celdas = {};
+      sb.querySelectorAll('.field-row').forEach(fr=>{
+        if(fr.parentElement.closest('.field-row')) return;
+        const c = sheetCampo(fr); if(!c) return;
+        SHEET_CUBIERTOS.add(fr);
+        if(!cols.includes(c.label)) cols.push(c.label);
+        celdas[c.label] = c.value;
+      });
+      if(Object.keys(celdas).length) filas.push({nombre: sheetTxt(sb.querySelector('.st-label')), celdas});
+    });
+    if(filas.length) tablas.push({cap: filas.length>1 ? `Datos por elemento (${filas.length})` : 'Datos del elemento', cols:['Elemento', ...cols], filas: filas.map(f=>[f.nombre, ...cols.map(c=>f.celdas[c]!==undefined ? f.celdas[c] : '—')])});
+  });
+  // 3) Tablas propias de la herramienta (si tiene)
+  if(SHEET_EXTRA[id]) (SHEET_EXTRA[id](box)||[]).forEach(t=>tablas.push(t));
+  // 4) Resultados del mismo cálculo, con sus subtítulos
+  const res = []; const rbs = box.matches('.results') ? [box] : [...box.querySelectorAll('.results')];
+  rbs.forEach(rb=>{
+    if(rb.closest('.data-sheet')) return;
+    const filas = [...rb.querySelectorAll(':scope > .result-row')].map(r=>({label: sheetTxt(r.querySelector('.k')), value: sheetTxt(r.querySelector('.v'), 'button, select, input'), acc: !!r.querySelector('.v.accent')})).filter(r=>r.label);
+    if(!filas.length) return;
+    SHEET_CUBIERTOS.add(rb);
+    const h = rb.querySelector(':scope > h3'); if(h && rbs.length>1) res.push({sec: sheetTxt(h)});
+    filas.forEach(f=>res.push(f));
+  });
+  if(res.length) tablas.push({cap:'Resultados', kv: res});
+  if(!tablas.length) return null;
+  const e = escHTML;
+  let html = `<h3>Datos y resultados</h3>`;
+  tablas.forEach(t=>{
+    html += `<div class="ds-cap">${e(t.cap)}</div><div class="table-wrap">`;
+    if(t.kv){
+      html += `<table class="data-table ds-kv"><tbody>` + t.kv.map(r=> r.sec!==undefined
+        ? `<tr class="ds-sec"><td colspan="2">${e(r.sec)}</td></tr>`
+        : `<tr><td>${e(r.label)}</td><td${r.acc?' class="ds-acc"':''}>${e(r.value)}</td></tr>`).join('') + `</tbody></table>`;
+    } else {
+      html += `<table class="data-table"><thead><tr>${t.cols.map(c=>`<th>${e(c)}</th>`).join('')}</tr></thead><tbody>` +
+        t.filas.map(f=>`<tr>${f.map(v=>`<td>${e(v)}</td>`).join('')}</tr>`).join('') + `</tbody></table>`;
+    }
+    html += `</div>`;
+  });
+  const d = document.createElement('div'); d.className = 'data-sheet'; d.innerHTML = html;
+  return d;
+}
+/* Caja de resultados a la que pertenece un diagrama: el contenedor #resX si existe; si no, su bloque .results o su padre */
+function sheetCaja(pw){ return pw.closest('[id^="res"]') || pw.closest('.results') || pw.parentElement; }
+function sheetActualizar(){
+  const tv = document.querySelector('.tool-view'); if(!tv) return;
+  const cajas = [];
+  tv.querySelectorAll('.plot-wrap').forEach(pw=>{ if(pw.closest('.data-sheet')) return; const b = sheetCaja(pw); if(b && !cajas.includes(b)) cajas.push(b); });
+  cajas.forEach(box=>{
+    box.querySelectorAll('.data-sheet').forEach(s=>s.remove());
+    const pws = [...box.querySelectorAll('.plot-wrap')].filter(pw=>sheetCaja(pw)===box);
+    const ultimo = pws[pws.length-1]; if(!ultimo) return;
+    const hoja = sheetConstruir(box); if(hoja) ultimo.after(hoja);
+  });
+}
+/* Se reconstruye cuando aparece o se reemplaza un diagrama o un bloque de resultados. Se ignoran los cambios
+   de la propia tabla, de los mapas (Leaflet) y los de solo texto (p. ej. la lectura en vivo de la brújula). */
+let sheetPendiente = false;
+function sheetRelevante(n){
+  if(n.nodeType!==1 || n.classList.contains('data-sheet') || n.closest('.data-sheet, .leaflet-container')) return false;
+  if(n.matches('.plot-wrap, .results, .result-row') || n.querySelector('.plot-wrap, .results, .result-row')) return true;
+  return n.tagName.toLowerCase()==='svg' && n.parentElement && n.parentElement.matches('.plot-wrap');
+}
+new MutationObserver(muts=>{
+  if(sheetPendiente) return;
+  const hay = muts.some(m=>{
+    if(m.target.nodeType===1 && m.target.closest && m.target.closest('.data-sheet, .leaflet-container')) return false;
+    return [...m.addedNodes].some(sheetRelevante) || [...m.removedNodes].some(n=>n.nodeType===1 && !n.classList.contains('data-sheet') && (n.matches('.plot-wrap, .results, .result-row, svg') || (n.querySelector && n.querySelector('.plot-wrap, .results'))));
+  });
+  if(!hay) return;
+  sheetPendiente = true;
+  requestAnimationFrame(()=>{ sheetPendiente = false; sheetActualizar(); });
+}).observe(document.getElementById('main'), {childList:true, subtree:true});
+
+/* Flujo Levantamiento de Predio: tabla de vértices del grupo elegido */
+SHEET_EXTRA.flujoPredio = ()=>{
+  const sel = document.getElementById('fp_grupo'); if(!sel) return [];
+  const pts = gruposLibreta().get(sel.value) || []; if(!pts.length) return [];
+  return [{cap:`Vértices del grupo «${sel.value}» (${pts.length})`, cols:['Vértice','Este','Norte','Cota','Descripción'],
+    filas: pts.map(p=>[p.nombre, fmtNum(p.E,3), fmtNum(p.N,3), (p.cota!==null&&p.cota!==undefined)?fmtNum(p.cota,2):'—', p.descripcion||'—'])}];
+};
+
 function collectToolReportData(){
   const container = document.querySelector('.tool-view');
   if(!container) return null;
@@ -2472,6 +2646,7 @@ function collectToolReportData(){
   let current = {header:null, fields:[]};
   container.querySelectorAll('.field-card').forEach(card=>{
     card.querySelectorAll('h3, h4, .field-row').forEach(el=>{
+      if(SHEET_CUBIERTOS.has(el) || el.closest('.data-sheet')) return;   // ya va en la tabla de datos y resultados
       if(el.tagName==='H3' || el.tagName==='H4'){
         if(current.fields.length) groups.push(current);
         current = {header: el.textContent.trim(), fields: []};
@@ -2494,6 +2669,7 @@ function collectToolReportData(){
 
   const resultBlocks = [];
   container.querySelectorAll('.results').forEach(rb=>{
+    if(SHEET_CUBIERTOS.has(rb)) return;
     const rows = [];
     rb.querySelectorAll(':scope > .result-row').forEach(row=>{
       const k = row.querySelector('.k'), v = row.querySelector('.v');
@@ -2504,12 +2680,15 @@ function collectToolReportData(){
   });
 
   const tables = [];
-  container.querySelectorAll('table.data-table').forEach(t=>tables.push(t.outerHTML));
+  container.querySelectorAll('table.data-table').forEach(t=>{ if(!t.closest('.data-sheet')) tables.push(t.outerHTML); });
 
   const diagrams = [];
   container.querySelectorAll('.plot-wrap svg').forEach(svg=>diagrams.push(svg.outerHTML));
 
-  return {groups, resultBlocks, tables, diagrams};
+  const sheets = [];
+  container.querySelectorAll('.data-sheet').forEach(s=>sheets.push(s.outerHTML));
+
+  return {groups, resultBlocks, tables, diagrams, sheets};
 }
 
 function wireToolActions(toolId){
@@ -2531,7 +2710,7 @@ function wireToolActions(toolId){
       return;
     }
     const data = collectToolReportData();
-    if(!data || (!data.resultBlocks.length && !data.diagrams.length)){
+    if(!data || (!data.resultBlocks.length && !data.diagrams.length && !data.sheets.length)){
       msg.textContent = 'Completa el formulario y presiona Calcular antes de exportar.';
       return;
     }
@@ -2558,11 +2737,13 @@ function wireToolActions(toolId){
         html += `<div class="pr-results">`+rows.map(r=>`<div class="result-row"><span class="k">${r.label}</span><span class="v${r.accent?' accent':''}">${r.value}</span></div>`).join('')+`</div>`;
       });
     }
-    if(data.tables.length){
-      html += `<div class="pr-section-label">Detalle</div>` + data.tables.join('');
-    }
-    if(data.diagrams.length){
-      html += `<div class="pr-section-label">Diagrama</div>` + data.diagrams.map(svg=>`<div class="plot-wrap" style="max-width:420px;margin:0 auto;">${svg}</div>`).join('');
+    const htmlDetalle = data.tables.length ? `<div class="pr-section-label">Detalle</div>` + data.tables.join('') : '';
+    const htmlDiagrama = data.diagrams.length ? `<div class="pr-section-label">Diagrama</div>` + data.diagrams.map(svg=>`<div class="plot-wrap" style="max-width:420px;margin:0 auto;">${svg}</div>`).join('') : '';
+    if(data.sheets.length){
+      // Con tabla de datos y resultados: diagrama, luego la tabla (como en pantalla) y al final el detalle
+      html += htmlDiagrama + `<div class="pr-section-label">Datos y resultados</div>` + data.sheets.join('') + htmlDetalle;
+    } else {
+      html += htmlDetalle + htmlDiagrama;
     }
     html += `<div class="pr-signoff"><div class="box">Firma responsable</div><div class="box">Timbre / Visación</div></div>`;
 
@@ -6312,7 +6493,7 @@ function renderFlujoPredio(){
   const nombre = flujoPredioNombre();
   const grupos = gruposLibreta();
   const pill = (ok, t)=> `<span class="pill ${ok?'ok':''}"><span class="dot"></span>${t}</span>`;
-  const paso = (n, titulo, ok, estado, texto, botones)=> `<div class="station-block" id="fp_paso${n}">
+  const paso = (n, titulo, ok, estado, texto, botones)=> `<div class="station-block" data-kv id="fp_paso${n}">
       <div class="st-label">Paso ${n} · ${titulo}</div>
       <div style="margin:6px 0 8px;">${pill(ok, estado)}</div>
       <p class="tool-blurb" style="margin:0 0 10px;">${texto}</p>${botones}</div>`;
@@ -6330,7 +6511,7 @@ function renderFlujoPredio(){
      'Necesitas al menos un punto de coordenadas conocidas: captúralo por GPS promediado, impórtalo desde el CSV del GNSS o usa un vértice de un trabajo anterior.',
      `<button class="btn-sm" type="button" data-flujo-ir="puntosLibreta">Abrir Libreta de Puntos</button>`)}
   ${paso2(nombre)}
-  <div class="station-block">
+  <div class="station-block" data-kv>
     <div class="st-label">Paso 3 · Superficie y entrega</div>
     ${gruposArea.length ? `<div class="field-row" style="margin-top:8px;"><label for="fp_grupo">Grupo de vértices</label><select id="fp_grupo">${gruposArea.map(([g,pts])=>`<option value="${escHTML(g)}"${g===nombre?' selected':''}>${escHTML(g)} (${pts.length} pts)</option>`).join('')}</select></div>`
       : `<div style="margin:6px 0 8px;">${pill(false,'Pendiente')}</div><p class="tool-blurb" style="margin:0;">Cuando la Libreta tenga un grupo de 3 o más vértices (de la poligonal o de un CSV del GNSS), aquí verás su superficie, perímetro y las exportaciones.</p>`}
