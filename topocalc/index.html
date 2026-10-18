@@ -1918,6 +1918,7 @@ function calcRendimientoBrigada(areaTotal, dias){ return areaTotal/dias; }
 
 /* ===================== ICONS ===================== */
 const ICONS = {
+  flujoPredio: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><circle cx="7" cy="20" r="2.4" fill="currentColor" stroke="none"/><path d="M11 20h5M14 17.5l2.5 2.5-2.5 2.5"/><path d="M20 13 L28 9 L35 15 L33 28 L22 30 Z" fill="currentColor" fill-opacity=".12"/><circle cx="20" cy="13" r="1.5" fill="currentColor" stroke="none"/><circle cx="28" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="35" cy="15" r="1.5" fill="currentColor" stroke="none"/><circle cx="33" cy="28" r="1.5" fill="currentColor" stroke="none"/><circle cx="22" cy="30" r="1.5" fill="currentColor" stroke="none"/></svg>`,
   utm: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="5" width="30" height="30" rx="1"/><path d="M5 15h30M5 25h30M15 5v30M25 5v30" stroke-width="1"/><circle cx="20" cy="20" r="3" fill="currentColor" stroke="none"/></svg>`,
   angulo: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 32 L32 32 L32 12"/><path d="M8 32 A16 16 0 0 1 22.3 17.2" stroke-dasharray="2 2.4"/><path d="M8 32 L 24 22"/></svg>`,
   converg: `<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 6v28M12 6l2 28M28 6l-2 28"/></svg>`,
@@ -2003,6 +2004,10 @@ const ICONS = {
 /* ===================== TOOL DEFINITIONS ===================== */
 const CATEGORIES = [
   {
+    id:'flujos', name:'Flujos de terreno',
+    tools:['flujoPredio']
+  },
+  {
     id:'basicos', name:'Cálculos Básicos',
     tools:['pitagoras','escalaPlano','unidadesAgrarias','conversorDistancia']
   },
@@ -2049,6 +2054,7 @@ const CATEGORIES = [
 ];
 
 const TOOLS = {
+  flujoPredio: {name:'Levantamiento de Predio', desc:'Libreta → Poligonal → Área, paso a paso', icon:ICONS.flujoPredio},
   utm: {name:'Conversor de Coordenadas', desc:'Decimal ↔ GMS ↔ UTM', icon:ICONS.utm},
   angulo: {name:'Conversor de Ángulos', desc:'Decimal ↔ GMS ↔ Gon', icon:ICONS.angulo},
   converg: {name:'Convergencia de Meridianos', desc:'Corrección angular por huso', icon:ICONS.converg},
@@ -2722,6 +2728,17 @@ function normalizarPunto(p){
   return p;
 }
 function puntoSistemaTxt(p){ return p.sistema==='UTM' ? `${p.huso}${p.hemi} · ${p.datum}` : `${p.sistema} · ${p.datum}`; }
+/* Grupos de la Libreta (levantamientos): nombre -> puntos, en orden de guardado. Los puntos sin grupo no cuentan. */
+function gruposLibreta(){
+  const m = new Map();
+  PUNTOS.forEach(p=>{ if(!p.grupo) return; if(!m.has(p.grupo)) m.set(p.grupo, []); m.get(p.grupo).push(p); });
+  return m;
+}
+/* Fecha corta para nombrar grupos automáticos: "18-10 01:32" */
+function fechaCorta(){
+  const d = new Date(), z = n=>String(n).padStart(2,'0');
+  return `${z(d.getDate())}-${z(d.getMonth()+1)} ${z(d.getHours())}:${z(d.getMinutes())}`;
+}
 function loadPuntos(){
   try{
     const raw = JSON.parse(localStorage.getItem('topocalc-libreta')||'[]');
@@ -2739,7 +2756,7 @@ let puntoAutoId = PUNTOS.reduce((m,p)=>Math.max(m,p.id||0),0)+1;
 function agregarPunto(nombre, E, N, cota, descripcion, meta){
   const m = Object.assign(puntoMetaDefault(), meta||{});
   const p = {id:puntoAutoId++, nombre: nombre || ('P'+puntoAutoId), E, N, cota: (cota===undefined||cota===null||isNaN(cota))?null:cota, descripcion: descripcion||'',
-             huso:m.huso, hemi:m.hemi, datum:m.datum, sistema:m.sistema};
+             huso:m.huso, hemi:m.hemi, datum:m.datum, sistema:m.sistema, grupo: m.grupo || ''};
   PUNTOS.push(p);
   savePuntosStore();
   return p;
@@ -2747,6 +2764,22 @@ function agregarPunto(nombre, E, N, cota, descripcion, meta){
 function eliminarPunto(id){
   PUNTOS = PUNTOS.filter(p=>p.id!==id);
   savePuntosStore();
+}
+function escHTML(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+/* Selector "Cargar un grupo completo de la Libreta" (solo grupos con al menos minPts puntos) */
+function grupoSelectHTML(selId, minPts){
+  const gs = [...gruposLibreta()].filter(([,pts])=>pts.length>=minPts);
+  if(!gs.length) return '';
+  return `<div class="field-row"><label for="${selId}">Cargar un grupo completo de la Libreta</label><select id="${selId}"><option value="">— Elegir grupo —</option>${gs.map(([g,pts])=>`<option value="${escHTML(g)}">${escHTML(g)} (${pts.length} pts · ${pts[0].sistema==='UTM'?pts[0].huso+pts[0].hemi:pts[0].sistema})</option>`).join('')}</select></div><p class="tool-blurb" id="${selId}_msg" style="margin:0;"></p>`;
+}
+/* Rellena los campos E/N de una lista de puntos (prefijos ar_/inv_) con sus metas y etiquetas */
+function rellenarDesdePuntos(pts, pref, metas){
+  pts.forEach((p,i)=>{
+    document.getElementById(`${pref}_e_${i}`).value = p.E;
+    document.getElementById(`${pref}_n_${i}`).value = p.N;
+    metas[i] = {huso:p.huso, hemi:p.hemi, datum:p.datum, sistema:p.sistema};
+    const t = document.getElementById(`${pref}_tag_${i}`); if(t) t.textContent = `Tomado de la Libreta: ${p.nombre} · ${puntoSistemaTxt(p)}`;
+  });
 }
 /* Punto de ejemplo de las calculadoras: Plaza de Armas de Talca (UTM 19S, WGS84). Los ejemplos suman desplazamientos a esta base. */
 const EJ_E0 = 257966.91, EJ_N0 = 6076388.97;
@@ -2936,7 +2969,7 @@ function renderLibreta(){
     let trs = '';
     PUNTOS.forEach(p=>{
       trs += `<tr>
-        <td>${p.nombre}<br><small style="color:var(--ink-soft)">${puntoSistemaTxt(p)}</small></td><td>${fmtNum(p.E,3)}</td><td>${fmtNum(p.N,3)}</td><td>${(p.cota!==null&&p.cota!==undefined)?fmtNum(p.cota,2):'—'}</td><td>${p.descripcion||'—'}</td>
+        <td>${p.nombre}<br><small style="color:var(--ink-soft)">${puntoSistemaTxt(p)}${p.grupo?' · '+escHTML(p.grupo):''}</small></td><td>${fmtNum(p.E,3)}</td><td>${fmtNum(p.N,3)}</td><td>${(p.cota!==null&&p.cota!==undefined)?fmtNum(p.cota,2):'—'}</td><td>${p.descripcion||'—'}</td>
         <td><button type="button" class="btn-sm" data-del="${p.id}">🗑</button></td>
       </tr>`;
     });
@@ -2980,7 +3013,8 @@ function renderLibreta(){
     reader.onload = (ev)=>{
       const nuevos = csvToPuntos(String(ev.target.result));
       if(!nuevos.length){ msg.textContent='No se encontraron puntos válidos en el archivo.'; return; }
-      nuevos.forEach(p=> agregarPunto(p.nombre, p.E, p.N, p.cota));
+      const grupoCSV = file.name.replace(/\.[^.]+$/,'');
+      nuevos.forEach(p=> agregarPunto(p.nombre, p.E, p.N, p.cota, p.descripcion, {grupo: grupoCSV}));
       msg.textContent = `${nuevos.length} punto(s) importado(s).`;
       fileInput.value='';
       drawTable();
@@ -3264,9 +3298,10 @@ function cerrarTrackYCalcularArea(){
 }
 
 function guardarTrackEnLibreta(){
+  const grupoTrayecto = 'Trayecto ' + fechaCorta();
   trackPoints.forEach((p,i)=>{
     const u = latLonToUTM(p.lat,p.lon);
-    agregarPunto(`T${i+1}`, u.este, u.norte, null, '', {huso:u.zona, hemi:u.hemisferio});
+    agregarPunto(`T${i+1}`, u.este, u.norte, null, '', {huso:u.zona, hemi:u.hemisferio, grupo: grupoTrayecto});
   });
 }
 
@@ -4155,8 +4190,10 @@ function calcularPoligonalUI(){
   btnGuardar.type='button'; btnGuardar.className='btn-sm'; btnGuardar.style.marginTop='8px'; btnGuardar.style.marginLeft='8px';
   btnGuardar.textContent='💾 Guardar vértices en la Libreta';
   btnGuardar.addEventListener('click', ()=>{
-    for(let i=0;i<polN;i++) agregarPunto(POL_LABELS[i], r.coordE[i], r.coordN[i], null, '', polOrigenMeta||undefined);
-    btnGuardar.textContent = `Guardado (${polN} puntos) ✓`;
+    const grupo = (flujoRetorno==='flujoPredio') ? flujoPredioNombre() : ('Poligonal ' + fechaCorta());
+    const meta = Object.assign({}, polOrigenMeta||{}, {grupo});
+    for(let i=0;i<polN;i++) agregarPunto(POL_LABELS[i], r.coordE[i], r.coordN[i], null, '', meta);
+    btnGuardar.textContent = `Guardado (${polN} puntos, grupo «${grupo}») ✓`;
   });
   box.appendChild(btnGuardar);
 }
@@ -6198,6 +6235,7 @@ function renderArea(){
       <button type="button" id="areaPlus">+</button>
     </div>
   </div>
+  ${grupoSelectHTML('ar_grupo', 3)}
   <div id="areaPoints"></div>
   <button class="btn" id="btnArea" type="button">Calcular Área</button>
   <div id="resArea"></div>`;
@@ -6205,6 +6243,8 @@ function renderArea(){
   renderAreaPoints();
   document.getElementById('areaMinus').addEventListener('click', ()=>{ if(areaN>3){areaN--; document.getElementById('areaNVal').textContent=areaN; renderAreaPoints();}});
   document.getElementById('areaPlus').addEventListener('click', ()=>{ if(areaN<20){areaN++; document.getElementById('areaNVal').textContent=areaN; renderAreaPoints();}});
+  const arG = document.getElementById('ar_grupo');
+  if(arG) arG.addEventListener('change', ()=>{ const g = arG.value; arG.value=''; if(g) areaCargarGrupo(g); });
   document.getElementById('btnArea').addEventListener('click', ()=>{
     const pts=[];
     for(let i=0;i<areaN;i++){
@@ -6227,6 +6267,19 @@ function renderArea(){
       kml: ()=>{ const pr=loadMapaZonaPref(), om=areaMetas.find(Boolean)||{}; return coordsToKMLPolygon(pts.map(p=>p.e), pts.map(p=>p.n), om.huso||pr.zona, om.hemi||pr.hemi, 'Área'); }
     });
   });
+  if(areaGrupoPendiente){ const g = areaGrupoPendiente; areaGrupoPendiente = null; if(areaCargarGrupo(g)) document.getElementById('btnArea').click(); }
+}
+let areaGrupoPendiente = null;
+/* Carga todos los puntos de un grupo de la Libreta como vértices (tope 20, el máximo de la herramienta) */
+function areaCargarGrupo(g){
+  const pts = (gruposLibreta().get(g)||[]).slice(0,20), total = (gruposLibreta().get(g)||[]).length;
+  if(pts.length<3) return false;
+  areaN = pts.length; document.getElementById('areaNVal').textContent = areaN;
+  renderAreaPoints();
+  rellenarDesdePuntos(pts, 'ar', areaMetas);
+  const msg = document.getElementById('ar_grupo_msg');
+  if(msg){ msg.textContent = `Cargado el grupo «${g}»: ${pts.length} vértices` + (total>20 ? ` (de ${total}; la herramienta admite hasta 20)` : '') + '.'; msg.style.margin='0 0 8px'; }
+  return true;
 }
 function renderAreaPoints(){
   const wrap=document.getElementById('areaPoints');
@@ -6244,6 +6297,87 @@ function renderAreaPoints(){
   wrap.innerHTML = html;
   areaMetas = new Array(areaN).fill(null);
   for(let i=0;i<areaN;i++) libretaTraerA(`ar_lib_${i}`, `ar_e_${i}`, `ar_n_${i}`, m=>{ areaMetas[i]=m; }, `ar_tag_${i}`);
+}
+
+/* ===================== FLUJOS DE TERRENO ===================== */
+/* Un flujo encadena herramientas existentes: no recalcula nada por su cuenta salvo el resumen final,
+   y pasa los datos entre ellas a través de la Libreta (grupos de puntos). */
+const FLUJOS = { flujoPredio: ['puntosLibreta','poligonal','area'] };
+let flujoRetorno = null;   // flujo al que vuelve el botón "↩ Volver a…" mientras se recorren sus herramientas
+function flujoPredioNombre(){
+  try{ const v = (JSON.parse(localStorage.getItem('topocalc-flujo-predio')||'{}').nombre||'').trim(); return v || 'Predio 1'; }catch(e){ return 'Predio 1'; }
+}
+function flujoPredioGuardarNombre(v){ try{ localStorage.setItem('topocalc-flujo-predio', JSON.stringify({nombre:v})); }catch(e){} }
+function renderFlujoPredio(){
+  const nombre = flujoPredioNombre();
+  const grupos = gruposLibreta();
+  const pill = (ok, t)=> `<span class="pill ${ok?'ok':''}"><span class="dot"></span>${t}</span>`;
+  const paso = (n, titulo, ok, estado, texto, botones)=> `<div class="station-block" id="fp_paso${n}">
+      <div class="st-label">Paso ${n} · ${titulo}</div>
+      <div style="margin:6px 0 8px;">${pill(ok, estado)}</div>
+      <p class="tool-blurb" style="margin:0 0 10px;">${texto}</p>${botones}</div>`;
+  const paso2 = nom=>{ const gp = gruposLibreta().get(nom) || [];
+    return paso(2,'Poligonal en terreno', gp.length>=3, gp.length ? `${gp.length} vértices en «${escHTML(nom)}» · ${puntoSistemaTxt(gp[0])}` : 'Pendiente',
+     `En Poligonal Cerrada elige el punto A desde la Libreta, ingresa los ángulos internos y las distancias, calcula y toca <b>Guardar vértices en la Libreta</b>. Quedan en el grupo «${escHTML(nom)}» con el huso del punto A.`,
+     `<button class="btn-sm" type="button" data-flujo-ir="poligonal">Abrir Poligonal Cerrada</button>`); };
+  const gruposArea = [...grupos].filter(([,pts])=>pts.length>=3);
+  const body = `<div class="field-card">
+    <h3>Levantamiento</h3>
+    ${fieldRow('Nombre del levantamiento','fp_nombre', escHTML(nombre), {type:'text', placeholder:'Predio 1'})}
+    <p class="tool-blurb" style="margin:0;">Los vértices de la poligonal se guardarán en la Libreta bajo este nombre.</p>
+  </div>
+  ${paso(1,'Punto de partida', PUNTOS.length>0, PUNTOS.length ? `${PUNTOS.length} punto(s) en la Libreta` : 'Libreta vacía',
+     'Necesitas al menos un punto de coordenadas conocidas: captúralo por GPS promediado, impórtalo desde el CSV del GNSS o usa un vértice de un trabajo anterior.',
+     `<button class="btn-sm" type="button" data-flujo-ir="puntosLibreta">Abrir Libreta de Puntos</button>`)}
+  ${paso2(nombre)}
+  <div class="station-block">
+    <div class="st-label">Paso 3 · Superficie y entrega</div>
+    ${gruposArea.length ? `<div class="field-row" style="margin-top:8px;"><label for="fp_grupo">Grupo de vértices</label><select id="fp_grupo">${gruposArea.map(([g,pts])=>`<option value="${escHTML(g)}"${g===nombre?' selected':''}>${escHTML(g)} (${pts.length} pts)</option>`).join('')}</select></div>`
+      : `<div style="margin:6px 0 8px;">${pill(false,'Pendiente')}</div><p class="tool-blurb" style="margin:0;">Cuando la Libreta tenga un grupo de 3 o más vértices (de la poligonal o de un CSV del GNSS), aquí verás su superficie, perímetro y las exportaciones.</p>`}
+    <div id="fp_res"></div>
+  </div>`;
+  toolShell('flujoPredio','Flujo guiado para levantar un predio: parte de un punto conocido de la Libreta, mide la poligonal cerrada y entrega superficie, perímetro y archivos (CSV, DXF, KML). Cada paso abre la herramienta de siempre; el botón «Volver» te trae de regreso.', body);
+  /* El nombre se guarda mientras se escribe y solo se redibuja el paso 2: redibujar toda la pantalla al perder el foco
+     haría que se pierda el toque sobre un botón de paso. Los botones usan delegación porque el paso 2 se reemplaza. */
+  document.getElementById('fp_nombre').addEventListener('input', e=>{
+    flujoPredioGuardarNombre(e.target.value.trim());
+    document.getElementById('fp_paso2').outerHTML = paso2(flujoPredioNombre());
+  });
+  document.querySelector('.tool-view').addEventListener('click', e=>{
+    const b = e.target.closest('[data-flujo-ir]'); if(!b) return;
+    flujoRetorno = 'flujoPredio'; go(b.dataset.flujoIr);
+  });
+  const sel = document.getElementById('fp_grupo');
+  const resumen = ()=>{
+    const box = document.getElementById('fp_res');
+    const g = sel.value, pts = (gruposLibreta().get(g)||[]);
+    const inc = metasIncompatibles(pts.map(p=>({huso:p.huso, hemi:p.hemi, datum:p.datum, sistema:p.sistema})));
+    if(inc){ box.innerHTML = msgIncompatibles(inc); return; }
+    const pe = pts.map(p=>({e:p.E, n:p.N}));
+    const r = calcAreaCoords(pe);
+    let per = 0; for(let i=0;i<pe.length;i++){ const a=pe[i], b=pe[(i+1)%pe.length]; per += Math.hypot(b.e-a.e, b.n-a.n); }
+    box.innerHTML = `<div class="results" style="margin-top:10px;">
+      <div class="result-row"><span class="k">Superficie</span><span class="v accent big">${fmtNum(r.areaHa,4)} ha</span></div>
+      <div class="result-row"><span class="k">Superficie</span><span class="v">${fmtNum(r.areaM2,2)} m²</span></div>
+      <div class="result-row"><span class="k">Perímetro</span><span class="v">${fmtNum(per,2)} m</span></div>
+      <div class="result-row"><span class="k">Vértices</span><span class="v">${pts.length}</span></div>
+      <div class="result-row"><span class="k">Sistema</span><span class="v">${puntoSistemaTxt(pts[0])}</span></div>
+      <div class="plot-wrap">${svgAreaCoordenadas(pe)}</div>
+    </div>`;
+    const base = (g.replace(/[^\w\-]+/g,'_') || 'predio');
+    const csv = ['nombre,este,norte,cota'].concat(pts.map(p=>`${p.nombre},${p.E},${p.N},${(p.cota!==null&&p.cota!==undefined)?p.cota:''}`));
+    addCSVButton(box, base+'.csv', csv.join('\n'));
+    addExportButtons(box, base, {
+      dxf: ()=> coordsToDXFPolyline(pe.map(p=>p.e), pe.map(p=>p.n), true),
+      kml: ()=> coordsToKMLPolygon(pe.map(p=>p.e), pe.map(p=>p.n), pts[0].huso, pts[0].hemi, g)
+    });
+    const bA = document.createElement('button');
+    bA.type='button'; bA.className='btn-sm'; bA.style.cssText='margin-top:8px;margin-left:8px;';
+    bA.textContent='Abrir en Área por Coordenadas';
+    bA.addEventListener('click', ()=>{ areaGrupoPendiente = g; flujoRetorno = 'flujoPredio'; go('area'); });
+    box.appendChild(bA);
+  };
+  if(sel){ sel.addEventListener('change', resumen); resumen(); }
 }
 
 /* ---------- RUMBO Y DISTANCIA ---------- */
@@ -6346,6 +6480,7 @@ function renderInversaMultiple(){
     <label>Número de puntos</label>
     <div class="n-stepper"><button type="button" id="invMinus">−</button><span class="n-val" id="invNVal">${invN}</span><button type="button" id="invPlus">+</button></div>
   </div>
+  ${grupoSelectHTML('inv_grupo', 2)}
   <div id="invPoints"></div>
   <button class="btn" id="btnINV" type="button">Calcular Inversa Múltiple</button>
   <div id="resINV"></div>`;
@@ -6370,6 +6505,15 @@ function renderInversaMultiple(){
   draw();
   document.getElementById('invMinus').addEventListener('click', ()=>{ if(invN>2){invN--; document.getElementById('invNVal').textContent=invN; draw();}});
   document.getElementById('invPlus').addEventListener('click', ()=>{ if(invN<20){invN++; document.getElementById('invNVal').textContent=invN; draw();}});
+  const invG = document.getElementById('inv_grupo');
+  if(invG) invG.addEventListener('change', ()=>{
+    const g = invG.value; invG.value=''; if(!g) return;
+    const todos = gruposLibreta().get(g)||[], pts = todos.slice(0,20);
+    invN = pts.length; document.getElementById('invNVal').textContent = invN; draw();
+    rellenarDesdePuntos(pts, 'inv', invMetas);
+    const msg = document.getElementById('inv_grupo_msg');
+    if(msg){ msg.textContent = `Cargado el grupo «${g}»: ${pts.length} puntos` + (todos.length>20 ? ` (de ${todos.length}; la herramienta admite hasta 20)` : '') + '.'; msg.style.margin='0 0 8px'; }
+  });
   document.getElementById('btnINV').addEventListener('click', ()=>{
     const box=document.getElementById('resINV');
     const pts=[];
@@ -9557,7 +9701,8 @@ function renderRadiacion(){
     btnGuardar.type='button'; btnGuardar.className='btn-sm'; btnGuardar.style.marginTop='8px'; btnGuardar.style.marginLeft='8px';
     btnGuardar.textContent='💾 Guardar puntos en la Libreta';
     btnGuardar.addEventListener('click', ()=>{
-      pts.forEach((p,i)=> agregarPunto(`P${i+1}`, p.E, p.N, null));
+      const grupoRad = 'Radiación ' + fechaCorta();
+      pts.forEach((p,i)=> agregarPunto(`P${i+1}`, p.E, p.N, null, '', {grupo: grupoRad}));
       btnGuardar.textContent = `Guardado (${pts.length} puntos) ✓`;
     });
     box.appendChild(btnGuardar);
@@ -9941,6 +10086,7 @@ function renderRendimientoBrigada(){
 
 /* ===================== RENDER DISPATCH ===================== */
 const RENDERERS = {
+  flujoPredio: renderFlujoPredio,
   pitagoras: renderPitagoras,
   utm: renderUTM, angulo: renderAngulo, converg: renderConverg,
   reducHorizonte: renderReducHorizonte, corrTemp: renderCorrTemp,
@@ -10011,6 +10157,7 @@ function render(){
   }
   registrarAperturaParaAnuncios(route);
   if(goingHome){
+    flujoRetorno = null;
     renderHome();
     // Restaura el scroll donde estaba antes de entrar a la herramienta, en vez de volver arriba del todo.
     requestAnimationFrame(()=> window.scrollTo(0, homeScrollY));
@@ -10018,6 +10165,16 @@ function render(){
     return;
   }
   RENDERERS[route]();
+  if(flujoRetorno && route !== flujoRetorno && FLUJOS[flujoRetorno] && FLUJOS[flujoRetorno].includes(route)){
+    const tv = document.querySelector('.tool-view');
+    if(tv){
+      const b = document.createElement('button');
+      b.type='button'; b.className='btn-sm'; b.style.cssText='width:100%;margin:0 0 12px;';
+      b.textContent = `↩ Volver a ${TOOLS[flujoRetorno].name}`;
+      b.addEventListener('click', ()=> go(flujoRetorno));
+      tv.prepend(b);
+    }
+  } else if(route !== flujoRetorno){ flujoRetorno = null; }
   mejorarAccesibilidad();
 }
 
