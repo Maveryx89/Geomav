@@ -2748,17 +2748,43 @@ function eliminarPunto(id){
   PUNTOS = PUNTOS.filter(p=>p.id!==id);
   savePuntosStore();
 }
-/* Selector reutilizable "Traer de la Libreta": el botón entrega el punto elegido a onPick(p). */
-function libretaPickerHTML(selId, btnId, label){
-  if(!PUNTOS.length) return `<div class="field-row" style="margin-top:14px;"><label>${label}</label><p class="tool-blurb" style="margin:0;">La Libreta está vacía: guarda puntos desde otra herramienta para poder traerlos aquí.</p></div>`;
-  return `<div class="field-row" style="margin-top:14px;"><label for="${selId}">${label}</label>
-    <select id="${selId}">${PUNTOS.map(p=>`<option value="${p.id}">${p.nombre} · ${p.sistema==='UTM'?p.huso+p.hemi:p.sistema}</option>`).join('')}</select>
-    <button type="button" class="btn-sm" id="${btnId}" style="margin-top:6px;">⬇ Traer de la Libreta</button></div>`;
+/* Punto de ejemplo de las calculadoras: Plaza de Armas de Talca (UTM 19S, WGS84). Los ejemplos suman desplazamientos a esta base. */
+const EJ_E0 = 257966.91, EJ_N0 = 6076388.97;
+/* Compatibilidad entre puntos traídos de la Libreta: deben compartir huso, hemisferio, datum y sistema. */
+function metaClave(m){ return (m.sistema==='UTM' ? `UTM ${m.huso}${m.hemi}` : m.sistema) + ' · ' + m.datum; }
+function metasIncompatibles(metas){
+  const ks = [...new Set(metas.filter(Boolean).map(metaClave))];
+  return ks.length > 1 ? ks : null;
 }
-function libretaPickerWire(selId, btnId, onPick){
-  const btn = document.getElementById(btnId), sel = document.getElementById(selId);
-  if(!btn || !sel) return;
-  btn.addEventListener('click', ()=>{ const p = PUNTOS.find(q=>String(q.id)===sel.value); if(p) onPick(p); });
+function msgIncompatibles(ks){
+  return `<p class="err-msg">Los puntos traídos de la Libreta están en sistemas distintos (${ks.join(' y ')}): no se pueden mezclar en un mismo cálculo plano. Conviértelos al mismo huso antes de calcular.</p>`;
+}
+/* "Traer de la Libreta": un único selector. Al elegir un punto rellena sus campos Este/Norte. */
+function libretaOpcionesHTML(){
+  return `<option value="">⬇ Traer de la Libreta…</option>` + PUNTOS.map(p=>`<option value="${p.id}">${p.nombre} · ${p.sistema==='UTM'?p.huso+p.hemi:p.sistema}</option>`).join('');
+}
+/* Con etiqueta y mensaje (herramientas de uno a tres puntos) */
+function libretaBloqueHTML(selId, label){
+  if(!PUNTOS.length) return `<div class="field-row" style="margin-top:14px;"><label>${label}</label><p class="tool-blurb" style="margin:0;">La Libreta está vacía: guarda puntos desde otra herramienta para poder traerlos aquí.</p></div>`;
+  return `<div class="field-row" style="margin-top:14px;"><label for="${selId}">${label}</label><select id="${selId}">${libretaOpcionesHTML()}</select></div><p class="tool-blurb" id="${selId}_msg" style="margin:0;"></p>`;
+}
+/* Sin etiqueta (un selector por vértice, en herramientas con varios puntos) */
+function libretaCompactoHTML(selId){
+  if(!PUNTOS.length) return '';
+  return `<div class="field-row"><select id="${selId}" aria-label="Traer de la Libreta">${libretaOpcionesHTML()}</select></div>`;
+}
+/* Conecta un selector: rellena E/N, entrega la georreferencia del punto a setMeta y la borra si se edita E/N a mano. */
+function libretaTraerA(selId, idE, idN, setMeta, msgId){
+  const sel = document.getElementById(selId), el = document.getElementById(msgId || (selId+'_msg'));
+  const say = t => { if(!el) return; el.textContent = t; if(el.tagName==='P') el.style.margin = t ? '0 0 8px' : '0'; };
+  if(sel) sel.addEventListener('change', ()=>{
+    const p = PUNTOS.find(q=>String(q.id)===sel.value); sel.value = '';
+    if(!p) return;
+    document.getElementById(idE).value = p.E; document.getElementById(idN).value = p.N;
+    setMeta({huso:p.huso, hemi:p.hemi, datum:p.datum, sistema:p.sistema});
+    say(`Tomado de la Libreta: ${p.nombre} · ${puntoSistemaTxt(p)}`);
+  });
+  [idE, idN].forEach(id=>{ const x = document.getElementById(id); if(x) x.addEventListener('input', ()=>{ setMeta(null); say(''); }); });
 }
 /* Exporta en el formato estándar de equipos GPS/estación total: P,N,E,D,C
    (Punto, Norte, Este, Descripción, Cota). */
@@ -4014,8 +4040,7 @@ function renderPoligonal(){
     <div class="field-inline2">
       ${fieldRow(`Mínima div. limbo (${smallUnitLabel()})`,'pol_min', angleSystem==='cent'? 62:20)}
     </div>
-    ${libretaPickerHTML('pol_lib','pol_lib_btn','Punto A (inicial) desde la Libreta')}
-    <p class="tool-blurb" id="pol_lib_msg" style="margin:0 0 8px;"></p>
+    ${libretaBloqueHTML('pol_lib','Punto A (inicial) desde la Libreta')}
     <div class="field-inline2">
       ${fieldRow('Coord. Este inicial','pol_e0',257966.91)}
       ${fieldRow('Coord. Norte inicial','pol_n0',6076388.97)}
@@ -4029,15 +4054,7 @@ function renderPoligonal(){
   toolShell('poligonal','Calcula el cierre angular, ajusta coordenadas por regla del Tránsito o de Bowditch (a elección), obtiene coordenadas, error de cierre y área de una poligonal cerrada de campo.', body, ['Ec']);
   renderPolStations();
   polOrigenMeta = null;
-  libretaPickerWire('pol_lib','pol_lib_btn', p=>{
-    document.getElementById('pol_e0').value = p.E;
-    document.getElementById('pol_n0').value = p.N;
-    polOrigenMeta = {huso:p.huso, hemi:p.hemi, datum:p.datum, sistema:p.sistema};
-    document.getElementById('pol_lib_msg').textContent = `Punto A tomado de la Libreta: ${p.nombre} · ${puntoSistemaTxt(p)}. Los vértices que guardes heredarán ese sistema.`;
-  });
-  ['pol_e0','pol_n0'].forEach(id=> document.getElementById(id).addEventListener('input', ()=>{
-    polOrigenMeta = null; document.getElementById('pol_lib_msg').textContent = '';
-  }));
+  libretaTraerA('pol_lib','pol_e0','pol_n0', m=>{ polOrigenMeta = m; });
   document.getElementById('polMinus').addEventListener('click', ()=>{ if(polN>3){polN--; document.getElementById('polNVal').textContent=polN; renderPolStations();}});
   document.getElementById('polPlus').addEventListener('click', ()=>{ if(polN<16){polN++; document.getElementById('polNVal').textContent=polN; renderPolStations();}});
   document.getElementById('btnPol').addEventListener('click', calcularPoligonalUI);
@@ -6170,6 +6187,7 @@ function svgDeclinacionSol(decDeg){
 
 /* ---------- AREA POR COORDENADAS ---------- */
 let areaN = 4;
+let areaMetas = [];   // georreferencia de cada vértice traído de la Libreta
 function renderArea(){
   const body = `
   <div class="field-row">
@@ -6194,6 +6212,7 @@ function renderArea(){
     }
     const box=document.getElementById('resArea');
     if(pts.some(p=>isNaN(p.e)||isNaN(p.n))){ box.innerHTML=`<p class="err-msg">Completa todas las coordenadas.</p>`; return; }
+    const inc = metasIncompatibles(areaMetas); if(inc){ box.innerHTML = msgIncompatibles(inc); return; }
     const r = calcAreaCoords(pts);
     box.innerHTML = `<div class="results" style="margin-top:14px;">
       <div class="result-row"><span class="k">Área</span><span class="v accent big">${fmtNum(r.areaHa,4)} ha</span></div>
@@ -6205,7 +6224,7 @@ function renderArea(){
     addCSVButton(box, 'area.csv', csvRows.join('\n'));
     addExportButtons(box, 'area', {
       dxf: ()=> coordsToDXFPolyline(pts.map(p=>p.e), pts.map(p=>p.n), true),
-      kml: ()=>{ const pr=loadMapaZonaPref(); return coordsToKMLPolygon(pts.map(p=>p.e), pts.map(p=>p.n), pr.zona, pr.hemi, 'Área'); }
+      kml: ()=>{ const pr=loadMapaZonaPref(), om=areaMetas.find(Boolean)||{}; return coordsToKMLPolygon(pts.map(p=>p.e), pts.map(p=>p.n), om.huso||pr.zona, om.hemi||pr.hemi, 'Área'); }
     });
   });
 }
@@ -6214,30 +6233,39 @@ function renderAreaPoints(){
   let html='';
   for(let i=0;i<areaN;i++){
     html += `<div class="station-block">
-      <div class="st-label">Vértice ${POL_LABELS[i]}</div>
+      <div class="st-label">Vértice ${POL_LABELS[i]} <small id="ar_tag_${i}" style="color:var(--ink-soft);font-weight:400;"></small></div>
+      ${libretaCompactoHTML(`ar_lib_${i}`)}
       <div class="field-inline2">
-        ${fieldRow('Este',`ar_e_${i}`, (5000+i*20))}
-        ${fieldRow('Norte',`ar_n_${i}`, (10000+ (i%2===0?i*15:-i*10)))}
+        ${fieldRow('Este',`ar_e_${i}`, round(EJ_E0+i*20,2))}
+        ${fieldRow('Norte',`ar_n_${i}`, round(EJ_N0+(i%2===0?i*15:-i*10),2))}
       </div>
     </div>`;
   }
   wrap.innerHTML = html;
+  areaMetas = new Array(areaN).fill(null);
+  for(let i=0;i<areaN;i++) libretaTraerA(`ar_lib_${i}`, `ar_e_${i}`, `ar_n_${i}`, m=>{ areaMetas[i]=m; }, `ar_tag_${i}`);
 }
 
 /* ---------- RUMBO Y DISTANCIA ---------- */
 function renderRumbo(){
   const body = `<div class="field-card">
     <h3>Punto 1</h3>
-    <div class="field-inline2">${fieldRow('Este','r_e1',5000)}${fieldRow('Norte','r_n1',10000)}</div>
+    ${libretaBloqueHTML('r_lib1','Punto 1 desde la Libreta')}
+    <div class="field-inline2">${fieldRow('Este','r_e1',EJ_E0)}${fieldRow('Norte','r_n1',EJ_N0)}</div>
     <h3 style="margin-top:14px;">Punto 2</h3>
-    <div class="field-inline2">${fieldRow('Este','r_e2',5159.87)}${fieldRow('Norte','r_n2',10054.45)}</div>
+    ${libretaBloqueHTML('r_lib2','Punto 2 desde la Libreta')}
+    <div class="field-inline2">${fieldRow('Este','r_e2',round(EJ_E0+159.87,2))}${fieldRow('Norte','r_n2',round(EJ_N0+54.45,2))}</div>
     <button class="btn" id="btnR" type="button">Calcular</button>
     <div id="resR"></div>
   </div>`;
   toolShell('rumbo','Distancia, azimut y rumbo entre dos puntos con coordenadas conocidas.', body);
+  const rMetas = [null, null];
+  libretaTraerA('r_lib1','r_e1','r_n1', m=>{ rMetas[0]=m; });
+  libretaTraerA('r_lib2','r_e2','r_n2', m=>{ rMetas[1]=m; });
   document.getElementById('btnR').addEventListener('click', ()=>{
     const e1=val('r_e1'),n1=val('r_n1'),e2=val('r_e2'),n2=val('r_n2');
     const box=document.getElementById('resR');
+    const inc = metasIncompatibles(rMetas); if(inc){ box.innerHTML = msgIncompatibles(inc); return; }
     if([e1,n1,e2,n2].some(isNaN)){ box.innerHTML=`<p class="err-msg">Completa las cuatro coordenadas.</p>`; return; }
     const r = calcRumboDistancia(e1,n1,e2,n2);
     box.innerHTML = `<div class="results" style="margin-top:12px;">
@@ -6253,17 +6281,25 @@ function renderRumbo(){
 function renderDistPuntoLinea(){
   const body = `<div class="field-card">
     <h3>Recta (dos puntos conocidos)</h3>
-    <div class="field-inline2">${fieldRow('Este A','dl_e1',5000)}${fieldRow('Norte A','dl_n1',10000)}</div>
-    <div class="field-inline2">${fieldRow('Este B','dl_e2',5100)}${fieldRow('Norte B','dl_n2',10000)}</div>
+    ${libretaBloqueHTML('dl_libA','Punto A desde la Libreta')}
+    <div class="field-inline2">${fieldRow('Este A','dl_e1',EJ_E0)}${fieldRow('Norte A','dl_n1',EJ_N0)}</div>
+    ${libretaBloqueHTML('dl_libB','Punto B desde la Libreta')}
+    <div class="field-inline2">${fieldRow('Este B','dl_e2',round(EJ_E0+100,2))}${fieldRow('Norte B','dl_n2',EJ_N0)}</div>
     <h3 style="margin-top:14px;">Punto externo</h3>
-    <div class="field-inline2">${fieldRow('Este P','dl_ep',5050)}${fieldRow('Norte P','dl_np',10030)}</div>
+    ${libretaBloqueHTML('dl_libP','Punto P desde la Libreta')}
+    <div class="field-inline2">${fieldRow('Este P','dl_ep',round(EJ_E0+50,2))}${fieldRow('Norte P','dl_np',round(EJ_N0+30,2))}</div>
     <button class="btn" id="btnDL" type="button">Calcular</button>
     <div id="resDL"></div>
   </div>`;
   toolShell('distPuntoLinea','Distancia perpendicular más corta desde un punto a una recta definida por otros dos puntos de coordenadas conocidas, y coordenadas del pie de la perpendicular sobre la recta.', body);
+  const dlMetas = [null, null, null];
+  libretaTraerA('dl_libA','dl_e1','dl_n1', m=>{ dlMetas[0]=m; });
+  libretaTraerA('dl_libB','dl_e2','dl_n2', m=>{ dlMetas[1]=m; });
+  libretaTraerA('dl_libP','dl_ep','dl_np', m=>{ dlMetas[2]=m; });
   document.getElementById('btnDL').addEventListener('click', ()=>{
     const e1=val('dl_e1'),n1=val('dl_n1'),e2=val('dl_e2'),n2=val('dl_n2'),ep=val('dl_ep'),np=val('dl_np');
     const box=document.getElementById('resDL');
+    const inc = metasIncompatibles(dlMetas); if(inc){ box.innerHTML = msgIncompatibles(inc); return; }
     if([e1,n1,e2,n2,ep,np].some(isNaN)){ box.innerHTML=`<p class="err-msg">Completa las seis coordenadas.</p>`; return; }
     if(e1===e2 && n1===n2){ box.innerHTML=`<p class="err-msg">Los puntos A y B de la recta no pueden ser el mismo punto.</p>`; return; }
     const r = calcDistanciaPuntoLinea(e1,n1,e2,n2,ep,np);
@@ -6318,15 +6354,19 @@ function renderInversaMultiple(){
     let html='';
     for(let i=0;i<invN;i++){
       html += `<div class="station-block">
-        <div class="st-label">Punto ${POL_LABELS[i]}</div>
+        <div class="st-label">Punto ${POL_LABELS[i]} <small id="inv_tag_${i}" style="color:var(--ink-soft);font-weight:400;"></small></div>
+        ${libretaCompactoHTML(`inv_lib_${i}`)}
         <div class="field-inline2">
-          ${fieldRow('Este',`inv_e_${i}`, (5000+i*45))}
-          ${fieldRow('Norte',`inv_n_${i}`, (10000+ (i%2===0?i*30:-i*20)))}
+          ${fieldRow('Este',`inv_e_${i}`, round(EJ_E0+i*45,2))}
+          ${fieldRow('Norte',`inv_n_${i}`, round(EJ_N0+(i%2===0?i*30:-i*20),2))}
         </div>
       </div>`;
     }
     document.getElementById('invPoints').innerHTML = html;
+    invMetas = new Array(invN).fill(null);
+    for(let i=0;i<invN;i++) libretaTraerA(`inv_lib_${i}`, `inv_e_${i}`, `inv_n_${i}`, m=>{ invMetas[i]=m; }, `inv_tag_${i}`);
   };
+  let invMetas = [];
   draw();
   document.getElementById('invMinus').addEventListener('click', ()=>{ if(invN>2){invN--; document.getElementById('invNVal').textContent=invN; draw();}});
   document.getElementById('invPlus').addEventListener('click', ()=>{ if(invN<20){invN++; document.getElementById('invNVal').textContent=invN; draw();}});
@@ -6335,6 +6375,7 @@ function renderInversaMultiple(){
     const pts=[];
     for(let i=0;i<invN;i++) pts.push({e:val(`inv_e_${i}`), n:val(`inv_n_${i}`)});
     if(pts.some(p=>isNaN(p.e)||isNaN(p.n))){ box.innerHTML=`<p class="err-msg">Completa todas las coordenadas.</p>`; return; }
+    const inc = metasIncompatibles(invMetas); if(inc){ box.innerHTML = msgIncompatibles(inc); return; }
     let trs='', total=0, tramos=[];
     for(let i=0;i<pts.length-1;i++){
       const r = calcRumboDistancia(pts[i].e,pts[i].n,pts[i+1].e,pts[i+1].n);
@@ -7860,19 +7901,25 @@ function renderTriangulacion(){
 function renderInterseccion(){
   const body = `<div class="field-card">
     <h3>Recta 1</h3>
-    <div class="field-inline2">${fieldRow('Este','ix_e1',5000)}${fieldRow('Norte','ix_n1',10000)}</div>
+    ${libretaBloqueHTML('ix_lib1','Punto de la recta 1 desde la Libreta')}
+    <div class="field-inline2">${fieldRow('Este','ix_e1',EJ_E0)}${fieldRow('Norte','ix_n1',EJ_N0)}</div>
     ${angleFieldHTML('ix_az1', 45, 'Azimut de la recta 1')}
     <h3 style="margin-top:14px;">Recta 2</h3>
-    <div class="field-inline2">${fieldRow('Este','ix_e2',5120)}${fieldRow('Norte','ix_n2',10000)}</div>
+    ${libretaBloqueHTML('ix_lib2','Punto de la recta 2 desde la Libreta')}
+    <div class="field-inline2">${fieldRow('Este','ix_e2',round(EJ_E0+120,2))}${fieldRow('Norte','ix_n2',EJ_N0)}</div>
     ${angleFieldHTML('ix_az2', 135, 'Azimut de la recta 2')}
     <button class="btn" id="btnIX" type="button">Calcular</button>
     <div id="resIX"></div>
   </div>`;
   toolShell('interseccion','Encuentra el punto de intersección de dos visuales (rectas) definidas cada una por un punto y su azimut, y el ángulo entre ambas.', body);
+  const ixMetas = [null, null];
+  libretaTraerA('ix_lib1','ix_e1','ix_n1', m=>{ ixMetas[0]=m; });
+  libretaTraerA('ix_lib2','ix_e2','ix_n2', m=>{ ixMetas[1]=m; });
   document.getElementById('btnIX').addEventListener('click', ()=>{
     const e1=val('ix_e1'),n1=val('ix_n1'),az1=readAngleField('ix_az1');
     const e2=val('ix_e2'),n2=val('ix_n2'),az2=readAngleField('ix_az2');
     const box=document.getElementById('resIX');
+    const inc = metasIncompatibles(ixMetas); if(inc){ box.innerHTML = msgIncompatibles(inc); return; }
     if([e1,n1,az1,e2,n2,az2].some(isNaN)){ box.innerHTML=`<p class="err-msg">Completa todos los campos.</p>`; return; }
     const r = calcInterseccion(e1,n1,az1,e2,n2,az2);
     if(!r){ box.innerHTML=`<p class="err-msg">Las rectas son paralelas — no se intersectan.</p>`; return; }
@@ -9803,9 +9850,10 @@ function renderEscalaPlano(){
 /* ---------- REPLANTEO DE UN PUNTO AISLADO ---------- */
 function renderReplanteoPunto(){
   const body = `<div class="field-card">
+    ${libretaBloqueHTML('rp2_lib','Estación desde la Libreta')}
     <div class="field-inline2">
-      ${fieldRow('Coord. Este de la estación','rp2_e0',5000)}
-      ${fieldRow('Coord. Norte de la estación','rp2_n0',10000)}
+      ${fieldRow('Coord. Este de la estación','rp2_e0',EJ_E0)}
+      ${fieldRow('Coord. Norte de la estación','rp2_n0',EJ_N0)}
     </div>
     ${angleFieldHTML('rp2_az', 45, 'Azimut al punto')}
     ${fieldRow('Distancia (m)','rp2_d',50)}
@@ -9813,6 +9861,8 @@ function renderReplanteoPunto(){
     <div id="resRP2"></div>
   </div>`;
   toolShell('replanteoPunto','Replanteo de un punto aislado en terreno: desde una estación de coordenadas conocidas, con un azimut y una distancia, obtiene las coordenadas del punto a materializar.', body);
+  let rp2Meta = null;
+  libretaTraerA('rp2_lib','rp2_e0','rp2_n0', m=>{ rp2Meta = m; });
   document.getElementById('btnRP2').addEventListener('click', ()=>{
     const E0=val('rp2_e0'), N0=val('rp2_n0'), az=readAngleField('rp2_az'), d=val('rp2_d');
     const box=document.getElementById('resRP2');
@@ -9827,7 +9877,7 @@ function renderReplanteoPunto(){
     btnGuardar.type='button'; btnGuardar.className='btn-sm'; btnGuardar.style.marginTop='8px';
     btnGuardar.textContent='💾 Guardar en la Libreta';
     btnGuardar.addEventListener('click', ()=>{
-      agregarPunto('Replanteo', r.E, r.N, null);
+      agregarPunto('Replanteo', r.E, r.N, null, '', rp2Meta||undefined);
       btnGuardar.textContent = 'Guardado ✓';
     });
     box.appendChild(btnGuardar);
