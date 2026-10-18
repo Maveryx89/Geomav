@@ -4278,21 +4278,44 @@ function renderPoligonal(){
 
 let polOrigenMeta = null;   // georreferencia del punto A cuando viene de la Libreta
 const POL_LABELS = "ABCDEFGHIJKLMNOPQRST".split('');
-const POL_EXAMPLE = [
-  [74,34,20,166.2],[148,0,40,171.4],[127,27,40,160.7],[49,8,10,162.6],
-  [231,52,30,113.7],[120,20,20,117.2],[108,37,30,45],[219,59,10,70.3]
-];
+/* Ejemplo de la poligonal, generado para el número de lados elegido (3 a 16): antes era una lista fija de
+   8 estaciones y con otro número de lados el ejemplo no cerraba. Se construye un polígono convexo de lados
+   cercanos a 150 m, con el lado A→B en el azimut de ejemplo, y se le suman errores de terreno pequeños y
+   repetibles (algunos segundos en los ángulos, 1–2 cm en las distancias) para que muestre la compensación
+   y quede dentro de tolerancia. Devuelve [{deg, dist}] con ángulos internos en grados decimales. */
+function polEjemplo(n){
+  const AZ_AB = 105.9061111, paso = 2*Math.PI/n, R = 150/(2*Math.sin(Math.PI/n));
+  const irr = Math.min(1, 4/n);   // con más lados, menos irregularidad: el polígono sigue siendo convexo (ángulos < 180°)
+  let P = [];
+  for(let k=0;k<n;k++){
+    const t = paso*(k + 0.2*irr*Math.sin(1.9*k + 0.5)), r = R*(1 + 0.12*irr*Math.sin(2.7*k + 1.1));
+    P.push([r*Math.cos(t), r*Math.sin(t)]);   // [Este, Norte]
+  }
+  const angulos = pts=>{
+    const az = pts.map((p,k)=>{ const q = pts[(k+1)%n]; return normDeg(toDeg(Math.atan2(q[0]-p[0], q[1]-p[1]))); });
+    const rot = AZ_AB - az[0];
+    const azr = az.map(a=>normDeg(a + rot));
+    return {ang: azr.map((a,k)=>normDeg(a - azr[(k-1+n)%n] - 180)), dist: pts.map((p,k)=>{ const q = pts[(k+1)%n]; return Math.hypot(q[0]-p[0], q[1]-p[1]); })};
+  };
+  let g = angulos(P);
+  // el cálculo usa ángulos internos: si el recorrido dio los externos, se recorre en el otro sentido
+  if(Math.abs(g.ang.reduce((a,b)=>a+b,0) - 180*(n-2)) > 1e-6){ P = [P[0], ...P.slice(1).reverse()]; g = angulos(P); }
+  return g.ang.map((a,k)=>({
+    deg: Math.round((a + Math.round(3*Math.sin(2.1*k + 0.3))/3600)*3600)/3600,
+    dist: Math.round((g.dist[k] + Math.round(2*Math.sin(1.3*k + 0.7))/100)*100)/100
+  }));
+}
 function renderPolStations(){
   const wrap = document.getElementById('polStations');
   let html='';
+  const ej = polEjemplo(polN);
   for(let i=0;i<polN;i++){
-    const ex = POL_EXAMPLE[i % POL_EXAMPLE.length];
-    const exDeg = dmsToDec(1, ex[0], ex[1], ex[2]);
+    const ex = ej[i], exDeg = ex.deg;
     html += `<div class="station-block">
       <div class="st-label">Estación ${POL_LABELS[i]} — ángulo interno</div>
       ${angleFieldHTML(`pol_ang_${i}`, exDeg, 'Ángulo')}
       <div class="field-row"><label>Distancia al siguiente vértice (m)</label>
-      <input type="number" step="any" id="pol_dist_${i}" value="${ex[3]}"></div>
+      <input type="number" step="any" id="pol_dist_${i}" value="${ex.dist}"></div>
     </div>`;
   }
   wrap.innerHTML = html;
