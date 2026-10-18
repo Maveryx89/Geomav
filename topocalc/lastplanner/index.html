@@ -1584,6 +1584,11 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         var parsed = JSON.parse(raw);
         if(!parsed || !parsed.weeks || !parsed.categories) return defaultState();
         parsed.editingNoteId = null;
+        /* datos incompletos (archivo importado o versión antigua): se completan los campos que la app necesita */
+        if(!Array.isArray(parsed.notes)) parsed.notes = [];
+        if(!Array.isArray(parsed.ppcHistory)) parsed.ppcHistory = [];
+        if(!parsed.causas || typeof parsed.causas !== "object") parsed.causas = {};
+        if(!Array.isArray(parsed.checklist)) parsed.checklist = MEETING_ITEMS.map(function(){ return false; });
         return parsed;
       }catch(e){ return defaultState(); }
     }
@@ -3186,7 +3191,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         meta: { titulo: state.title || "", subtitulo: state.subtitle || "",
           columnas: state.weeks.map(function(w){ return [String(w.label), String(w.month || "")]; }),
           categorias: state.categories.map(function(c){ return c.name; }),
-          extra: { ppcHistory: state.ppcHistory || [], causas: state.causas || {}, checklist: state.checklist || [] } },
+          extra: { ppcHistory: state.ppcHistory || [], causas: state.causas || {}, checklist: state.checklist || [], inicio: (cfg.weekly || !cfg.mensual) ? (state.inicio || "") : "" } },
         notas: state.notes.filter(function(n){ return ci[n.catId] != null && wi[n.weekId] != null && String(n.text || "").trim(); }).map(function(n){
           var p = (n.percent === "" || n.percent == null || !isFinite(Number(n.percent))) ? "" : Math.max(0, Math.min(100, Number(n.percent)));
           return { id: n.id, cat: ci[n.catId], col: wi[n.weekId], tarea: n.text, detalle: n.day || "", responsable: n.responsable || "",
@@ -3220,7 +3225,9 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
       };
       mCol = (idxCol >= 0 && weeks[idxCol]) ? weeks[idxCol].id : null;
       /* la fecha de inicio se conserva si las columnas no cambiaron; si no, se deduce de las etiquetas */
-      if(inicioPrev && colsPrev === JSON.stringify(weeks.map(function(w){ return [w.label, w.month]; }))) state.inicio = inicioPrev;
+      /* si la planilla guardó la fecha de inicio, manda ella (así todos los equipos ven la misma semana) */
+      if(typeof ex.inicio === "string" && /^\d{4}-\d{2}-\d{2}$/.test(ex.inicio)) state.inicio = ex.inicio;
+      else if(inicioPrev && colsPrev === JSON.stringify(weeks.map(function(w){ return [w.label, w.month]; }))) state.inicio = inicioPrev;
       try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
       render(); syncHeader();
     }
@@ -4310,6 +4317,12 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
 (function(){
   "use strict";
   var API = "https://script.google.com/macros/s/AKfycbxpgtBk20PhiH_qWPpLyK-1eGAEqDagCAMf6c-cCW_ZiRwBPc0zE5PBBdzAtD0lCi_P/exec";
+  /* Modo de trabajo: "equipo" = planilla compartida con PIN (quienes ya la usaban); "personal" = datos en el equipo + archivo / Google propio */
+  window.LP_MODO = (function(){ try{ var m = localStorage.getItem("lp-modo"); if(m === "equipo" || m === "personal") return m; return localStorage.getItem("lastplanner-remoto-v1") ? "equipo" : "personal"; }catch(e){ return "personal"; } })();
+  if(window.LP_MODO !== "equipo"){
+    window.LP_SYNC = { cambio:function(){}, guardar:function(){ return Promise.resolve(); }, pendiente:function(){ return false; }, version:function(){}, cargar:function(){ return Promise.resolve(); }, registros:function(){}, historial:function(){ return null; }, semana:function(){ return Promise.resolve({ ok:false }); }, v2:function(){ return false; }, api:"" };
+    return;
+  }
   var LS_INFO = "lastplanner-remoto-v1", LS_COPIA = "lastplanner-remoto-copia-v1", SS_PIN = "lastplanner-pin", SS_AUTOR = "lastplanner-autor";
   var KEYS = ["semanal", "intermedio", "maestro", "indicadores", "reunion"];
   var NOMBRE = { semanal:"Semanal", intermedio:"Intermedio", maestro:"Plan Maestro", indicadores:"Indicadores", reunion:"Reunión" };
@@ -5013,12 +5026,14 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   gal.addEventListener("touchstart", function(e){ tx = e.touches[0].clientX; }, { passive:true });
   gal.addEventListener("touchend", function(e){ if(tx === null || gIds.length < 2) return; var dx = e.changedTouches[0].clientX - tx; tx = null; if(Math.abs(dx) > 50){ gPos = (gPos + (dx < 0 ? 1 : -1) + gIds.length) % gIds.length; pintarGal(); } });
   document.addEventListener("keydown", function(e){ if(gal.hidden) return; if(e.key === "Escape"){ gal.hidden = true; gal.innerHTML = ""; e.stopPropagation(); } else if(e.key === "ArrowLeft" && gIds.length > 1){ gPos = (gPos - 1 + gIds.length) % gIds.length; pintarGal(); } else if(e.key === "ArrowRight" && gIds.length > 1){ gPos = (gPos + 1) % gIds.length; pintarGal(); } }, true);
-  window.LP_abrirRegistros = abrir;
+  window.LP_abrirRegistros = window.LP_MODO === "equipo" ? abrir : function(){ alert("Los registros de terreno con fotos funcionan en el modo Equipo GeoMAV. Cambia el modo en \u2601 Mi proyecto."); };
   window.LP_registros = function(){ return REG; };
 })();
 </script>
 <link rel="stylesheet" href="pac.css">
 <script src="pac-data.js"></script>
 <script src="pac.js"></script>
+<script>window.LP_GOOGLE_CLIENT_ID = "";</script>
+<script src="proyecto.js"></script>
 </body>
 </html>

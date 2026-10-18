@@ -1599,6 +1599,11 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
         var parsed = JSON.parse(raw);
         if(!parsed || !parsed.weeks || !parsed.categories) return defaultState();
         parsed.editingNoteId = null;
+        /* datos incompletos (archivo importado o versión antigua): se completan los campos que la app necesita */
+        if(!Array.isArray(parsed.notes)) parsed.notes = [];
+        if(!Array.isArray(parsed.ppcHistory)) parsed.ppcHistory = [];
+        if(!parsed.causas || typeof parsed.causas !== "object") parsed.causas = {};
+        if(!Array.isArray(parsed.checklist)) parsed.checklist = MEETING_ITEMS.map(function(){ return false; });
         return parsed;
       }catch(e){ return defaultState(); }
     }
@@ -5032,5 +5037,7 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
   window.LP_registros = function(){ return REG; };
 })();
 </script>
+<script>window.LP_GOOGLE_CLIENT_ID = "";</script>
+<script src="../lastplanner/proyecto.js"></script>
 </body>
 </html>
