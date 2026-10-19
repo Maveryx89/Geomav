@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0A2240">
+<title>Familia</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--ink:#0A2240;--paper:#F4F3EF;--accent:#D49A6A;--blueprint:#2C6B7E;--card:#fff;--line:#dcd9d0;--danger:#b3261e;--ok:#2e7d32;--mut:#6b7280}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:16px}
+#app{max-width:640px;margin:0 auto;min-height:100vh;padding:0 14px 90px}
+header.top{position:sticky;top:0;background:var(--ink);color:#fff;margin:0 -14px 14px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;z-index:5}
+header.top h1{font-size:1.05rem;margin:0;font-weight:700}
+header.top small{opacity:.75}
+.banner{background:#fff3cd;color:#7a5b00;border-radius:10px;padding:8px 12px;font-size:.85rem;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.card.tap{cursor:pointer}
+.row{display:flex;gap:10px;align-items:center}
+.grow{flex:1;min-width:0}
+.av{width:42px;height:42px;border-radius:50%;background:var(--blueprint);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.t{font-weight:700}.m{color:var(--mut);font-size:.85rem}
+.pill{display:inline-block;border-radius:99px;padding:2px 10px;font-size:.78rem;font-weight:700;background:#e8eef3;color:var(--blueprint)}
+.pill.hoy{background:var(--accent);color:#fff}.pill.ok{background:#e3f1e4;color:var(--ok)}.pill.no{background:#f6dcda;color:var(--danger)}
+h2{font-size:.95rem;text-transform:uppercase;letter-spacing:.04em;color:var(--blueprint);margin:18px 0 8px}
+button{font:inherit;border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:700}
+.primary{background:var(--ink);color:#fff}.ghost{background:#e8e6df;color:var(--ink)}.danger{background:#f6dcda;color:var(--danger)}
+.fab{position:fixed;right:18px;bottom:78px;width:54px;height:54px;border-radius:50%;background:var(--accent);color:#fff;font-size:1.8rem;box-shadow:0 4px 12px #0004;padding:0}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:6}
+nav.tabs div{display:flex;width:100%;max-width:640px}
+nav.tabs button{flex:1;background:none;border-radius:0;padding:8px 2px;font-size:.68rem;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:600}
+nav.tabs button span{font-size:1.25rem}
+nav.tabs button.on{color:var(--ink)}
+nav.tabs button.on span{filter:none}
+label{display:block;font-size:.82rem;font-weight:600;margin:10px 0 3px}
+input,select,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+dialog{border:0;border-radius:16px;padding:18px;width:min(92vw,520px);max-height:88vh;overflow:auto;color:var(--ink)}
+dialog::backdrop{background:#0008}
+dialog h3{margin:0 0 4px}
+.btns{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:4px 10px;font-size:.92rem;margin:6px 0}
+.kv b{color:var(--mut);font-weight:600}
+.login{padding-top:12vh;text-align:center}
+.login h1{font-size:1.6rem;margin:0 0 6px}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:99px;font-size:.88rem;z-index:20;max-width:90vw}
+.empty{text-align:center;color:var(--mut);padding:30px 10px}
+a{color:var(--blueprint)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CONFIGURED = window.CFG && !/TU-PROYECTO|TU_ANON/.test(CFG.url + CFG.key);
+const sb = CONFIGURED ? supabase.createClient(CFG.url, CFG.key) : null;
+const CK = 'familia_cache_v1';
+const S = { user:null, fam:null, famNombre:'', role:null, tab:'familia', personas:[], citas:[], notas:[], salud:[], miembros:[], invs:[], offline:false };
+const isAdmin = () => S.role === 'admin';
+
+/* ---------- utilidades ---------- */
+function toast(m){ const t=document.createElement('div'); t.className='toast'; t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),3200); }
+function parseDate(d){ const [y,m,dd]=String(d).slice(0,10).split('-').map(Number); return new Date(y,m-1,dd); }
+function today0(){ const n=new Date(); return new Date(n.getFullYear(),n.getMonth(),n.getDate()); }
+function edad(nac, ref=today0()){ const b=parseDate(nac); let a=ref.getFullYear()-b.getFullYear(); if(ref<new Date(ref.getFullYear(),b.getMonth(),b.getDate())) a--; return a; }
+function proxCumple(nac){
+  const b=parseDate(nac), t=today0(); let y=t.getFullYear();
+  let n=new Date(y,b.getMonth(),b.getDate()); if(n<t) n=new Date(y+1,b.getMonth(),b.getDate());
+  return { fecha:n, dias:Math.round((n-t)/864e5), cumple:n.getFullYear()-b.getFullYear() };
+}
+const fmtFecha = d => parseDate(d).toLocaleDateString('es-CL',{day:'numeric',month:'long'});
+const fmtDT = iso => new Date(iso).toLocaleString('es-CL',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const toLocalInput = iso => { if(!iso) return ''; const d=new Date(iso); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16); };
+const pName = id => (S.personas.find(p=>p.id===id)||{}).nombre || '—';
+const inicial = n => (n||'?').trim().charAt(0).toUpperCase();
+
+/* ---------- datos ---------- */
+async function getMembership(){
+  const q = () => sb.from('miembros').select('family_id,role,familias(nombre)').eq('user_id',S.user.id).limit(1);
+  let r = await q(); if(r.error) throw r.error;
+  if(!r.data.length){
+    const j = await sb.rpc('unirse_a_familia');
+    if(!j.error && j.data){ r = await q(); if(r.error) throw r.error; }
+  }
+  return r.data[0] || null;
+}
+async function enter(){
+  try{
+    const m = await getMembership();
+    if(!m){ S.fam=null; render(); return; }
+    S.fam=m.family_id; S.role=m.role; S.famNombre=(m.familias||{}).nombre||'';
+    await load();
+  }catch(e){
+    const c = JSON.parse(localStorage.getItem(CK)||'null');
+    if(c && c.uid===S.user.id){ Object.assign(S,c.data,{offline:true}); render(); }
+    else { toast('Error: '+(e.message||e)); render(); }
+  }
+}
+async function load(){
+  try{
+    const res = await Promise.all([
+      sb.from('personas').select('*').order('nombre'),
+      sb.from('citas').select('*').order('fecha'),
+      sb.from('notas').select('*').order('categoria'),
+      sb.from('salud').select('*'),
+      sb.from('miembros').select('*'),
+      sb.from('invitaciones').select('*')
+    ]);
+    for(const r of res) if(r.error) throw r.error;
+    const [p,c,n,s,m,i] = res.map(r=>r.data);
+    Object.assign(S,{personas:p,citas:c,notas:n,salud:s,miembros:m,invs:i,offline:false});
+    try{ localStorage.setItem(CK,JSON.stringify({uid:S.user.id,data:{fam:S.fam,famNombre:S.famNombre,role:S.role,personas:p,citas:c,notas:n,salud:s,miembros:m,invs:i}})); }catch(_){}
+  }catch(e){
+    const c = JSON.parse(localStorage.getItem(CK)||'null');
+    if(c && c.uid===S.user.id){ Object.assign(S,c.data,{offline:true}); }
+    else toast('Error al cargar: '+(e.message||e));
+  }
+  render();
+}
+async function save(table,row,id,opts){
+  if(S.offline){ toast('Sin conexión: no se puede guardar'); return false; }
+  let q;
+  if(opts && opts.upsert) q = sb.from(table).upsert(row,{onConflict:opts.upsert});
+  else if(id) q = sb.from(table).update(row).eq('id',id);
+  else q = sb.from(table).insert({...row,family_id:S.fam});
+  const {error} = await q;
+  if(error){ toast('Error: '+error.message); return false; }
+  await load(); return true;
+}
+async function del(table,id,col='id'){
+  if(S.offline){ toast('Sin conexión'); return false; }
+  const {error} = await sb.from(table).delete().eq(col,id);
+  if(error){ toast('Error: '+error.message); return false; }
+  await load(); return true;
+}
+
+/* ---------- diálogos y formularios ---------- */
+function dlg(html){
+  const d=document.createElement('dialog'); d.innerHTML=html; document.body.appendChild(d);
+  d.addEventListener('close',()=>d.remove()); d.showModal(); return d;
+}
+function form(title,fields,vals,onSave,onDel){
+  vals=vals||{};
+  const d = dlg(`<form><h3>${esc(title)}</h3>`+fields.map(f=>{
+    const v = vals[f.k] ?? '';
+    let inp;
+    if(f.t==='select') inp=`<select name="${f.k}">${f.o.map(o=>{o=Array.isArray(o)?o:[o,o];return `<option value="${esc(o[0])}" ${o[0]==v?'selected':''}>${esc(o[1])}</option>`}).join('')}</select>`;
+    else if(f.t==='area') inp=`<textarea name="${f.k}" rows="3">${esc(v)}</textarea>`;
+    else inp=`<input name="${f.k}" type="${f.t||'text'}" value="${esc(v)}" ${f.req?'required':''}>`;
+    return `<label>${esc(f.l)}${inp}</label>`;
+  }).join('')+`<div class="btns"><button type="button" class="ghost" data-x>Cancelar</button>${onDel?'<button type="button" class="danger" data-del>Eliminar</button>':''}<button class="primary">Guardar</button></div></form>`);
+  const f=d.querySelector('form');
+  d.querySelector('[data-x]').onclick=()=>d.close();
+  if(onDel) d.querySelector('[data-del]').onclick=async()=>{ if(confirm('¿Eliminar definitivamente?') && await onDel()) d.close(); };
+  f.onsubmit=async e=>{
+    e.preventDefault();
+    const row={}; new FormData(f).forEach((v,k)=>{ row[k]=String(v).trim()===''?null:String(v).trim(); });
+    if(await onSave(row)) d.close();
+  };
+}
+
+/* ---------- formularios concretos ---------- */
+const PAR = ['Yo','Pareja','Hijo/a','Padre','Madre','Hermano/a','Abuelo/a','Otro'];
+function formPersona(p){
+  form(p?'Editar persona':'Nueva persona',[
+    {k:'nombre',l:'Nombre',req:1},{k:'parentesco',l:'Parentesco',t:'select',o:PAR},
+    {k:'nacimiento',l:'Fecha de nacimiento',t:'date'},{k:'telefono',l:'Teléfono',t:'tel'},
+    {k:'emergencia',l:'Contacto de emergencia'},{k:'notas',l:'Notas',t:'area'}
+  ],p,row=>save('personas',row,p&&p.id),p&&(()=>del('personas',p.id)));
+}
+function formSalud(p){
+  const s=S.salud.find(x=>x.persona_id===p.id)||{};
+  form('Salud · '+p.nombre,[
+    {k:'rut',l:'RUT'},{k:'prevision',l:'Previsión (Fonasa / Isapre)'},{k:'grupo_sanguineo',l:'Grupo sanguíneo'},
+    {k:'alergias',l:'Alergias',t:'area'},{k:'medicamentos',l:'Medicamentos',t:'area'},
+    {k:'condiciones',l:'Condiciones / enfermedades',t:'area'},{k:'vacunas',l:'Vacunas',t:'area'},{k:'medico',l:'Médico de cabecera'}
+  ],s,row=>save('salud',{...row,persona_id:p.id,family_id:S.fam},null,{upsert:'persona_id'}),s.persona_id&&(()=>del('salud',p.id,'persona_id')));
+}
+function formCita(c){
+  if(!S.personas.length){ toast('Primero agrega una persona'); return; }
+  form(c?'Editar cita':'Nueva cita médica',[
+    {k:'persona_id',l:'Paciente',t:'select',o:S.personas.map(p=>[p.id,p.nombre])},
+    {k:'fecha',l:'Fecha y hora',t:'datetime-local',req:1},{k:'doctor',l:'Doctor / especialidad'},
+    {k:'lugar',l:'Lugar'},{k:'motivo',l:'Motivo',t:'area'},
+    {k:'estado',l:'Estado',t:'select',o:['pendiente','realizada','cancelada']}
+  ],c&&{...c,fecha:toLocalInput(c.fecha)},row=>{ row.fecha=new Date(row.fecha).toISOString(); return save('citas',row,c&&c.id); },c&&(()=>del('citas',c.id)));
+}
+function formNota(n){
+  form(n?'Editar nota':'Nueva nota',[
+    {k:'titulo',l:'Título',req:1},{k:'categoria',l:'Categoría (ej. Emergencias, Colegio, Seguros)'},{k:'contenido',l:'Contenido',t:'area'}
+  ],n,row=>{ row.categoria=row.categoria||'General'; return save('notas',row,n&&n.id); },n&&(()=>del('notas',n.id)));
+}
+
+/* ---------- ficha ---------- */
+function ficha(id){
+  const p=S.personas.find(x=>x.id===id); if(!p) return;
+  const s=S.salud.find(x=>x.persona_id===id);
+  const kv=(k,v)=>v?`<b>${k}</b><span>${esc(v).replace(/\n/g,'<br>')}</span>`:'';
+  let h=`<h3>${esc(p.nombre)}</h3><div class="m">${esc(p.parentesco||'')}${p.nacimiento?` · ${edad(p.nacimiento)} años`:''}</div><div class="kv">`
+   +kv('Cumpleaños',p.nacimiento?fmtFecha(p.nacimiento):'')
+   +(p.telefono?`<b>Teléfono</b><a href="tel:${esc(p.telefono)}">${esc(p.telefono)}</a>`:'')
+   +kv('Emergencia',p.emergencia)+kv('Notas',p.notas)+`</div>`;
+  if(isAdmin()&&s) h+=`<h2>Salud</h2><div class="kv">`+kv('RUT',s.rut)+kv('Previsión',s.prevision)+kv('Grupo sang.',s.grupo_sanguineo)+kv('Alergias',s.alergias)+kv('Medicamentos',s.medicamentos)+kv('Condiciones',s.condiciones)+kv('Vacunas',s.vacunas)+kv('Médico',s.medico)+`</div>`;
+  h+=`<div class="btns"><button class="ghost" data-x>Cerrar</button>${isAdmin()?'<button class="primary" data-ed>Editar</button>':''}</div>`;
+  const d=dlg(h);
+  d.querySelector('[data-x]').onclick=()=>d.close();
+  const ed=d.querySelector('[data-ed]'); if(ed) ed.onclick=()=>{d.close();formPersona(p);};
+}
+
+/* ---------- vistas ---------- */
+function vFamilia(){
+  if(!S.personas.length) return `<div class="empty">Aún no hay personas.${isAdmin()?'<br>Toca + para agregar la primera.':''}</div>`;
+  return S.personas.map(p=>`<div class="card tap" data-ficha="${p.id}"><div class="row"><div class="av">${esc(inicial(p.nombre))}</div><div class="grow"><div class="t">${esc(p.nombre)}</div><div class="m">${esc(p.parentesco||'')}${p.nacimiento?` · ${edad(p.nacimiento)} años`:''}</div></div>${p.telefono?`<a href="tel:${esc(p.telefono)}" data-stop style="text-decoration:none;font-size:1.4rem">📞</a>`:''}</div></div>`).join('');
+}
+function vCumples(){
+  const l=S.personas.filter(p=>p.nacimiento).map(p=>({p,...proxCumple(p.nacimiento)})).sort((a,b)=>a.dias-b.dias);
+  if(!l.length) return `<div class="empty">Agrega fechas de nacimiento en la ficha de cada persona.</div>`;
+  return l.map(x=>`<div class="card"><div class="row"><div class="av" style="background:${x.dias===0?'var(--accent)':'var(--blueprint)'}">${x.dias===0?'🎂':esc(inicial(x.p.nombre))}</div><div class="grow"><div class="t">${esc(x.p.nombre)}</div><div class="m">${fmtFecha(x.p.nacimiento)} · cumple ${x.cumple}</div></div><span class="pill ${x.dias===0?'hoy':''}">${x.dias===0?'¡Hoy!':x.dias===1?'Mañana':x.dias+' días'}</span></div></div>`).join('');
+}
+function citaCard(c){
+  const cls=c.estado==='realizada'?'ok':c.estado==='cancelada'?'no':'';
+  return `<div class="card ${isAdmin()?'tap':''}" data-cita="${c.id}"><div class="row"><div class="grow"><div class="t">${esc(fmtDT(c.fecha))}</div><div class="m">${esc(pName(c.persona_id))}${c.doctor?' · '+esc(c.doctor):''}${c.lugar?' · '+esc(c.lugar):''}</div>${c.motivo?`<div class="m">${esc(c.motivo)}</div>`:''}</div><span class="pill ${cls}">${esc(c.estado)}</span></div></div>`;
+}
+function vCitas(){
+  const now=Date.now();
+  const prox=S.citas.filter(c=>c.estado==='pendiente'&&new Date(c.fecha)>=now-36e5);
+  const hist=S.citas.filter(c=>!prox.includes(c)).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+  if(!S.citas.length) return `<div class="empty">Sin citas registradas.</div>`;
+  return `<h2>Próximas</h2>${prox.map(citaCard).join('')||'<div class="empty">Ninguna pendiente</div>'}${hist.length?`<h2>Historial</h2>${hist.map(citaCard).join('')}`:''}`;
+}
+function vNotas(){
+  if(!S.notas.length) return `<div class="empty">Guarda aquí teléfonos de emergencia, colegio, seguros, patentes y otros datos útiles.</div>`;
+  const g={}; S.notas.forEach(n=>(g[n.categoria||'General']=g[n.categoria||'General']||[]).push(n));
+  return Object.keys(g).sort().map(k=>`<h2>${esc(k)}</h2>`+g[k].map(n=>`<div class="card ${isAdmin()?'tap':''}" data-nota="${n.id}"><div class="t">${esc(n.titulo)}</div><div class="m" style="white-space:pre-wrap">${esc(n.contenido||'')}</div></div>`).join('')).join('');
+}
+function vSalud(){
+  if(!S.personas.length) return `<div class="empty">Primero agrega personas en la pestaña Familia.</div>`;
+  return `<div class="banner">Solo los administradores ven esta sección.</div>`+S.personas.map(p=>{
+    const s=S.salud.find(x=>x.persona_id===p.id);
+    return `<div class="card tap" data-salud="${p.id}"><div class="row"><div class="av">${esc(inicial(p.nombre))}</div><div class="grow"><div class="t">${esc(p.nombre)}</div><div class="m">${s?esc([s.grupo_sanguineo,s.prevision,s.alergias&&'Alergias: '+s.alergias].filter(Boolean).join(' · '))||'Ficha creada':'Sin ficha de salud'}</div></div></div></div>`;
+  }).join('');
+}
+function vAjustes(){
+  let h=`<div class="card"><div class="t">${esc(S.famNombre)}</div><div class="m">${esc(S.user.email||'')} · ${isAdmin()?'Administrador':'Miembro'}</div></div><h2>Miembros</h2>`;
+  h+=S.miembros.map(m=>`<div class="card"><div class="row"><div class="grow"><div class="t">${esc(m.email||'—')}</div><div class="m">${esc(m.role)}</div></div>${isAdmin()&&m.user_id!==S.user.id?`<button class="danger" data-quitar="${m.user_id}">Quitar</button>`:''}</div></div>`).join('');
+  if(isAdmin()){
+    h+=S.invs.map(i=>`<div class="card"><div class="row"><div class="grow"><div class="t">${esc(i.email)}</div><div class="m">Invitación pendiente · ${esc(i.role)}</div></div><button class="danger" data-delinv="${esc(i.email)}">✕</button></div></div>`).join('');
+    h+=`<button class="primary" data-inv style="width:100%">Invitar familiar</button><div class="m" style="margin-top:6px">El familiar debe ingresar a la app con ese mismo correo para unirse.</div>`;
+  }
+  h+=`<h2>Datos</h2><button class="ghost" data-export style="width:100%;margin-bottom:8px">Exportar respaldo (JSON)</button><button class="ghost" data-logout style="width:100%">Cerrar sesión</button>`;
+  return h;
+}
+const TABS=()=>{ const t=[['familia','👪','Familia'],['cumples','🎂','Cumples'],['citas','🩺','Citas'],['notas','📌','Info']]; if(isAdmin()) t.push(['salud','❤️','Salud']); t.push(['ajustes','⚙️','Ajustes']); return t; };
+const TITLES={familia:'Familia',cumples:'Cumpleaños',citas:'Citas médicas',notas:'Info útil',salud:'Salud',ajustes:'Ajustes'};
+
+function vLogin(){
+  if(!CONFIGURED) return `<div class="login"><h1>Familia</h1><p class="m">Falta configurar Supabase en <b>config.js</b> (URL y anon key).</p></div>`;
+  return `<div class="login"><h1>👪 Familia</h1><p class="m">Ingresa tu correo y te enviaremos un enlace para entrar. Sin contraseñas.</p><form id="lf"><input type="email" name="email" placeholder="correo@ejemplo.cl" required autocomplete="email"><button class="primary" style="width:100%;margin-top:10px">Enviar enlace</button></form></div>`;
+}
+function vSetup(){
+  return `<div class="login"><h1>Bienvenido</h1><p class="m">Tu correo (${esc(S.user.email)}) no tiene una invitación pendiente. Crea tu grupo familiar o pide a un administrador que te invite con este correo.</p><form id="sf"><input name="nombre" placeholder="Nombre de la familia (ej. Familia Verdugo)" required><button class="primary" style="width:100%;margin-top:10px">Crear familia</button></form><button class="ghost" data-logout style="margin-top:14px">Cerrar sesión</button></div>`;
+}
+
+function render(){
+  const app=$('#app');
+  if(!S.user){ app.innerHTML=vLogin(); return; }
+  if(!S.fam){ app.innerHTML=vSetup(); return; }
+  const V={familia:vFamilia,cumples:vCumples,citas:vCitas,notas:vNotas,salud:vSalud,ajustes:vAjustes};
+  if(!TABS().some(t=>t[0]===S.tab)) S.tab='familia';
+  const fab=isAdmin()&&{familia:1,citas:1,notas:1}[S.tab]&&!S.offline?'<button class="fab" data-add>+</button>':'';
+  app.innerHTML=`<header class="top"><h1>${esc(TITLES[S.tab])}</h1><small>${esc(S.famNombre)}</small></header>${S.offline?'<div class="banner">Sin conexión · mostrando la última copia guardada (solo lectura)</div>':''}${V[S.tab]()}${fab}<nav class="tabs"><div>${TABS().map(t=>`<button data-tab="${t[0]}" class="${S.tab===t[0]?'on':''}"><span>${t[1]}</span>${t[2]}</button>`).join('')}</div></nav>`;
+}
+
+/* ---------- eventos ---------- */
+document.addEventListener('click',async e=>{
+  const t=e.target.closest('[data-tab],[data-ficha],[data-cita],[data-nota],[data-salud],[data-add],[data-inv],[data-quitar],[data-delinv],[data-export],[data-logout],[data-stop]');
+  if(!t) return;
+  const d=t.dataset;
+  if('stop' in d) return;
+  if(d.tab){ S.tab=d.tab; render(); window.scrollTo(0,0); }
+  else if(d.ficha) ficha(d.ficha);
+  else if(d.cita&&isAdmin()) formCita(S.citas.find(c=>c.id===d.cita));
+  else if(d.nota&&isAdmin()) formNota(S.notas.find(n=>n.id===d.nota));
+  else if(d.salud) formSalud(S.personas.find(p=>p.id===d.salud));
+  else if('add' in d){ ({familia:()=>formPersona(),citas:()=>formCita(),notas:()=>formNota()})[S.tab](); }
+  else if('inv' in d) form('Invitar familiar',[{k:'email',l:'Correo',t:'email',req:1},{k:'role',l:'Rol',t:'select',o:[['miembro','Miembro (solo lectura)'],['admin','Administrador']]}],{role:'miembro'},async row=>{ row.email=row.email.toLowerCase(); return save('invitaciones',row); });
+  else if(d.quitar){ if(confirm('¿Quitar a este miembro?')) await del('miembros',d.quitar,'user_id'); }
+  else if(d.delinv) await del('invitaciones',d.delinv,'email');
+  else if('export' in d){
+    const blob=new Blob([JSON.stringify({exportado:new Date().toISOString(),familia:S.famNombre,personas:S.personas,salud:isAdmin()?S.salud:undefined,citas:S.citas,notas:S.notas},null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='familia-respaldo-'+new Date().toISOString().slice(0,10)+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  }
+  else if('logout' in d){ await sb.auth.signOut(); try{localStorage.removeItem(CK);}catch(_){} S.user=null; S.fam=null; render(); }
+});
+document.addEventListener('submit',async e=>{
+  if(e.target.id==='lf'){
+    e.preventDefault();
+    const email=new FormData(e.target).get('email').trim();
+    const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
+    if(error) toast('Error: '+error.message);
+    else $('#app').innerHTML=`<div class="login"><h1>Revisa tu correo</h1><p class="m">Enviamos un enlace a <b>${esc(email)}</b>. Ábrelo en este mismo dispositivo.</p></div>`;
+  }
+  if(e.target.id==='sf'){
+    e.preventDefault();
+    const {error}=await sb.rpc('crear_familia',{p_nombre:new FormData(e.target).get('nombre').trim()});
+    if(error) toast('Error: '+error.message); else enter();
+  }
+});
+
+/* ---------- arranque ---------- */
+async function boot(){
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  if(!CONFIGURED){ render(); return; }
+  const {data}=await sb.auth.getSession();
+  S.user=(data.session&&data.session.user)||null;
+  if(S.user) await enter(); else render();
+  sb.auth.onAuthStateChange((ev,ses)=>{
+    const u=(ses&&ses.user)||null;
+    if(u&&!S.user){ S.user=u; enter(); }
+    if(!u&&S.user){ S.user=null; S.fam=null; render(); }
+  });
+}
+boot();
+</script>
+</body>
+</html>
