@@ -584,6 +584,12 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
 @media (min-width:861px){
   .ep-th{ display:grid; position:sticky; top:0; z-index:2; grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) 44px 46px; gap:8px; align-items:center; padding:8px 4px 8px 16px; background:var(--paper-sunken); font-size:.68rem; font-weight:700; color:var(--ink-soft); border-bottom:1px solid var(--line); }
   .ep-th span{ display:inline-flex; align-items:center; gap:5px; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ep-th .ep-hc{ gap:3px; font-size:.64rem; letter-spacing:-.01em; } .ep-th .ep-hc .dot{ width:7px; height:7px; }
+  .ep-th .ep-hn{ overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  .ep-ar{ display:inline-flex; flex-direction:column; flex:none; margin-left:1px; }
+  .ep-ar button{ all:unset; cursor:pointer; font-size:7px; line-height:8px; height:9px; padding:0 3px; color:var(--ink-soft); opacity:.55; }
+  .ep-ar button:hover, .ep-ar button:focus-visible{ opacity:1; color:var(--blueprint); }
+  .ep-ar button.on{ opacity:1; color:var(--blueprint); }
   .ep-th .dot{ width:8px; height:8px; border-radius:50%; flex:none; }
   .ep-gh{ display:block; padding:10px 4px 4px 16px; font-size:.8rem; font-weight:700; color:var(--ink); border-bottom:1.5px solid var(--ink); }
   .ep-row > summary{ grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) 44px 46px; }
@@ -4925,7 +4931,7 @@ window.PORTICOS_LISTA = (function(){
   }
 
   /* estado actual de cada pórtico, con sus tareas realizadas desplegables */
-  var epAbiertos = {}, epBusca = "", epOrden = "lista", epCerrado = false;
+  var epAbiertos = {}, epBusca = "", epOrden = "lista", epCerrado = false, epCol = null;
   document.addEventListener("click", function(e){
     var b = e.target.closest(".ep-toggle"); if(!b) return;
     epCerrado = !epCerrado;
@@ -4946,8 +4952,12 @@ window.PORTICOS_LISTA = (function(){
       var st = estadoDe(num, d);
       return { p:p, k:k, num:num, n:regs.length, ult:ult, nivel: st ? st.idx + (st.avance !== "" && st.avance != null && Number(st.avance) < 100 ? Number(st.avance) / 100 - 1 : 0) : -2 };
     });
+    /* primera fecha de ejecución de cada partida (programación + registros de avance al 100 %), para la matriz de escritorio */
+    var prim = {}, ordN = d.orden;
+    (window.PROGRAMACION || []).forEach(function(r){ if(/^ejecutado/i.test(r.estado || "") && ordN.indexOf(r.partida) >= 0){ var kk = String(r.portico) + "|" + r.partida; if(!prim[kk] || r.fecha < prim[kk]) prim[kk] = r.fecha; } });
+    REMOTO.avance.forEach(function(a){ if(ordN.indexOf(a.partida) < 0) return; if(a.avance !== "" && a.avance != null && parseFloat(a.avance) < 100) return; var kk = String(a.portico) + "|" + a.partida; if(!prim[kk] || a.fecha < prim[kk]) prim[kk] = a.fecha; });
     var natural = function(a, b){ return String(a).localeCompare(String(b), "es", { numeric:true, sensitivity:"base" }); };
-    var cmp = {
+    var cmp = epCol ? function(a,b){ var fa = prim[a.num + "|" + ordN[epCol.i]] || "", fb = prim[b.num + "|" + ordN[epCol.i]] || ""; if(!fa || !fb){ if(fa === fb) return natural(a.p.nombre, b.p.nombre); return fa ? -1 : 1; } return (epCol.dir * fa.localeCompare(fb)) || natural(a.p.nombre, b.p.nombre); } : {
       nombre: function(a,b){ return natural(a.p.nombre, b.p.nombre); },
       comuna: function(a,b){ return natural(a.p.comuna, b.p.comuna) || natural(a.p.nombre, b.p.nombre); },
       mas: function(a,b){ return (b.nivel - a.nivel) || natural(a.p.nombre, b.p.nombre); },
@@ -4955,13 +4965,10 @@ window.PORTICOS_LISTA = (function(){
       reciente: function(a,b){ return b.ult.localeCompare(a.ult) || natural(a.p.nombre, b.p.nombre); },
       registros: function(a,b){ return (b.n - a.n) || natural(a.p.nombre, b.p.nombre); }
     }[epOrden];
+    if(typeof cmp === "object") cmp = cmp[epOrden];
     if(cmp) items.sort(cmp);
-    /* primera fecha de ejecución de cada partida (programación + registros de avance al 100 %), para la matriz de escritorio */
-    var prim = {}, ordN = d.orden;
-    (window.PROGRAMACION || []).forEach(function(r){ if(/^ejecutado/i.test(r.estado || "") && ordN.indexOf(r.partida) >= 0){ var kk = String(r.portico) + "|" + r.partida; if(!prim[kk] || r.fecha < prim[kk]) prim[kk] = r.fecha; } });
-    REMOTO.avance.forEach(function(a){ if(ordN.indexOf(a.partida) < 0) return; if(a.avance !== "" && a.avance != null && parseFloat(a.avance) < 100) return; var kk = String(a.portico) + "|" + a.partida; if(!prim[kk] || a.fecha < prim[kk]) prim[kk] = a.fecha; });
     var dm = function(f){ var m = /^\d{4}-(\d{2})-(\d{2})/.exec(f || ""); return m ? m[2] + "-" + m[1] : ""; };
-    var agrupa = (epOrden === "lista" || epOrden === "comuna"), prevC = null, vis = items.filter(function(it){ return !epBusca || sinTildes(it.p.nombre + " " + it.p.comuna).indexOf(sinTildes(epBusca)) >= 0; });
+    var agrupa = !epCol && (epOrden === "lista" || epOrden === "comuna"), prevC = null, vis = items.filter(function(it){ return !epBusca || sinTildes(it.p.nombre + " " + it.p.comuna).indexOf(sinTildes(epBusca)) >= 0; });
     var corrida = function(i){ var n = 0; for(var j = i; j < vis.length && vis[j].p.comuna === vis[i].p.comuna; j++) n++; return n; };
     var visIdx = {}; vis.forEach(function(it, i){ visIdx[it.num] = i; });
     var filas = items.map(function(it){
@@ -4988,14 +4995,14 @@ window.PORTICOS_LISTA = (function(){
       + '<p class="ind-nota ep-acum">Conteo acumulado: cada partida cuenta los p\u00f3rticos que ya la ejecutaron, aunque hayan avanzado a la siguiente.</p>'
       + '<div class="ep-ctrl"><input type="search" class="ep-buscar" placeholder="Buscar p\u00f3rtico o comuna" aria-label="Buscar p\u00f3rtico" value="'+esc(epBusca)+'">'
       + '<label class="ep-ord"><span>Ordenar</span><select class="ep-orden" aria-label="Ordenar el listado">' + EP_ORDENES.map(function(o){ return '<option value="'+o[0]+'"'+(o[0]===epOrden?' selected':'')+'>'+o[1]+'</option>'; }).join("") + '</select></label></div>'
-      + '<div class="ep-lista"><div class="ep-th"><span>P\u00f3rtico</span><span></span><span>Comuna</span>' + d.orden.map(function(n){ return '<span><i class="dot dot-'+window.PARTIDA_TONE[n]+'"></i>'+esc(n)+'</span>'; }).join("") + '<span>Notas</span><span></span></div>' + (filas || '<p class="pm-vacio">Ning\u00fan p\u00f3rtico coincide.</p>') + '</div>'
+      + '<div class="ep-lista"><div class="ep-th"><span>P\u00f3rtico</span><span></span><span>Comuna</span>' + d.orden.map(function(n, i){ var on = function(dr){ return epCol && epCol.i === i && epCol.dir === dr ? ' on' : ''; }; return '<span class="ep-hc"><i class="dot dot-'+window.PARTIDA_TONE[n]+'"></i><span class="ep-hn">'+esc(n)+'</span><span class="ep-ar"><button type="button" class="ep-up'+on(1)+'" data-epcol="'+i+'" data-dir="1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s antigua primero" aria-label="Ordenar por fecha de '+esc(n)+' ascendente">\u25b2</button><button type="button" class="ep-dn'+on(-1)+'" data-epcol="'+i+'" data-dir="-1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s reciente primero" aria-label="Ordenar por fecha de '+esc(n)+' descendente">\u25bc</button></span></span>'; }).join("") + '<span>Notas</span><span></span></div>' + (filas || '<p class="pm-vacio">Ning\u00fan p\u00f3rtico coincide.</p>') + '</div>'
       + '<p class="ind-nota">Toca un p\u00f3rtico para ver las tareas realizadas (m\u00e1s reciente primero).</p></div></div>';
   }
   document.addEventListener("toggle", function(e){ var d = e.target; if(d && d.classList && d.classList.contains("ep-row")){ if(d.open) epAbiertos[d.dataset.ep] = 1; else delete epAbiertos[d.dataset.ep]; } }, true);
-  document.addEventListener("click", function(e){ var b = e.target.closest("[data-epabrir]"); if(b) abrirPortico(b.dataset.epabrir); var n = e.target.closest("[data-epnota]"); if(n){ e.preventDefault(); e.stopPropagation(); abrirPortico(n.dataset.epnota); } });
+  document.addEventListener("click", function(e){ var b = e.target.closest("[data-epabrir]"); if(b) abrirPortico(b.dataset.epabrir); var c = e.target.closest("[data-epcol]"); if(c){ var i = +c.dataset.epcol, dr = +c.dataset.dir; epCol = (epCol && epCol.i === i && epCol.dir === dr) ? null : { i:i, dir:dr }; var lst = document.querySelector(".ep-box .ep-lista"); if(lst){ var tmp = document.createElement("div"); tmp.innerHTML = estadoPorticosHtml(); var nl = tmp.querySelector(".ep-lista"); if(nl) lst.innerHTML = nl.innerHTML; } return; } var n = e.target.closest("[data-epnota]"); if(n){ e.preventDefault(); e.stopPropagation(); abrirPortico(n.dataset.epnota); } });
   document.addEventListener("change", function(e){
     if(!e.target.classList || !e.target.classList.contains("ep-orden")) return;
-    epOrden = e.target.value; var lst = document.querySelector(".ep-box .ep-lista"); if(!lst) return;
+    epOrden = e.target.value; epCol = null; var lst = document.querySelector(".ep-box .ep-lista"); if(!lst) return;
     var tmp = document.createElement("div"); tmp.innerHTML = estadoPorticosHtml(); var nl = tmp.querySelector(".ep-lista"); if(nl) lst.innerHTML = nl.innerHTML;
   });
   document.addEventListener("input", function(e){
