@@ -60,13 +60,13 @@ function vTareas(){
   const hechas=l.filter(t=>t.hecha).sort((a,b)=>String(b.hecha_at||'').localeCompare(String(a.hecha_at||''))).slice(0,10);
   return seg+`<h2>Pendientes</h2>`+(pend.map(tareaCard).join('')||'<div class="empty">Todo al día 🎉</div>')+(hechas.length?`<h2>Hechas recientemente</h2>`+hechas.map(tareaCard).join(''):'');
 }
-function formTarea(t){
+function formTarea(t,pre){
   form(t?'Editar tarea':'Nueva tarea',[
     {k:'titulo',l:'Tarea',req:1},{k:'descripcion',l:'Detalle',t:'area'},
     {k:'asignada_a',l:'Responsable',t:'select',o:[['','Cualquiera'],...S.personas.map(p=>[p.id,p.nombre])]},
     {k:'fecha',l:'Fecha límite',t:'date'},
     {k:'repite',l:'Repetir',t:'select',o:[['','No se repite'],['diaria','Cada día'],['semanal','Cada semana'],['mensual','Cada mes']]}
-  ],t,row=>save('tareas',row,t&&t.id),t&&(()=>del('tareas',t.id)));
+  ],t||pre,row=>save('tareas',row,t&&t.id),t&&(()=>del('tareas',t.id)));
 }
 async function toggleTarea(id){
   const t=S.tareas.find(x=>x.id===id); if(!t) return;
@@ -143,7 +143,7 @@ function vEscolar(){
     return h;
   }).join('');
 }
-function formEscolar(e){
+function formEscolar(e,pre){
   if(!S.personas.length){ toast('Primero agrega una persona'); return; }
   form(e?'Editar ítem escolar':'Nuevo ítem escolar',[
     {k:'persona_id',l:'Alumno/a',t:'select',o:S.personas.map(p=>[p.id,p.nombre])},
@@ -152,7 +152,7 @@ function formEscolar(e){
     {k:'dia',l:'Día (solo horario de clases)',t:'select',o:[['','—'],...[1,2,3,4,5,6,7].map(d=>[String(d),DIAS[d]])]},
     {k:'hora_inicio',l:'Hora inicio',t:'time'},{k:'hora_fin',l:'Hora fin',t:'time'},
     {k:'fecha',l:'Fecha (solo eventos)',t:'date'},{k:'detalle',l:'Detalle (sala, profesor, qué llevar)',t:'area'}
-  ],e&&{...e,dia:e.dia==null?'':String(e.dia)},row=>{
+  ],e?{...e,dia:e.dia==null?'':String(e.dia)}:pre,row=>{
     if(row.tipo==='horario'&&!row.dia){ toast('Elige el día de la semana'); return false; }
     if(row.tipo==='evento'&&!row.fecha){ toast('Indica la fecha del evento'); return false; }
     row.dia=(row.tipo==='horario'&&row.dia)?+row.dia:null;
@@ -172,4 +172,21 @@ function vMas(){
   if(isAdmin()) it.push(['salud','❤️','Salud','Fichas de salud (solo administradores)']);
   it.push(['ajustes','⚙️','Ajustes','Miembros, roles y respaldo']);
   return it.map(x=>`<div class="card tap" data-tab="${x[0]}"><div class="row"><div style="font-size:1.6rem">${x[1]}</div><div class="grow"><div class="t">${x[2]}</div><div class="m">${x[3]}</div></div><div class="m">›</div></div></div>`).join('');
+}
+
+/* ---------- Eventos familiares y agregar desde el calendario ---------- */
+function formEvento(ev,pre){
+  form(ev?'Editar evento':'Nuevo evento',[
+    {k:'titulo',l:'Evento',req:1},{k:'fecha',l:'Fecha',t:'date',req:1},
+    {k:'hora',l:'Hora',t:'time'},{k:'lugar',l:'Lugar'},{k:'detalle',l:'Detalle',t:'area'}
+  ],ev||pre,row=>save('eventos',row,ev&&ev.id),ev&&(()=>del('eventos',ev.id)));
+}
+function abrirAgregar(k){
+  if(!isEditor()||S.offline||!k) return;
+  const d=dlg(`<h3>Agregar el ${esc(fmtDia(k))}</h3><div class="addgrid"><button class="ghost" data-a="cita">🩺<span>Cita médica</span></button><button class="ghost" data-a="evento">📌<span>Evento familiar</span></button><button class="ghost" data-a="tarea">✅<span>Tarea</span></button><button class="ghost" data-a="escolar">🎒<span>Escolar</span></button></div><div class="btns"><button type="button" class="ghost" data-x>Cancelar</button></div>`);
+  d.querySelector('[data-x]').onclick=()=>d.close();
+  d.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{
+    d.close();
+    ({cita:()=>formCita(null,{fecha:k+'T09:00'}),evento:()=>formEvento(null,{fecha:k}),tarea:()=>formTarea(null,{fecha:k}),escolar:()=>formEscolar(null,{tipo:'evento',fecha:k})})[b.dataset.a]();
+  });
 }

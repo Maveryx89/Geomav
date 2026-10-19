@@ -50,6 +50,9 @@ header.top h1 .back{background:none;color:#fff;padding:0 8px 0 0;font-size:1.3re
 .done{opacity:.55;text-decoration:line-through}
 .dose.on{background:#eef7ef}
 .m.sub{margin:8px 0 6px;font-weight:700}.m.dia{margin:6px 0 4px;font-weight:700;color:var(--ink)}
+.dt.tap{cursor:pointer;padding:5px 8px;border-radius:8px;background:#f6f5f0;margin:5px 0}
+.addgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.addgrid button{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:1.6rem;padding:14px 6px}.addgrid span{font-size:.8rem}
 .fab{position:fixed;right:18px;bottom:78px;width:54px;height:54px;border-radius:50%;background:var(--accent);color:#fff;font-size:1.8rem;box-shadow:0 4px 12px #0004;padding:0}
 nav.tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:6}
 nav.tabs div{display:flex;width:100%;max-width:640px}
@@ -85,7 +88,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const CONFIGURED = window.CFG && !/TU-PROYECTO|TU_ANON/.test(CFG.url + CFG.key);
 const sb = CONFIGURED ? supabase.createClient(CFG.url, CFG.key) : null;
 const CK = 'familia_cache_v1';
-const S = { user:null, fam:null, famNombre:'', role:null, tab:'mi', personas:[], tareas:[], medicamentos:[], tomas:[], escolar:[], citas:[], notas:[], salud:[], miembros:[], invs:[], offline:false };
+const S = { user:null, fam:null, famNombre:'', role:null, tab:'mi', personas:[], tareas:[], medicamentos:[], tomas:[], escolar:[], eventos:[], citas:[], notas:[], salud:[], miembros:[], invs:[], offline:false };
 const isAdmin = () => S.role === 'admin';
 const isEditor = () => S.role === 'admin' || S.role === 'editor';
 const ROL = { admin:'Administrador', editor:'Editor', miembro:'Miembro' };
@@ -140,13 +143,14 @@ async function load(){
       sb.from('tareas').select('*'),
       sb.from('medicamentos').select('*'),
       sb.from('medicamento_tomas').select('*').gte('fecha',ymd(new Date(Date.now()-7*864e5))),
-      sb.from('escolar').select('*')
+      sb.from('escolar').select('*'),
+      sb.from('eventos').select('*')
     ]);
     for(const r of res) if(r.error) throw r.error;
-    const [p,c,n,s,m,i,ta,me,to,es] = res.map(r=>r.data);
-    Object.assign(S,{personas:p,citas:c,notas:n,salud:s,miembros:m,invs:i,tareas:ta,medicamentos:me,tomas:to,escolar:es,offline:false});
+    const [p,c,n,s,m,i,ta,me,to,es,ev] = res.map(r=>r.data);
+    Object.assign(S,{personas:p,citas:c,notas:n,salud:s,miembros:m,invs:i,tareas:ta,medicamentos:me,tomas:to,escolar:es,eventos:ev,offline:false});
     if(!S._t){ S._t=1; S.tab=miPersonaId()?'mi':'familia'; }
-    try{ localStorage.setItem(CK,JSON.stringify({uid:S.user.id,data:{fam:S.fam,famNombre:S.famNombre,role:S.role,personas:p,citas:c,notas:n,salud:s,miembros:m,invs:i,tareas:ta,medicamentos:me,tomas:to,escolar:es}})); }catch(_){}
+    try{ localStorage.setItem(CK,JSON.stringify({uid:S.user.id,data:{fam:S.fam,famNombre:S.famNombre,role:S.role,personas:p,citas:c,notas:n,salud:s,miembros:m,invs:i,tareas:ta,medicamentos:me,tomas:to,escolar:es,eventos:ev}})); }catch(_){}
   }catch(e){
     const c = JSON.parse(localStorage.getItem(CK)||'null');
     if(c && c.uid===S.user.id){ Object.assign(S,c.data,{offline:true}); }
@@ -213,14 +217,14 @@ function formSalud(p){
     {k:'condiciones',l:'Condiciones / enfermedades',t:'area'},{k:'vacunas',l:'Vacunas',t:'area'},{k:'medico',l:'Médico de cabecera'}
   ],s,row=>save('salud',{...row,persona_id:p.id,family_id:S.fam},null,{upsert:'persona_id'}),s.persona_id&&(()=>del('salud',p.id,'persona_id')));
 }
-function formCita(c){
+function formCita(c,pre){
   if(!S.personas.length){ toast('Primero agrega una persona'); return; }
   form(c?'Editar cita':'Nueva cita médica',[
     {k:'persona_id',l:'Paciente',t:'select',o:S.personas.map(p=>[p.id,p.nombre])},
     {k:'fecha',l:'Fecha y hora',t:'datetime-local',req:1},{k:'doctor',l:'Doctor / especialidad'},
     {k:'lugar',l:'Lugar'},{k:'motivo',l:'Motivo',t:'area'},
     {k:'estado',l:'Estado',t:'select',o:['pendiente','realizada','cancelada']}
-  ],c&&{...c,fecha:toLocalInput(c.fecha)},row=>{ row.fecha=new Date(row.fecha).toISOString(); return save('citas',row,c&&c.id); },c&&(()=>del('citas',c.id)));
+  ],c?{...c,fecha:toLocalInput(c.fecha)}:pre,row=>{ row.fecha=new Date(row.fecha).toISOString(); return save('citas',row,c&&c.id); },c&&(()=>del('citas',c.id)));
 }
 function formNota(n){
   form(n?'Editar nota':'Nueva nota',[
@@ -265,7 +269,7 @@ function diaInfo(k){
     return b.getMonth()===m-1&&b.getDate()===d; }).map(p=>({p,anios:y-parseDate(p.nacimiento).getFullYear()}));
   const ct=S.citas.filter(c=>ymd(new Date(c.fecha))===k).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
   return { fer:CAL.feriados[k], santo:CAL.santoral[k.slice(5)], bd, ct,
-    tar:S.tareas.filter(t=>!t.hecha&&t.fecha===k), esc:S.escolar.filter(e=>e.tipo==='evento'&&e.fecha===k) };
+    tar:S.tareas.filter(t=>!t.hecha&&t.fecha===k), esc:S.escolar.filter(e=>e.tipo==='evento'&&e.fecha===k), evs:S.eventos.filter(e=>e.fecha===k) };
 }
 function vCalendario(){
   const t0=today0();
@@ -276,21 +280,26 @@ function vCalendario(){
   for(let d=1;d<=n;d++){
     const k=ymd(new Date(y,m,d)), i=diaInfo(k), dow=(off+d-1)%7;
     const cls=['cal-d',i.fer?'fer':'',dow===6?'dom':'',k===ymd(t0)?'hoy':'',k===S.cal.sel?'sel':''].filter(Boolean).join(' ');
-    g+=`<div class="${cls}" data-day="${k}">${d}<i>${i.bd.length?'🎂':''}${i.ct.length?'🩺':''}${i.tar.length?'✅':''}${i.esc.length?'🎒':''}</i></div>`;
+    g+=`<div class="${cls}" data-day="${k}">${d}<i>${i.bd.length?'🎂':''}${i.ct.length?'🩺':''}${i.tar.length?'✅':''}${i.esc.length?'🎒':''}${i.evs.length?'📌':''}</i></div>`;
   }
   const k=S.cal.sel, i=diaInfo(k), fl=parseDate(k).toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   let det=`<div class="card"><div class="t" style="text-transform:capitalize">${esc(fl)}</div>`;
   if(i.fer) det+=`<div class="dt"><span class="pill no">Feriado${i.fer.i?' irrenunciable':''}</span> <b>${esc(i.fer.n)}</b></div>`;
   if(i.santo) det+=`<div class="dt m">✝️ ${esc(i.santo)}</div>`;
   i.bd.forEach(x=>det+=`<div class="dt">🎂 <b>${esc(x.p.nombre)}</b> cumple ${x.anios}</div>`);
-  i.ct.forEach(c=>det+=`<div class="dt">🩺 ${esc(new Date(c.fecha).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}))} · ${esc(pName(c.persona_id))}${c.doctor?' · '+esc(c.doctor):''}${c.motivo?' · '+esc(c.motivo):''} <span class="pill ${c.estado==='realizada'?'ok':c.estado==='cancelada'?'no':''}">${esc(c.estado)}</span></div>`);
-  i.tar.forEach(t=>det+=`<div class="dt">✅ ${esc(t.titulo)}${t.asignada_a?' · '+esc(pName(t.asignada_a)):''}</div>`);
-  i.esc.forEach(e=>det+=`<div class="dt">🎒 ${esc(pName(e.persona_id))} · ${esc(e.titulo)}${e.hora_inicio?' · '+esc(e.hora_inicio):''}</div>`);
+  i.ct.forEach(c=>det+=`<div class="dt ${isEditor()?'tap':''}" data-cita="${c.id}">🩺 ${esc(new Date(c.fecha).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}))} · ${esc(pName(c.persona_id))}${c.doctor?' · '+esc(c.doctor):''}${c.motivo?' · '+esc(c.motivo):''} <span class="pill ${c.estado==='realizada'?'ok':c.estado==='cancelada'?'no':''}">${esc(c.estado)}</span></div>`);
+  i.tar.forEach(t=>det+=`<div class="dt ${isEditor()?'tap':''}" data-tarea="${t.id}">✅ ${esc(t.titulo)}${t.asignada_a?' · '+esc(pName(t.asignada_a)):''}</div>`);
+  i.esc.forEach(e=>det+=`<div class="dt ${isEditor()?'tap':''}" data-esc="${e.id}">🎒 ${esc(pName(e.persona_id))} · ${esc(e.titulo)}${e.hora_inicio?' · '+esc(e.hora_inicio):''}</div>`);
+  i.evs.forEach(e=>det+=`<div class="dt ${isEditor()?'tap':''}" data-evento="${e.id}">📌 <b>${esc(e.titulo)}</b>${e.hora?' · '+esc(e.hora):''}${e.lugar?' · '+esc(e.lugar):''}${e.detalle?'<br><span class="m">'+esc(e.detalle)+'</span>':''}</div>`);
+  if(!i.fer&&!i.bd.length&&!i.ct.length&&!i.tar.length&&!i.esc.length&&!i.evs.length) det+=`<div class="m">Sin actividades este día${isEditor()?' · toca + para agregar':''}</div>`;
   det+='</div>';
   const fm=Object.keys(CAL.feriados).filter(f=>f.startsWith(y+'-'+String(m+1).padStart(2,'0'))).sort();
   const lista=fm.length?`<h2>Feriados del mes</h2>`+fm.map(f=>`<div class="card tap" data-day="${f}"><div class="row"><div class="grow"><div class="t">${esc(CAL.feriados[f].n)}</div><div class="m">${esc(parseDate(f).toLocaleDateString('es-CL',{weekday:'long',day:'numeric'}))}</div></div>${CAL.feriados[f].i?'<span class="pill no">irrenunciable</span>':''}</div></div>`).join(''):'';
+  const kh=ymd(today0());
+  const pe=S.eventos.filter(e=>e.fecha>=kh).sort((a,b)=>(a.fecha+(a.hora||'')).localeCompare(b.fecha+(b.hora||''))).slice(0,5);
+  const proxEv=pe.length?`<h2>Próximos eventos</h2>`+pe.map(e=>`<div class="card tap" data-day="${e.fecha}"><div class="t">📌 ${esc(e.titulo)}</div><div class="m">${esc(parseDate(e.fecha).toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'}))}${e.hora?' · '+esc(e.hora):''}${e.lugar?' · '+esc(e.lugar):''}</div></div>`).join(''):'';
   const aviso=!Object.keys(CAL.feriados).some(f=>f.startsWith(y+'-'))?`<div class="banner">Los feriados de ${y} aún no están cargados.</div>`:'';
-  return `<div class="cal-h"><button class="ghost" data-calnav="-1">‹</button><b>${esc(mes)}</b><button class="ghost" data-calnav="1">›</button></div>${aviso}<div class="cal-g">${g}</div><button class="ghost" data-calnav="0" style="width:100%;margin:8px 0">Hoy</button>${det}${lista}<h2>Próximos cumpleaños</h2>${vCumples()}`;
+  return `<div class="cal-h"><button class="ghost" data-calnav="-1">‹</button><b>${esc(mes)}</b><button class="ghost" data-calnav="1">›</button></div>${aviso}<div class="cal-g">${g}</div><button class="ghost" data-calnav="0" style="width:100%;margin:8px 0">Hoy</button>${det}${lista}${proxEv}<h2>Próximos cumpleaños</h2>${vCumples()}`;
 }
 function citaCard(c){
   const cls=c.estado==='realizada'?'ok':c.estado==='cancelada'?'no':'';
@@ -346,19 +355,20 @@ function render(){
   if(!S.fam){ app.innerHTML=vSetup(); return; }
   const V={mi:vMi,familia:vFamilia,cal:vCalendario,tareas:vTareas,mas:vMas,citas:vCitas,meds:vMeds,escolar:vEscolar,notas:vNotas,salud:vSalud,ajustes:vAjustes};
   if(!(TABS().some(t=>t[0]===S.tab)||SUBTABS.includes(S.tab))||(S.tab==='salud'&&!isAdmin())) S.tab='familia';
-  const fab=!S.offline&&((isEditor()&&{familia:1,citas:1,notas:1,tareas:1,escolar:1}[S.tab])||(isAdmin()&&S.tab==='meds'))?'<button class="fab" data-add>+</button>':'';
+  const fab=!S.offline&&((isEditor()&&{familia:1,citas:1,notas:1,tareas:1,escolar:1,cal:1}[S.tab])||(isAdmin()&&S.tab==='meds'))?'<button class="fab" data-add>+</button>':'';
   app.innerHTML=`<header class="top"><h1>${SUBTABS.includes(S.tab)?'<button class="back" data-tab="mas">‹</button>':''}${esc(TITLES[S.tab])}</h1><small>${esc(S.famNombre)}</small></header>${S.offline?'<div class="banner">Sin conexión · mostrando la última copia guardada (solo lectura)</div>':''}${V[S.tab]()}${fab}<nav class="tabs"><div>${TABS().map(t=>`<button data-tab="${t[0]}" class="${(S.tab===t[0]||(t[0]==='mas'&&SUBTABS.includes(S.tab)))?'on':''}"><span>${t[1]}</span>${t[2]}</button>`).join('')}</div></nav>`;
 }
 
 /* ---------- eventos ---------- */
 document.addEventListener('click',async e=>{
-  const t=e.target.closest('[data-tab],[data-toma],[data-tareaok],[data-utilok],[data-tarea],[data-med],[data-esc],[data-tf],[data-misdatos],[data-vinc],[data-rol],[data-day],[data-calnav],[data-ficha],[data-cita],[data-nota],[data-salud],[data-add],[data-inv],[data-quitar],[data-delinv],[data-export],[data-logout],[data-stop]');
+  const t=e.target.closest('[data-tab],[data-evento],[data-toma],[data-tareaok],[data-utilok],[data-tarea],[data-med],[data-esc],[data-tf],[data-misdatos],[data-vinc],[data-rol],[data-day],[data-calnav],[data-ficha],[data-cita],[data-nota],[data-salud],[data-add],[data-inv],[data-quitar],[data-delinv],[data-export],[data-logout],[data-stop]');
   if(!t) return;
   const d=t.dataset;
   if('stop' in d) return;
   if(d.tab){ S.tab=d.tab; render(); window.scrollTo(0,0); }
   else if(d.day){ if(S.cal){ S.cal.sel=d.day; const [yy,mm]=d.day.split('-').map(Number); S.cal.y=yy; S.cal.m=mm-1; } render(); }
   else if('calnav' in d){ const v=+d.calnav, c=S.cal; if(v===0){ const n=today0(); S.cal={y:n.getFullYear(),m:n.getMonth(),sel:ymd(n)}; } else { const nd=new Date(c.y,c.m+v,1); c.y=nd.getFullYear(); c.m=nd.getMonth(); c.sel=ymd(nd); } render(); }
+  else if(d.evento&&isEditor()) formEvento(S.eventos.find(x=>x.id===d.evento));
   else if(d.toma) await toggleToma(d.toma);
   else if(d.tareaok) await toggleTarea(d.tareaok);
   else if(d.utilok) await toggleUtil(d.utilok);
@@ -373,12 +383,12 @@ document.addEventListener('click',async e=>{
   else if(d.cita&&isEditor()) formCita(S.citas.find(c=>c.id===d.cita));
   else if(d.nota&&isEditor()) formNota(S.notas.find(n=>n.id===d.nota));
   else if(d.salud) formSalud(S.personas.find(p=>p.id===d.salud));
-  else if('add' in d){ ({familia:()=>formPersona(),citas:()=>formCita(),notas:()=>formNota(),tareas:()=>formTarea(),escolar:()=>formEscolar(),meds:()=>formMed()})[S.tab](); }
+  else if('add' in d){ ({familia:()=>formPersona(),citas:()=>formCita(),notas:()=>formNota(),tareas:()=>formTarea(),escolar:()=>formEscolar(),meds:()=>formMed(),cal:()=>abrirAgregar(S.cal&&S.cal.sel)})[S.tab](); }
   else if('inv' in d) form('Invitar familiar',[{k:'email',l:'Correo',t:'email',req:1},{k:'role',l:'Rol',t:'select',o:[['miembro','Miembro (solo lectura)'],['editor','Editor (edita, sin ver Salud)'],['admin','Administrador (todo, incluye Salud)']]},{k:'persona_id',l:'Es la persona…',t:'select',o:[['','Sin vincular (después)'],...S.personas.map(p=>[p.id,p.nombre])]}],{role:'miembro'},async row=>{ row.email=row.email.toLowerCase(); return save('invitaciones',row); });
   else if(d.quitar){ if(confirm('¿Quitar a este miembro?')) await del('miembros',d.quitar,'user_id'); }
   else if(d.delinv) await del('invitaciones',d.delinv,'email');
   else if('export' in d){
-    const blob=new Blob([JSON.stringify({exportado:new Date().toISOString(),familia:S.famNombre,personas:S.personas,salud:isAdmin()?S.salud:undefined,citas:S.citas,notas:S.notas,tareas:S.tareas,escolar:S.escolar,medicamentos:isAdmin()?S.medicamentos:undefined},null,2)],{type:'application/json'});
+    const blob=new Blob([JSON.stringify({exportado:new Date().toISOString(),familia:S.famNombre,personas:S.personas,salud:isAdmin()?S.salud:undefined,citas:S.citas,notas:S.notas,tareas:S.tareas,escolar:S.escolar,eventos:S.eventos,medicamentos:isAdmin()?S.medicamentos:undefined},null,2)],{type:'application/json'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='familia-respaldo-'+new Date().toISOString().slice(0,10)+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   }
   else if('logout' in d){ await sb.auth.signOut(); try{localStorage.removeItem(CK);}catch(_){} S.user=null; S.fam=null; render(); }
