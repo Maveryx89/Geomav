@@ -35,7 +35,7 @@ function vSaludLista(){
     const hs=S.historial.filter(h=>h.persona_id===p.id).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
     const s=S.salud.find(x=>x.persona_id===p.id);
     const sub=hs.length?`${hs.length} registro${hs.length>1?'s':''} · último: ${hFecha(hs[0].fecha)}`:(s?'Sin registros en el historial':'Sin ficha de salud');
-    return `<div class="card tap" data-salud="${p.id}"><div class="row"><div class="av">${esc(inicial(p.nombre))}</div><div class="grow"><div class="t">${esc(p.nombre)}</div><div class="m">${esc(sub)}</div></div><span class="m">›</span></div></div>`;
+    return `<div class="card tap" data-salud="${p.id}"><div class="row"><div class="av">${esc(inicial(p.nombre))}</div><div class="grow"><div class="t">${esc(pCorto(p))}</div><div class="m">${esc(sub)}</div></div><span class="m">›</span></div></div>`;
   }).join('');
 }
 
@@ -57,8 +57,8 @@ function hTendencias(all){
 
 function hCard(h){
   const t=hT(h.tipo), nf=hCount(h), ar=h.archivos||[], rs=h.resultados||[];
-  const meta=[hFecha(h.fecha),h.profesional,h.lugar].filter(Boolean).join(' · ');
-  const body=(h.detalle?`<div style="white-space:pre-wrap;margin:8px 0">${esc(h.detalle)}</div>`:'')
+  const meta=[hFecha(h.fecha),h.profesional].filter(Boolean).join(' · ');
+  const body=(h.lugar?`<div class="m" style="margin-top:8px">📍 ${esc(h.lugar)}</div>`:'')+(h.detalle?`<div style="white-space:pre-wrap;margin:8px 0">${esc(h.detalle)}</div>`:'')
    +(rs.length?`<table class="rt">${rs.map(o=>o.v||o.u||o.r?`<tr><td>${esc(o.n)}</td><td class="${o.f||''}">${esc(o.v)} ${esc(o.u||'')}${o.f?(o.f==='alto'?' ↑':' ↓'):''}</td><td class="m">${esc(o.r||'')}</td></tr>`:`<tr class="hd"><td colspan="3">${esc(o.n)}</td></tr>`).join('')}</table>`:'')
    +(ar.length?`<div class="btns" style="justify-content:flex-start">${ar.map(a=>`<button class="ghost sm" data-arch="${esc(a.path)}">📎 ${esc(a.name)}</button>`).join('')}</div>`:'')
    +(isAdmin()&&!S.offline?`<div class="btns"><button class="ghost sm" data-hent="${h.id}">Editar</button></div>`:'');
@@ -74,7 +74,7 @@ function vHistorial(){
   const f=S.hf||'todos';
   const list=all.filter(h=>f==='todos'||h.tipo===f).sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
   const kv=(k,v)=>v?`<b>${k}</b><span>${esc(v).replace(/\n/g,'<br>')}</span>`:'';
-  let h=`<div class="card"><div class="row"><div class="av">${esc(inicial(p.nombre))}</div><div class="grow"><div class="t">${esc(p.nombre)}</div><div class="m">${esc(p.parentesco||'')}${p.nacimiento?` · ${edad(p.nacimiento)} años`:''}</div></div>${isAdmin()&&!S.offline?'<button class="ghost sm" data-hficha>Ficha base</button>':''}</div>`
+  let h=`<div class="card"><div class="row"><div class="av">${esc(inicial(p.nombre))}</div><div class="grow"><div class="t">${esc(pCorto(p))}</div><div class="m">${esc(p.parentesco||'')}${p.nacimiento?` · ${edad(p.nacimiento)} años`:''}</div></div>${isAdmin()&&!S.offline?'<button class="ghost sm" data-hficha>Ficha base</button>':''}</div>`
    +`<div class="kv">${kv('RUT',s.rut)}${kv('Previsión',s.prevision)}${kv('Grupo sang.',s.grupo_sanguineo)}${kv('Alergias',s.alergias)}${kv('Medicamentos',s.medicamentos)}${kv('Condiciones',s.condiciones)}${kv('Vacunas',s.vacunas)}${kv('Médico',s.medico)}</div></div>`;
   h+=hTendencias(all);
   const cnt=k=>k==='todos'?all.length:all.filter(x=>x.tipo===k).length;

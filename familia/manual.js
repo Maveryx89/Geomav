@@ -1,6 +1,7 @@
 /* Manual de uso. Para actualizarlo: editar MANUAL (secciones) y agregar una línea arriba en MANUAL_LOG. */
 const MANUAL_VER='19 oct 2026';
 const MANUAL_LOG=[
+  ['19 oct 2026','Las listas muestran el nombre corto (primer nombre y primer apellido) y se quitaron datos repetidos en citas, tareas y calendario. El nombre completo sigue en la ficha.'],
   ['19 oct 2026','Primera versión del manual y recorrido guiado. Incluye el historial de salud con adjuntos y el botón + del calendario.']
 ];
 const MANUAL=[
@@ -25,7 +26,8 @@ const MANUAL=[
  {id:'familia',ic:'👪',t:'Familia (personas)',h:`
   <ul><li>Lista de personas con edad y próximo cumpleaños. Toca una para ver su ficha.</li>
   <li><b>Agregar o editar</b> (admin y editor): botón + abajo a la derecha, o «Editar» dentro de la ficha.</li>
-  <li>Campos: nombre, parentesco, fecha de nacimiento, teléfono, contacto de emergencia y notas. La fecha de nacimiento alimenta los cumpleaños del calendario.</li></ul>`},
+  <li>Campos: nombre, parentesco, fecha de nacimiento, teléfono, contacto de emergencia y notas. La fecha de nacimiento alimenta los cumpleaños del calendario.</li>
+  <li>En las listas se muestra el <b>nombre corto</b> (primer nombre y primer apellido). El nombre completo está en la ficha de la persona y en los formularios. Si dos personas quedarían iguales, se muestra un nombre más largo para distinguirlas.</li></ul>`},
  {id:'cal',ic:'📅',t:'Calendario',h:`
   <ul><li><b>Rojo:</b> feriado de Chile (2026 y 2027, con traslados por ley). Debajo de cada día aparece el santo.</li>
   <li>Marcas por día: cumpleaños, citas médicas, tareas, eventos y actividades del colegio.</li>

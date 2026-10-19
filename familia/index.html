@@ -84,6 +84,7 @@ details>summary{display:flex;gap:10px;align-items:center;cursor:pointer;list-sty
 .tcard .te{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
 .tcard .tt{font-size:1.45rem;font-weight:800;margin-bottom:8px}.tcard .td{font-size:1.02rem;line-height:1.5}
 .tcard .tf{display:flex;align-items:center;gap:8px;margin-top:16px}.tlink{background:none;color:var(--mut);padding:10px 8px}
+.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .empty{text-align:center;color:var(--mut);padding:30px 10px}
 a{color:var(--blueprint)}
 </style>
@@ -123,6 +124,16 @@ const fmtFecha = d => parseDate(d).toLocaleDateString('es-CL',{day:'numeric',mon
 const fmtDT = iso => new Date(iso).toLocaleString('es-CL',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
 const toLocalInput = iso => { if(!iso) return ''; const d=new Date(iso); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16); };
 const pName = id => (S.personas.find(p=>p.id===id)||{}).nombre || '—';
+/* Nombre corto para listas: primer nombre + primer apellido. El nombre completo queda en la ficha y en los formularios. */
+function nBase(n){ const w=String(n||'').trim().split(/\s+/); return w.length<=2?w.join(' '):(w.length===3?w[0]+' '+w[1]:w[0]+' '+w[2]); }
+function pCorto(p){
+  if(!p) return '—';
+  const w=String(p.nombre||'').trim().split(/\s+/), b=nBase(p.nombre);
+  if(w.length<=2) return p.nombre||'—';
+  if(!S.personas.some(o=>o.id!==p.id&&nBase(o.nombre)===b)) return b;
+  return w.length>=4?w[0]+' '+w[1]+' '+w[2]:p.nombre;
+}
+const pShort = id => pCorto(S.personas.find(p=>p.id===id));
 const inicial = n => (n||'?').trim().charAt(0).toUpperCase();
 
 /* ---------- datos ---------- */
@@ -269,12 +280,12 @@ function ficha(id){
 /* ---------- vistas ---------- */
 function vFamilia(){
   if(!S.personas.length) return `<div class="empty">Aún no hay personas.${isEditor()?'<br>Toca + para agregar la primera.':''}</div>`;
-  return S.personas.map(p=>`<div class="card tap" data-ficha="${p.id}"><div class="row"><div class="av">${esc(inicial(p.nombre))}</div><div class="grow"><div class="t">${esc(p.nombre)}</div><div class="m">${esc(p.parentesco||'')}${p.nacimiento?` · ${edad(p.nacimiento)} años`:''}</div></div>${p.telefono?`<a href="tel:${esc(p.telefono)}" data-stop style="text-decoration:none;font-size:1.4rem">📞</a>`:''}</div></div>`).join('');
+  return S.personas.map(p=>`<div class="card tap" data-ficha="${p.id}"><div class="row"><div class="av">${esc(inicial(p.nombre))}</div><div class="grow"><div class="t">${esc(pCorto(p))}</div><div class="m">${esc(p.parentesco||'')}${p.nacimiento?` · ${edad(p.nacimiento)} años`:''}</div></div>${p.telefono?`<a href="tel:${esc(p.telefono)}" data-stop style="text-decoration:none;font-size:1.4rem">📞</a>`:''}</div></div>`).join('');
 }
 function vCumples(){
   const l=S.personas.filter(p=>p.nacimiento).map(p=>({p,...proxCumple(p.nacimiento)})).sort((a,b)=>a.dias-b.dias);
   if(!l.length) return `<div class="empty">Agrega fechas de nacimiento en la ficha de cada persona.</div>`;
-  return l.map(x=>`<div class="card"><div class="row"><div class="av" style="background:${x.dias===0?'var(--accent)':'var(--blueprint)'}">${x.dias===0?'🎂':esc(inicial(x.p.nombre))}</div><div class="grow"><div class="t">${esc(x.p.nombre)}</div><div class="m">${fmtFecha(x.p.nacimiento)} · cumple ${x.cumple}</div></div><span class="pill ${x.dias===0?'hoy':''}">${x.dias===0?'¡Hoy!':x.dias===1?'Mañana':x.dias+' días'}</span></div></div>`).join('');
+  return l.map(x=>`<div class="card"><div class="row"><div class="av" style="background:${x.dias===0?'var(--accent)':'var(--blueprint)'}">${x.dias===0?'🎂':esc(inicial(x.p.nombre))}</div><div class="grow"><div class="t">${esc(pCorto(x.p))}</div><div class="m">${fmtFecha(x.p.nacimiento)} · cumple ${x.cumple}</div></div><span class="pill ${x.dias===0?'hoy':''}">${x.dias===0?'¡Hoy!':x.dias===1?'Mañana':x.dias+' días'}</span></div></div>`).join('');
 }
 /* ---------- calendario ---------- */
 const CAL = window.CAL_CL || { feriados:{}, santoral:{} };
@@ -304,10 +315,10 @@ function vCalendario(){
   let det=`<div class="card"><div class="t" style="text-transform:capitalize">${esc(fl)}</div>`;
   if(i.fer) det+=`<div class="dt"><span class="pill no">Feriado${i.fer.i?' irrenunciable':''}</span> <b>${esc(i.fer.n)}</b></div>`;
   if(i.santo) det+=`<div class="dt m">✝️ ${esc(i.santo)}</div>`;
-  i.bd.forEach(x=>det+=`<div class="dt">🎂 <b>${esc(x.p.nombre)}</b> cumple ${x.anios}</div>`);
-  i.ct.forEach(c=>det+=`<div class="dt ${isEditor()?'tap':''}" data-cita="${c.id}">🩺 ${esc(new Date(c.fecha).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}))} · ${esc(pName(c.persona_id))}${c.doctor?' · '+esc(c.doctor):''}${c.motivo?' · '+esc(c.motivo):''} <span class="pill ${c.estado==='realizada'?'ok':c.estado==='cancelada'?'no':''}">${esc(c.estado)}</span></div>`);
-  i.tar.forEach(t=>det+=`<div class="dt ${isEditor()?'tap':''}" data-tarea="${t.id}">✅ ${esc(t.titulo)}${t.asignada_a?' · '+esc(pName(t.asignada_a)):''}</div>`);
-  i.esc.forEach(e=>det+=`<div class="dt ${isEditor()?'tap':''}" data-esc="${e.id}">🎒 ${esc(pName(e.persona_id))} · ${esc(e.titulo)}${e.hora_inicio?' · '+esc(e.hora_inicio):''}</div>`);
+  i.bd.forEach(x=>det+=`<div class="dt">🎂 <b>${esc(pCorto(x.p))}</b> cumple ${x.anios}</div>`);
+  i.ct.forEach(c=>det+=`<div class="dt ${isEditor()?'tap':''}" data-cita="${c.id}">🩺 ${esc(new Date(c.fecha).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}))} · ${esc(pShort(c.persona_id))}${c.doctor?' · '+esc(c.doctor):''}${c.estado!=='pendiente'?` <span class="pill ${c.estado==='realizada'?'ok':'no'}">${esc(c.estado)}</span>`:''}</div>`);
+  i.tar.forEach(t=>det+=`<div class="dt ${isEditor()?'tap':''}" data-tarea="${t.id}">✅ ${esc(t.titulo)}${t.asignada_a?' · '+esc(pShort(t.asignada_a)):''}</div>`);
+  i.esc.forEach(e=>det+=`<div class="dt ${isEditor()?'tap':''}" data-esc="${e.id}">🎒 ${esc(pShort(e.persona_id))} · ${esc(e.titulo)}${e.hora_inicio?' · '+esc(e.hora_inicio):''}</div>`);
   i.evs.forEach(e=>det+=`<div class="dt ${isEditor()?'tap':''}" data-evento="${e.id}">📌 <b>${esc(e.titulo)}</b>${e.hora?' · '+esc(e.hora):''}${e.lugar?' · '+esc(e.lugar):''}${e.detalle?'<br><span class="m">'+esc(e.detalle)+'</span>':''}</div>`);
   if(!i.fer&&!i.bd.length&&!i.ct.length&&!i.tar.length&&!i.esc.length&&!i.evs.length) det+=`<div class="m">Sin actividades este día${isEditor()?' · toca + para agregar':''}</div>`;
   det+='</div>';
@@ -319,9 +330,9 @@ function vCalendario(){
   const aviso=!Object.keys(CAL.feriados).some(f=>f.startsWith(y+'-'))?`<div class="banner">Los feriados de ${y} aún no están cargados.</div>`:'';
   return `<div class="cal-h"><button class="ghost" data-calnav="-1">‹</button><b>${esc(mes)}</b><button class="ghost" data-calnav="1">›</button></div>${aviso}<div class="cal-g">${g}</div><button class="ghost" data-calnav="0" style="width:100%;margin:8px 0">Hoy</button>${det}${lista}${proxEv}<h2>Próximos cumpleaños</h2>${vCumples()}`;
 }
-function citaCard(c){
+function citaCard(c,propia){
   const cls=c.estado==='realizada'?'ok':c.estado==='cancelada'?'no':'';
-  return `<div class="card ${isEditor()?'tap':''}" data-cita="${c.id}"><div class="row"><div class="grow"><div class="t">${esc(fmtDT(c.fecha))}</div><div class="m">${esc(pName(c.persona_id))}${c.doctor?' · '+esc(c.doctor):''}${c.lugar?' · '+esc(c.lugar):''}</div>${c.motivo?`<div class="m">${esc(c.motivo)}</div>`:''}</div><span class="pill ${cls}">${esc(c.estado)}</span></div></div>`;
+  return `<div class="card ${isEditor()?'tap':''}" data-cita="${c.id}"><div class="row"><div class="grow"><div class="t">${esc(fmtDT(c.fecha))}</div><div class="m">${[propia?'':pShort(c.persona_id),c.doctor].filter(Boolean).map(esc).join(' · ')}</div>${c.lugar?`<div class="m">📍 ${esc(c.lugar)}</div>`:''}${c.motivo?`<div class="m clamp">${esc(c.motivo)}</div>`:''}</div><span class="pill ${cls}">${esc(c.estado)}</span></div></div>`;
 }
 function vCitas(){
   const now=Date.now();
@@ -338,7 +349,7 @@ function vNotas(){
 function vSalud(){ return S.hp?vHistorial():vSaludLista(); }
 function vAjustes(){
   let h=`<div class="card"><div class="t">${esc(S.famNombre)}</div><div class="m">${esc(S.user.email||'')} · ${esc(ROL[S.role]||S.role)}</div></div><h2>Miembros</h2>`;
-  h+=S.miembros.map(m=>`<div class="card"><div class="row"><div class="grow"><div class="t">${esc(m.email||'—')}</div><div class="m">${esc(ROL[m.role]||m.role)}${m.persona_id?' · 🙋 '+esc(pName(m.persona_id)):' · sin persona vinculada'}</div></div>${isAdmin()?`<button class="ghost sm" data-vinc="${m.user_id}" style="margin-right:6px">Persona</button>`:''}${isAdmin()&&m.user_id!==S.user.id?`<button class="ghost" data-rol="${m.user_id}" style="margin-right:6px">Rol</button><button class="danger" data-quitar="${m.user_id}">Quitar</button>`:''}</div></div>`).join('');
+  h+=S.miembros.map(m=>`<div class="card"><div><div class="t" style="word-break:break-all">${esc(m.email||'—')}</div><div class="m">${esc(ROL[m.role]||m.role)}${m.persona_id?' · 🙋 '+esc(pShort(m.persona_id)):' · sin persona vinculada'}</div></div>${isAdmin()?`<div class="btns" style="justify-content:flex-start;margin-top:10px"><button class="ghost sm" data-vinc="${m.user_id}">Persona</button>${m.user_id!==S.user.id?`<button class="ghost sm" data-rol="${m.user_id}">Rol</button><button class="danger sm" data-quitar="${m.user_id}">Quitar</button>`:''}</div>`:''}</div>`).join('');
   if(isAdmin()){
     h+=S.invs.map(i=>`<div class="card"><div class="row"><div class="grow"><div class="t">${esc(i.email)}</div><div class="m">Invitación pendiente · ${esc(ROL[i.role]||i.role)}</div></div><button class="danger" data-delinv="${esc(i.email)}">✕</button></div></div>`).join('');
     h+=`<button class="primary" data-inv style="width:100%">Invitar familiar</button><div class="m" style="margin-top:6px">El familiar debe ingresar a la app con ese mismo correo para unirse.</div>`;

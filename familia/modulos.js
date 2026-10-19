@@ -21,13 +21,13 @@ function vMi(){
   const p=miPersona();
   if(!p) return `<div class="card"><div class="t">Tu cuenta aún no está vinculada a una persona</div><div class="m">${isAdmin()?'Ve a Más → Ajustes → Miembros y toca «Persona» en tu fila para vincularte.':'Pídele al administrador que te vincule en Ajustes.'}</div></div><div class="empty">Mientras tanto puedes ver Familia, Calendario y Tareas.</div>`;
   const k=hoyKey();
-  let h=`<div class="card"><div class="row"><div class="av">${esc(inicial(p.nombre))}</div><div class="grow"><div class="t">${esc(p.nombre)}</div><div class="m">${esc(p.parentesco||'')}${p.nacimiento?` · ${edad(p.nacimiento)} años`:''}</div></div><button class="ghost sm" data-misdatos>Editar</button></div><div class="kv">`+KV('Teléfono',p.telefono)+KV('Emergencia',p.emergencia)+KV('Notas',p.notas)+`</div></div>`;
+  let h=`<div class="card"><div class="row"><div class="av">${esc(inicial(p.nombre))}</div><div class="grow"><div class="t">${esc(pCorto(p))}</div><div class="m">${esc(p.parentesco||'')}${p.nacimiento?` · ${edad(p.nacimiento)} años`:''}</div></div><button class="ghost sm" data-misdatos>Editar</button></div><div class="kv">`+KV('Teléfono',p.telefono)+KV('Emergencia',p.emergencia)+KV('Notas',p.notas)+`</div></div>`;
   const dosis=S.medicamentos.filter(m=>m.persona_id===p.id&&medActivo(m)).flatMap(m=>horasMed(m).map(hr=>({m,hr}))).sort((a,b)=>a.hr.localeCompare(b.hr));
   if(dosis.length) h+=`<h2>Medicamentos de hoy</h2>`+dosis.map(x=>doseCard(x.m,x.hr)).join('');
   const tr=S.tareas.filter(t=>!t.hecha&&t.asignada_a===p.id).sort(cmpTarea);
-  if(tr.length) h+=`<h2>Mis tareas</h2>`+tr.map(tareaCard).join('');
+  if(tr.length) h+=`<h2>Mis tareas</h2>`+tr.map(t=>tareaCard(t,1)).join('');
   const ci=S.citas.filter(c=>c.persona_id===p.id&&c.estado==='pendiente'&&new Date(c.fecha)>=Date.now()-36e5).slice(0,3);
-  if(ci.length) h+=`<h2>Mis próximas citas</h2>`+ci.map(citaCard).join('');
+  if(ci.length) h+=`<h2>Mis próximas citas</h2>`+ci.map(c=>citaCard(c,1)).join('');
   const ev=S.escolar.filter(e=>e.persona_id===p.id&&e.tipo==='evento'&&(e.fecha||'')>=k).sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha))).slice(0,3);
   if(ev.length) h+=`<h2>Escolar · próximos</h2>`+ev.map(escCard).join('');
   const s=S.salud.find(x=>x.persona_id===p.id);
@@ -47,9 +47,9 @@ function formVincular(m){
 
 /* ---------- Tareas ---------- */
 function cmpTarea(a,b){ return (a.fecha||'9999').localeCompare(b.fecha||'9999')||a.titulo.localeCompare(b.titulo); }
-function tareaCard(t){
+function tareaCard(t,propia){
   const k=hoyKey(), venc=t.fecha&&t.fecha<k&&!t.hecha;
-  return `<div class="card ${isEditor()?'tap':''}" data-tarea="${t.id}"><div class="row"><button class="chkb" data-tareaok="${t.id}" aria-label="Marcar">${t.hecha?'✅':'⬜'}</button><div class="grow ${t.hecha?'done':''}"><div class="t">${esc(t.titulo)}</div><div class="m">${t.asignada_a?'👤 '+esc(pName(t.asignada_a)):'👥 Cualquiera'}${t.fecha?' · '+esc(fmtDia(t.fecha)):''}${t.repite?' · 🔁 '+esc(t.repite):''}</div>${t.descripcion?`<div class="m">${esc(t.descripcion)}</div>`:''}</div>${venc?'<span class="pill no">Vencida</span>':(t.fecha===k&&!t.hecha?'<span class="pill hoy">Hoy</span>':'')}</div></div>`;
+  return `<div class="card ${isEditor()?'tap':''}" data-tarea="${t.id}"><div class="row"><button class="chkb" data-tareaok="${t.id}" aria-label="Marcar">${t.hecha?'✅':'⬜'}</button><div class="grow ${t.hecha?'done':''}"><div class="t">${esc(t.titulo)}</div><div class="m">${propia?'':(t.asignada_a?'👤 '+esc(pShort(t.asignada_a)):'👥 Cualquiera')+(t.fecha?' · ':'')}${t.fecha?esc(fmtDia(t.fecha)):''}${t.repite?' · 🔁 '+esc(t.repite):''}</div>${t.descripcion?`<div class="m">${esc(t.descripcion)}</div>`:''}</div>${venc?'<span class="pill no">Vencida</span>':(t.fecha===k&&!t.hecha?'<span class="pill hoy">Hoy</span>':'')}</div></div>`;
 }
 function vTareas(){
   const mi=miPersonaId(), f=S.tf||'todas';
@@ -58,7 +58,7 @@ function vTareas(){
   let l=S.tareas; if(f==='mias') l=l.filter(t=>t.asignada_a===mi);
   const pend=l.filter(t=>!t.hecha).sort(cmpTarea);
   const hechas=l.filter(t=>t.hecha).sort((a,b)=>String(b.hecha_at||'').localeCompare(String(a.hecha_at||''))).slice(0,10);
-  return seg+`<h2>Pendientes</h2>`+(pend.map(tareaCard).join('')||'<div class="empty">Todo al día 🎉</div>')+(hechas.length?`<h2>Hechas recientemente</h2>`+hechas.map(tareaCard).join(''):'');
+  return seg+`<h2>Pendientes</h2>`+(pend.map(t=>tareaCard(t,f==='mias')).join('')||'<div class="empty">Todo al día 🎉</div>')+(hechas.length?`<h2>Hechas recientemente</h2>`+hechas.map(t=>tareaCard(t,f==='mias')).join(''):'');
 }
 function formTarea(t,pre){
   form(t?'Editar tarea':'Nueva tarea',[
@@ -88,7 +88,7 @@ function vMeds(){
   const nota=`<div class="banner">${isAdmin()?'Solo los administradores y cada persona (la suya) ven esta sección.':'Aquí ves solo tus medicamentos.'}</div>`;
   if(!S.medicamentos.length) return nota+`<div class="empty">Sin medicamentos registrados.${isAdmin()?'<br>Toca + para agregar.':''}</div>`;
   const g=agrupa(S.medicamentos,'persona_id');
-  return nota+Object.keys(g).sort((a,b)=>pName(a).localeCompare(pName(b))).map(pid=>`<h2>${esc(pName(pid))}</h2>`+g[pid].map(medCard).join('')).join('');
+  return nota+Object.keys(g).sort((a,b)=>pName(a).localeCompare(pName(b))).map(pid=>`<h2>${esc(pShort(pid))}</h2>`+g[pid].map(medCard).join('')).join('');
 }
 function formMed(m){
   if(!S.personas.length){ toast('Primero agrega una persona'); return; }
@@ -132,7 +132,7 @@ function vEscolar(){
     const ev=l.filter(e=>e.tipo==='evento'&&(e.fecha||'')>=k).sort((a,b)=>(String(a.fecha)+(a.hora_inicio||'')).localeCompare(String(b.fecha)+(b.hora_inicio||'')));
     const hor=l.filter(e=>e.tipo==='horario');
     const ut=l.filter(e=>e.tipo==='util').sort((a,b)=>Number(a.hecha)-Number(b.hecha));
-    let h=`<h2>🎒 ${esc(pName(pid))}</h2>`;
+    let h=`<h2>🎒 ${esc(pShort(pid))}</h2>`;
     if(ev.length) h+=`<div class="m sub">Próximos eventos</div>`+ev.map(escCard).join('');
     if(hor.length){
       h+=`<div class="m sub">Horario semanal</div>`;
