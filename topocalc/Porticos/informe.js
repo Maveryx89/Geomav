@@ -1,5 +1,5 @@
 /* Informe de avance · Pórticos (Resumen ejecutivo)
-   4 hojas A3 vertical (297 x 420 mm): 1 mapa · 2 semanal · 3 intermedio · 4 indicadores.
+   8 hojas A3 vertical (297 x 420 mm): 1 mapa · 2 trazados · 3 semana presente · 4 semana anterior y siguiente · 5 intermedio · 6 restricciones · 7 indicadores · 8 estado de los pórticos.
    Se genera en el navegador con los datos vivos de la app; salida PDF (300 ppp) y SVG (zip). */
 (function(){
 "use strict";
@@ -77,7 +77,7 @@ function cmpNat(a, b){ return String(a).localeCompare(String(b), "es", { numeric
 function cuenta(arr, fn){ var o = {}; arr.forEach(function(x){ var k = fn(x); o[k] = (o[k] || 0) + 1; }); return o; }
 
 /* ---------- marco de página ---------- */
-var TOTAL = 4;
+var TOTAL = 8;
 function frame(n, label, title, corte, extra){
   var o = [R(0, 0, 297, 420, "#ffffff")];
   o.push(T(16, 18, label, 2.6, 600, MUTE, { mono:true, ls:.35 }));
@@ -121,6 +121,7 @@ function modelo(D){
   });
   M.NIV = {}; M.PORT.forEach(function(p){ var n = -1; ORDEN.forEach(function(q, i){ if(M.ejec[p.num + "|" + q]) n = i; }); M.NIV[p.num] = n; });
   M.TRAZ = M.PORT.filter(function(p){ return M.NIV[p.num] >= 0; }).map(function(p){ return p.num; }).sort(function(a, b){ return a - b; });
+  M.CAUSAS = {}; (D.causas || []).forEach(function(c){ M.CAUSAS[c[0]] = c[1]; }); if(!Object.keys(M.CAUSAS).length) M.CAUSAS = CAUSAS0;
   M.corte = fdmy(D.hoy);
   return M;
 }
@@ -129,20 +130,24 @@ function modelo(D){
 function merc(lat, lng){ return [lng * Math.PI / 180, Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360))]; }
 function hoja1(M, G){
   var PORT = M.PORT, PN = M.PN, TR = M.TRAZ, NIV = M.NIV;
-  var o = frame(1, "INFORME DE AVANCE · PÓRTICOS DE VIGILANCIA · REGIÓN DE O'HIGGINS", "Pórticos trazados · mapa de situación", "corte al " + M.corte);
+  var o = frame(1, "INFORME DE AVANCE · PÓRTICOS DE VIGILANCIA · REGIÓN DE O'HIGGINS", "Mapa de situación · pórticos trazados", "corte al " + M.corte);
   var comT = {}; TR.forEach(function(n){ comT[PN[n].comuna] = 1; });
   var post = TR.filter(function(n){ return NIV[n] >= 1; });
+  var lun = lunes(M.hoy), SEMS = [["Semana anterior", -7, "#8C949E", null, 2.5], ["Semana presente", 0, NAVY, null, 3.2], ["Semana siguiente", 7, "#B23B3B", "0.9 0.6", 3.9]].map(function(q){
+    var a = addDays(lun, q[1]), A = iso(a), B = iso(addDays(a, 6)), rs = M.PR.filter(function(r){ return r.fecha >= A && r.fecha <= B && ORDEN.indexOf(r.partida) >= 0; }), pp = {}; rs.forEach(function(r){ pp[r.portico] = 1; });
+    return { nombre:q[0], a:a, rs:rs, col:q[2], dash:q[3], rad:q[4], ports:Object.keys(pp) };
+  });
   o = o.concat(kpis([[TR.length, "de " + PORT.length + " pórticos trazados"], [post.length, "con partidas posteriores"], [Object.keys(comT).length, "comunas intervenidas"], [Object.keys(M.ejec).length, "partidas ejecutadas"]]));
   var pts = TR.map(function(n){ return PN[n]; }).filter(function(p){ return p.lat != null; });
   if(!pts.length) pts = PORT.filter(function(p){ return p.lat != null; });
   var la0 = Math.min.apply(0, pts.map(function(p){ return p.lat; })), la1 = Math.max.apply(0, pts.map(function(p){ return p.lat; }));
   var lo0 = Math.min.apply(0, pts.map(function(p){ return p.lng; })), lo1 = Math.max.apply(0, pts.map(function(p){ return p.lng; }));
-  var MX = 16, MY = 52, MW = 265, MH = 198;
+  var MX = 16, MY = 52, MW = 265, MH = 168, MH0 = 198;
   var a0 = merc(la0, lo0), a1 = merc(la1, lo1), cx = (a0[0] + a1[0]) / 2, cy = (a0[1] + a1[1]) / 2, spanx = a1[0] - a0[0], spany = a1[1] - a0[1];
-  var k = Math.max(spanx / (MW * .86), spany / (MH * .84), 1e-7), wx0 = cx - k * MW / 2, wy1 = cy + k * MH / 2;
+  var k = Math.max(spanx / (MW * .86), spany / (MH * .84), 1e-7), wx0 = cx - k * MW / 2, wy1 = cy + k * MH0 / 2;
   function P(lat, lng){ var m = merc(lat, lng); return [MX + (m[0] - wx0) / k, MY + (wy1 - m[1]) / k]; }
   function inv(px, py){ var x = wx0 + (px - MX) * k, y = wy1 - (py - MY) * k; return [(2 * Math.atan(Math.exp(y)) - Math.PI / 2) * 180 / Math.PI, x * 180 / Math.PI]; }
-  var laC = inv(MX + MW / 2, MY + MH / 2)[0] * Math.PI / 180, mmPerM = 1 / (k * 6378137 * Math.cos(laC));
+  var laC = inv(MX + MW / 2, MY + MH0 / 2)[0] * Math.PI / 180, mmPerM = 1 / (k * 6378137 * Math.cos(laC));
   o.push('<defs><clipPath id="mapclip"><rect x="' + MX + '" y="' + MY + '" width="' + MW + '" height="' + MH + '"/></clipPath></defs>');
   o.push(R(MX, MY, MW, MH, "#F4F3EF"));
   var g = ['<g clip-path="url(#mapclip)">'];
@@ -191,6 +196,8 @@ function hoja1(M, G){
   });
   var sinTraz = PORT.filter(function(p){ return p.lat != null && TR.indexOf(p.num) < 0; });
   sinTraz.forEach(function(p){ var q = P(p.lat, p.lng); if(MX < q[0] && q[0] < MX + MW && MY < q[1] && q[1] < MY + MH) g.push('<circle cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" r=".95" fill="#ffffff" stroke="#8C949E" stroke-width=".25"/>'); });
+  SEMS.forEach(function(sm){ sm.ports.slice().sort(cmpNat).forEach(function(n){ var p = PN[n]; if(!p || p.lat == null) return; var q = P(p.lat, p.lng);
+    if(MX < q[0] && q[0] < MX + MW && MY < q[1] && q[1] < MY + MH) g.push('<circle cx="' + f(q[0]) + '" cy="' + f(q[1]) + '" r="' + sm.rad + '" fill="none" stroke="' + sm.col + '" stroke-width=".45"' + (sm.dash ? ' stroke-dasharray="' + sm.dash + '"' : "") + '/>'); }); });
   var marks = [];
   TR.forEach(function(n){ var p = PN[n]; if(p.lat == null) return; var q = P(p.lat, p.lng); marks.push([n, q[0], q[1]]); });
   var occ = marks.map(function(m){ return [m[1] - 1.8, m[2] - 1.8, m[1] + 1.8, m[2] + 1.8]; });
@@ -253,11 +260,43 @@ function hoja1(M, G){
   var cnt = cuenta(TR, function(n){ return NIV[n]; }), px = 16 + tw("Último estado ejecutado", 3, 700) + 6;
   ORDEN.forEach(function(p, i){ if(!cnt[i]) return; o.push(circ(px + 1.5, ly, 1.45, COL[p], "#ffffff", .4)); var lab = p + " " + cnt[i]; o.push(T(px + 4, ly, lab, 3, 400, NAVY)); px += 4 + tw(lab, 3) + 6; });
   o.push(circ(px + 1.5, ly, .95, "#fff", "#8C949E", .25)); o.push(T(px + 4, ly, "Sin trazar (" + sinTraz.length + ")", 3, 400, NAVY));
+  var ly2 = ly + 5.4, px2 = 16;
+  o.push(T(px2, ly2, "Anillos · pórticos con programación", 3, 700, NAVY)); px2 += tw("Anillos · pórticos con programación", 3, 700) + 6;
+  SEMS.forEach(function(sm){
+    o.push('<circle cx="' + f(px2 + 2.5) + '" cy="' + f(ly2) + '" r="' + sm.rad + '" fill="none" stroke="' + sm.col + '" stroke-width=".45"' + (sm.dash ? ' stroke-dasharray="' + sm.dash + '"' : "") + '/>');
+    var lab = sm.nombre.toLowerCase() + " (" + sm.ports.length + ")"; o.push(T(px2 + 7, ly2, lab, 3, 400, NAVY)); px2 += 7 + tw(lab, 3) + 7;
+  });
+  ly += 5.4;
   var nsc = PORT.filter(function(p){ return p.lat == null; }).map(function(p){ return p.nombre; });
   var nota = "Estado = última partida ejecutada, según programación y registros de avance. Mapa vectorial (comunas, provincias y red vial de los archivos del proyecto)."; if(nsc.length) nota += " Sin coordenadas: " + nsc.join(", ") + ".";
-  wrap(nota, 2.4, 400, 265).forEach(function(ln, i){ o.push(T(16, ly + 5.2 + i * 3.1, ln, 2.4, 400, MUTE)); });
-  /* resumen por comuna */
-  var ty = ly + 17; o.push(T(16, ty, "Resumen por comuna", 3.4, 700, NAVY)); o.push(L(16, ty + 2.6, 281, ty + 2.6, NAVY, .3));
+  var notaL = wrap(nota, 2.4, 400, 265);
+  notaL.forEach(function(ln, i){ o.push(T(16, ly + 5.2 + i * 3.1, ln, 2.4, 400, MUTE)); });
+  /* programación por semana (anterior · presente · siguiente) */
+  var by = ly + 5.2 + notaL.length * 3.1 + 3;
+  o.push(T(16, by, "Programación por semana", 3.4, 700, NAVY)); o.push(L(16, by + 2.6, 281, by + 2.6, NAVY, .3));
+  var cw3 = (265 - 2 * 3.1) / 3, ytop = by + 6.2, hmax = 0;
+  SEMS.forEach(function(sm, ci){
+    var bx = 16 + ci * (cw3 + 3.1), yy = ytop, rs = sm.rs;
+    var ne = rs.filter(function(r){ return /^ejecutado/i.test(r.estado); }).length, nn = rs.filter(function(r){ return /^no ejecutado/i.test(r.estado); }).length, npg = rs.length - ne - nn;
+    o.push(R(bx, yy - 2.6, cw3, 9.4, CHIP, { rx:.8 })); o.push('<rect x="' + f(bx) + '" y="' + f(yy - 2.6) + '" width="1.1" height="9.4" fill="' + sm.col + '"/>');
+    var fri = addDays(sm.a, 4), rango = sm.a.getUTCMonth() === fri.getUTCMonth() ? sm.a.getUTCDate() + "–" + fri.getUTCDate() + " " + MES3[sm.a.getUTCMonth()] : sm.a.getUTCDate() + " " + MES3[sm.a.getUTCMonth()] + " – " + fri.getUTCDate() + " " + MES3[fri.getUTCMonth()];
+    o.push(T(bx + 3, yy, sm.nombre, 2.9, 700, NAVY)); o.push(T(bx + cw3 - 2, yy, rango, 2.5, 500, MUTE, { anchor:"end" }));
+    var resumen = rs.length + " tareas · " + sm.ports.length + " pórticos · " + ne + " ejecutadas" + (nn ? " · " + nn + " no ejecutadas" : "") + (npg ? " · " + npg + " programadas" : "");
+    o.push(T(bx + 3, yy + 4, fit(resumen, 2.3, 400, cw3 - 5), 2.3, 400, MUTE));
+    yy += 9;
+    ORDEN.forEach(function(p_){
+      var seen = {}; rs.forEach(function(r){ if(r.partida === p_) seen[r.portico] = 1; });
+      var nm = function(n){ return PN[n] ? PN[n].nombre : n; }, ps = Object.keys(seen).sort(function(a, b){ return cmpNat(nm(a), nm(b)); });
+      if(!ps.length) return;
+      var nms = ps.map(nm).join(", ");
+      o.push(circ(bx + 2.2, yy, 1.05, COL[p_])); o.push(T(bx + 4.6, yy, p_ + " " + ps.length, 2.5, 700, NAVY));
+      var ls = wrap(nms, 2.35, 400, cw3 - 6);
+      ls.forEach(function(ln, li){ o.push(T(bx + 4.6, yy + 3.1 + li * 2.9, ln, 2.35, 400, NAVY)); });
+      yy += 3.1 + ls.length * 2.9 + 1.2;
+    });
+    hmax = Math.max(hmax, yy - ytop);
+  });
+  var ty = ytop + hmax + 6; o.push(T(16, ty, "Resumen por comuna", 3.4, 700, NAVY)); o.push(L(16, ty + 2.6, 281, ty + 2.6, NAVY, .3));
   var comsAll = {}; PORT.forEach(function(p){ comsAll[p.comuna] = 1; });
   var rows = Object.keys(comsAll).map(function(c){
     var pc = PORT.filter(function(p){ return p.comuna === c; }).map(function(p){ return p.num; }), tz = pc.filter(function(n){ return TR.indexOf(n) >= 0; }), ps = tz.filter(function(n){ return NIV[n] >= 1; });
@@ -270,48 +309,33 @@ function hoja1(M, G){
   [rows.slice(0, half), rows.slice(half)].forEach(function(chunk, hi){
     var bx = 16 + hi * 135, wdt = 130, y0 = ty + 6.4;
     o.push(R(bx, y0 - 2.4, wdt, 4.8, CHIP, { rx:.8 }));
-    cols.forEach(function(c){ o.push(T(bx + 2 + c[1], y0, c[0], 2.3, 600, MUTE, { anchor:c[2] })); });
+    cols.forEach(function(c){ o.push(T(bx + 2 + c[1], y0, c[0], 2.6, 600, MUTE, { anchor:c[2] })); });
     chunk.forEach(function(r, i){
-      var y2 = y0 + 5.2 + i * 4.9; if(i % 2) o.push(R(bx, y2 - 2.4, wdt, 4.9, "rgba(10,34,64,.03)"));
-      o.push(T(bx + 2, y2, r[0], 2.7, 600, NAVY)); o.push(T(bx + 35, y2, String(r[1]), 2.7, 400, NAVY, { anchor:"end" }));
-      o.push(T(bx + 54, y2, String(r[2]), 2.7, r[2] ? 700 : 400, r[2] ? NAVY : MUTE, { anchor:"end" })); o.push(T(bx + 84, y2, String(r[3]), 2.7, 400, r[3] ? NAVY : MUTE, { anchor:"end" }));
-      if(r[4] !== "—"){ o.push(circ(bx + 88.2, y2, 1.1, COL[r[4]])); o.push(T(bx + 90.6, y2, r[4], 2.6, 400, NAVY)); } else o.push(T(bx + 88, y2, "—", 2.7, 400, MUTE));
+      var y2 = y0 + 5.2 + i * 5.6; if(i % 2) o.push(R(bx, y2 - 2.4, wdt, 5.6, "rgba(10,34,64,.03)"));
+      o.push(T(bx + 2, y2, r[0], 3, 600, NAVY)); o.push(T(bx + 35, y2, String(r[1]), 3, 400, NAVY, { anchor:"end" }));
+      o.push(T(bx + 54, y2, String(r[2]), 3, r[2] ? 700 : 400, r[2] ? NAVY : MUTE, { anchor:"end" })); o.push(T(bx + 84, y2, String(r[3]), 3, 400, r[3] ? NAVY : MUTE, { anchor:"end" }));
+      if(r[4] !== "—"){ o.push(circ(bx + 88.2, y2, 1.1, COL[r[4]])); o.push(T(bx + 90.6, y2, r[4], 2.6, 400, NAVY)); } else o.push(T(bx + 88, y2, "—", 3, 400, MUTE));
     });
   });
-  var yt = ty + 6.4 + 5.2 + half * 4.9 + 1; o.push(L(16, yt - 2.4, 281, yt - 2.4, NAVY, .25));
+  var yt = ty + 6.4 + 5.2 + half * 5.6 + 1; o.push(L(16, yt - 2.4, 281, yt - 2.4, NAVY, .25));
   o.push(T(18, yt + .6, "Total región: " + PORT.length + " pórticos · " + TR.length + " trazados (" + Math.round(100 * TR.length / Math.max(1, PORT.length)) + " %) · " + post.length + " con partidas posteriores", 2.8, 700, NAVY));
-  /* detalle */
-  var dy = yt + 9; o.push(T(16, dy, "Pórticos trazados (" + TR.length + ")", 3.4, 700, NAVY)); o.push(L(16, dy + 2.6, 281, dy + 2.6, NAVY, .3));
-  var lst = TR.slice().sort(function(a, b){ return (PN[a].comuna < PN[b].comuna ? -1 : PN[a].comuna > PN[b].comuna ? 1 : 0) || cmpNat(PN[a].nombre, PN[b].nombre); });
-  var per = Math.floor((lst.length + 2) / 3), cw = 88;
-  for(var ci = 0; ci < 3; ci++){
-    var chunk = lst.slice(ci * per, (ci + 1) * per), bx = 16 + ci * (cw + .5), y0 = dy + 6.2;
-    o.push(R(bx, y0 - 2.2, cw, 4.4, CHIP, { rx:.8 }));
-    [["Pórtico", 5], ["Comuna", 25], ["Trazado", 56], ["Último estado", 68]].forEach(function(h){ o.push(T(bx + h[1], y0, h[0], 2.1, 600, MUTE)); });
-    chunk.forEach(function(n, i){
-      var y2 = y0 + 4.9 + i * 4.3; if(i % 2) o.push(R(bx, y2 - 2.15, cw, 4.3, "rgba(10,34,64,.03)"));
-      o.push(circ(bx + 2.4, y2, 1.2, COL[ORDEN[NIV[n]]], "#fff", .3));
-      o.push(T(bx + 5, y2, PN[n].nombre, 2.5, 700, NAVY)); o.push(T(bx + 25, y2, fit(PN[n].comuna, 2.4, 400, 30), 2.4, 400, NAVY));
-      var tz = M.ejec[n + "|Trazado"]; o.push(T(bx + 56, y2, tz ? fdm(tz) : "—", 2.4, 400, NAVY)); o.push(T(bx + 68, y2, fit(ORDEN[NIV[n]], 2.4, 400, 19), 2.4, 400, NAVY));
-    });
-  }
   return svgDoc(o, "Pórticos · Informe de avance · Hoja 1 · Mapa de pórticos trazados");
 }
 
 /* ====================== tablas comunes ====================== */
-function tabla(o, x, y, w, titulo, cols, rows, vacio, rowh){
-  rowh = rowh || 4.6;
-  o.push(T(x, y, titulo, 3.4, 700, NAVY)); o.push(L(x, y + 2.6, x + w, y + 2.6, NAVY, .3));
+function tabla(o, x, y, w, titulo, cols, rows, vacio, rowh, fs){
+  rowh = rowh || 5.6; fs = fs || 1.25;
+  o.push(T(x, y, titulo, 3.6, 700, NAVY)); o.push(L(x, y + 2.7, x + w, y + 2.7, NAVY, .3));
   var tot = cols.reduce(function(a, c){ return a + c[1]; }, 0), xs = [], acc = 0;
   cols.forEach(function(c){ xs.push(x + 2 + acc * (w - 4) / tot); acc += c[1]; });
-  var yy = y + 6.4; o.push(R(x, yy - 2.4, w, 4.8, CHIP, { rx:.8 }));
-  cols.forEach(function(c, j){ o.push(T(xs[j], yy, c[0], 2.2, 600, MUTE)); });
-  if(!rows.length){ o.push(T(x + 2, yy + 5.5, vacio, 2.7, 400, MUTE)); return yy + 9; }
+  var yy = y + 7; o.push(R(x, yy - 2.7, w, 5.4, CHIP, { rx:.8 }));
+  cols.forEach(function(c, j){ o.push(T(xs[j], yy, c[0], 2.4 * fs / 1.1, 600, MUTE)); });
+  if(!rows.length){ o.push(T(x + 2, yy + 6, vacio, 2.9, 400, MUTE)); return yy + 10; }
   rows.forEach(function(r, i){
-    var y2 = yy + 5.2 + i * rowh; if(i % 2) o.push(R(x, y2 - rowh / 2, w, rowh, "rgba(10,34,64,.03)"));
-    cols.forEach(function(c, j){ var cw = (w - 4) * c[1] / tot - 1.5; o.push(T(xs[j], y2, fit(String(r[j]), 2.5, j === 0 ? 700 : 400, cw), 2.5, j === 0 ? 700 : 400, NAVY)); });
+    var y2 = yy + 5.8 + i * rowh; if(i % 2) o.push(R(x, y2 - rowh / 2, w, rowh, "rgba(10,34,64,.03)"));
+    cols.forEach(function(c, j){ var cw = (w - 4) * c[1] / tot - 1.5, sz = 2.45 * fs, wt = j === 0 ? 700 : 400; o.push(T(xs[j], y2, fit(String(r[j]), sz, wt, cw), sz, wt, NAVY)); });
   });
-  return yy + 5.2 + rows.length * rowh;
+  return yy + 5.8 + rows.length * rowh;
 }
 function leyendaPartidas(o, rows){
   var ly = 52.2; o.push(T(16, ly, "Por partida:", 3, 600, NAVY)); var px = 16 + tw("Por partida:", 3, 600) + 4;
@@ -321,35 +345,134 @@ function leyendaPartidas(o, rows){
   vis.forEach(function(p){ o.push(R(px, ly - 1.5, 3, 3, COL[p], { rx:.6 })); var lab = p + " " + cp[p]; o.push(T(px + 4.4, ly, lab, sz, 400, NAVY)); px += 4.4 + tw(lab, sz) + gap; });
 }
 function diaTxt(s){ var d = pd(s); return DIAS[wd(d)] + " " + d.getUTCDate(); }
+function esEj(r){ return /^ejecutado/i.test(r.estado); }
+function esNo(r){ return /^no ejecutado/i.test(r.estado); }
+function cmpFP(a, b){ return (a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : 0) || cmpNat(a.portico, b.portico) || cmpNat(a.partida, b.partida); }
+function rangoSem(d0){ var d1 = addDays(d0, 4); return (d0.getUTCMonth() === d1.getUTCMonth() ? d0.getUTCDate() : fl(d0)) + " al " + fl(d1); }
+function tituloSemana(pref, d0){ return pref + " · " + rangoSem(d0); }
+function causaTxt(M, c){ return c ? c + ". " + (M.CAUSAS[c] || c) : "sin causa registrada"; }
 
-/* ====================== HOJA 2 · SEMANAL ====================== */
-function hoja2(M, board){
-  var d0 = lunes(M.hoy), d1 = addDays(d0, 4), INI = iso(d0), FIN = iso(d1);
-  var rows = M.PR.filter(function(r){ return r.fecha >= INI && r.fecha <= FIN; });
-  var titulo = "Semana del " + (d0.getUTCMonth() === d1.getUTCMonth() ? d0.getUTCDate() : fl(d0)) + " al " + fl(d1) + " de " + d1.getUTCFullYear();
-  var o = frame(2, "PROGRAMACIÓN DE PÓRTICOS DE VIGILANCIA · INFORME SEMANAL", titulo, "corte al " + M.corte);
-  var total = rows.length, ejc = rows.filter(function(r){ return /^ejecutado/i.test(r.estado); }).length;
-  var pts = {}, cms = {}; rows.forEach(function(r){ pts[r.portico] = 1; cms[r.comuna] = 1; });
-  o = o.concat(kpis([[total, "tareas en la semana"], [ejc, "ejecutadas (" + (total ? Math.round(100 * ejc / total) : 0) + " %)"], [Object.keys(pts).length, "pórticos"], [Object.keys(cms).length, Object.keys(cms).length !== 1 ? "comunas" : "comuna"]]));
-  leyendaPartidas(o, rows);
-  var W = 265, y0 = 58, yb = y0;
-  if(board){ var sc = W / board.w; o.push('<g transform="translate(16 ' + f(y0) + ') scale(' + sc.toFixed(6) + ')">' + board.body + '</g>'); yb = y0 + board.h * sc; }
-  else o.push(T(16, y0 + 6, "No se pudo leer el tablero semanal.", 3, 400, MUTE)), yb = y0 + 10;
-  var y = yb + 9;
-  var rest = rows.filter(function(r){ return r.restr || r.aut.toLowerCase().indexOf("pendiente") === 0; }).sort(function(a, b){ return (a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : 0) || cmpNat(a.portico, b.portico); });
-  var r1 = rest.map(function(r){ return [r.nombre, etq(r.comuna), r.partida, diaTxt(r.fecha), r.restr || "—", r.obs || "—"]; });
-  y = tabla(o, 16, y, 265, "Restricciones de la semana (" + r1.length + ")", [["Pórtico", 9], ["Comuna", 9], ["Partida", 14], ["Día", 8], ["Restricción", 13], ["Autorización / detalle", 40]], r1.slice(0, 9), "Sin restricciones registradas esta semana.");
-  var noej = rows.filter(function(r){ return /^no ejecutado/i.test(r.estado); });
-  var r2 = noej.map(function(r){ return [r.nombre, etq(r.comuna), r.partida, diaTxt(r.fecha), r.obs || "—", r.causa || "sin causa asignada"]; });
-  y = tabla(o, 16, y + 7, 265, "Tareas no ejecutadas / reprogramadas (" + r2.length + ")", [["Pórtico", 9], ["Comuna", 9], ["Partida", 14], ["Día", 8], ["Observación", 30], ["Causa", 23]], r2.slice(0, 9), "No hay tareas marcadas como «no ejecutado».");
-  var n0 = addDays(d0, 7), n1 = addDays(n0, 4), nxt = M.PR.filter(function(r){ return r.fecha >= iso(n0) && r.fecha <= iso(n1); });
-  var r3 = [];
-  ORDEN.forEach(function(p){ var rr = nxt.filter(function(x){ return x.partida === p; }).sort(function(a, b){ return (a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : 0) || cmpNat(a.portico, b.portico); }); if(rr.length) r3.push([p, String(rr.length), rr.map(function(x){ return x.nombre; }).join(", ")]); });
-  tabla(o, 16, y + 7, 265, "Vista previa · semana del " + n0.getUTCDate() + " al " + fl(n1) + " (" + nxt.length + " tareas programadas)", [["Partida", 14], ["N°", 4], ["Pórticos programados", 82]], r3, "Sin tareas programadas para la semana siguiente.", 4.4);
-  return svgDoc(o, "Pórticos · Informe de avance · Hoja 2 · " + titulo);
+/* ====================== HOJA 2 · PÓRTICOS TRAZADOS (matriz por partida) ====================== */
+function hoja2(M){
+  var PN = M.PN, TR = M.TRAZ, NIV = M.NIV, PORT = M.PORT;
+  var o = frame(2, "INFORME DE AVANCE · PÓRTICOS DE VIGILANCIA · DETALLE", "Pórticos trazados · avance por partida", "corte al " + M.corte);
+  var post = TR.filter(function(n){ return NIV[n] >= 1; }), com = {}; TR.forEach(function(n){ com[PN[n].comuna] = 1; });
+  o = o.concat(kpis([[TR.length, "pórticos trazados de " + PORT.length], [post.length, "con partidas posteriores"], [Object.keys(com).length, "comunas"], [Object.keys(M.ejec).length, "partidas ejecutadas"]]));
+  var x0 = 16, W = 265, y = 54, CW = 26.6;
+  o.push(R(x0, y, W, 11, CHIP, { rx:.8 }));
+  o.push(T(x0 + 2, y + 5.5, "Pórtico", 3.2, 700, MUTE)); o.push(T(x0 + 22, y + 5.5, "Comuna", 3.2, 700, MUTE));
+  ORDEN.forEach(function(p, i){ var cx = x0 + 52 + i * CW; o.push(circ(cx + 1.6, y + 5.5, 1.3, COL[p])); var hs = Math.max(2.4, Math.min(3, 3 * (CW - 4) / tw(p, 3, 700))); o.push(T(cx + 3.8, y + 5.5, fit(p, hs, 700, CW - 4), hs, 700, NAVY)); });
+  var lst = TR.slice().sort(function(a, b){ return PN[a].comuna.localeCompare(PN[b].comuna, "es") || cmpNat(PN[a].nombre, PN[b].nombre); });
+  var ng = Object.keys(com).length, avail = 399 - (y + 11), rhG = lst.length ? (avail - ng * 10.9) / lst.length : 8, agrup = rhG >= 6.2;
+  var rh = Math.min(8, agrup ? rhG : (lst.length ? avail / lst.length : 8)), k = Math.min(1, rh / 7.2), prev = null, yy = y + 11 + (agrup ? 0 : rh / 2);
+  if(!lst.length) o.push(T(x0 + 2, yy + 6, "Aún no hay pórticos trazados.", 3, 400, MUTE));
+  lst.forEach(function(n, i){
+    var c = PN[n].comuna;
+    if(c !== prev){
+      if(agrup){ yy += 1.5; o.push(T(x0 + 2, yy + 3.4, c + " · " + lst.filter(function(q){ return PN[q].comuna === c; }).length, 3.5, 700, NAVY)); o.push(L(x0, yy + 6.2, x0 + W, yy + 6.2, NAVY, .25)); yy += 9.4; }
+      else if(prev !== null) o.push(L(x0, yy - rh / 2, x0 + W, yy - rh / 2, NAVY, .2));
+      prev = c;
+    }
+    if(i % 2) o.push(R(x0, yy - rh / 2, W, rh, "rgba(10,34,64,.03)"));
+    o.push(T(x0 + 2, yy, PN[n].nombre, 3.5 * k, 700, NAVY)); o.push(T(x0 + 22, yy, fit(c, 3.3 * k, 400, 28), 3.3 * k, 400, NAVY));
+    ORDEN.forEach(function(p, j){
+      var cx = x0 + 52 + j * CW, fe = M.ejec[n + "|" + p];
+      if(fe){ o.push(circ(cx + 1.6, yy, 1.2 * Math.max(.7, k), COL[p])); o.push(T(cx + 3.8, yy, fdm(fe), 3.3 * k, 400, NAVY)); } else o.push(T(cx + 3.8, yy, "—", 3.3 * k, 400, "rgba(10,34,64,.3)"));
+    });
+    yy += rh;
+  });
+  o.push(T(16, yy + (agrup ? 3 : 4), "Fecha = primer día de ejecución registrado de cada partida (programación y registros de avance). Orden: comuna y número de pórtico.", 2.6, 400, MUTE));
+  return svgDoc(o, "Pórticos · Informe de avance · Hoja 2 · Pórticos trazados");
 }
 
-/* ====================== HOJA 3 · INTERMEDIO ====================== */
+/* ====================== HOJA 3 · SEMANA PRESENTE ====================== */
+function hoja3(M, board){
+  var d0 = lunes(M.hoy), d1 = addDays(d0, 4), INI = iso(d0), FIN = iso(d1);
+  var rows = M.PR.filter(function(r){ return r.fecha >= INI && r.fecha <= FIN; });
+  var titulo = "Semana presente · del " + rangoSem(d0) + " de " + d1.getUTCFullYear();
+  var o = frame(3, "PROGRAMACIÓN DE PÓRTICOS DE VIGILANCIA · INFORME SEMANAL", titulo, "corte al " + M.corte);
+  var ejc = rows.filter(esEj).length, noe = rows.filter(esNo).length, pts = {}; rows.forEach(function(r){ pts[r.portico] = 1; });
+  o = o.concat(kpis([[rows.length, "tareas en la semana"], [ejc, "ejecutadas"], [noe, "no ejecutadas / reprogramadas"], [Object.keys(pts).length, "pórticos"]]));
+  leyendaPartidas(o, rows);
+  var y0 = 58, yb = y0 + 10;
+  if(board){ var sc = Math.min(265 / board.w, 218 / board.h), W = board.w * sc; o.push('<g transform="translate(' + f(16 + (265 - W) / 2) + ' ' + f(y0) + ') scale(' + sc.toFixed(6) + ')">' + board.body + '</g>'); yb = y0 + board.h * sc; }
+  else o.push(T(16, y0 + 6, "No se pudo leer el tablero semanal.", 3, 400, MUTE));
+  var y = yb + 8;
+  var ap = rows.filter(function(r){ return r.restr || esNo(r) || r.aut.toLowerCase().indexOf("pendiente") === 0; }).sort(cmpFP);
+  var r1 = ap.map(function(r){ return [r.nombre, etq(r.comuna), r.partida, diaTxt(r.fecha), r.restr || "—", (esNo(r) ? "No ejecutado · " : "") + (r.obs || "—")]; });
+  var k = Math.max(1, Math.floor((404 - y - 16) / 6.4));
+  tabla(o, 16, y, 265, "Restricciones y tareas reprogramadas de la semana (" + r1.length + ")" + (r1.length <= k ? "" : " · se muestran " + k),
+    [["Pórtico", 9], ["Comuna", 9], ["Partida", 14], ["Día", 8], ["Restricción", 13], ["Detalle", 40]], r1.slice(0, k), "Sin restricciones ni reprogramaciones.", 6.4, 1.35);
+  return svgDoc(o, "Pórticos · Informe de avance · Hoja 5 · " + titulo);
+}
+
+/* ====================== HOJA 4 · SEMANA ANTERIOR Y SIGUIENTE ====================== */
+function tablero(o, y, titulo, d0, rows, hecho, kk){
+  kk = kk || 1;
+  var x = 16, w = 265, lw = 34, cw = (w - lw) / 5, FSZ = 3.3 * kk, CH = 5.4 * kk, PIT = 6.3 * kk, MINH = 9 * kk;
+  var ej = rows.filter(esEj).length, ne = rows.filter(esNo).length;
+  var sub = hecho ? rows.length + " tareas · " + ej + " ejecutadas · " + ne + " no ejecutadas · PPC " + (ej + ne ? Math.round(100 * ej / (ej + ne)) : 0) + " %" : rows.length + " tareas programadas";
+  o.push(T(x, y, titulo, 4.4, 700, NAVY)); o.push(T(x + w, y, sub, 3.2, 400, MUTE, { anchor:"end" })); o.push(L(x, y + 3.3, x + w, y + 3.3, NAVY, .3));
+  var yy = y + 7; o.push(R(x, yy, w, 7, CHIP, { rx:.8 }));
+  var dias = [0, 1, 2, 3, 4].map(function(i){ return addDays(d0, i); });
+  dias.forEach(function(d, i){
+    var n = rows.filter(function(r){ return r.fecha === iso(d); }).length;
+    o.push(T(x + lw + i * cw + 2, yy + 3.6, DIAS[i] + " " + d.getUTCDate(), 3.5, 700, NAVY));
+    if(n) o.push(T(x + lw + (i + 1) * cw - 2, yy + 3.6, String(n), 3.1, 600, MUTE, { anchor:"end" }));
+  });
+  yy += 8; var top = yy;
+  var partes = ORDEN.filter(function(p){ return rows.some(function(r){ return r.partida === p; }); });
+  if(!partes.length){ o.push(T(x + 2, yy + 4, "Sin tareas programadas.", 3.2, 400, MUTE)); yy += 9; }
+  partes.forEach(function(p){
+    var celdas = [], nl = 1;
+    dias.forEach(function(d){
+      var cs = rows.filter(function(r){ return r.fecha === iso(d) && r.partida === p; }).sort(function(a, b){ return cmpNat(a.nombre, b.nombre); });
+      var chs = [], ln = 0, cx = 0;
+      cs.forEach(function(r){
+        var mk = (hecho && (esEj(r) || esNo(r))) ? 3 * kk : 0, lab = fit(r.nombre, FSZ, 600, cw - 4 - mk), wc = tw(lab, FSZ, 600) + 2.6 + mk;
+        if(cx && cx + wc > cw - 2.4){ ln++; cx = 0; }
+        chs.push([ln, cx, r, lab, wc]); cx += wc + .9;
+      });
+      celdas.push(chs); nl = Math.max(nl, cs.length ? ln + 1 : 1);
+    });
+    var rh = Math.max(nl * PIT + 1.8, MINH);
+    o.push(R(x, yy, lw, rh, mix(COL[p], .16))); o.push(R(x, yy, 1, rh, COL[p]));
+    wrap(p, 3.1, 700, lw - 4, 2).forEach(function(l_, j){ o.push(T(x + 2.8, yy + 3.4 + j * 3.7, l_, 3.1, 700, NAVY)); });
+    celdas.forEach(function(chs, i){
+      chs.forEach(function(q){
+        var r = q[2], xx = x + lw + i * cw + 1.2 + q[1], cy = yy + .8 + q[0] * PIT;
+        var est = hecho ? (esEj(r) ? "#26694B" : esNo(r) ? "#B23B3B" : COL[p]) : COL[p];
+        o.push(R(xx, cy, q[4], CH, mix(est, .22), { rx:.9 })); o.push(T(xx + 1.5, cy + CH / 2 + .05, q[3], FSZ, 600, NAVY));
+        if(hecho && esEj(r)) o.push(tick(xx + q[4] - 3.3 * kk, cy + CH / 2, 1.8 * kk)); else if(hecho && esNo(r)) o.push(cross(xx + q[4] - 3.3 * kk, cy + CH / 2, 1.4 * kk));
+      });
+    });
+    o.push(L(x, yy + rh, x + w, yy + rh, LINE, .2)); yy += rh;
+  });
+  for(var i = 0; i < 6; i++) o.push(L(x + lw + i * cw, top, x + lw + i * cw, yy, LINE, .2));
+  return yy;
+}
+function hoja4(M){
+  var d0 = lunes(M.hoy), p0 = addDays(d0, -7), n0 = addDays(d0, 7);
+  var g = function(a){ var A = iso(a), B = iso(addDays(a, 4)); return M.PR.filter(function(r){ return r.fecha >= A && r.fecha <= B; }); };
+  var prv = g(p0), nxt = g(n0);
+  var o = frame(4, "PROGRAMACIÓN DE PÓRTICOS DE VIGILANCIA · INFORME SEMANAL", "Semana anterior y semana siguiente", "corte al " + M.corte);
+  var ej = prv.filter(esEj).length, ne = prv.filter(esNo).length;
+  o = o.concat(kpis([[prv.length, "tareas semana anterior"], [ej, "ejecutadas (" + (prv.length ? Math.round(100 * ej / prv.length) : 0) + " %)"], [ne, "no ejecutadas"], [nxt.length, "programadas semana siguiente"]]));
+  var nos = prv.filter(esNo).sort(cmpFP);
+  var rowsNo = nos.map(function(r){ return [r.nombre, r.partida, diaTxt(r.fecha), causaTxt(M, r.causa), [r.obs, r.accion ? "→ " + r.accion : ""].filter(Boolean).join(" ") || "—"]; });
+  function dibujar(oo, kk){
+    var y = tablero(oo, 56, tituloSemana("Semana anterior", p0), p0, prv, true, kk) + 3;
+    if(nos.length) y = tabla(oo, 16, y + 4, 265, "No ejecutadas · por qué (" + nos.length + ")" + (nos.length > 6 ? " · se muestran 6" : ""), [["Pórtico", 9], ["Partida", 16], ["Día", 9], ["Causa", 26], ["Observación / acción", 40]], rowsNo.slice(0, 6), "", 6.6, 1.4);
+    else { oo.push(T(16, y + 6, "Sin tareas no ejecutadas en la semana anterior.", 3, 600, "#26694B")); y += 8; }
+    return tablero(oo, y + 8, tituloSemana("Semana siguiente", n0), n0, nxt, false, kk);
+  }
+  var kk = 1, fin = dibujar([], kk);
+  while(fin > 402 && kk > .6){ kk -= .05; fin = dibujar([], kk); }
+  dibujar(o, kk);
+  return svgDoc(o, "Pórticos · Informe de avance · Hoja 4 · Semana anterior y siguiente");
+}
+
+/* ====================== HOJA 5 · INTERMEDIO ====================== */
 var FS = 1.15;
 function card(o, x, y, w, r, M){
   var a = FS, col = COL[r.partida] || "#8C949E", lab = etq(r.comuna) + ": " + r.nombre, obs = (r.obs || "").trim();
@@ -366,16 +489,16 @@ function card(o, x, y, w, r, M){
   lines.forEach(function(ln, i){ o.push(T(x + 1.7, y + 6.9 * a + i * 2.55 * a, ln, 2.1 * a, 500, NAVY)); });
   return h;
 }
-function hoja3(M){
+function hoja5(M){
   var INI = iso(lunes(M.hoy)), rows = M.PR.filter(function(r){ return r.fecha >= INI; });
   var wk = {}; rows.forEach(function(r){ wk[iso(lunes(r.fecha))] = 1; });
   var semanas = Object.keys(wk).sort(), last = rows.reduce(function(m, r){ return r.fecha > m ? r.fecha : m; }, INI);
   var dl = pd(last), titulo = "Programación intermedia · del " + fl(pd(INI)) + " al " + fl(dl) + " de " + dl.getUTCFullYear();
-  var o = frame(3, "PROGRAMACIÓN DE PÓRTICOS DE VIGILANCIA · INFORME INTERMEDIO", titulo, "corte al " + M.corte, " · se omiten las semanas posteriores sin programación");
+  var o = frame(5, "PROGRAMACIÓN DE PÓRTICOS DE VIGILANCIA · INFORME INTERMEDIO", titulo, "corte al " + M.corte, " · se omiten las semanas posteriores sin programación");
   var pts = {}, cms = {}, nrest = 0; rows.forEach(function(r){ pts[r.portico] = 1; cms[r.comuna] = 1; if(r.restr) nrest++; });
   o = o.concat(kpis([[rows.length, "actividades programadas"], [nrest, "con restricción abierta"], [Object.keys(pts).length, "pórticos"], [Object.keys(cms).length, "comunas"]]));
   leyendaPartidas(o, rows);
-  if(!semanas.length){ o.push(T(16, 70, "No hay actividades programadas desde esta semana.", 3.2, 400, MUTE)); return svgDoc(o, "Pórticos · Informe de avance · Hoja 3 · " + titulo); }
+  if(!semanas.length){ o.push(T(16, 70, "No hay actividades programadas desde esta semana.", 3.2, 400, MUTE)); return svgDoc(o, "Pórticos · Informe de avance · Hoja 5 · " + titulo); }
   var LW = 26, X0 = 16, W = 265, cw = (W - LW) / semanas.length, y = 58;
   o.push(R(X0, y, W, 13, CHIP, { rx:1.2 }));
   o.push(T(X0 + LW + 2, y + 3.2, MESES[pd(semanas[0]).getUTCMonth()].toUpperCase(), 2.2, 600, "rgba(10,34,64,.55)", { mono:true, ls:.3 }));
@@ -410,66 +533,102 @@ function hoja3(M){
   });
   o.push(R(X0, ytop - 13, W, y - ytop + 13, "none", { stroke:"#C9C5B7", sw:.3, rx:1.2 }));
   o.push(T(16, y + 5, "✓ ejecutada · ✗ no ejecutada · ● restricción abierta · los textos bajo cada pórtico son las observaciones / autorizaciones registradas en la planilla.", 2.3, 400, MUTE));
-  return svgDoc(o, "Pórticos · Informe de avance · Hoja 3 · " + titulo);
+  return svgDoc(o, "Pórticos · Informe de avance · Hoja 5 · " + titulo);
 }
 
-/* ====================== HOJA 4 · INDICADORES ====================== */
+/* ====================== HOJA 6 · RESTRICCIONES Y AUTORIZACIONES ====================== */
+function hoja6(M){
+  var o = frame(6, "PROGRAMACIÓN DE PÓRTICOS DE VIGILANCIA · RESTRICCIONES", "Restricciones y autorizaciones", "corte al " + M.corte);
+  var rest = M.PR.filter(function(r){ return r.restr; }), lib = M.PR.filter(function(r){ return r.aut.toLowerCase().indexOf("liberada") === 0; }), pend = M.PR.filter(function(r){ return r.aut.toLowerCase().indexOf("pendiente") === 0; });
+  var inv = {}; rest.concat(lib).forEach(function(r){ inv[r.portico] = 1; });
+  o = o.concat(kpis([[rest.length, "restricciones registradas"], [lib.length, "autorizaciones liberadas"], [pend.length, "autorizaciones pendientes"], [Object.keys(inv).length, "pórticos involucrados"]]));
+  var org = cuenta(lib, function(r){ return r.aut.replace(/^Liberada [\d-]+ · /i, ""); }), ks = Object.keys(org).sort(function(a, b){ return org[b] - org[a]; });
+  var y = 54; o.push(T(16, y, "Por organismo:", 3, 600, NAVY)); var px = 16 + tw("Por organismo:", 3, 600) + 4;
+  ks.forEach(function(k){ var lab = k + " " + org[k]; o.push(R(px, y - 1.5, 3, 3, "#2C6B7E", { rx:.6 })); o.push(T(px + 4.4, y, fit(lab, 3, 400, 281 - px - 4.4), 3, 400, NAVY)); px += 4.4 + tw(lab, 3) + 6; });
+  var RH = 6.8, maxTot = Math.max(6, Math.floor((404 - 62 - 2 * 14 - 9) / RH));
+  var rr = rest.slice().sort(function(a, b){ return (a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0) || cmpNat(b.portico, a.portico); });
+  var k1 = rr.length + lib.length <= maxTot ? rr.length : Math.min(rr.length, Math.max(3, maxTot - 3));
+  var r1 = rr.map(function(r){ return [r.nombre, etq(r.comuna), r.partida, fdmy(r.fecha), r.restr, r.estado, r.obs || "—"]; });
+  y = tabla(o, 16, 62, 265, "Restricciones (" + r1.length + ")" + (k1 < r1.length ? " · se muestran " + k1 : ""), [["Pórtico", 9], ["Comuna", 9], ["Partida", 14], ["Fecha", 11], ["Tipo", 13], ["Estado", 11], ["Detalle", 32]], r1.slice(0, k1), "Sin restricciones.", RH, 1.45);
+  var ll = lib.slice().sort(function(a, b){ return (a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : 0) || cmpNat(a.portico, b.portico); });
+  var r2 = ll.map(function(r){ return [r.nombre, etq(r.comuna), r.partida, fdmy(r.fecha), r.aut.replace(/^Liberada\s+/i, "").split(" · ")[0], r.aut.replace(/^.* · /, "")]; });
+  var k2 = Math.max(3, Math.floor((404 - y - 9 - 14) / RH));
+  tabla(o, 16, y + 9, 265, "Autorizaciones liberadas (" + r2.length + ")" + (r2.length <= k2 ? "" : " · se muestran " + k2), [["Pórtico", 9], ["Comuna", 9], ["Partida", 14], ["Programada", 11], ["Liberada el", 12], ["Organismo", 40]], r2.slice(0, k2), "Sin autorizaciones liberadas.", RH, 1.45);
+  return svgDoc(o, "Pórticos · Informe de avance · Hoja 6 · Restricciones y autorizaciones");
+}
+
+/* ====================== estado actual de cada pórtico ====================== */
+function estadoPortico(M){
+  var est = {};
+  M.AV.forEach(function(a){
+    if(NOTAS.indexOf(a.partida) >= 0 || ORDEN.indexOf(a.partida) < 0) return;
+    var i = ORDEN.indexOf(a.partida), cur = est[a.portico];
+    if(!cur || i > cur[0] || (i === cur[0] && (a.fecha + a.reg) > (cur[1] + cur[3]))) est[a.portico] = [i, a.fecha, a.avance, a.reg];
+  });
+  var dist = ORDEN.map(function(){ return 0; }), sin = 0;
+  M.PORT.forEach(function(p){ var e = est[p.num]; if(e){ for(var k = 0; k <= e[0]; k++) dist[k]++; } else sin++; });
+  return { est:est, dist:dist, sin:sin };
+}
+
+/* ====================== HOJA 7 · INDICADORES ====================== */
 function colPpc(v){ return v >= 80 ? "#26694B" : (v >= 60 ? "#D6A828" : "#B23B3B"); }
-function box(o, x, y, w, h, titulo){ o.push(R(x, y, w, h, "#ffffff", { rx:1.4, stroke:"#C9C5B7", sw:.3 })); o.push(T(x + 4, y + 5, titulo, 3.4, 700, NAVY)); o.push(L(x + 4, y + 8, x + w - 4, y + 8, LINE, .25)); }
-function hoja4(M, D){
-  var hoy = M.hoy, lh = iso(lunes(hoy)), PORT = M.PORT, PN = M.PN;
+function box(o, x, y, w, h, titulo){ o.push(R(x, y, w, h, "#ffffff", { rx:1.4, stroke:"#C9C5B7", sw:.3 })); o.push(T(x + 4, y + 5.2, titulo, 3.8, 700, NAVY)); o.push(L(x + 4, y + 8.6, x + w - 4, y + 8.6, LINE, .25)); }
+function hoja7(M){
+  var S = 1.3;
+  function Ts(x, y, s, size, w, fill, op){ return T(x, y, s, size * S, w, fill, op); }
+  function fS(s, size, w, maxw){ return fit(s, size * S, w, maxw); }
+  var hoy = M.hoy, lh = iso(lunes(hoy)), PORT = M.PORT, PN = M.PN, ES = estadoPortico(M);
   var total = PORT.length * ORDEN.length, nreal = Object.keys(M.ejecAv).length;
   var inic = {}; M.AV.forEach(function(a){ if(NOTAS.indexOf(a.partida) < 0) inic[a.portico] = 1; });
   var pend = {}; M.PR.forEach(function(r){ if(r.aut.toLowerCase().indexOf("pendiente") === 0) pend[r.portico] = 1; });
   var sem = {};
   M.PR.forEach(function(r){ var l = iso(lunes(r.fecha)); if(l > lh) return; var s = sem[l] = sem[l] || [0, 0, 0];
-    if(/^ejecutado/i.test(r.estado)) s[0]++; else if(/^no ejecutado/i.test(r.estado)) s[1]++; else if(r.fecha < hoy) s[2]++; });
+    if(esEj(r)) s[0]++; else if(esNo(r)) s[1]++; else if(r.fecha < hoy) s[2]++; });
   var semanas = Object.keys(sem).sort().slice(-12);
   var ppcs = semanas.map(function(l){ var s = sem[l], c = s[0] + s[1]; return [l, c ? Math.round(100 * s[0] / c) : null, s]; });
   var con = ppcs.filter(function(p){ return p[1] !== null; }), ult = con.length ? con[con.length - 1] : null, prev = con.length > 1 ? con[con.length - 2] : null;
   var prom = con.length ? Math.round(con.reduce(function(a, p){ return a + p[1]; }, 0) / con.length) : null;
-  var o = frame(4, "INFORME DE AVANCE · PÓRTICOS DE VIGILANCIA · INDICADORES", "Indicadores del proyecto", "corte al " + M.corte);
+  var o = frame(7, "INFORME DE AVANCE · PÓRTICOS DE VIGILANCIA · INDICADORES", "Indicadores del proyecto", "corte al " + M.corte);
   var tend = (ult && prev) ? " · " + (ult[1] - prev[1] >= 0 ? "▲ +" : "▼ ") + (ult[1] - prev[1]) + " pts" : "";
   o = o.concat(kpis([[Math.round(100 * nreal / Math.max(1, total)) + " %", "avance global · " + nreal + " de " + total + " partidas"], [Object.keys(inic).length, "de " + PORT.length + " pórticos iniciados"],
     [ult ? ult[1] + " %" : "–", "PPC sem. " + (ult ? etqs(ult[0]) : "") + tend], [Object.keys(pend).length, "autorizaciones pendientes"]]));
-  var y0 = 52, bh = 66, bw1 = 128;
+  var y0 = 52, bh = 96, bw1 = 128;
   box(o, 16, y0, bw1, bh, "Cumplimiento del plan semanal (PPC)");
-  var cx0 = 28, cx1 = 16 + bw1 - 5, cy0 = y0 + 13, cy1 = y0 + bh - 14, yy = function(v){ return cy1 - (cy1 - cy0) * v / 100; };
-  [0, 20, 40, 60, 80, 100].forEach(function(v){ o.push(L(cx0, yy(v), cx1, yy(v), LINE, .2)); o.push(T(cx0 - 2, yy(v), String(v), 2.3, 400, MUTE, { anchor:"end" })); });
-  if(!ppcs.length) o.push(T(cx0 + 4, y0 + 30, "Aún no hay semanas con tareas comprometidas.", 2.7, 400, MUTE));
+  var cx0 = 16 + 14, cx1 = 16 + bw1 - 5, cy0 = y0 + 15, cy1 = y0 + bh - 18, yy = function(v){ return cy1 - (cy1 - cy0) * v / 100; };
+  [0, 20, 40, 60, 80, 100].forEach(function(v){ o.push(L(cx0, yy(v), cx1, yy(v), LINE, .2)); o.push(Ts(cx0 - 2, yy(v), String(v), 2.3, 400, MUTE, { anchor:"end" })); });
+  if(!ppcs.length) o.push(Ts(cx0 + 4, y0 + 30, "Aún no hay semanas con tareas comprometidas.", 2.7, 400, MUTE));
   var n = ppcs.length, bwd = n ? (cx1 - cx0) / n : 0;
   ppcs.forEach(function(p, i){
     var w = Math.min(bwd * .62, 14), x = cx0 + i * bwd + (bwd - w) / 2, v = p[1], s = p[2];
-    if(v !== null){ o.push(R(x, yy(v), w, yy(0) - yy(v), colPpc(v), { rx:.8 })); o.push(T(x + w / 2, yy(v) - 2, v + " %", 2.6, 700, NAVY, { anchor:"middle" })); o.push(T(x + w / 2, cy1 + 7.8, s[0] + " de " + (s[0] + s[1]), 2, 400, MUTE, { anchor:"middle" })); }
-    else o.push(T(x + w / 2, yy(0) - 2, "s/d", 2.3, 400, MUTE, { anchor:"middle" }));
-    o.push(T(x + w / 2, cy1 + 3.8, etqs(p[0]), 2.4, 500, NAVY, { anchor:"middle" }));
+    if(v !== null){ o.push(R(x, yy(v), w, yy(0) - yy(v), colPpc(v), { rx:.8 })); o.push(Ts(x + w / 2, yy(v) - 2.6, v + " %", 2.6, 700, NAVY, { anchor:"middle" })); o.push(Ts(x + w / 2, cy1 + 9.6, s[0] + " de " + (s[0] + s[1]), 2, 400, MUTE, { anchor:"middle" })); }
+    else o.push(Ts(x + w / 2, yy(0) - 2.6, "s/d", 2.3, 400, MUTE, { anchor:"middle" }));
+    o.push(Ts(x + w / 2, cy1 + 4.6, etqs(p[0]), 2.4, 500, NAVY, { anchor:"middle" }));
   });
-  o.push(L(cx0, yy(80), cx1, yy(80), "#26694B", .35, "1.6 1.2")); o.push(T(cx1, yy(80) - 2, "meta 80 %", 2.2, 600, "#26694B", { anchor:"end" }));
+  o.push(L(cx0, yy(80), cx1, yy(80), "#26694B", .35, "1.6 1.2")); o.push(Ts(cx1, yy(80) - 2.6, "meta 80 %", 2.2, 600, "#26694B", { anchor:"end" }));
   var sinrep = ppcs.reduce(function(a, p){ return a + p[2][2]; }, 0);
-  o.push(T(20, y0 + bh - 2.3, fit("PPC = tareas ejecutadas ÷ comprometidas de la semana" + (prom !== null ? " · promedio " + prom + " %" : "") + (sinrep ? " · " + sinrep + " pendientes de reportar (no cuentan)" : ""), 2.1, 400, bw1 - 8), 2.1, 400, MUTE));
+  o.push(Ts(20, y0 + bh - 3, fS("PPC = ejecutadas ÷ comprometidas" + (prom !== null ? " · promedio " + prom + " %" : "") + (sinrep ? " · " + sinrep + " sin reportar (no cuentan)" : ""), 2.1, 400, bw1 - 8), 2.1, 400, MUTE));
   /* Pareto */
   var px = 16 + bw1 + 5, pw = 265 - bw1 - 5; box(o, px, y0, pw, bh, "Causas de no cumplimiento (Pareto)");
-  var causas = {}; (D.causas || []).forEach(function(c){ causas[c[0]] = c[1]; }); if(!Object.keys(causas).length) causas = CAUSAS0;
-  var no = M.PR.filter(function(r){ return /^no ejecutado/i.test(r.estado); }), cs = cuenta(no, function(r){ return r.causa || "__"; });
-  var lst = Object.keys(cs).map(function(k){ return [k, cs[k]]; }).sort(function(a, b){ return b[1] - a[1]; }), y1_ = y0 + 14;
+  var no = M.PR.filter(esNo), cs = cuenta(no, function(r){ return r.causa || "__"; });
+  var lst = Object.keys(cs).map(function(k){ return [k, cs[k]]; }).sort(function(a, b){ return b[1] - a[1]; }), y1_ = y0 + 16;
   if(lst.length){
     var mx = lst[0][1], ac = 0;
-    lst.slice(0, 6).forEach(function(q){
-      var k = q[0], c = q[1]; ac += c; var t = k === "__" ? "Sin causa asignada" : (k + ". " + (causas[k] || k));
-      o.push(T(px + 4, y1_, fit(t, 2.5, 500, 46), 2.5, 500, NAVY));
-      var bx = px + 52, bwm = pw - 52 - 22; o.push(R(bx, y1_ - 1.3, bwm, 2.6, CHIP, { rx:.8 })); o.push(R(bx, y1_ - 1.3, bwm * c / mx, 2.6, k === "__" ? "#D6A828" : "#B23B3B", { rx:.8 }));
-      o.push(T(px + pw - 14, y1_, String(c), 2.6, 700, NAVY, { anchor:"end" })); o.push(T(px + pw - 4, y1_, Math.round(100 * ac / no.length) + " %", 2.4, 400, MUTE, { anchor:"end" })); y1_ += 5;
+    lst.slice(0, 7).forEach(function(q){
+      var k = q[0], c = q[1]; ac += c; var t = k === "__" ? "Sin causa asignada" : (k + ". " + (M.CAUSAS[k] || k));
+      o.push(Ts(px + 4, y1_, fS(t, 2.5, 500, 56), 2.5, 500, NAVY));
+      var bx = px + 62, bwm = pw - 62 - 26; o.push(R(bx, y1_ - 1.6, bwm, 3.2, CHIP, { rx:.8 })); o.push(R(bx, y1_ - 1.6, bwm * c / mx, 3.2, k === "__" ? "#D6A828" : "#B23B3B", { rx:.8 }));
+      o.push(Ts(px + pw - 15, y1_, String(c), 2.6, 700, NAVY, { anchor:"end" })); o.push(Ts(px + pw - 4, y1_, Math.round(100 * ac / no.length) + " %", 2.4, 400, MUTE, { anchor:"end" })); y1_ += 6.2;
     });
     var acc = no.filter(function(r){ return (r.accion || "").trim(); }).sort(function(a, b){ return a.fecha < b.fecha ? 1 : -1; }).slice(0, 3);
-    y1_ += 1.5; o.push(T(px + 4, y1_, "Acciones correctivas recientes", 2.6, 700, NAVY)); y1_ += 4.5;
-    if(acc.length) acc.forEach(function(r){ wrap(r.nombre + " · " + fdm(r.fecha) + " → " + r.accion, 2.3, 400, pw - 8, 2).forEach(function(ln){ o.push(T(px + 4, y1_, ln, 2.3, 400, NAVY)); y1_ += 3.3; }); });
-    else o.push(T(px + 4, y1_, "Sin acciones correctivas registradas.", 2.3, 400, MUTE));
-    o.push(T(px + 4, y0 + bh - 2.3, fit(no.length + " tareas no cumplidas · columna derecha = % acumulado · asigna la causa en el Semanal", 2.1, 400, pw - 8), 2.1, 400, MUTE));
-  } else o.push(T(px + 4, y1_, "No hay tareas marcadas como «no ejecutado».", 2.7, 400, MUTE));
+    y1_ += 2; o.push(Ts(px + 4, y1_, "Acciones correctivas recientes", 2.6, 700, NAVY)); y1_ += 5.6;
+    if(acc.length) acc.forEach(function(r){ wrap(r.nombre + " · " + fdm(r.fecha) + " → " + r.accion, 2.3 * S, 400, pw - 8, 2).forEach(function(ln){ o.push(Ts(px + 4, y1_, ln, 2.3, 400, NAVY)); y1_ += 4.1; }); });
+    else o.push(Ts(px + 4, y1_, "Sin acciones correctivas registradas.", 2.3, 400, MUTE));
+    o.push(Ts(px + 4, y0 + bh - 3, fS(no.length + " tareas no cumplidas · columna derecha = % acumulado", 2.1, 400, pw - 8), 2.1, 400, MUTE));
+  } else o.push(Ts(px + 4, y1_, "No hay tareas marcadas como «no ejecutado».", 2.7, 400, MUTE));
   /* Curva S */
-  var y1 = y0 + bh + 5, ch = 62; box(o, 16, y1, 265, ch, "Curva S · partidas programadas vs. ejecutadas");
+  var y1 = y0 + bh + 5, ch = 92; box(o, 16, y1, 265, ch, "Curva S · partidas programadas vs. ejecutadas");
   var planK = {};
-  M.PR.forEach(function(r){ if(/^no ejecutado/i.test(r.estado) || ORDEN.indexOf(r.partida) < 0) return; var k = r.portico + "|" + r.partida; if(!planK[k] || r.fecha > planK[k]) planK[k] = r.fecha; });
+  M.PR.forEach(function(r){ if(esNo(r) || ORDEN.indexOf(r.partida) < 0) return; var k = r.portico + "|" + r.partida; if(!planK[k] || r.fecha > planK[k]) planK[k] = r.fecha; });
   var fechas = Object.keys(planK).map(function(k){ return planK[k]; }).concat(Object.keys(M.ejecAv).map(function(k){ return M.ejecAv[k]; })).sort();
   if(fechas.length){
     var l0 = lunes(fechas[0]), lN = lunes(fechas[fechas.length - 1]), lH = lunes(hoy); if(lH > lN) lN = lH;
@@ -477,52 +636,64 @@ function hoja4(M, D){
     var fin = function(l){ return iso(addDays(l, 6)); }, pk = Object.keys(planK).map(function(k){ return planK[k]; }), rk = Object.keys(M.ejecAv).map(function(k){ return M.ejecAv[k]; });
     var pv = ws.map(function(l){ var fi = fin(l); return pk.filter(function(v){ return v <= fi; }).length; });
     var rv = ws.map(function(l){ var fi = fin(l); return l > lH ? null : rk.filter(function(v){ return v <= fi; }).length; });
-    var ymax = Math.max(1, pk.length, nreal), sx0 = 30, sx1 = 273, sy0 = y1 + 13, sy1 = y1 + ch - 12;
+    var ymax = Math.max(1, pk.length, nreal), sx0 = 16 + 17, sx1 = 273, sy0 = y1 + 15, sy1 = y1 + ch - 15;
     var ys = function(v){ return sy1 - (sy1 - sy0) * v / ymax; }, xs = function(i){ return sx0 + (ws.length > 1 ? (sx1 - sx0) * i / (ws.length - 1) : (sx1 - sx0) / 2); };
-    [0, .25, .5, .75, 1].forEach(function(fr){ var v = Math.round(ymax * fr); o.push(L(sx0, ys(v), sx1, ys(v), LINE, .2)); o.push(T(sx0 - 2, ys(v), String(v), 2.3, 400, MUTE, { anchor:"end" })); });
+    [0, .25, .5, .75, 1].forEach(function(fr){ var v = Math.round(ymax * fr); o.push(L(sx0, ys(v), sx1, ys(v), LINE, .2)); o.push(Ts(sx0 - 2, ys(v), String(v), 2.3, 400, MUTE, { anchor:"end" })); });
     var paso = Math.ceil(ws.length / 10);
-    ws.forEach(function(l, i){ if(i % paso === 0 || i === ws.length - 1) o.push(T(xs(i), sy1 + 4, etqs(iso(l)), 2.3, 400, MUTE, { anchor:"middle" })); });
+    ws.forEach(function(l, i){ if(i % paso === 0 || i === ws.length - 1) o.push(Ts(xs(i), sy1 + 5, etqs(iso(l)), 2.3, 400, MUTE, { anchor:"middle" })); });
     var iH = -1; ws.forEach(function(l, i){ if(l.getTime() === lH.getTime()) iH = i; });
-    if(iH >= 0){ o.push(L(xs(iH), sy0, xs(iH), sy1, "#B23B3B", .25, "1 1")); o.push(T(xs(iH) + 1.2, sy0 + 1.5, "hoy", 2.2, 600, "#B23B3B")); }
-    o.push('<polyline points="' + pv.map(function(v, i){ return f(xs(i)) + "," + f(ys(v)); }).join(" ") + '" fill="none" stroke="#8C949E" stroke-width=".6" stroke-dasharray="2 1.2"/>');
+    if(iH >= 0){ o.push(L(xs(iH), sy0, xs(iH), sy1, "#B23B3B", .25, "1 1")); o.push(Ts(xs(iH) + 1.2, sy0 + 2, "hoy", 2.2, 600, "#B23B3B")); }
+    o.push('<polyline points="' + pv.map(function(v, i){ return f(xs(i)) + "," + f(ys(v)); }).join(" ") + '" fill="none" stroke="#8C949E" stroke-width=".7" stroke-dasharray="2 1.2"/>');
     var rp = []; rv.forEach(function(v, i){ if(v !== null) rp.push([xs(i), ys(v)]); });
-    o.push('<polyline points="' + rp.map(function(q){ return f(q[0]) + "," + f(q[1]); }).join(" ") + '" fill="none" stroke="#2C6B7E" stroke-width=".8"/>');
-    rp.forEach(function(q){ o.push(circ(q[0], q[1], .9, "#2C6B7E")); });
-    var lx = 281 - 4 - 70;
-    o.push(L(lx, y1 + 4.6, lx + 6, y1 + 4.6, "#8C949E", .6, "2 1.2")); o.push(T(lx + 7.5, y1 + 4.6, "Programado", 2.4, 400, NAVY));
-    o.push(L(lx + 32, y1 + 4.6, lx + 38, y1 + 4.6, "#2C6B7E", .8)); o.push(T(lx + 39.5, y1 + 4.6, "Ejecutado", 2.4, 400, NAVY));
+    o.push('<polyline points="' + rp.map(function(q){ return f(q[0]) + "," + f(q[1]); }).join(" ") + '" fill="none" stroke="#2C6B7E" stroke-width=".9"/>');
+    rp.forEach(function(q){ o.push(circ(q[0], q[1], 1, "#2C6B7E")); });
+    var lx = 281 - 4 - 84;
+    o.push(L(lx, y1 + 5.2, lx + 6, y1 + 5.2, "#8C949E", .7, "2 1.2")); o.push(Ts(lx + 7.5, y1 + 5.2, "Programado", 2.4, 400, NAVY));
+    o.push(L(lx + 38, y1 + 5.2, lx + 44, y1 + 5.2, "#2C6B7E", .9)); o.push(Ts(lx + 45.5, y1 + 5.2, "Ejecutado", 2.4, 400, NAVY));
     var iu = iH >= 0 ? iH : rv.length - 1, dif = (rv[iu] || 0) - pv[iu];
-    o.push(T(20, y1 + ch - 2.3, "A la fecha: " + (rv[iu] || 0) + " partidas ejecutadas vs " + pv[iu] + " programadas · " + (dif >= 0 ? "al día o adelantado (+" + dif + ")" : "atraso de " + (-dif) + " partidas") + " · ejecutado = registros de avance al 100 %.", 2.1, 400, MUTE));
-  } else o.push(T(20, y1 + 20, "Sin programación cargada.", 2.7, 400, MUTE));
-  /* estado actual */
-  var y2 = y1 + ch + 5, est = {};
-  M.AV.forEach(function(a){
-    if(NOTAS.indexOf(a.partida) >= 0 || ORDEN.indexOf(a.partida) < 0) return;
-    var i = ORDEN.indexOf(a.partida), cur = est[a.portico];
-    if(!cur || i > cur[0] || (i === cur[0] && (a.fecha + a.reg) > (cur[1] + cur[3]))) est[a.portico] = [i, a.fecha, a.avance, a.reg];
+    o.push(Ts(20, y1 + ch - 3, fS("A la fecha: " + (rv[iu] || 0) + " ejecutadas vs " + pv[iu] + " programadas · " + (dif >= 0 ? "al día o adelantado (+" + dif + ")" : "atraso de " + (-dif) + " partidas") + " · ejecutado = registros de avance al 100 %.", 2.1, 400, 265 - 8), 2.1, 400, MUTE));
+  } else o.push(Ts(20, y1 + 20, "Sin programación cargada.", 2.7, 400, MUTE));
+  /* avance por partida */
+  var yb = y1 + ch + 8, pit = Math.min(8.6, (402 - yb - 9) / Math.max(1, ORDEN.length));
+  o.push(T(16, yb, "Avance por partida · pórticos que ya la ejecutaron", 3.8, 700, NAVY)); o.push(L(16, yb + 2.9, 281, yb + 2.9, NAVY, .3));
+  ORDEN.forEach(function(p, i){
+    var y = yb + 9.5 + i * pit, c = ES.dist[i];
+    o.push(T(16, y, p, 3.4, 600, NAVY)); o.push(R(60, y - 2.1, 188, 4.2, CHIP, { rx:1 })); o.push(R(60, y - 2.1, 188 * c / Math.max(1, PORT.length), 4.2, COL[p], { rx:1 }));
+    o.push(T(252, y, c + " de " + PORT.length, 3.4, 700, NAVY)); o.push(T(281, y, Math.round(100 * c / Math.max(1, PORT.length)) + " %", 3.2, 400, MUTE, { anchor:"end" }));
   });
-  var dist = ORDEN.map(function(){ return 0; }), sin = 0;
-  PORT.forEach(function(p){ var e = est[p.num]; if(e){ for(var k = 0; k <= e[0]; k++) dist[k]++; } else sin++; });
+  return svgDoc(o, "Pórticos · Informe de avance · Hoja 7 · Indicadores");
+}
+
+/* ====================== HOJA 8 · ESTADO DE LOS PÓRTICOS ====================== */
+function hoja8(M){
+  var PORT = M.PORT, ES = estadoPortico(M), est = ES.est, dist = ES.dist, sin = ES.sin;
+  var o = frame(8, "INFORME DE AVANCE · PÓRTICOS DE VIGILANCIA · ESTADO", "Estado actual de los " + PORT.length + " pórticos", "corte al " + M.corte);
+  o = o.concat(kpis([[PORT.length, "pórticos en total"], [PORT.length - sin, "con avance registrado"], [sin, "sin iniciar"], [dist[0] || 0, "con trazado ejecutado"]]));
+  var y = 53, xx = 16;
+  [["Sin iniciar", sin, "#C9C5B7"]].concat(ORDEN.map(function(nm, i){ return [nm, dist[i], COL[nm]]; })).forEach(function(it){
+    o.push(circ(xx + 1.4, y, 1.4, it[2])); var lab = it[0] + " "; o.push(T(xx + 3.8, y, lab, 3, 400, NAVY)); o.push(T(xx + 3.8 + tw(lab, 3), y, String(it[1]), 3, 700, NAVY)); xx += 3.8 + tw(lab + it[1], 3, 600) + 6;
+  });
+  o.push(T(16, y + 5, "Conteo acumulado: cada partida cuenta los pórticos que ya la ejecutaron, aunque hayan avanzado a la siguiente.", 2.6, 400, MUTE));
   var rows = PORT.slice().sort(function(a, b){ return cmpNat(a.nombre, b.nombre); }), nreg = cuenta(M.AV, function(a){ return a.portico; });
-  var hrow = 4.45, half = Math.ceil(rows.length / 2), bh2 = 8 + 9 + 6 + half * hrow + 4 + 6;
-  box(o, 16, y2, 265, bh2, "Estado actual de los pórticos (" + PORT.length + ")");
-  var xx = 20, yd = y2 + 13, items = [["Sin iniciar", sin, "#C9C5B7"]].concat(ORDEN.map(function(nm, i){ return [nm, dist[i], COL[nm]]; }));
-  items.forEach(function(it){ o.push(circ(xx + 1.2, yd, 1.2, it[2])); var lab = it[0] + " "; o.push(T(xx + 3.4, yd, lab, 2.5, 400, NAVY)); o.push(T(xx + 3.4 + tw(lab, 2.5), yd, String(it[1]), 2.5, 700, NAVY)); xx += 3.4 + tw(lab + it[1], 2.5, 600) + 6; });
-  o.push(T(20, yd + 4.2, "Conteo acumulado: cada partida cuenta los pórticos que ya la ejecutaron, aunque hayan avanzado a la siguiente.", 2.1, 400, MUTE));
-  var colw = (265 - 8 - 6) / 2, ty = yd + 9, heads = [["Pórtico", 0], ["Comuna", 17], ["Estado actual", 40], ["Detalle", 80]];
-  for(var c = 0; c < 2; c++){ var bx = 20 + c * (colw + 6); o.push(R(bx, ty - 2.2, colw, 4.4, CHIP, { rx:.7 })); heads.forEach(function(h){ o.push(T(bx + 1.5 + h[1], ty, h[0], 2.1, 600, MUTE)); }); o.push(T(bx + colw - 1.5, ty, "Reg.", 2.1, 600, MUTE, { anchor:"end" })); }
+  var half = Math.ceil(rows.length / 2), colw = (265 - 8) / 2, ty = 70, hrow = Math.min(7.3, (402 - ty - 7.2) / Math.max(1, half)), k = Math.min(1, hrow / 6.4);
+  for(var c = 0; c < 2; c++){
+    var bx = 16 + c * (colw + 8); o.push(R(bx, ty - 3, colw, 6, CHIP, { rx:.8 }));
+    [["Pórtico", 1.5], ["Comuna", 19], ["Estado actual", 46], ["Detalle", 88]].forEach(function(h){ o.push(T(bx + h[1], ty, h[0], 2.8, 600, MUTE)); });
+    o.push(T(bx + colw - 1.5, ty, "Reg.", 2.8, 600, MUTE, { anchor:"end" }));
+  }
   rows.forEach(function(p, i){
-    var c = Math.floor(i / half), k = i % half, bx = 20 + c * (colw + 6), y = ty + 4.6 + k * hrow; if(k % 2) o.push(R(bx, y - hrow / 2, colw, hrow, "rgba(10,34,64,.03)"));
-    var e = est[p.num]; o.push(T(bx + 1.5, y, p.nombre, 2.4, 700, NAVY)); o.push(T(bx + 18.5, y, fit(p.comuna, 2.3, 400, 21), 2.3, 400, NAVY));
-    if(e){ var nm = ORDEN[e[0]], parc = e[2] !== "" && e[2] != null && parseFloat(e[2]) < 100;
-      o.push(circ(bx + 41.1, y, 1.1, COL[nm])); o.push(T(bx + 43.2, y, fit(nm, 2.4, 500, 35), 2.4, 500, NAVY));
-      o.push(T(bx + 81.5, y, parc ? "en curso " + e[2] + " % · " + fdm(e[1]) : "ejecutado " + fdm(e[1]), 2.2, 400, MUTE));
-    } else { o.push('<circle cx="' + f(bx + 41.1) + '" cy="' + f(y) + '" r="1.1" fill="none" stroke="#9aa0a8" stroke-width=".3"/>'); o.push(T(bx + 43.2, y, "Sin iniciar", 2.4, 400, MUTE)); }
-    o.push(T(bx + colw - 1.5, y, String(nreg[p.num] || 0), 2.3, 400, NAVY, { anchor:"end" }));
+    var c = Math.floor(i / half), kk = i % half, bx = 16 + c * (colw + 8), yy = ty + 7.2 + kk * hrow;
+    if(kk % 2) o.push(R(bx, yy - hrow / 2, colw, hrow, "rgba(10,34,64,.03)"));
+    var e = est[p.num];
+    o.push(T(bx + 1.5, yy, p.nombre, 3.2 * k, 700, NAVY)); o.push(T(bx + 19, yy, fit(p.comuna, 3 * k, 400, 25), 3 * k, 400, NAVY));
+    if(e){
+      var nm = ORDEN[e[0]], parc = e[2] !== "" && e[2] != null && parseFloat(e[2]) < 100;
+      o.push(circ(bx + 47.2, yy, 1.3, COL[nm])); o.push(T(bx + 50, yy, fit(nm, 3 * k, 500, 36), 3 * k, 500, NAVY));
+      o.push(T(bx + 88, yy, fit(parc ? "en curso " + e[2] + " % · " + fdm(e[1]) : "ejecutado " + fdm(e[1]), 2.8 * k, 400, colw - 100), 2.8 * k, 400, MUTE));
+    } else { o.push('<circle cx="' + f(bx + 47.2) + '" cy="' + f(yy) + '" r="1.3" fill="none" stroke="#9aa0a8" stroke-width=".3"/>'); o.push(T(bx + 50, yy, "Sin iniciar", 3 * k, 400, MUTE)); }
+    o.push(T(bx + colw - 1.5, yy, String(nreg[p.num] || 0), 2.9 * k, 400, NAVY, { anchor:"end" }));
   });
-  var y3 = y2 + bh2 + 5, reg = (D.restr || []).filter(function(r){ return r.estado !== "Liberada"; }), pl = Object.keys(pend).sort(function(a, b){ return a - b; });
-  o.push(T(16, y3 + 2, "Restricciones: " + (reg.length ? reg.length + " abierta" + (reg.length === 1 ? "" : "s") + " en el registro compartido" : "registro compartido sin restricciones abiertas") + " · autorizaciones pendientes en programación: " + (pl.length ? pl.map(function(q){ return PN[q] ? PN[q].nombre : q; }).join(", ") : "ninguna") + ".", 2.4, 500, NAVY));
-  return svgDoc(o, "Pórticos · Informe de avance · Hoja 4 · Indicadores");
+  return svgDoc(o, "Pórticos · Informe de avance · Hoja 8 · Estado de los pórticos");
 }
 
 /* ====================== lectura del tablero semanal (DOM → SVG) ====================== */
@@ -671,7 +842,7 @@ function zipDesde(files){
 }
 
 /* ====================== orquestación y ventana ====================== */
-var NOMBRES = ["Hoja1_Mapa", "Hoja2_Semanal", "Hoja3_Intermedio", "Hoja4_Indicadores"];
+var NOMBRES = ["Hoja1_Mapa", "Hoja2_Trazados", "Hoja3_Semana_presente", "Hoja4_Semana_anterior_y_siguiente", "Hoja5_Intermedio", "Hoja6_Restricciones", "Hoja7_Indicadores", "Hoja8_Estado_porticos"];
 var _geo = null;
 function cargarGeo(){
   if(_geo) return Promise.resolve(_geo);
@@ -691,7 +862,7 @@ function generar(paso){
   return Promise.all([cargarGeo(), cargarFuentes(), fuenteEmbebida()]).then(function(r){
     var G = r[0], css = r[2]; paso("Armando las hojas…");
     var M = modelo(D), hojas = [];
-    hojas.push(hoja1(M, G)); var board = leerSemanal(); hojas.push(hoja2(M, board)); hojas.push(hoja3(M)); hojas.push(hoja4(M, D));
+    hojas.push(hoja1(M, G)); hojas.push(hoja2(M)); var board = leerSemanal(); hojas.push(hoja3(M, board)); hojas.push(hoja4(M)); hojas.push(hoja5(M)); hojas.push(hoja6(M)); hojas.push(hoja7(M)); hojas.push(hoja8(M));
     return { hojas:hojas.map(function(s){ return conFuente(s, css); }), M:M };
   });
 }
@@ -706,9 +877,9 @@ function pdfDirecto(btn){
   return generar(estado).then(function(R_){
     var hojas = R_.hojas, pw = Math.round(297 / 25.4 * 300), ph = Math.round(420 / 25.4 * 300), imgs = [], seq = Promise.resolve();
     if(pw * ph > 16000000){ var K = Math.sqrt(16000000 / (pw * ph)); pw = Math.round(pw * K); ph = Math.round(ph * K); }
-    hojas.forEach(function(s, i){ seq = seq.then(function(){ estado("Hoja " + (i + 1) + " de 4…"); return rasterizar(s, pw, ph); }).then(function(j){ imgs.push(j); }); });
+    hojas.forEach(function(s, i){ seq = seq.then(function(){ estado("Hoja " + (i + 1) + " de " + hojas.length + "…"); return rasterizar(s, pw, ph); }).then(function(j){ imgs.push(j); }); });
     return seq.then(function(){ bajar(pdfDesde(imgs, pw, ph), "Porticos_Informe_Avance_" + R_.M.hoy + ".pdf"); });
   }).then(fin, function(e){ fin(); alert("No se pudo generar el informe: " + (e && e.message ? e.message : e)); });
 }
-window.PORTICOS_INFORME = { pdf:pdfDirecto, generar:generar, _t:{ parseFuentes:parseFuentes, cssFuentes:cssFuentes, modelo:modelo, hoja1:hoja1, hoja2:hoja2, hoja3:hoja3, hoja4:hoja4, initOrden:initOrden } };
+window.PORTICOS_INFORME = { pdf:pdfDirecto, generar:generar, _t:{ parseFuentes:parseFuentes, cssFuentes:cssFuentes, modelo:modelo, hoja1:hoja1, hoja2:hoja2, hoja3:hoja3, hoja4:hoja4, hoja5:hoja5, hoja6:hoja6, hoja7:hoja7, hoja8:hoja8, initOrden:initOrden } };
 })();
