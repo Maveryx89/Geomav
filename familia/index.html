@@ -313,6 +313,9 @@ function vLogin(){
   if(!CONFIGURED) return `<div class="login"><h1>Familia</h1><p class="m">Falta configurar Supabase en <b>config.js</b> (URL y anon key).</p></div>`;
   return `<div class="login"><h1>👪 Familia</h1><p class="m">Ingresa tu correo y te enviaremos un enlace para entrar. Sin contraseñas.</p><form id="lf"><input type="email" name="email" placeholder="correo@ejemplo.cl" required autocomplete="email"><button class="primary" style="width:100%;margin-top:10px">Enviar enlace</button></form></div>`;
 }
+function vCodigo(){
+  return `<div class="login"><h1>Revisa tu correo</h1><p class="m">Enviamos un código a <b>${esc(S.pend)}</b>. Escríbelo aquí para entrar (también puedes tocar el enlace del correo).</p><form id="cf"><input name="token" inputmode="numeric" autocomplete="one-time-code" placeholder="Código" required style="text-align:center;letter-spacing:.3em;font-size:1.3rem"><button class="primary" style="width:100%;margin-top:10px">Entrar</button></form><button class="ghost" style="width:100%;margin-top:10px" onclick="S.pend=null;render()">Usar otro correo</button></div>`;
+}
 function vSetup(){
   return `<div class="login"><h1>Bienvenido</h1><p class="m">Tu correo (${esc(S.user.email)}) no tiene una invitación pendiente. Crea tu grupo familiar o pide a un administrador que te invite con este correo.</p><form id="sf"><input name="nombre" placeholder="Nombre de la familia (ej. Familia Verdugo)" required><button class="primary" style="width:100%;margin-top:10px">Crear familia</button></form><button class="ghost" data-logout style="margin-top:14px">Cerrar sesión</button></div>`;
 }
@@ -356,7 +359,13 @@ document.addEventListener('submit',async e=>{
     const email=new FormData(e.target).get('email').trim();
     const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
     if(error) toast('Error: '+error.message);
-    else $('#app').innerHTML=`<div class="login"><h1>Revisa tu correo</h1><p class="m">Enviamos un enlace a <b>${esc(email)}</b>. Ábrelo en este mismo dispositivo.</p></div>`;
+    else { S.pend=email; $('#app').innerHTML=vCodigo(); }
+  }
+  if(e.target.id==='cf'){
+    e.preventDefault();
+    const token=new FormData(e.target).get('token').replace(/\D/g,'');
+    const {error}=await sb.auth.verifyOtp({email:S.pend,token,type:'email'});
+    if(error) toast('Código incorrecto o vencido');
   }
   if(e.target.id==='sf'){
     e.preventDefault();
