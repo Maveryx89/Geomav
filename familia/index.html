@@ -71,6 +71,10 @@ dialog h3{margin:0 0 4px}
 .login{padding-top:12vh;text-align:center}
 .login h1{font-size:1.6rem;margin:0 0 6px}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:99px;font-size:.88rem;z-index:20;max-width:90vw}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}.chips button{white-space:nowrap;background:#e8e6df;color:var(--ink);padding:7px 12px;font-size:.82rem}.chips button.on{background:var(--ink);color:#fff}
+details>summary{display:flex;gap:10px;align-items:center;cursor:pointer;list-style:none}details>summary::-webkit-details-marker{display:none}
+.hic{font-size:1.4rem}h2.hy{margin:14px 0 6px}
+.rt{width:100%;border-collapse:collapse;font-size:.85rem}.rt td{padding:4px;border-bottom:1px solid var(--line);vertical-align:top}.rt td.alto,.rt td.bajo{color:var(--danger);font-weight:700}.rt tr.hd td{font-weight:700;color:var(--blueprint);padding-top:10px}
 .empty{text-align:center;color:var(--mut);padding:30px 10px}
 a{color:var(--blueprint)}
 </style>
@@ -81,6 +85,7 @@ a{color:var(--blueprint)}
 <script src="config.js"></script>
 <script src="calendario-cl.js"></script>
 <script src="modulos.js"></script>
+<script src="salud.js"></script>
 <script>
 'use strict';
 const $ = s => document.querySelector(s);
@@ -88,7 +93,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const CONFIGURED = window.CFG && !/TU-PROYECTO|TU_ANON/.test(CFG.url + CFG.key);
 const sb = CONFIGURED ? supabase.createClient(CFG.url, CFG.key) : null;
 const CK = 'familia_cache_v1';
-const S = { user:null, fam:null, famNombre:'', role:null, tab:'mi', personas:[], tareas:[], medicamentos:[], tomas:[], escolar:[], eventos:[], citas:[], notas:[], salud:[], miembros:[], invs:[], offline:false };
+const S = { user:null, fam:null, famNombre:'', role:null, tab:'mi', personas:[], tareas:[], medicamentos:[], tomas:[], escolar:[], eventos:[], citas:[], notas:[], salud:[], historial:[], hp:null, hf:'todos', miembros:[], invs:[], offline:false };
 const isAdmin = () => S.role === 'admin';
 const isEditor = () => S.role === 'admin' || S.role === 'editor';
 const ROL = { admin:'Administrador', editor:'Editor', miembro:'Miembro' };
@@ -144,13 +149,14 @@ async function load(){
       sb.from('medicamentos').select('*'),
       sb.from('medicamento_tomas').select('*').gte('fecha',ymd(new Date(Date.now()-7*864e5))),
       sb.from('escolar').select('*'),
-      sb.from('eventos').select('*')
+      sb.from('eventos').select('*'),
+      sb.from('historial').select('*').order('fecha',{ascending:false})
     ]);
     for(const r of res) if(r.error) throw r.error;
-    const [p,c,n,s,m,i,ta,me,to,es,ev] = res.map(r=>r.data);
-    Object.assign(S,{personas:p,citas:c,notas:n,salud:s,miembros:m,invs:i,tareas:ta,medicamentos:me,tomas:to,escolar:es,eventos:ev,offline:false});
+    const [p,c,n,s,m,i,ta,me,to,es,ev,hi] = res.map(r=>r.data);
+    Object.assign(S,{personas:p,citas:c,notas:n,salud:s,miembros:m,invs:i,tareas:ta,medicamentos:me,tomas:to,escolar:es,eventos:ev,historial:hi,offline:false});
     if(!S._t){ S._t=1; S.tab=miPersonaId()?'mi':'familia'; }
-    try{ localStorage.setItem(CK,JSON.stringify({uid:S.user.id,data:{fam:S.fam,famNombre:S.famNombre,role:S.role,personas:p,citas:c,notas:n,salud:s,miembros:m,invs:i,tareas:ta,medicamentos:me,tomas:to,escolar:es,eventos:ev}})); }catch(_){}
+    try{ localStorage.setItem(CK,JSON.stringify({uid:S.user.id,data:{fam:S.fam,famNombre:S.famNombre,role:S.role,personas:p,citas:c,notas:n,salud:s,miembros:m,invs:i,tareas:ta,medicamentos:me,tomas:to,escolar:es,eventos:ev,historial:hi}})); }catch(_){}
   }catch(e){
     const c = JSON.parse(localStorage.getItem(CK)||'null');
     if(c && c.uid===S.user.id){ Object.assign(S,c.data,{offline:true}); }
@@ -317,13 +323,7 @@ function vNotas(){
   const g={}; S.notas.forEach(n=>(g[n.categoria||'General']=g[n.categoria||'General']||[]).push(n));
   return Object.keys(g).sort().map(k=>`<h2>${esc(k)}</h2>`+g[k].map(n=>`<div class="card ${isEditor()?'tap':''}" data-nota="${n.id}"><div class="t">${esc(n.titulo)}</div><div class="m" style="white-space:pre-wrap">${esc(n.contenido||'')}</div></div>`).join('')).join('');
 }
-function vSalud(){
-  if(!S.personas.length) return `<div class="empty">Primero agrega personas en la pestaña Familia.</div>`;
-  return `<div class="banner">Solo los administradores ven esta sección.</div>`+S.personas.map(p=>{
-    const s=S.salud.find(x=>x.persona_id===p.id);
-    return `<div class="card tap" data-salud="${p.id}"><div class="row"><div class="av">${esc(inicial(p.nombre))}</div><div class="grow"><div class="t">${esc(p.nombre)}</div><div class="m">${s?esc([s.grupo_sanguineo,s.prevision,s.alergias&&'Alergias: '+s.alergias].filter(Boolean).join(' · '))||'Ficha creada':'Sin ficha de salud'}</div></div></div></div>`;
-  }).join('');
-}
+function vSalud(){ return S.hp?vHistorial():vSaludLista(); }
 function vAjustes(){
   let h=`<div class="card"><div class="t">${esc(S.famNombre)}</div><div class="m">${esc(S.user.email||'')} · ${esc(ROL[S.role]||S.role)}</div></div><h2>Miembros</h2>`;
   h+=S.miembros.map(m=>`<div class="card"><div class="row"><div class="grow"><div class="t">${esc(m.email||'—')}</div><div class="m">${esc(ROL[m.role]||m.role)}${m.persona_id?' · 🙋 '+esc(pName(m.persona_id)):' · sin persona vinculada'}</div></div>${isAdmin()?`<button class="ghost sm" data-vinc="${m.user_id}" style="margin-right:6px">Persona</button>`:''}${isAdmin()&&m.user_id!==S.user.id?`<button class="ghost" data-rol="${m.user_id}" style="margin-right:6px">Rol</button><button class="danger" data-quitar="${m.user_id}">Quitar</button>`:''}</div></div>`).join('');
@@ -355,13 +355,13 @@ function render(){
   if(!S.fam){ app.innerHTML=vSetup(); return; }
   const V={mi:vMi,familia:vFamilia,cal:vCalendario,tareas:vTareas,mas:vMas,citas:vCitas,meds:vMeds,escolar:vEscolar,notas:vNotas,salud:vSalud,ajustes:vAjustes};
   if(!(TABS().some(t=>t[0]===S.tab)||SUBTABS.includes(S.tab))||(S.tab==='salud'&&!isAdmin())) S.tab='familia';
-  const fab=!S.offline&&((isEditor()&&{familia:1,citas:1,notas:1,tareas:1,escolar:1,cal:1}[S.tab])||(isAdmin()&&S.tab==='meds'))?'<button class="fab" data-add>+</button>':'';
-  app.innerHTML=`<header class="top"><h1>${SUBTABS.includes(S.tab)?'<button class="back" data-tab="mas">‹</button>':''}${esc(TITLES[S.tab])}</h1><small>${esc(S.famNombre)}</small></header>${S.offline?'<div class="banner">Sin conexión · mostrando la última copia guardada (solo lectura)</div>':''}${V[S.tab]()}${fab}<nav class="tabs"><div>${TABS().map(t=>`<button data-tab="${t[0]}" class="${(S.tab===t[0]||(t[0]==='mas'&&SUBTABS.includes(S.tab)))?'on':''}"><span>${t[1]}</span>${t[2]}</button>`).join('')}</div></nav>`;
+  const fab=!S.offline&&((isEditor()&&{familia:1,citas:1,notas:1,tareas:1,escolar:1,cal:1}[S.tab])||(isAdmin()&&(S.tab==='meds'||(S.tab==='salud'&&S.hp))))?'<button class="fab" data-add>+</button>':'';
+  app.innerHTML=`<header class="top"><h1>${S.tab==='salud'&&S.hp?'<button class="back" data-hback>‹</button>':SUBTABS.includes(S.tab)?'<button class="back" data-tab="mas">‹</button>':''}${esc(S.tab==='salud'&&S.hp?'Historial de salud':TITLES[S.tab])}</h1><small>${esc(S.famNombre)}</small></header>${S.offline?'<div class="banner">Sin conexión · mostrando la última copia guardada (solo lectura)</div>':''}${V[S.tab]()}${fab}<nav class="tabs"><div>${TABS().map(t=>`<button data-tab="${t[0]}" class="${(S.tab===t[0]||(t[0]==='mas'&&SUBTABS.includes(S.tab)))?'on':''}"><span>${t[1]}</span>${t[2]}</button>`).join('')}</div></nav>`;
 }
 
 /* ---------- eventos ---------- */
 document.addEventListener('click',async e=>{
-  const t=e.target.closest('[data-tab],[data-evento],[data-toma],[data-tareaok],[data-utilok],[data-tarea],[data-med],[data-esc],[data-tf],[data-misdatos],[data-vinc],[data-rol],[data-day],[data-calnav],[data-ficha],[data-cita],[data-nota],[data-salud],[data-add],[data-inv],[data-quitar],[data-delinv],[data-export],[data-logout],[data-stop]');
+  const t=e.target.closest('[data-tab],[data-evento],[data-toma],[data-tareaok],[data-utilok],[data-tarea],[data-med],[data-esc],[data-tf],[data-misdatos],[data-vinc],[data-rol],[data-day],[data-calnav],[data-ficha],[data-cita],[data-nota],[data-salud],[data-hback],[data-hf],[data-hent],[data-hficha],[data-arch],[data-add],[data-inv],[data-quitar],[data-delinv],[data-export],[data-logout],[data-stop]');
   if(!t) return;
   const d=t.dataset;
   if('stop' in d) return;
@@ -382,13 +382,18 @@ document.addEventListener('click',async e=>{
   else if(d.ficha) ficha(d.ficha);
   else if(d.cita&&isEditor()) formCita(S.citas.find(c=>c.id===d.cita));
   else if(d.nota&&isEditor()) formNota(S.notas.find(n=>n.id===d.nota));
-  else if(d.salud) formSalud(S.personas.find(p=>p.id===d.salud));
-  else if('add' in d){ ({familia:()=>formPersona(),citas:()=>formCita(),notas:()=>formNota(),tareas:()=>formTarea(),escolar:()=>formEscolar(),meds:()=>formMed(),cal:()=>abrirAgregar(S.cal&&S.cal.sel)})[S.tab](); }
+  else if(d.salud){ S.hp=d.salud; S.hf='todos'; render(); window.scrollTo(0,0); }
+  else if('hback' in d){ S.hp=null; render(); window.scrollTo(0,0); }
+  else if(d.hf){ S.hf=d.hf; render(); }
+  else if(d.hent&&isAdmin()) formHist(S.historial.find(x=>x.id===d.hent));
+  else if('hficha' in d&&isAdmin()) formSalud(S.personas.find(p=>p.id===S.hp));
+  else if(d.arch) await hAbrir(d.arch);
+  else if('add' in d){ ({familia:()=>formPersona(),citas:()=>formCita(),notas:()=>formNota(),tareas:()=>formTarea(),escolar:()=>formEscolar(),meds:()=>formMed(),salud:()=>formHist(null,S.hp),cal:()=>abrirAgregar(S.cal&&S.cal.sel)})[S.tab](); }
   else if('inv' in d) form('Invitar familiar',[{k:'email',l:'Correo',t:'email',req:1},{k:'role',l:'Rol',t:'select',o:[['miembro','Miembro (solo lectura)'],['editor','Editor (edita, sin ver Salud)'],['admin','Administrador (todo, incluye Salud)']]},{k:'persona_id',l:'Es la persona…',t:'select',o:[['','Sin vincular (después)'],...S.personas.map(p=>[p.id,p.nombre])]}],{role:'miembro'},async row=>{ row.email=row.email.toLowerCase(); return save('invitaciones',row); });
   else if(d.quitar){ if(confirm('¿Quitar a este miembro?')) await del('miembros',d.quitar,'user_id'); }
   else if(d.delinv) await del('invitaciones',d.delinv,'email');
   else if('export' in d){
-    const blob=new Blob([JSON.stringify({exportado:new Date().toISOString(),familia:S.famNombre,personas:S.personas,salud:isAdmin()?S.salud:undefined,citas:S.citas,notas:S.notas,tareas:S.tareas,escolar:S.escolar,eventos:S.eventos,medicamentos:isAdmin()?S.medicamentos:undefined},null,2)],{type:'application/json'});
+    const blob=new Blob([JSON.stringify({exportado:new Date().toISOString(),familia:S.famNombre,personas:S.personas,salud:isAdmin()?S.salud:undefined,citas:S.citas,notas:S.notas,tareas:S.tareas,escolar:S.escolar,eventos:S.eventos,medicamentos:isAdmin()?S.medicamentos:undefined,historial:isAdmin()?S.historial:undefined},null,2)],{type:'application/json'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='familia-respaldo-'+new Date().toISOString().slice(0,10)+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   }
   else if('logout' in d){ await sb.auth.signOut(); try{localStorage.removeItem(CK);}catch(_){} S.user=null; S.fam=null; render(); }
