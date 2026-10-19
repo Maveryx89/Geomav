@@ -29,6 +29,19 @@ header.top small{opacity:.75}
 h2{font-size:.95rem;text-transform:uppercase;letter-spacing:.04em;color:var(--blueprint);margin:18px 0 8px}
 button{font:inherit;border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:700}
 .primary{background:var(--ink);color:#fff}.ghost{background:#e8e6df;color:var(--ink)}.danger{background:#f6dcda;color:var(--danger)}
+.cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-h b{font-size:1.05rem;text-transform:capitalize}
+.cal-h button{padding:6px 12px;font-size:1.1rem}
+.cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-w{font-size:.7rem;font-weight:700;color:var(--mut);text-align:center;padding:4px 0}
+.cal-d{background:var(--card);border:1px solid var(--line);border-radius:10px;min-height:52px;padding:4px 3px;text-align:center;font-weight:600;font-size:.85rem;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.cal-d.x{visibility:hidden;border:0;cursor:default}
+.cal-d.fer,.cal-d.dom{color:var(--danger)}
+.cal-d.fer{background:#fbeeed}
+.cal-d.hoy{border-color:var(--accent);border-width:2px}
+.cal-d.sel{background:var(--ink);color:#fff;border-color:var(--ink)}
+.cal-d i{font-style:normal;font-size:.62rem;line-height:1;min-height:.7rem}
+.dt{font-size:.8rem;margin:3px 0}
 .fab{position:fixed;right:18px;bottom:78px;width:54px;height:54px;border-radius:50%;background:var(--accent);color:#fff;font-size:1.8rem;box-shadow:0 4px 12px #0004;padding:0}
 nav.tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:6}
 nav.tabs div{display:flex;width:100%;max-width:640px}
@@ -55,6 +68,7 @@ a{color:var(--blueprint)}
 <div id="app"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
+<script src="calendario-cl.js"></script>
 <script>
 'use strict';
 const $ = s => document.querySelector(s);
@@ -224,6 +238,41 @@ function vCumples(){
   if(!l.length) return `<div class="empty">Agrega fechas de nacimiento en la ficha de cada persona.</div>`;
   return l.map(x=>`<div class="card"><div class="row"><div class="av" style="background:${x.dias===0?'var(--accent)':'var(--blueprint)'}">${x.dias===0?'🎂':esc(inicial(x.p.nombre))}</div><div class="grow"><div class="t">${esc(x.p.nombre)}</div><div class="m">${fmtFecha(x.p.nacimiento)} · cumple ${x.cumple}</div></div><span class="pill ${x.dias===0?'hoy':''}">${x.dias===0?'¡Hoy!':x.dias===1?'Mañana':x.dias+' días'}</span></div></div>`).join('');
 }
+/* ---------- calendario ---------- */
+const CAL = window.CAL_CL || { feriados:{}, santoral:{} };
+const ymd = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function diaInfo(k){
+  const [y,m,d]=k.split('-').map(Number);
+  const bd=S.personas.filter(p=>{ if(!p.nacimiento) return false; const b=parseDate(p.nacimiento);
+    const leap=(y%4===0&&y%100!==0)||y%400===0;
+    if(b.getMonth()===1&&b.getDate()===29&&!leap) return m===2&&d===28;
+    return b.getMonth()===m-1&&b.getDate()===d; }).map(p=>({p,anios:y-parseDate(p.nacimiento).getFullYear()}));
+  const ct=S.citas.filter(c=>ymd(new Date(c.fecha))===k).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
+  return { fer:CAL.feriados[k], santo:CAL.santoral[k.slice(5)], bd, ct };
+}
+function vCalendario(){
+  const t0=today0();
+  if(!S.cal) S.cal={ y:t0.getFullYear(), m:t0.getMonth(), sel:ymd(t0) };
+  const {y,m}=S.cal, first=new Date(y,m,1), n=new Date(y,m+1,0).getDate(), off=(first.getDay()+6)%7;
+  const mes=first.toLocaleDateString('es-CL',{month:'long',year:'numeric'});
+  let g=['L','M','M','J','V','S','D'].map(x=>`<div class="cal-w">${x}</div>`).join('')+'<div class="cal-d x"></div>'.repeat(off);
+  for(let d=1;d<=n;d++){
+    const k=ymd(new Date(y,m,d)), i=diaInfo(k), dow=(off+d-1)%7;
+    const cls=['cal-d',i.fer?'fer':'',dow===6?'dom':'',k===ymd(t0)?'hoy':'',k===S.cal.sel?'sel':''].filter(Boolean).join(' ');
+    g+=`<div class="${cls}" data-day="${k}">${d}<i>${i.bd.length?'🎂':''}${i.ct.length?'🩺':''}</i></div>`;
+  }
+  const k=S.cal.sel, i=diaInfo(k), fl=parseDate(k).toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  let det=`<div class="card"><div class="t" style="text-transform:capitalize">${esc(fl)}</div>`;
+  if(i.fer) det+=`<div class="dt"><span class="pill no">Feriado${i.fer.i?' irrenunciable':''}</span> <b>${esc(i.fer.n)}</b></div>`;
+  if(i.santo) det+=`<div class="dt m">✝️ ${esc(i.santo)}</div>`;
+  i.bd.forEach(x=>det+=`<div class="dt">🎂 <b>${esc(x.p.nombre)}</b> cumple ${x.anios}</div>`);
+  i.ct.forEach(c=>det+=`<div class="dt">🩺 ${esc(new Date(c.fecha).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}))} · ${esc(pName(c.persona_id))}${c.doctor?' · '+esc(c.doctor):''}${c.motivo?' · '+esc(c.motivo):''} <span class="pill ${c.estado==='realizada'?'ok':c.estado==='cancelada'?'no':''}">${esc(c.estado)}</span></div>`);
+  det+='</div>';
+  const fm=Object.keys(CAL.feriados).filter(f=>f.startsWith(y+'-'+String(m+1).padStart(2,'0'))).sort();
+  const lista=fm.length?`<h2>Feriados del mes</h2>`+fm.map(f=>`<div class="card tap" data-day="${f}"><div class="row"><div class="grow"><div class="t">${esc(CAL.feriados[f].n)}</div><div class="m">${esc(parseDate(f).toLocaleDateString('es-CL',{weekday:'long',day:'numeric'}))}</div></div>${CAL.feriados[f].i?'<span class="pill no">irrenunciable</span>':''}</div></div>`).join(''):'';
+  const aviso=!Object.keys(CAL.feriados).some(f=>f.startsWith(y+'-'))?`<div class="banner">Los feriados de ${y} aún no están cargados.</div>`:'';
+  return `<div class="cal-h"><button class="ghost" data-calnav="-1">‹</button><b>${esc(mes)}</b><button class="ghost" data-calnav="1">›</button></div>${aviso}<div class="cal-g">${g}</div><button class="ghost" data-calnav="0" style="width:100%;margin:8px 0">Hoy</button>${det}${lista}<h2>Próximos cumpleaños</h2>${vCumples()}`;
+}
 function citaCard(c){
   const cls=c.estado==='realizada'?'ok':c.estado==='cancelada'?'no':'';
   return `<div class="card ${isAdmin()?'tap':''}" data-cita="${c.id}"><div class="row"><div class="grow"><div class="t">${esc(fmtDT(c.fecha))}</div><div class="m">${esc(pName(c.persona_id))}${c.doctor?' · '+esc(c.doctor):''}${c.lugar?' · '+esc(c.lugar):''}</div>${c.motivo?`<div class="m">${esc(c.motivo)}</div>`:''}</div><span class="pill ${cls}">${esc(c.estado)}</span></div></div>`;
@@ -257,8 +306,8 @@ function vAjustes(){
   h+=`<h2>Datos</h2><button class="ghost" data-export style="width:100%;margin-bottom:8px">Exportar respaldo (JSON)</button><button class="ghost" data-logout style="width:100%">Cerrar sesión</button>`;
   return h;
 }
-const TABS=()=>{ const t=[['familia','👪','Familia'],['cumples','🎂','Cumples'],['citas','🩺','Citas'],['notas','📌','Info']]; if(isAdmin()) t.push(['salud','❤️','Salud']); t.push(['ajustes','⚙️','Ajustes']); return t; };
-const TITLES={familia:'Familia',cumples:'Cumpleaños',citas:'Citas médicas',notas:'Info útil',salud:'Salud',ajustes:'Ajustes'};
+const TABS=()=>{ const t=[['familia','👪','Familia'],['cal','📅','Calendario'],['citas','🩺','Citas'],['notas','📌','Info']]; if(isAdmin()) t.push(['salud','❤️','Salud']); t.push(['ajustes','⚙️','Ajustes']); return t; };
+const TITLES={familia:'Familia',cal:'Calendario',citas:'Citas médicas',notas:'Info útil',salud:'Salud',ajustes:'Ajustes'};
 
 function vLogin(){
   if(!CONFIGURED) return `<div class="login"><h1>Familia</h1><p class="m">Falta configurar Supabase en <b>config.js</b> (URL y anon key).</p></div>`;
@@ -272,7 +321,7 @@ function render(){
   const app=$('#app');
   if(!S.user){ app.innerHTML=vLogin(); return; }
   if(!S.fam){ app.innerHTML=vSetup(); return; }
-  const V={familia:vFamilia,cumples:vCumples,citas:vCitas,notas:vNotas,salud:vSalud,ajustes:vAjustes};
+  const V={familia:vFamilia,cal:vCalendario,citas:vCitas,notas:vNotas,salud:vSalud,ajustes:vAjustes};
   if(!TABS().some(t=>t[0]===S.tab)) S.tab='familia';
   const fab=isAdmin()&&{familia:1,citas:1,notas:1}[S.tab]&&!S.offline?'<button class="fab" data-add>+</button>':'';
   app.innerHTML=`<header class="top"><h1>${esc(TITLES[S.tab])}</h1><small>${esc(S.famNombre)}</small></header>${S.offline?'<div class="banner">Sin conexión · mostrando la última copia guardada (solo lectura)</div>':''}${V[S.tab]()}${fab}<nav class="tabs"><div>${TABS().map(t=>`<button data-tab="${t[0]}" class="${S.tab===t[0]?'on':''}"><span>${t[1]}</span>${t[2]}</button>`).join('')}</div></nav>`;
@@ -280,11 +329,13 @@ function render(){
 
 /* ---------- eventos ---------- */
 document.addEventListener('click',async e=>{
-  const t=e.target.closest('[data-tab],[data-ficha],[data-cita],[data-nota],[data-salud],[data-add],[data-inv],[data-quitar],[data-delinv],[data-export],[data-logout],[data-stop]');
+  const t=e.target.closest('[data-tab],[data-day],[data-calnav],[data-ficha],[data-cita],[data-nota],[data-salud],[data-add],[data-inv],[data-quitar],[data-delinv],[data-export],[data-logout],[data-stop]');
   if(!t) return;
   const d=t.dataset;
   if('stop' in d) return;
   if(d.tab){ S.tab=d.tab; render(); window.scrollTo(0,0); }
+  else if(d.day){ if(S.cal){ S.cal.sel=d.day; const [yy,mm]=d.day.split('-').map(Number); S.cal.y=yy; S.cal.m=mm-1; } render(); }
+  else if('calnav' in d){ const v=+d.calnav, c=S.cal; if(v===0){ const n=today0(); S.cal={y:n.getFullYear(),m:n.getMonth(),sel:ymd(n)}; } else { const nd=new Date(c.y,c.m+v,1); c.y=nd.getFullYear(); c.m=nd.getMonth(); c.sel=ymd(nd); } render(); }
   else if(d.ficha) ficha(d.ficha);
   else if(d.cita&&isAdmin()) formCita(S.citas.find(c=>c.id===d.cita));
   else if(d.nota&&isAdmin()) formNota(S.notas.find(n=>n.id===d.nota));
