@@ -1215,6 +1215,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
         <div class="menu-pop">
           <button class="btn-sm" data-action="add-week">+ Día</button>
+          <button class="btn-sm" data-action="importar-planilla"><span aria-hidden="true">&#x1F4E5;</span> Importar planilla&hellip;</button>
           <button class="btn-sm danger" data-action="borrar-grupo"><span aria-hidden="true">&#x1F5D1;&#xFE0F;</span> Borrar tareas&hellip;</button>
           <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
@@ -1292,6 +1293,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
         <summary class="btn-sm" aria-label="Más opciones"><span aria-hidden="true">&#8943;</span> Más opciones</summary>
         <div class="menu-pop">
           <button class="btn-sm" data-action="add-week">+ Semana</button>
+          <button class="btn-sm" data-action="importar-planilla"><span aria-hidden="true">&#x1F4E5;</span> Importar planilla&hellip;</button>
           <button class="btn-sm danger" data-action="borrar-grupo"><span aria-hidden="true">&#x1F5D1;&#xFE0F;</span> Borrar tareas&hellip;</button>
           <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
@@ -2910,6 +2912,11 @@ window.PORTICOS_LISTA = (function(){
       else if(action === "m-col"){ mCol = el.dataset.week; state.editingNoteId = null; render(); }
       else if(action === "liberar-hoy"){ if(window.PORTICOS_API && window.PORTICOS_API.liberar) window.PORTICOS_API.liberar(el.dataset.portico, el); }
       else if(action === "borrar-grupo"){ abrirBorrado(); }
+      else if(action === "importar-planilla"){
+        var go = function(){ if(window.PORTICOS_IMPORTAR) window.PORTICOS_IMPORTAR.abrir(); };
+        if(window.PORTICOS_IMPORTAR){ go(); }
+        else { var sc = document.createElement("script"); sc.src = "importar-planilla.js?v=20261019a"; sc.onload = go; sc.onerror = function(){ alert("No se pudo cargar el importador. Revisa tu conexi\u00f3n."); }; document.head.appendChild(sc); }
+      }
       else if(action === "ruta"){ abrirRuta(); }
       else if(action === "guardar-todo"){ guardarTodo(el); }
       else if(action === "nueva-restr"){ var nr = state.notes.find(function(x){ return x.id === el.dataset.note; }); if(nr && nr.portico && window.PORTICOS_RESTR) window.PORTICOS_RESTR.nueva(nr.portico); }
