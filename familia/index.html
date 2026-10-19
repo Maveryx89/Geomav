@@ -75,6 +75,12 @@ dialog h3{margin:0 0 4px}
 details>summary{display:flex;gap:10px;align-items:center;cursor:pointer;list-style:none}details>summary::-webkit-details-marker{display:none}
 .hic{font-size:1.4rem}h2.hy{margin:14px 0 6px}
 .rt{width:100%;border-collapse:collapse;font-size:.85rem}.rt td{padding:4px;border-bottom:1px solid var(--line);vertical-align:top}.rt td.alto,.rt td.bajo{color:var(--danger);font-weight:700}.rt tr.hd td{font-weight:700;color:var(--blueprint);padding-top:10px}
+.intro{position:fixed;inset:0;background:var(--ink);color:#fff;z-index:50;display:flex;flex-direction:column;padding:calc(16px + env(safe-area-inset-top)) 22px calc(22px + env(safe-area-inset-bottom))}
+.intro .itop{display:flex;justify-content:space-between;align-items:center;min-height:40px}
+.intro .sl{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;max-width:480px;margin:0 auto}
+.intro .ic{font-size:88px;line-height:1}.intro .it{font-size:1.7rem;font-weight:800;line-height:1.15}.intro .id{font-size:1.05rem;line-height:1.5;color:#C9D3E0}
+.intro .dots{display:flex;gap:8px;justify-content:center;margin:12px 0}.intro .dots i{width:8px;height:8px;border-radius:50%;background:#ffffff40}.intro .dots i.on{background:var(--accent);width:22px;border-radius:99px}
+.intro .ibtn{display:flex;gap:10px;max-width:480px;width:100%;margin:0 auto}.accent{background:var(--accent);color:var(--ink)}
 .empty{text-align:center;color:var(--mut);padding:30px 10px}
 a{color:var(--blueprint)}
 </style>
@@ -86,6 +92,7 @@ a{color:var(--blueprint)}
 <script src="calendario-cl.js"></script>
 <script src="modulos.js"></script>
 <script src="salud.js"></script>
+<script src="intro.js"></script>
 <script>
 'use strict';
 const $ = s => document.querySelector(s);
@@ -163,6 +170,7 @@ async function load(){
     else toast('Error al cargar: '+(e.message||e));
   }
   render();
+  introAuto();
 }
 async function save(table,row,id,opts){
   if(S.offline){ toast('Sin conexión: no se puede guardar'); return false; }
@@ -331,7 +339,7 @@ function vAjustes(){
     h+=S.invs.map(i=>`<div class="card"><div class="row"><div class="grow"><div class="t">${esc(i.email)}</div><div class="m">Invitación pendiente · ${esc(ROL[i.role]||i.role)}</div></div><button class="danger" data-delinv="${esc(i.email)}">✕</button></div></div>`).join('');
     h+=`<button class="primary" data-inv style="width:100%">Invitar familiar</button><div class="m" style="margin-top:6px">El familiar debe ingresar a la app con ese mismo correo para unirse.</div>`;
   }
-  h+=`<h2>Datos</h2><button class="ghost" data-export style="width:100%;margin-bottom:8px">Exportar respaldo (JSON)</button><button class="ghost" data-logout style="width:100%">Cerrar sesión</button>`;
+  h+=`<h2>Ayuda</h2><button class="ghost" data-intro style="width:100%;margin-bottom:8px">Ver presentación de la app</button><h2>Datos</h2><button class="ghost" data-export style="width:100%;margin-bottom:8px">Exportar respaldo (JSON)</button><button class="ghost" data-logout style="width:100%">Cerrar sesión</button>`;
   return h;
 }
 const SUBTABS=['citas','meds','escolar','notas','salud','ajustes'];
@@ -361,7 +369,7 @@ function render(){
 
 /* ---------- eventos ---------- */
 document.addEventListener('click',async e=>{
-  const t=e.target.closest('[data-tab],[data-evento],[data-toma],[data-tareaok],[data-utilok],[data-tarea],[data-med],[data-esc],[data-tf],[data-misdatos],[data-vinc],[data-rol],[data-day],[data-calnav],[data-ficha],[data-cita],[data-nota],[data-salud],[data-hback],[data-hf],[data-hent],[data-hficha],[data-arch],[data-add],[data-inv],[data-quitar],[data-delinv],[data-export],[data-logout],[data-stop]');
+  const t=e.target.closest('[data-tab],[data-evento],[data-toma],[data-tareaok],[data-utilok],[data-tarea],[data-med],[data-esc],[data-tf],[data-misdatos],[data-vinc],[data-rol],[data-day],[data-calnav],[data-ficha],[data-cita],[data-nota],[data-intro],[data-salud],[data-hback],[data-hf],[data-hent],[data-hficha],[data-arch],[data-add],[data-inv],[data-quitar],[data-delinv],[data-export],[data-logout],[data-stop]');
   if(!t) return;
   const d=t.dataset;
   if('stop' in d) return;
@@ -382,6 +390,7 @@ document.addEventListener('click',async e=>{
   else if(d.ficha) ficha(d.ficha);
   else if(d.cita&&isEditor()) formCita(S.citas.find(c=>c.id===d.cita));
   else if(d.nota&&isEditor()) formNota(S.notas.find(n=>n.id===d.nota));
+  else if('intro' in d) introShow(true);
   else if(d.salud){ S.hp=d.salud; S.hf='todos'; render(); window.scrollTo(0,0); }
   else if('hback' in d){ S.hp=null; render(); window.scrollTo(0,0); }
   else if(d.hf){ S.hf=d.hf; render(); }
