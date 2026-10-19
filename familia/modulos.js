@@ -170,6 +170,7 @@ async function toggleUtil(id){
 function vMas(){
   const it=[['citas','🩺','Citas médicas','Horas de doctor de toda la familia'],['meds','💊','Medicamentos','Horarios y tomas del día'],['escolar','🎒','Escolar','Horarios, pruebas y útiles'],['notas','📌','Info útil','Teléfonos, seguros y otros datos']];
   if(isAdmin()) it.push(['salud','❤️','Salud','Fichas de salud (solo administradores)']);
+  it.push(['manual','📖','Manual de uso','Cómo usar cada sección']);
   it.push(['ajustes','⚙️','Ajustes','Miembros, roles y respaldo']);
   return it.map(x=>`<div class="card tap" data-tab="${x[0]}"><div class="row"><div style="font-size:1.6rem">${x[1]}</div><div class="grow"><div class="t">${x[2]}</div><div class="m">${x[3]}</div></div><div class="m">›</div></div></div>`).join('');
 }

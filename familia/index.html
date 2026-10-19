@@ -75,12 +75,15 @@ dialog h3{margin:0 0 4px}
 details>summary{display:flex;gap:10px;align-items:center;cursor:pointer;list-style:none}details>summary::-webkit-details-marker{display:none}
 .hic{font-size:1.4rem}h2.hy{margin:14px 0 6px}
 .rt{width:100%;border-collapse:collapse;font-size:.85rem}.rt td{padding:4px;border-bottom:1px solid var(--line);vertical-align:top}.rt td.alto,.rt td.bajo{color:var(--danger);font-weight:700}.rt tr.hd td{font-weight:700;color:var(--blueprint);padding-top:10px}
-.intro{position:fixed;inset:0;background:var(--ink);color:#fff;z-index:50;display:flex;flex-direction:column;padding:calc(16px + env(safe-area-inset-top)) 22px calc(22px + env(safe-area-inset-bottom))}
-.intro .itop{display:flex;justify-content:space-between;align-items:center;min-height:40px}
-.intro .sl{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;max-width:480px;margin:0 auto}
-.intro .ic{font-size:88px;line-height:1}.intro .it{font-size:1.7rem;font-weight:800;line-height:1.15}.intro .id{font-size:1.05rem;line-height:1.5;color:#C9D3E0}
-.intro .dots{display:flex;gap:8px;justify-content:center;margin:12px 0}.intro .dots i{width:8px;height:8px;border-radius:50%;background:#ffffff40}.intro .dots i.on{background:var(--accent);width:22px;border-radius:99px}
-.intro .ibtn{display:flex;gap:10px;max-width:480px;width:100%;margin:0 auto}.accent{background:var(--accent);color:var(--ink)}
+.hr{display:flex;align-items:center;gap:10px}.hq{background:#ffffff26;color:#fff;width:32px;height:32px;border-radius:50%;padding:0;font-size:1rem}
+.msec ul,.msec ol{margin:6px 0 6px 20px;padding:0}.msec li{margin:4px 0}.msec p{margin:8px 0}.msec .mb{margin-top:8px;font-size:.94rem;line-height:1.45}.msec code{background:#eceae3;border-radius:6px;padding:1px 6px;font-size:.88rem}.msec .pill{margin-left:6px}
+.tour{position:fixed;inset:0;z-index:60}
+.tbd{position:fixed;inset:0}
+.thole{position:fixed;display:none;border-radius:14px;box-shadow:0 0 0 100vmax rgba(10,34,64,.62);outline:3px solid var(--accent);pointer-events:none}
+.tcard{position:fixed;left:50%;transform:translateX(-50%);width:min(92vw,440px);background:#fff;color:var(--ink);border-radius:20px;padding:22px 22px 18px;box-shadow:0 10px 40px #0006}
+.tcard .te{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.tcard .tt{font-size:1.45rem;font-weight:800;margin-bottom:8px}.tcard .td{font-size:1.02rem;line-height:1.5}
+.tcard .tf{display:flex;align-items:center;gap:8px;margin-top:16px}.tlink{background:none;color:var(--mut);padding:10px 8px}
 .empty{text-align:center;color:var(--mut);padding:30px 10px}
 a{color:var(--blueprint)}
 </style>
@@ -93,6 +96,7 @@ a{color:var(--blueprint)}
 <script src="modulos.js"></script>
 <script src="salud.js"></script>
 <script src="intro.js"></script>
+<script src="manual.js"></script>
 <script>
 'use strict';
 const $ = s => document.querySelector(s);
@@ -339,12 +343,12 @@ function vAjustes(){
     h+=S.invs.map(i=>`<div class="card"><div class="row"><div class="grow"><div class="t">${esc(i.email)}</div><div class="m">Invitación pendiente · ${esc(ROL[i.role]||i.role)}</div></div><button class="danger" data-delinv="${esc(i.email)}">✕</button></div></div>`).join('');
     h+=`<button class="primary" data-inv style="width:100%">Invitar familiar</button><div class="m" style="margin-top:6px">El familiar debe ingresar a la app con ese mismo correo para unirse.</div>`;
   }
-  h+=`<h2>Ayuda</h2><button class="ghost" data-intro style="width:100%;margin-bottom:8px">Ver presentación de la app</button><h2>Datos</h2><button class="ghost" data-export style="width:100%;margin-bottom:8px">Exportar respaldo (JSON)</button><button class="ghost" data-logout style="width:100%">Cerrar sesión</button>`;
+  h+=`<h2>Ayuda</h2><button class="ghost" data-intro style="width:100%;margin-bottom:8px">▶ Ver recorrido guiado</button><button class="ghost" data-tab="manual" style="width:100%;margin-bottom:8px">📖 Manual de uso</button><h2>Datos</h2><button class="ghost" data-export style="width:100%;margin-bottom:8px">Exportar respaldo (JSON)</button><button class="ghost" data-logout style="width:100%">Cerrar sesión</button>`;
   return h;
 }
-const SUBTABS=['citas','meds','escolar','notas','salud','ajustes'];
+const SUBTABS=['citas','meds','escolar','notas','salud','ajustes','manual'];
 const TABS=()=>[['mi','🙋','Mi ficha'],['familia','👪','Familia'],['cal','📅','Calendario'],['tareas','✅','Tareas'],['mas','☰','Más']];
-const TITLES={mi:'Mi ficha',tareas:'Tareas',mas:'Más',meds:'Medicamentos',escolar:'Escolar',familia:'Familia',cal:'Calendario',citas:'Citas médicas',notas:'Info útil',salud:'Salud',ajustes:'Ajustes'};
+const TITLES={mi:'Mi ficha',tareas:'Tareas',mas:'Más',meds:'Medicamentos',escolar:'Escolar',familia:'Familia',cal:'Calendario',citas:'Citas médicas',notas:'Info útil',salud:'Salud',ajustes:'Ajustes',manual:'Manual de uso'};
 
 function vLogin(){
   if(!CONFIGURED) return `<div class="login"><h1>Familia</h1><p class="m">Falta configurar Supabase en <b>config.js</b> (URL y anon key).</p></div>`;
@@ -361,10 +365,10 @@ function render(){
   const app=$('#app');
   if(!S.user){ app.innerHTML=vLogin(); return; }
   if(!S.fam){ app.innerHTML=vSetup(); return; }
-  const V={mi:vMi,familia:vFamilia,cal:vCalendario,tareas:vTareas,mas:vMas,citas:vCitas,meds:vMeds,escolar:vEscolar,notas:vNotas,salud:vSalud,ajustes:vAjustes};
+  const V={mi:vMi,familia:vFamilia,cal:vCalendario,tareas:vTareas,mas:vMas,citas:vCitas,meds:vMeds,escolar:vEscolar,notas:vNotas,salud:vSalud,ajustes:vAjustes,manual:vManual};
   if(!(TABS().some(t=>t[0]===S.tab)||SUBTABS.includes(S.tab))||(S.tab==='salud'&&!isAdmin())) S.tab='familia';
   const fab=!S.offline&&((isEditor()&&{familia:1,citas:1,notas:1,tareas:1,escolar:1,cal:1}[S.tab])||(isAdmin()&&(S.tab==='meds'||(S.tab==='salud'&&S.hp))))?'<button class="fab" data-add>+</button>':'';
-  app.innerHTML=`<header class="top"><h1>${S.tab==='salud'&&S.hp?'<button class="back" data-hback>‹</button>':SUBTABS.includes(S.tab)?'<button class="back" data-tab="mas">‹</button>':''}${esc(S.tab==='salud'&&S.hp?'Historial de salud':TITLES[S.tab])}</h1><small>${esc(S.famNombre)}</small></header>${S.offline?'<div class="banner">Sin conexión · mostrando la última copia guardada (solo lectura)</div>':''}${V[S.tab]()}${fab}<nav class="tabs"><div>${TABS().map(t=>`<button data-tab="${t[0]}" class="${(S.tab===t[0]||(t[0]==='mas'&&SUBTABS.includes(S.tab)))?'on':''}"><span>${t[1]}</span>${t[2]}</button>`).join('')}</div></nav>`;
+  app.innerHTML=`<header class="top"><h1>${S.tab==='salud'&&S.hp?'<button class="back" data-hback>‹</button>':SUBTABS.includes(S.tab)?'<button class="back" data-tab="mas">‹</button>':''}${esc(S.tab==='salud'&&S.hp?'Historial de salud':TITLES[S.tab])}</h1><span class="hr"><small>${esc(S.famNombre)}</small><button class="hq" data-tab="manual" aria-label="Manual de uso">?</button></span></header>${S.offline?'<div class="banner">Sin conexión · mostrando la última copia guardada (solo lectura)</div>':''}${V[S.tab]()}${fab}<nav class="tabs"><div>${TABS().map(t=>`<button data-tab="${t[0]}" class="${(S.tab===t[0]||(t[0]==='mas'&&SUBTABS.includes(S.tab)))?'on':''}"><span>${t[1]}</span>${t[2]}</button>`).join('')}</div></nav>`;
 }
 
 /* ---------- eventos ---------- */
