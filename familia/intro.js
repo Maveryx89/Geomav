@@ -6,18 +6,18 @@ function tourSteps(){
   add({tab:yo?'mi':'familia',t:'Bienvenido/a',d:'Esta app reúne la información de la familia: personas, calendario, citas, tareas, medicamentos, colegio y salud. Te mostramos cada parte en un minuto.'});
   add({tab:yo?'mi':'familia',sel:'nav.tabs',t:'Barra inferior',d:'Desde aquí cambias de sección: Mi ficha, Familia, Calendario, Tareas y Más (donde está el resto).'});
   if(yo) add({tab:'mi',sel:'nav.tabs [data-tab="mi"]',t:'Mi ficha',d:'Es tu pantalla de inicio: tus dosis de hoy (se marcan con un toque), tus tareas, tus citas y los próximos eventos del colegio. Aquí también editas tu teléfono y tu contacto de emergencia.'});
-  add({tab:'familia',sel:'nav.tabs [data-tab="familia"]',t:'Familia',d:'Todas las personas con su edad y próximo cumpleaños. Toca una para ver su ficha completa.'+(ed?' El botón + (abajo a la derecha) agrega una persona nueva.':'')});
+  add({tab:'familia',sel:'#app .card',t:'Familia',d:'Todas las personas con su edad y próximo cumpleaños. Toca una para ver su ficha completa.'+(ed?' El botón + (abajo a la derecha) agrega una persona nueva.':'')});
   add({tab:'cal',sel:'.cal-g',t:'Calendario',d:'Muestra los feriados de Chile (en rojo), el santo del día, cumpleaños, citas médicas, tareas, eventos y actividades del colegio. Toca un día para ver su detalle más abajo.'});
   if(ed) add({tab:'cal',sel:'.fab',t:'Agregar desde el calendario',d:'El botón + crea una cita, un evento, una tarea o un evento escolar, con la fecha del día que tengas seleccionado.'});
   add({tab:'tareas',sel:'nav.tabs [data-tab="tareas"]',t:'Tareas del hogar',d:'Tareas asignadas a una persona, con fecha y repetición (diaria, semanal o mensual). Todos pueden marcarlas como hechas con un toque.'});
   add({tab:'mas',sel:'nav.tabs [data-tab="mas"]',t:'Más',d:'Aquí están las demás secciones: citas médicas, medicamentos, escolar, info útil'+(adm?', salud':'')+', ajustes y el manual de uso.'});
-  add({tab:'citas',sel:'header.top',t:'Citas médicas',d:'Las horas de doctor de toda la familia, con fecha, lugar y motivo. También aparecen en el calendario.'+(ed?' Agrégalas con el botón +.':'')});
-  add({tab:'meds',sel:'header.top',t:'Medicamentos',d:'Dosis y horarios de cada medicamento. Cada persona ve y marca solo las tomas de sus propios medicamentos.'+(adm?' Tú los administras con el botón +.':'')});
-  add({tab:'escolar',sel:'header.top',t:'Escolar',d:'Horario semanal, pruebas y reuniones con fecha, y la lista de útiles con casillas para ir marcando.'});
-  add({tab:'notas',sel:'header.top',t:'Info útil',d:'Teléfonos de emergencia, seguros, datos del colegio y todo lo que conviene tener a mano, ordenado por categorías.'});
-  if(adm) add({tab:'salud',sel:'header.top',t:'Salud e historial',d:'Solo para administradores. Toca una persona para ver su ficha y su historial: exámenes con resultados fuera de rango marcados, diagnósticos, consultas, vacunas y PDFs adjuntos.'});
-  add({tab:'ajustes',sel:'header.top',t:'Ajustes',d:(adm?'Invita familiares, cambia su rol y vincula cada cuenta con su persona. ':'Aquí ves tu rol y los miembros. ')+'También puedes exportar un respaldo y repetir este recorrido.'});
-  add({tab:'manual',sel:'.hq',t:'Manual de uso',d:'El botón ? de arriba abre el manual con la explicación detallada de cada sección y las soluciones a los problemas más comunes.'});
+  add({tab:'mas',sel:'#app [data-tab="citas"]',t:'Citas médicas',d:'Las horas de doctor de toda la familia, con fecha, lugar y motivo. También aparecen en el calendario.'+(ed?' Agrégalas con el botón +.':'')});
+  add({tab:'mas',sel:'#app [data-tab="meds"]',t:'Medicamentos',d:'Dosis y horarios de cada medicamento. Cada persona ve y marca solo las tomas de sus propios medicamentos.'+(adm?' Tú los administras con el botón +.':'')});
+  add({tab:'mas',sel:'#app [data-tab="escolar"]',t:'Escolar',d:'Horario semanal, pruebas y reuniones con fecha, y la lista de útiles con casillas para ir marcando.'});
+  add({tab:'mas',sel:'#app [data-tab="notas"]',t:'Info útil',d:'Teléfonos de emergencia, seguros, datos del colegio y todo lo que conviene tener a mano, ordenado por categorías.'});
+  if(adm) add({tab:'mas',sel:'#app [data-tab="salud"]',t:'Salud e historial',d:'Solo para administradores. Toca una persona para ver su ficha y su historial: exámenes con resultados fuera de rango marcados, diagnósticos, consultas, vacunas y PDFs adjuntos.'});
+  add({tab:'mas',sel:'#app [data-tab="ajustes"]',t:'Ajustes',d:(adm?'Invita familiares, cambia su rol y vincula cada cuenta con su persona. ':'Aquí ves tu rol y los miembros. ')+'También puedes exportar un respaldo y repetir este recorrido.'});
+  add({tab:'mas',sel:'.hq',t:'Manual de uso',d:'El botón ? de arriba (en todas las pantallas, y también en Más) abre el manual con la explicación detallada de cada sección y las soluciones a los problemas más comunes.'});
   add({tab:yo?'mi':'familia',t:'¡Listo!',d:'Ya conoces la app. Puedes repetir este recorrido cuando quieras desde Ajustes.'});
   return L;
 }
