@@ -1180,7 +1180,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .ruta-l button{ all:unset; cursor:pointer; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:6px; color:var(--ink-soft); font-size:.9rem; } .ruta-l button:hover{ background:var(--paper-sunken); color:var(--ink); }
 .ruta-acc{ display:flex; flex-wrap:wrap; gap:8px; }
 .ruta-acc .r-b{ all:unset; cursor:pointer; box-sizing:border-box; min-height:40px; padding:6px 12px; display:inline-flex; align-items:center; border-radius:999px; font-size:.78rem; font-weight:700; border:1px solid var(--line-strong); background:var(--paper); color:var(--ink); text-decoration:none; }
-.ruta-acc .r-b.r-go{ background:var(--ink); border-color:var(--ink); color:#fff; }
+.ruta-acc .r-b.r-go{ background:var(--ink); border-color:var(--ink); color:#fff; } .ruta-acc .r-b.r-nav{ background:var(--ink); border-color:var(--ink); color:#fff; text-decoration:none; } .ruta-nota{ margin:6px 0 0; font-size:.68rem; color:var(--ink-soft); line-height:1.35; }
 
 .mapa-tools{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:8px 12px; border-bottom:1px solid var(--line); background:var(--paper-raised); }
 .mapa-tools .mt-b{ all:unset; cursor:pointer; box-sizing:border-box; min-height:40px; padding:6px 12px; display:inline-flex; align-items:center; gap:6px; border-radius:999px; font-size:.78rem; font-weight:700; border:1px solid var(--line-strong); background:var(--paper); color:var(--ink); }
@@ -4615,12 +4615,21 @@ window.PORTICOS_LISTA = (function(){
     var tramos = [], pos = 0, MAXP = 11;
     while(pos < rp.length - 1 || !tramos.length){ var fin = Math.min(pos + MAXP - 1, rp.length - 1); tramos.push(rp.slice(pos, fin + 1)); if(fin >= rp.length - 1) break; pos = fin; }
     function ll(x){ return x.ll[0] + "," + x.ll[1]; }
-    var enlaces = tramos.map(function(t, k){
-      var u = "https://www.google.com/maps/dir/?api=1&travelmode=driving&dir_action=navigate&destination=" + encodeURIComponent(ll(t[t.length - 1]));
+    var base = "https://www.google.com/maps/dir/?api=1&travelmode=driving";
+    var prev = tramos.map(function(t, k){
+      var u = base + "&destination=" + encodeURIComponent(ll(t[t.length - 1]));
       if(t.length > 1) u += "&origin=" + encodeURIComponent(ll(t[0]));
       if(t.length > 2) u += "&waypoints=" + encodeURIComponent(t.slice(1, -1).map(ll).join("|"));
-      return '<a class="r-b r-go" href="' + u + '" target="_blank" rel="noopener">\ud83e\udded ' + (tramos.length > 1 ? 'Google Maps tramo ' + (k + 1) + ' (' + t.length + ' pts)' : 'Abrir en Google Maps') + '</a>';
+      return '<a class="r-b" href="' + u + '" target="_blank" rel="noopener" title="Muestra la ruta completa desde el primer punto (solo vista previa)">\ud83d\uddfa\ufe0f ' + (tramos.length > 1 ? 'Vista previa tramo ' + (k + 1) : 'Vista previa') + '</a>';
     }).join("");
+    /* navegar: sin origen fijo, Google Maps parte desde "Tu ubicaci\u00f3n" y entrega el bot\u00f3n Iniciar. M\u00e1x. 9 paradas intermedias + destino por enlace. */
+    var NAVP = 10, navT = []; for(var q = 0; q < rc.length; q += NAVP) navT.push(rc.slice(q, q + NAVP));
+    var nav = navT.map(function(t, k){
+      var u = base + "&dir_action=navigate&destination=" + encodeURIComponent(ll(t[t.length - 1]));
+      if(t.length > 1) u += "&waypoints=" + encodeURIComponent(t.slice(0, -1).map(ll).join("|"));
+      return '<a class="r-b r-nav" href="' + u + '" target="_blank" rel="noopener" title="Abre Google Maps desde tu ubicaci\u00f3n actual pasando por estos puntos en orden">\u25b6 ' + (navT.length > 1 ? 'Navegar tramo ' + (k + 1) + ' de ' + navT.length + ' (' + t.length + ' pts)' : 'Navegar la ruta') + '</a>';
+    }).join("");
+    var enlaces = nav + prev;
     var HH = horasRuta(rc, conMi), fh = function(t){ return fmtHora(t, salidaDate().getTime()); }, estT = rc.reduce(function(a, x){ return a + (x.it.est || 0); }, 0);
     panel.innerHTML = '<div class="ruta-h"><strong>Ruta (' + rc.length + ' punto' + (rc.length > 1 ? 's' : '') + ')</strong><span>' + (rutaVia ? '' : rc.length > 1 || conMi ? '\u2248 ' + km.toFixed(0) + ' km en l\u00ednea recta (referencial)' : 'agrega otro punto para trazar la ruta') + '</span></div>'
       + '<div class="ruta-sc"><ol class="ruta-l"><li class="r-hd"><i></i><span>Punto</span><span class="r-c">Estancia</span><span class="r-c">Tramo</span><span class="r-c">Llega</span><span class="r-c">Sale</span><i></i><i></i><i></i></li>' + rc.map(function(x, i){
@@ -4645,8 +4654,9 @@ window.PORTICOS_LISTA = (function(){
         }
         return h + '<label class="ruta-sal">Hora de inicio <input type="time" id="rutaSalida" value="' + esc(rutaSalida) + '"> <span style="color:var(--ink-soft)">(vac\u00edo = ahora)</span></label>';
       })()
-      + '<div class="ruta-acc">' + (rp.length > 1 ? '<button type="button" class="r-b r-go" data-r="via"' + (rutaViaEstado === "cargando" ? ' disabled' : '') + '>\ud83d\ude97 ' + (rutaVia ? 'Recalcular ruta' : 'Calcular ruta (veh\u00edculo)') + '</button>' + enlaces.replace(/r-b r-go/g, 'r-b') : '<a class="r-b r-go" href="https://www.google.com/maps/dir/?api=1&travelmode=driving&dir_action=navigate&destination=' + encodeURIComponent(ll(rc[0])) + '" target="_blank" rel="noopener">\ud83e\udded Ir al punto</a>')
-      + (rc.length > 2 ? '<button type="button" class="r-b" data-r="opt">Ordenar por cercan\u00eda</button>' : '') + '<button type="button" class="r-b" data-r="clr">Limpiar ruta</button></div>';
+      + '<div class="ruta-acc">' + (rp.length > 1 ? '<button type="button" class="r-b r-go" data-r="via"' + (rutaViaEstado === "cargando" ? ' disabled' : '') + '>\ud83d\ude97 ' + (rutaVia ? 'Recalcular ruta' : 'Calcular ruta (veh\u00edculo)') + '</button>' + enlaces : '<a class="r-b r-go" href="https://www.google.com/maps/dir/?api=1&travelmode=driving&dir_action=navigate&destination=' + encodeURIComponent(ll(rc[0])) + '" target="_blank" rel="noopener">\ud83e\udded Ir al punto</a>')
+      + (rc.length > 2 ? '<button type="button" class="r-b" data-r="opt">Ordenar por cercan\u00eda</button>' : '') + '<button type="button" class="r-b" data-r="clr">Limpiar ruta</button></div>'
+      + (rp.length > 1 ? '<p class="ruta-nota">\u25b6 <b>Navegar</b> abre Maps desde tu ubicaci\u00f3n y pasa por los puntos en orden (aparece el bot\u00f3n \u00abIniciar\u00bb). <b>Vista previa</b> muestra la ruta desde el primer punto: Maps no deja iniciar si no est\u00e1s ah\u00ed.' + (navT.length > 1 ? ' Maps admite 9 paradas por enlace: al terminar un tramo, abre el siguiente.' : '') + '</p>' : '');
     panel.hidden = false;
     refrescarPopups();
   }
