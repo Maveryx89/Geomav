@@ -10,7 +10,11 @@
   "lang": "es-CL",
   "background_color": "#F4F3EF",
   "theme_color": "#F4F3EF",
-  "categories": ["utilities", "productivity", "navigation"],
+  "categories": [
+    "utilities",
+    "productivity",
+    "navigation"
+  ],
   "icons": [
     {
       "src": "/topocalc/icons/icon-192.png",
@@ -30,5 +34,20 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "share_target": {
+    "action": "/topocalc/?compartido=1",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "imagenes",
+          "accept": [
+            "image/*"
+          ]
+        }
+      ]
+    }
+  }
 }

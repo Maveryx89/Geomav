@@ -1,7 +1,8 @@
 // Service Worker — Topo de Bolsillo (GeoMav)
 // v2: además de la app, guarda para uso SIN INTERNET las librerías externas (mapa, Excel, capturas), las tipografías
 //     y los mosaicos del mapa que ya se hayan visto (hasta MAX_TILES, para no llenar el teléfono).
-const CACHE_VERSION = 'topocalc-v4';
+const CACHE_VERSION = 'topocalc-v5';
+const SHARE_CACHE = 'topocalc-compartido';   // imágenes recibidas desde «Compartir» de la galería (se borran al abrirse en el visor 360°)
 const TILES_CACHE = 'topocalc-tiles-v1';
 const MAX_TILES = 300;
 const SCOPE = '/topocalc/';
@@ -70,7 +71,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((key) => key.startsWith('topocalc-') && key !== CACHE_VERSION && key !== TILES_CACHE)
+          .filter((key) => key.startsWith('topocalc-') && key !== CACHE_VERSION && key !== TILES_CACHE && key !== SHARE_CACHE)
           .map((key) => caches.delete(key))
       )
     )
@@ -109,10 +110,30 @@ async function tileMapa(request) {                  // mosaicos del mapa: los ya
   }
 }
 
+// Compartir desde la galería del teléfono («Compartir» → Topo de Bolsillo): llega un POST con las imágenes.
+// Se guardan en un caché temporal y se redirige al Visor 360°, que las toma de ahí.
+async function recibirCompartido(request) {
+  try {
+    const fd = await request.formData();
+    const cache = await caches.open(SHARE_CACHE);
+    for (const k of await cache.keys()) await cache.delete(k);
+    let n = 0;
+    for (const f of fd.getAll('imagenes')) {
+      if (!f || !f.size) continue;
+      await cache.put('/topocalc/_compartido/' + (n++) + '?n=' + encodeURIComponent(f.name || 'imagen.jpg'),
+        new Response(f, { headers: { 'Content-Type': f.type || 'image/jpeg' } }));
+    }
+    return Response.redirect(SCOPE + '?recibido=' + n + '#visor360', 303);
+  } catch (e) {
+    return Response.redirect(SCOPE + '#visor360', 303);
+  }
+}
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  if (request.method !== 'GET') return;
   const url = new URL(request.url);
+  if (request.method === 'POST' && url.pathname === SCOPE && url.searchParams.has('compartido')) { event.respondWith(recibirCompartido(request)); return; }
+  if (request.method !== 'GET') return;
   if (esTile(url)) { event.respondWith(tileMapa(request)); return; }
   if (HOSTS_EXTERNOS.includes(url.hostname)) { event.respondWith(externoPrimeroCache(request)); return; }
   if (!request.url.includes(SCOPE)) return;

@@ -11265,6 +11265,23 @@ function renderVisor360(){
 
   v360Galeria();
   v360Pedir(S);
+  v360TomarCompartidas();
+}
+/* Imágenes enviadas con «Compartir» desde la galería (las deja el service worker en un caché temporal) */
+async function v360TomarCompartidas(){
+  let n = 0; try{ n = parseInt(new URLSearchParams(location.search).get('recibido') || '0', 10) || 0; }catch(e){}
+  if(!n || !window.caches) return;
+  try{ history.replaceState(null, '', location.pathname + location.hash); }catch(e){}
+  try{
+    const cache = await caches.open('topocalc-compartido'), archivos = [];
+    for(const rq of await cache.keys()){
+      const r = await cache.match(rq); if(!r) continue;
+      const nombre = decodeURIComponent(new URL(rq.url).searchParams.get('n') || 'imagen.jpg'), blob = await r.blob();
+      archivos.push(new File([blob], nombre, {type: blob.type || 'image/jpeg'}));
+    }
+    for(const rq of await cache.keys()) await cache.delete(rq);
+    if(archivos.length) v360CargarArchivos(archivos); else v360Msg('No llegó ninguna imagen desde la galería.');
+  }catch(e){ v360Msg('No se pudo recibir la imagen compartida.'); }
 }
 function stopVisor360(){
   const S = v360S; if(!S) return;
