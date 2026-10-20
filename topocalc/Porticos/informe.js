@@ -666,6 +666,10 @@ function hoja7(M){
 }
 
 /* ====================== HOJA 8 · ESTADO DE LOS PÓRTICOS ====================== */
+function icono(x, y, sz, col, tipo){
+  var k = sz / 12, P = tipo === "Eléctrica" ? "M7 1 L2.5 7.2 H6 L5 11 L9.5 4.8 H6 Z" : "M6 1.2 C6 1.2 2.6 5.2 2.6 7.3 A3.4 3.4 0 0 0 9.4 7.3 C9.4 5.2 6 1.2 6 1.2 Z";
+  return '<path transform="translate(' + f(x) + ' ' + f(y) + ') scale(' + f(k) + ')" d="' + P + '" fill="' + col + '"/>';
+}
 function hoja8(M){
   var PORT = M.PORT, ES = estadoPortico(M), est = ES.est, dist = ES.dist, sin = ES.sin;
   var o = frame(8, "INFORME DE AVANCE · PÓRTICOS DE VIGILANCIA · ESTADO", "Estado actual de los " + PORT.length + " pórticos", "corte al " + M.corte);
@@ -678,10 +682,10 @@ function hoja8(M){
   /* leyenda de condiciones constructivas (ticket por valor) */
   var CD = M.CONDS || [], lx = 16, ly2 = y + 10.4;
   if(CD.length){
-    var GR = [["Fund. posición", 0], ["Fund. tipo", 1], ["Excavación", 2]];
+    var GR = [["Fund. posición", 0], ["Fund. tipo", 1], ["Excavación", 2], ["Instalaciones", 3]];
     GR.forEach(function(g, gi){
       var c = CD[g[1]]; if(!c) return; var lab = g[0] + ":"; o.push(T(lx, ly2, lab, 2.5, 700, NAVY)); lx += tw(lab, 2.5, 700) + 1.8;
-      c.ops.forEach(function(op){ var w0 = tw(op[0], 2.3, 600) + 5.2; o.push(R(lx, ly2 - 2.1, w0, 3.6, mix(op[1], .17), { rx:1.8, sw:0 })); o.push(tick(lx + 1.4, ly2 - .1, 1.2, op[1], .3)); o.push(T(lx + 3.4, ly2, op[0], 2.3, 600, op[1])); lx += w0 + 1.6; });
+      c.ops.forEach(function(op){ var w0 = tw(op[0], 2.3, 600) + 5.2; o.push(R(lx, ly2 - 2.1, w0, 3.6, mix(op[1], .17), { rx:1.8, sw:0 })); o.push(c.multi ? icono(lx + 1.3, ly2 - 1.5, 2.2, op[1], op[0]) : tick(lx + 1.4, ly2 - .1, 1.2, op[1], .3)); o.push(T(lx + 3.4, ly2, op[0], 2.3, 600, op[1])); lx += w0 + 1.6; });
       lx += 5;
     });
   }
@@ -690,7 +694,7 @@ function hoja8(M){
   for(var c = 0; c < 2; c++){
     var bx = 16 + c * (colw + 8); o.push(R(bx, ty - 3, colw, 6, CHIP, { rx:.8 }));
     [["Pórtico", 1.5], ["Comuna", 17], ["Estado actual", 37], ["Detalle", 65.5]].forEach(function(h){ o.push(T(bx + h[1], ty, h[0], 2.8, 600, MUTE)); });
-    (CD || []).forEach(function(cc, ci){ o.push(circ(bx + 84.5 + ci * 12, ty - .9, .8, COL[cc.partida])); o.push(T(bx + 85.9 + ci * 12, ty - .6, ["Posición", "Tipo", "Excav."][ci] || cc.titulo, 2.3, 600, MUTE)); });
+    (CD || []).forEach(function(cc, ci){ if(!cc.multi) o.push(circ(bx + 79 + ci * 11, ty - .9, .8, COL[cc.partida])); o.push(T(bx + 80.4 + ci * 11, ty - .6, ["Posición", "Tipo", "Excav.", "Instal."][ci] || cc.titulo, 2.3, 600, MUTE)); });
     o.push(T(bx + colw - 1.5, ty, "Reg.", 2.8, 600, MUTE, { anchor:"end" }));
   }
   rows.forEach(function(p, i){
@@ -699,14 +703,21 @@ function hoja8(M){
     var e = est[p.num];
     o.push(T(bx + 1.5, yy, p.nombre, 3.2 * k, 700, NAVY)); o.push(T(bx + 17, yy, fit(p.comuna, 3 * k, 400, 17.5), 3 * k, 400, NAVY));
     (CD || []).forEach(function(cc, ci){
-      var v = M.COND[p.num + "|" + cc.k], op = null; cc.ops.forEach(function(q){ if(q[0] === v) op = q; }); var cx = bx + 84.5 + ci * 12;
-      if(op){ var lab = op[2] || op[0], w1 = Math.min(11, tw(lab, 2.1 * k, 600) + 4.6); o.push(R(cx - 1.3, yy - 1.9 * k, w1, 3.8 * k, mix(op[1], .17), { rx:1.9 * k, sw:0 })); o.push(tick(cx + .2, yy - .1, 1.2 * k, op[1], .3)); o.push(T(cx + 2.4, yy, lab, 2.1 * k, 600, op[1])); }
+      var v = M.COND[p.num + "|" + cc.k], op = null, cx = bx + 79 + ci * 11;
+      if(cc.multi){
+        var vs = String(v || "").split(",").filter(Boolean), n0 = 0;
+        if(!vs.length){ o.push(T(cx + 1, yy, "—", 2.8 * k, 400, "rgba(10,34,64,.3)")); return; }
+        cc.ops.forEach(function(q){ if(vs.indexOf(q[0]) >= 0){ o.push(R(cx - 1.2 + n0 * 5.6, yy - 1.9 * k, 5, 3.8 * k, mix(q[1], .2), { rx:1.9 * k, sw:0 })); o.push(icono(cx - .3 + n0 * 5.6, yy - 1.5 * k, 2.9 * k, q[1], q[0])); n0++; } });
+        return;
+      }
+      cc.ops.forEach(function(q){ if(q[0] === v) op = q; });
+      if(op){ var lab = op[2] || op[0], w1 = Math.min(10.6, tw(lab, 2.1 * k, 600) + 4.6); o.push(R(cx - 1.3, yy - 1.9 * k, w1, 3.8 * k, mix(op[1], .17), { rx:1.9 * k, sw:0 })); o.push(tick(cx + .2, yy - .1, 1.2 * k, op[1], .3)); o.push(T(cx + 2.4, yy, lab, 2.1 * k, 600, op[1])); }
       else o.push(T(cx + 1, yy, "—", 2.8 * k, 400, "rgba(10,34,64,.3)"));
     });
     if(e){
       var nm = ORDEN[e[0]], parc = e[2] !== "" && e[2] != null && parseFloat(e[2]) < 100;
       o.push(circ(bx + 38.3, yy, 1.3, COL[nm])); o.push(T(bx + 40.5, yy, fit(nm, 2.8 * k, 500, 23), 2.8 * k, 500, NAVY));
-      o.push(T(bx + 65.5, yy, fit(parc ? e[2] + " % · " + fdm(e[1]) : fdm(e[1]), 2.7 * k, 400, 17.5), 2.7 * k, 400, MUTE));
+      o.push(T(bx + 65.5, yy, fit(parc ? e[2] + " % · " + fdm(e[1]) : fdm(e[1]), 2.7 * k, 400, 13), 2.7 * k, 400, MUTE));
     } else { o.push('<circle cx="' + f(bx + 38.3) + '" cy="' + f(yy) + '" r="1.3" fill="none" stroke="#9aa0a8" stroke-width=".3"/>'); o.push(T(bx + 40.5, yy, "Sin iniciar", 2.8 * k, 400, MUTE)); }
     o.push(T(bx + colw - 1.5, yy, String(nreg[p.num] || 0), 2.9 * k, 400, NAVY, { anchor:"end" }));
   });

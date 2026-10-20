@@ -582,7 +582,7 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
 /* matriz de escritorio (misma lectura que la hoja 2 del informe): primera fecha de cada partida por pórtico */
 .ep-cf, .ep-fx, .ep-th, .ep-gh, .ep-add-c, .ep-cd{ display:none; }
 @media (min-width:861px){
-  .ep-th{ display:grid; position:sticky; top:0; z-index:2; grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) repeat(3,116px) 44px 46px; gap:8px; align-items:center; padding:8px 4px 8px 16px; background:var(--paper-sunken); font-size:.68rem; font-weight:700; color:var(--ink-soft); border-bottom:1px solid var(--line); }
+  .ep-th{ display:grid; position:sticky; top:0; z-index:2; grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) repeat(3,116px) 150px 44px 46px; gap:8px; align-items:center; padding:8px 4px 8px 16px; background:var(--paper-sunken); font-size:.68rem; font-weight:700; color:var(--ink-soft); border-bottom:1px solid var(--line); }
   .ep-th span{ display:inline-flex; align-items:center; gap:5px; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .ep-th .ep-hc{ gap:3px; font-size:.64rem; letter-spacing:-.01em; } .ep-th .ep-hc .dot{ width:7px; height:7px; }
   .ep-th .ep-hn{ overflow:hidden; text-overflow:ellipsis; min-width:0; }
@@ -592,7 +592,7 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
   .ep-ar button.on{ opacity:1; color:var(--blueprint); }
   .ep-th .dot{ width:8px; height:8px; border-radius:50%; flex:none; }
   .ep-gh{ display:block; padding:10px 4px 4px 16px; font-size:.8rem; font-weight:700; color:var(--ink); border-bottom:1.5px solid var(--ink); }
-  .ep-row > summary{ grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) repeat(3,116px) 44px 46px; }
+  .ep-row > summary{ grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) repeat(3,116px) 150px 44px 46px; }
   .ep-row > summary .ep-c, .ep-row > summary .ep-e{ display:none; }
   .ep-row > summary .ep-cf{ display:block; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .ep-row > summary .ep-fx{ display:inline-flex; align-items:center; gap:5px; font-size:.78rem; color:var(--ink); min-width:0; }
@@ -604,16 +604,33 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
   .ep-fx em{ font-style:normal; color:var(--ink-soft); opacity:.55; }
 }
 @media (min-width:861px){
-  .ep-lista{ overflow-x:auto; } .ep-lista > *{ min-width:1440px; }
+  .ep-lista{ overflow-x:auto; } .ep-lista > *{ min-width:1600px; }
   .ep-th .ep-hn{ white-space:normal; line-height:1.15; }
   .ep-th .ep-hcd .ep-hn{ display:flex; flex-direction:column; align-items:flex-start; } .ep-th .ep-hcd .ep-hn small{ font-weight:400; font-size:.58rem; opacity:.8; white-space:nowrap; }
   .ep-th .ep-hg{ position:relative; } .ep-th .ep-hg em{ position:absolute; left:-4px; top:-7px; font-style:normal; font-size:.5rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--blueprint); white-space:nowrap; }
   .ep-cd{ display:flex; align-items:center; min-width:0; }
   .ep-tk{ all:unset; box-sizing:border-box; cursor:pointer; display:inline-flex; align-items:center; gap:4px; max-width:100%; padding:3px 9px 3px 6px; border-radius:999px; font-size:.7rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--c); background:color-mix(in srgb, var(--c) 15%, transparent); }
   .ep-tk svg{ width:11px; height:11px; flex:none; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+  .ep-tk.multi{ background:transparent; padding:0; gap:5px; overflow:visible; }
+  .ep-tk.multi .cd-p{ padding:3px 8px 3px 6px; }
+  .ep-ins{ font-style:normal; font-size:.62rem; letter-spacing:-2px; }
   .ep-tk.vacio{ color:var(--ink-soft); background:transparent; border:1px dashed var(--line-strong); padding:2px 9px; font-weight:500; font-size:.66rem; }
   .ep-tk:hover, .ep-tk:focus-visible{ outline:2px solid var(--blueprint); outline-offset:1px; }
 }
+.cd-p{ display:inline-flex; align-items:center; gap:4px; border-radius:999px; font-size:.7rem; font-weight:600; white-space:nowrap; color:var(--c); background:color-mix(in srgb, var(--c) 15%, transparent); padding:3px 9px 3px 6px; }
+.cd-p svg{ width:11px; height:11px; flex:none; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; } .cd-p svg .fill{ fill:currentColor; stroke:none; }
+/* bloque de condiciones en la ventana del pórtico */
+.pm-cond{ margin-top:10px; border:1px dashed var(--line-strong); border-radius:10px; padding:8px 12px 6px; background:color-mix(in srgb, var(--paper-sunken) 55%, transparent); }
+.pm-cond .pm-cl{ font-size:.7rem; font-weight:700; color:var(--ink-soft); margin-bottom:4px; }
+.pm-cond .cd-g{ display:flex; align-items:center; flex-wrap:wrap; gap:4px 14px; padding:5px 0; }
+.pm-cond .cd-g + .cd-g{ border-top:1px dashed var(--line); }
+.pm-cond .cd-g[hidden]{ display:none; }
+.pm-cond .cd-t{ width:128px; font-size:.82rem; font-weight:600; color:var(--ink); }
+.pm-body .pm-cond label.cd-o{ display:inline-flex; flex-direction:row; align-items:center; gap:6px; width:auto; font-weight:400; font-size:.84rem; color:var(--ink); cursor:pointer; margin:0; }
+.pm-body .pm-cond label.cd-o input{ width:16px; height:16px; min-height:0; padding:0; margin:0; flex:none; accent-color:var(--c); cursor:pointer; flex:none; }
+.pm-body .pm-cond label.cd-o.on{ color:var(--c); font-weight:700; }
+.pm-cond .cd-sv{ margin:2px 0 4px auto; font-size:.76rem; }
+#pmCond{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; } #pmCond:empty{ display:none; }
 .ep-pop{ position:fixed; z-index:2300; background:var(--paper); border:1px solid var(--line-strong); border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,.28); padding:8px; display:flex; flex-direction:column; gap:6px; min-width:170px; }
 .ep-pop b{ font-size:.72rem; color:var(--ink-soft); font-weight:700; }
 .ep-pop button{ all:unset; cursor:pointer; box-sizing:border-box; padding:6px 10px; border-radius:999px; font-size:.8rem; font-weight:600; color:var(--c, var(--ink)); background:color-mix(in srgb, var(--c, #888) 15%, transparent); text-align:center; }
@@ -3250,7 +3267,7 @@ window.PORTICOS_LISTA = (function(){
   function abrirInformeEjecutivo(){
     function ir(){ if(window.PORTICOS_INFORME) window.PORTICOS_INFORME.pdf(resumenBtn); }
     if(window.PORTICOS_INFORME){ ir(); return; }
-    var sc = document.createElement("script"); sc.src = "informe.js?v=20261020a"; sc.onload = ir;
+    var sc = document.createElement("script"); sc.src = "informe.js?v=20261020b"; sc.onload = ir;
     sc.onerror = function(){ alert("No se pudo cargar el generador del informe. Revisa tu conexi\u00f3n e int\u00e9ntalo de nuevo."); };
     document.head.appendChild(sc);
   }
@@ -3306,8 +3323,14 @@ window.PORTICOS_LISTA = (function(){
   var CONDS = [
     { k:"fpos", partida:"Inst. de Fundación", titulo:"Fundación", sub:"centrada · excéntrica", ops:[["Centrada","#2C6B7E","Centr."],["Excéntrica","#B8472F","Excén."]] },
     { k:"ftipo", partida:"Inst. de Fundación", titulo:"Fundación", sub:"prefabricada · in situ", ops:[["Prefabricada","#4F5FB8","Prefab."],["In situ","#9A4B86","In situ"]] },
-    { k:"exc", partida:"Excavación", titulo:"Excavación", sub:"a mano · maquinaria", ops:[["A mano","#C98A4B","A mano"],["Con maquinaria","#7A5A2E","Maq."]] }
+    { k:"exc", partida:"Excavación", titulo:"Excavación", sub:"a mano · maquinaria", ops:[["A mano","#C98A4B","Mano"],["Con maquinaria","#7A5A2E","Maq."]] },
+    { k:"inst", multi:true, partida:"Excavaci\u00f3n", titulo:"Instalaciones", sub:"el\u00e9ctrica \u00b7 APR", ops:[["El\u00e9ctrica","#B58900","El\u00e9c."],["APR agua potable","#1C7ED6","APR"]] }
   ];
+  var CD_ICON = { "El\u00e9ctrica":"M7 1 L2.5 7.2 H6 L5 11 L9.5 4.8 H6 Z", "APR agua potable":"M6 1.2 C6 1.2 2.6 5.2 2.6 7.3 A3.4 3.4 0 0 0 9.4 7.3 C9.4 5.2 6 1.2 6 1.2 Z" };
+  var CD_POR = { "Excavaci\u00f3n":["exc","inst"], "Inst. de Fundaci\u00f3n":["fpos","ftipo"] };
+  function condVals(num, c){ var v = (window.PORTICOS_COND || {})[num + "|" + c.k] || ""; return c.multi ? v.split(",").map(function(x){ return x.trim(); }).filter(Boolean) : (v ? [v] : []); }
+  function condPill(c, val, corto){ var op = null; c.ops.forEach(function(o){ if(o[0] === val) op = o; }); if(!op) return "";
+    return '<span class="cd-p" style="--c:'+op[1]+'">'+(CD_ICON[val] ? '<svg viewBox="0 0 12 12" aria-hidden="true"><path class="fill" d="'+CD_ICON[val]+'"/></svg>' : '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 6.4l2.6 2.6 5-5.6"/></svg>')+esc(corto ? op[2] : op[0])+'</span>'; }
   var condLocal = {};
   window.PORTICOS_CONDS = CONDS; window.PORTICOS_COND = {};
   function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g,function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]; }); }
@@ -4005,12 +4028,13 @@ window.PORTICOS_LISTA = (function(){
       + '<div class="pm-head"><div><strong>'+esc(p.nombre)+'</strong><span>'+esc(p.comuna)+'</span></div>'
       + '<button type="button" class="pm-comp" aria-label="Compartir el historial de este p\u00f3rtico" title="Compartir historial"><span aria-hidden="true">\ud83d\udd17</span></button><button type="button" class="pm-x" aria-label="Cerrar">\u2715</button></div>'
       + '<div class="pm-body">'
-      + '<div class="pm-label">Estado actual</div><div id="pmEstado">'+estadoTxt()+'</div>'
+      + '<div class="pm-label">Estado actual</div><div id="pmEstado">'+estadoTxt()+'</div><div id="pmCond">'+condChips(num)+'</div>'
       + '<div class="pm-label">Registrar partida ejecutada o comentario</div>'
       + '<div class="pm-grid"><label>Partida<select id="pmPartida">'+opts+'</select></label>'
       + '<label>Fecha de ejecuci\u00f3n<input type="date" id="pmFecha" value="'+hoyISO()+'"></label></div>'
       + '<label class="pm-full">Avance de la partida<select id="pmAvance">'
         + ['100','75','50','25','0'].map(function(v){ return '<option value="'+v+'">'+v+'%'+(v==='100'?' (terminada)':'')+'</option>'; }).join('') + '</select></label>'
+      + condBloque(num, d.orden[sig] || "")
       + '<label class="pm-full">Observaci\u00f3n (opcional)<input type="text" id="pmObs" maxlength="300" placeholder="ej. hormigonado OK, falta curado"></label>'
       + '<label class="pm-full pm-fotos-btn">\ud83d\udcf7 Adjuntar fotos (opcional, m\u00e1x. 10)<input type="file" id="pmFotos" accept="image/*" multiple></label>'
       + '<div class="pm-thumbs" id="pmThumbs"></div>'
@@ -4038,6 +4062,19 @@ window.PORTICOS_LISTA = (function(){
                 fecha: modal.querySelector("#pmFecha").value, obs: modal.querySelector("#pmObs").value,
                 avance: esNota(partSel) ? "" : modal.querySelector("#pmAvance").value }, num, this, fotosSel);
     };
+    (function(){
+      var orig = modal.querySelector("#pmGuardar").onclick, btnG = modal.querySelector("#pmGuardar");
+      btnG.onclick = function(){
+        var box = modal.querySelector("#pmCondBox"), ch = box ? condCambios(box) : [], self = this;
+        if(!ch.length) return orig.call(self);
+        var pinI = modal.querySelector("#pmPin"), msg = modal.querySelector("#pmMsg"), pin = getPin() || (pinI ? pinI.value.trim() : "");
+        var aI = modal.querySelector("#pmAutor"); if(aI && aI.value.trim()) setAutor(aI.value.trim());
+        if(!pin){ msg.textContent = "Ingresa el PIN de edici\u00f3n."; msg.className = "pm-msg err"; if(pinI) pinI.focus(); return; }
+        btnG.disabled = true; msg.textContent = "Guardando condiciones\u2026"; msg.className = "pm-msg";
+        enviarConds(num, ch, pin).then(function(){ btnG.disabled = false; var c = modal.querySelector("#pmCond"); if(c) c.innerHTML = condChips(num); var sv = modal.querySelector("#pmCondSv"); if(sv) sv.hidden = true; orig.call(self); })
+          .catch(function(er){ btnG.disabled = false; if(er && er.pin) setPin(""); msg.textContent = er && er.message ? er.message : "No se recibi\u00f3 confirmaci\u00f3n."; msg.className = "pm-msg err"; });
+      };
+    })();
     var fotosSel = [];
     modal.querySelector("#pmPartida").onchange = function(){ modal.querySelector("#pmAvance").closest("label").style.display = esNota(this.value) ? "none" : ""; };
     modal.querySelector("#pmFotos").onchange = function(){
@@ -5013,8 +5050,10 @@ window.PORTICOS_LISTA = (function(){
       if(agrupa && vi != null && p.comuna !== prevC){ gh = '<div class="ep-gh">'+esc(p.comuna)+' \u00b7 '+corrida(vi)+'</div>'; }
       if(vi != null) prevC = p.comuna;
       var fx = d.orden.map(function(n){ var f = prim[num + "|" + n]; return '<span class="ep-fx">'+(f ? '<i class="dot dot-'+window.PARTIDA_TONE[n]+'"></i>'+dm(f) : '<em>\u2014</em>')+'</span>'; }).join("");
-      return gh + '<details class="ep-row" data-ep="'+num+'"'+(epAbiertos[num]?' open':'')+'><summary><span class="ep-n">'+esc(p.nombre)+'</span><span class="ep-t">'+tipoHtml(p.nombre)+'</span><span class="ep-c" title="'+esc(p.comuna)+'">'+esc(comunaCorta(p.comuna))+'</span><span class="ep-cf">'+esc(p.comuna)+'</span><span class="ep-e">'+est+'</span>'+fx+CONDS.map(function(c){ var v = (window.PORTICOS_COND || {})[num + "|" + c.k] || "", op = null; c.ops.forEach(function(o){ if(o[0] === v) op = o; });
-        return '<span class="ep-cd"><button type="button" class="ep-tk'+(op?'':' vacio')+'" data-cond="'+c.k+'" data-cp="'+num+'" title="'+esc(c.titulo)+' ('+esc(c.sub)+') \u00b7 '+esc(p.nombre)+'"'+(op?' style="--c:'+op[1]+'"':'')+'>'+(op?'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 6.4l2.6 2.6 5-5.6"/></svg>'+esc(op[0]):'+ definir')+'</button></span>'; }).join("")+'<span class="ep-add-c"><button type="button" class="ep-add" data-epnota="'+num+'" title="Agregar nota a '+esc(p.nombre)+'" aria-label="Agregar nota a '+esc(p.nombre)+'">+</button></span><span class="ep-k">'+regs.length+' reg.</span></summary>'
+      return gh + '<details class="ep-row" data-ep="'+num+'"'+(epAbiertos[num]?' open':'')+'><summary><span class="ep-n">'+esc(p.nombre)+'</span><span class="ep-t">'+tipoHtml(p.nombre)+'</span><span class="ep-c" title="'+esc(p.comuna)+'">'+esc(comunaCorta(p.comuna))+'</span><span class="ep-cf">'+esc(p.comuna)+'</span><span class="ep-e">'+est+'</span>'+fx+CONDS.map(function(c){ var vs = condVals(num, c), tt = ' data-cond="'+c.k+'" data-cp="'+num+'" title="'+esc(c.titulo)+' ('+esc(c.sub)+') \u00b7 '+esc(p.nombre)+'"';
+        if(c.multi) return '<span class="ep-cd"><button type="button" class="ep-tk multi'+(vs.length?'':' vacio')+'"'+tt+'>'+(vs.length ? vs.map(function(v){ return condPill(c, v, true); }).join("") : '+ definir')+'</button></span>';
+        var op = null; c.ops.forEach(function(o){ if(o[0] === vs[0]) op = o; });
+        return '<span class="ep-cd"><button type="button" class="ep-tk'+(op?'':' vacio')+'"'+tt+(op?' style="--c:'+op[1]+'"':'')+'>'+(op?'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 6.4l2.6 2.6 5-5.6"/></svg>'+esc(op[0]):'+ definir')+'</button></span>'; }).join("")+'<span class="ep-add-c"><button type="button" class="ep-add" data-epnota="'+num+'" title="Agregar nota a '+esc(p.nombre)+'" aria-label="Agregar nota a '+esc(p.nombre)+'">+</button></span><span class="ep-k">'+regs.length+' reg.</span></summary>'
         + (regs.length ? '<ul class="ep-h">' + regs.map(function(a){
             return '<li>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.avance!==""&&a.avance!=null&&!esNota(a.partida)?'<span class="pm-pct">'+esc(a.avance)+'%</span>':'')
               + (a.obs?'<span class="pm-obs">'+esc(a.obs)+'</span>':'')
@@ -5028,32 +5067,92 @@ window.PORTICOS_LISTA = (function(){
       + '<p class="ind-nota ep-acum">Conteo acumulado: cada partida cuenta los p\u00f3rticos que ya la ejecutaron, aunque hayan avanzado a la siguiente.</p>'
       + '<div class="ep-ctrl"><input type="search" class="ep-buscar" placeholder="Buscar p\u00f3rtico o comuna" aria-label="Buscar p\u00f3rtico" value="'+esc(epBusca)+'">'
       + '<label class="ep-ord"><span>Ordenar</span><select class="ep-orden" aria-label="Ordenar el listado">' + EP_ORDENES.map(function(o){ return '<option value="'+o[0]+'"'+(o[0]===epOrden?' selected':'')+'>'+o[1]+'</option>'; }).join("") + '</select></label></div>'
-      + '<div class="ep-lista"><div class="ep-th"><span>P\u00f3rtico</span><span></span><span>Comuna</span>' + d.orden.map(function(n, i){ var on = function(dr){ return epCol && epCol.i === i && epCol.dir === dr ? ' on' : ''; }; return '<span class="ep-hc"><i class="dot dot-'+window.PARTIDA_TONE[n]+'"></i><span class="ep-hn">'+esc(n)+'</span><span class="ep-ar"><button type="button" class="ep-up'+on(1)+'" data-epcol="'+i+'" data-dir="1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s antigua primero" aria-label="Ordenar por fecha de '+esc(n)+' ascendente">\u25b2</button><button type="button" class="ep-dn'+on(-1)+'" data-epcol="'+i+'" data-dir="-1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s reciente primero" aria-label="Ordenar por fecha de '+esc(n)+' descendente">\u25bc</button></span></span>'; }).join("") + CONDS.map(function(c, i){ return '<span class="ep-hc ep-hcd'+(i === 0 ? ' ep-hg' : '')+'">'+'<i class="dot dot-'+window.PARTIDA_TONE[c.partida]+'"></i><span class="ep-hn"><b>'+esc(c.titulo)+'</b><small>'+esc(c.sub)+'</small></span></span>'; }).join("") + '<span>Notas</span><span></span></div>' + (filas || '<p class="pm-vacio">Ning\u00fan p\u00f3rtico coincide.</p>') + '</div>'
+      + '<div class="ep-lista"><div class="ep-th"><span>P\u00f3rtico</span><span></span><span>Comuna</span>' + d.orden.map(function(n, i){ var on = function(dr){ return epCol && epCol.i === i && epCol.dir === dr ? ' on' : ''; }; return '<span class="ep-hc"><i class="dot dot-'+window.PARTIDA_TONE[n]+'"></i><span class="ep-hn">'+esc(n)+'</span><span class="ep-ar"><button type="button" class="ep-up'+on(1)+'" data-epcol="'+i+'" data-dir="1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s antigua primero" aria-label="Ordenar por fecha de '+esc(n)+' ascendente">\u25b2</button><button type="button" class="ep-dn'+on(-1)+'" data-epcol="'+i+'" data-dir="-1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s reciente primero" aria-label="Ordenar por fecha de '+esc(n)+' descendente">\u25bc</button></span></span>'; }).join("") + CONDS.map(function(c, i){ return '<span class="ep-hc ep-hcd'+(i === 0 ? ' ep-hg' : '')+'">'+(c.multi ? '<i class="ep-ins" aria-hidden="true">\u26a1\ud83d\udca7</i>' : '<i class="dot dot-'+window.PARTIDA_TONE[c.partida]+'"></i>')+'<span class="ep-hn"><b>'+esc(c.titulo)+'</b><small>'+esc(c.sub)+'</small></span></span>'; }).join("") + '<span>Notas</span><span></span></div>' + (filas || '<p class="pm-vacio">Ning\u00fan p\u00f3rtico coincide.</p>') + '</div>'
       + '<p class="ind-nota">Toca un p\u00f3rtico para ver las tareas realizadas (m\u00e1s reciente primero).</p></div></div>';
   }
   document.addEventListener("toggle", function(e){ var d = e.target; if(d && d.classList && d.classList.contains("ep-row")){ if(d.open) epAbiertos[d.dataset.ep] = 1; else delete epAbiertos[d.dataset.ep]; } }, true);
   function cerrarPop(){ var p = document.querySelector(".ep-pop"); if(p) p.remove(); }
   document.addEventListener("keydown", function(e){ if(e.key === "Escape") cerrarPop(); });
-  function guardarCond(num, k, valor){
-    var pin = getPin(); pedirAutor(); if(!pin) pin = (window.prompt("PIN de edici\u00f3n:") || "").trim(); if(!pin) return;
-    var sc = document.querySelector(".ep-box .ep-lista"), top = sc ? sc.scrollTop : 0, left = sc ? sc.scrollLeft : 0;
-    enviar({ accion:"registrar", id:nuevoId(), portico:Number(num), partida:"Comentarios", fecha:hoyISO(), obs:"[COND] " + k + "=" + valor, avance:"", pin:pin }).then(function(j){
-      if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) setPin(""); alert((j && j.error) || "No se pudo guardar."); return; }
-      setPin(pin); pintarEditBar(); condLocal[num + "|" + k] = valor; aplicarRemoto(j); guardarCopia(); window.renderPorticos();
-      var n = document.querySelector(".ep-box .ep-lista"); if(n){ n.scrollTop = top; n.scrollLeft = left; }
-    }).catch(function(){ alert("No se recibi\u00f3 confirmaci\u00f3n. Revisa en unos segundos antes de reintentar."); });
+  /* guarda una o varias condiciones de un pórtico (un registro [COND] por cambio) */
+  function enviarConds(num, lista, pin){
+    var p = Promise.resolve(null);
+    lista.forEach(function(kv){
+      p = p.then(function(){
+        return enviar({ accion:"registrar", id:nuevoId(), portico:Number(num), partida:"Comentarios", fecha:hoyISO(), obs:"[COND] " + kv[0] + "=" + kv[1], avance:"", pin:pin }).then(function(j){
+          if(!j || !j.ok){ var er = new Error((j && j.error) || "No se pudo guardar."); er.pin = !!(j && /PIN/.test(j.error || "")); throw er; }
+          condLocal[num + "|" + kv[0]] = kv[1]; aplicarRemoto(j); return j;
+        });
+      });
+    });
+    return p.then(function(j){ setPin(pin); pintarEditBar(); guardarCopia(); window.renderPorticos(); return j; });
   }
+  function pinCond(){ pedirAutor(); var pin = getPin(); if(!pin) pin = (window.prompt("PIN de edici\u00f3n:") || "").trim(); return pin; }
+  function guardarCond(num, k, valor){
+    var pin = pinCond(); if(!pin) return;
+    var sc = document.querySelector(".ep-box .ep-lista"), top = sc ? sc.scrollTop : 0, left = sc ? sc.scrollLeft : 0;
+    enviarConds(num, [[k, valor]], pin).then(function(){ var n = document.querySelector(".ep-box .ep-lista"); if(n){ n.scrollTop = top; n.scrollLeft = left; } })
+      .catch(function(e){ if(e && e.pin) setPin(""); alert(e && e.message ? e.message : "No se recibi\u00f3 confirmaci\u00f3n. Revisa en unos segundos antes de reintentar."); });
+  }
+  /* ventana del pórtico: chips con lo definido y bloque para elegir */
+  function condChips(num){
+    return CONDS.map(function(c){ return condVals(num, c).map(function(v){ return condPill(c, v, false); }).join(""); }).join("");
+  }
+  function condBloque(num, partida){
+    var mostrar = CD_POR[partida] || CONDS.map(function(c){ return c.k; });
+    return '<div class="pm-cond" id="pmCondBox" data-num="'+num+'"><div class="pm-cl">Condiciones (opcional)</div>' + CONDS.map(function(c){
+      var vs = condVals(num, c);
+      return '<div class="cd-g" data-k="'+c.k+'"'+(mostrar.indexOf(c.k) < 0 ? ' hidden' : '')+'><span class="cd-t">'+esc(c.titulo)+(c.k === "ftipo" ? " \u00b7 tipo" : (c.k === "fpos" ? " \u00b7 posici\u00f3n" : ""))+'</span>'
+        + c.ops.map(function(o){ var on = vs.indexOf(o[0]) >= 0; return '<label class="cd-o'+(on?' on':'')+'" style="--c:'+o[1]+'"><input type="'+(c.multi?'checkbox':'radio')+'" name="cd-'+c.k+'" value="'+esc(o[0])+'"'+(on?' checked':'')+'>'+esc(o[0])+'</label>'; }).join("") + '</div>';
+    }).join("") + '<button type="button" class="btn-link cd-sv" id="pmCondSv" hidden>Guardar solo las condiciones</button></div>';
+  }
+  function condCambios(box){
+    var out = [], num = box.dataset.num;
+    CONDS.forEach(function(c){
+      var ins = Array.prototype.slice.call(box.querySelectorAll('input[name="cd-'+c.k+'"]:checked')).map(function(i){ return i.value; });
+      var ahora = c.multi ? c.ops.map(function(o){ return o[0]; }).filter(function(v){ return ins.indexOf(v) >= 0; }).join(",") : (ins[0] || "");
+      var antes = c.multi ? c.ops.map(function(o){ return o[0]; }).filter(function(v){ return condVals(num, c).indexOf(v) >= 0; }).join(",") : (condVals(num, c)[0] || "");
+      if(ahora !== antes) out.push([c.k, ahora]);
+    });
+    return out;
+  }
+  document.addEventListener("change", function(e){
+    var box = e.target.closest && e.target.closest("#pmCondBox"); if(box){
+      Array.prototype.forEach.call(box.querySelectorAll("label.cd-o"), function(l){ l.classList.toggle("on", l.querySelector("input").checked); });
+      var sv = box.querySelector("#pmCondSv"); if(sv) sv.hidden = !condCambios(box).length; return; }
+    if(e.target.id === "pmPartida"){ var b2 = document.getElementById("pmCondBox"); if(!b2) return; var m = CD_POR[e.target.value] || CONDS.map(function(c){ return c.k; });
+      Array.prototype.forEach.call(b2.querySelectorAll(".cd-g"), function(g){ g.hidden = m.indexOf(g.dataset.k) < 0; }); }
+  });
+  /* un radio ya elegido se puede quitar tocándolo otra vez */
+  document.addEventListener("click", function(e){
+    var i = e.target; if(!(i && i.matches && i.matches('#pmCondBox input[type=radio]'))) return;
+    if(i.dataset.was === "1"){ i.checked = false; i.dispatchEvent(new Event("change", { bubbles:true })); }
+    Array.prototype.forEach.call(document.querySelectorAll('#pmCondBox input[name="'+i.name+'"]'), function(r){ r.dataset.was = r.checked ? "1" : ""; });
+  });
+  document.addEventListener("click", function(e){
+    var sv = e.target.closest && e.target.closest("#pmCondSv"); if(!sv) return;
+    var box = document.getElementById("pmCondBox"), ch = condCambios(box), num = box.dataset.num, pinI = document.getElementById("pmPin"), msg = document.getElementById("pmMsg");
+    var pin = getPin() || (pinI ? pinI.value.trim() : ""); var aI = document.getElementById("pmAutor"); if(aI && aI.value.trim()) setAutor(aI.value.trim());
+    if(!pin){ msg.textContent = "Ingresa el PIN de edici\u00f3n."; msg.className = "pm-msg err"; if(pinI) pinI.focus(); return; }
+    sv.disabled = true; msg.textContent = "Guardando condiciones\u2026"; msg.className = "pm-msg";
+    enviarConds(num, ch, pin).then(function(){ sv.disabled = false; sv.hidden = true; var c = document.getElementById("pmCond"); if(c) c.innerHTML = condChips(num); msg.textContent = "\u2713 Condiciones guardadas para todos"; msg.className = "pm-msg ok"; })
+      .catch(function(er){ sv.disabled = false; if(er && er.pin) setPin(""); msg.textContent = er && er.message ? er.message : "No se recibi\u00f3 confirmaci\u00f3n."; msg.className = "pm-msg err"; });
+  });
   document.addEventListener("click", function(e){
     var t = e.target.closest("[data-cond]");
     if(!t){ if(!e.target.closest(".ep-pop")) cerrarPop(); return; }
     e.preventDefault(); e.stopPropagation(); cerrarPop();
     var c = CONDS.filter(function(x){ return x.k === t.dataset.cond; })[0]; if(!c) return;
-    var num = t.dataset.cp, act = (window.PORTICOS_COND || {})[num + "|" + c.k] || "", pop = document.createElement("div"); pop.className = "ep-pop";
-    pop.innerHTML = '<b>' + esc(c.titulo) + ' \u00b7 ' + esc(c.sub) + '</b>' + c.ops.map(function(o){ return '<button type="button" style="--c:'+o[1]+'" data-v="'+esc(o[0])+'">'+(o[0] === act ? '\u2713 ' : '')+esc(o[0])+'</button>'; }).join("") + (act ? '<button type="button" class="q" data-v="">Quitar</button>' : "");
+    var num = t.dataset.cp, act = condVals(num, c), pop = document.createElement("div"); pop.className = "ep-pop";
+    pop.innerHTML = '<b>' + esc(c.titulo) + ' \u00b7 ' + esc(c.sub) + '</b>' + c.ops.map(function(o){ var on = act.indexOf(o[0]) >= 0; return '<button type="button" style="--c:'+o[1]+'" data-v="'+esc(o[0])+'">'+(on ? '\u2713 ' : '')+esc(o[0])+'</button>'; }).join("") + (act.length ? '<button type="button" class="q" data-v="">Quitar</button>' : "");
     document.body.appendChild(pop);
     var r = t.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
     pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + "px"; pop.style.top = (r.bottom + h + 12 > window.innerHeight ? Math.max(8, r.top - h - 6) : r.bottom + 6) + "px";
-    pop.addEventListener("click", function(ev){ var b = ev.target.closest("[data-v]"); if(!b) return; var v = b.dataset.v; cerrarPop(); if(v !== act) guardarCond(num, c.k, v); });
+    pop.addEventListener("click", function(ev){
+      var b = ev.target.closest("[data-v]"); if(!b) return; var v = b.dataset.v; cerrarPop(); var nuevo;
+      if(c.multi){ var set = act.slice(); if(v === "") set = []; else { var ix = set.indexOf(v); if(ix >= 0) set.splice(ix, 1); else set.push(v); } nuevo = c.ops.map(function(o){ return o[0]; }).filter(function(x){ return set.indexOf(x) >= 0; }).join(","); }
+      else nuevo = v;
+      if(nuevo !== act.join(",")) guardarCond(num, c.k, nuevo);
+    });
   }, true);
   document.addEventListener("click", function(e){ var b = e.target.closest("[data-epabrir]"); if(b) abrirPortico(b.dataset.epabrir); var c = e.target.closest("[data-epcol]"); if(c){ var i = +c.dataset.epcol, dr = +c.dataset.dir; epCol = (epCol && epCol.i === i && epCol.dir === dr) ? null : { i:i, dir:dr }; var lst = document.querySelector(".ep-box .ep-lista"); if(lst){ var tmp = document.createElement("div"); tmp.innerHTML = estadoPorticosHtml(); var nl = tmp.querySelector(".ep-lista"); if(nl) lst.innerHTML = nl.innerHTML; } return; } var n = e.target.closest("[data-epnota]"); if(n){ e.preventDefault(); e.stopPropagation(); abrirPortico(n.dataset.epnota); } });
   document.addEventListener("change", function(e){
