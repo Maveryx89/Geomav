@@ -580,9 +580,9 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
 .ep-h{ list-style:none; margin:0 0 6px; padding:0 8px 0 18px; }
 .ep-h li{ display:flex; align-items:center; flex-wrap:wrap; gap:6px; padding:5px 0; font-size:.76rem; border-bottom:1px dashed var(--line); }
 /* matriz de escritorio (misma lectura que la hoja 2 del informe): primera fecha de cada partida por pórtico */
-.ep-cf, .ep-fx, .ep-th, .ep-gh, .ep-add-c{ display:none; }
+.ep-cf, .ep-fx, .ep-th, .ep-gh, .ep-add-c, .ep-cd{ display:none; }
 @media (min-width:861px){
-  .ep-th{ display:grid; position:sticky; top:0; z-index:2; grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) 44px 46px; gap:8px; align-items:center; padding:8px 4px 8px 16px; background:var(--paper-sunken); font-size:.68rem; font-weight:700; color:var(--ink-soft); border-bottom:1px solid var(--line); }
+  .ep-th{ display:grid; position:sticky; top:0; z-index:2; grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) repeat(3,116px) 44px 46px; gap:8px; align-items:center; padding:8px 4px 8px 16px; background:var(--paper-sunken); font-size:.68rem; font-weight:700; color:var(--ink-soft); border-bottom:1px solid var(--line); }
   .ep-th span{ display:inline-flex; align-items:center; gap:5px; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .ep-th .ep-hc{ gap:3px; font-size:.64rem; letter-spacing:-.01em; } .ep-th .ep-hc .dot{ width:7px; height:7px; }
   .ep-th .ep-hn{ overflow:hidden; text-overflow:ellipsis; min-width:0; }
@@ -592,16 +592,33 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
   .ep-ar button.on{ opacity:1; color:var(--blueprint); }
   .ep-th .dot{ width:8px; height:8px; border-radius:50%; flex:none; }
   .ep-gh{ display:block; padding:10px 4px 4px 16px; font-size:.8rem; font-weight:700; color:var(--ink); border-bottom:1.5px solid var(--ink); }
-  .ep-row > summary{ grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) 44px 46px; }
+  .ep-row > summary{ grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) repeat(3,116px) 44px 46px; }
   .ep-row > summary .ep-c, .ep-row > summary .ep-e{ display:none; }
   .ep-row > summary .ep-cf{ display:block; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .ep-row > summary .ep-fx{ display:inline-flex; align-items:center; gap:5px; font-size:.78rem; color:var(--ink); min-width:0; }
   .ep-row > summary .ep-add-c{ display:flex; justify-content:center; }
+  .ep-row > summary .ep-cd{ display:flex; }
   .ep-add{ width:28px; height:28px; border-radius:8px; border:1.5px dashed var(--line-strong); background:transparent; color:var(--ink-soft); font:inherit; font-size:1.05rem; font-weight:700; line-height:1; cursor:pointer; opacity:.75; }
   .ep-add:hover, .ep-add:focus-visible{ opacity:1; border-color:var(--blueprint); color:var(--blueprint); outline:none; }
   .ep-fx .dot{ width:8px; height:8px; border-radius:50%; flex:none; }
   .ep-fx em{ font-style:normal; color:var(--ink-soft); opacity:.55; }
 }
+@media (min-width:861px){
+  .ep-lista{ overflow-x:auto; } .ep-lista > *{ min-width:1440px; }
+  .ep-th .ep-hn{ white-space:normal; line-height:1.15; }
+  .ep-th .ep-hcd .ep-hn{ display:flex; flex-direction:column; align-items:flex-start; } .ep-th .ep-hcd .ep-hn small{ font-weight:400; font-size:.58rem; opacity:.8; white-space:nowrap; }
+  .ep-th .ep-hg{ position:relative; } .ep-th .ep-hg em{ position:absolute; left:-4px; top:-7px; font-style:normal; font-size:.5rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--blueprint); white-space:nowrap; }
+  .ep-cd{ display:flex; align-items:center; min-width:0; }
+  .ep-tk{ all:unset; box-sizing:border-box; cursor:pointer; display:inline-flex; align-items:center; gap:4px; max-width:100%; padding:3px 9px 3px 6px; border-radius:999px; font-size:.7rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--c); background:color-mix(in srgb, var(--c) 15%, transparent); }
+  .ep-tk svg{ width:11px; height:11px; flex:none; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+  .ep-tk.vacio{ color:var(--ink-soft); background:transparent; border:1px dashed var(--line-strong); padding:2px 9px; font-weight:500; font-size:.66rem; }
+  .ep-tk:hover, .ep-tk:focus-visible{ outline:2px solid var(--blueprint); outline-offset:1px; }
+}
+.ep-pop{ position:fixed; z-index:2300; background:var(--paper); border:1px solid var(--line-strong); border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,.28); padding:8px; display:flex; flex-direction:column; gap:6px; min-width:170px; }
+.ep-pop b{ font-size:.72rem; color:var(--ink-soft); font-weight:700; }
+.ep-pop button{ all:unset; cursor:pointer; box-sizing:border-box; padding:6px 10px; border-radius:999px; font-size:.8rem; font-weight:600; color:var(--c, var(--ink)); background:color-mix(in srgb, var(--c, #888) 15%, transparent); text-align:center; }
+.ep-pop button:hover, .ep-pop button:focus-visible{ outline:2px solid var(--blueprint); }
+.ep-pop button.q{ background:transparent; color:var(--ink-soft); font-weight:500; font-size:.74rem; }
 .ep-v{ padding:0 18px 6px; } .ep-ir{ margin:2px 0 10px 18px; font-size:.74rem; }
 @media (max-width:860px){ .ep-row > summary{ grid-template-columns:70px 28px minmax(0,1fr) 44px; } .ep-c{ display:none; } .ep-lista{ max-height:470px; } }
 
@@ -3233,7 +3250,7 @@ window.PORTICOS_LISTA = (function(){
   function abrirInformeEjecutivo(){
     function ir(){ if(window.PORTICOS_INFORME) window.PORTICOS_INFORME.pdf(resumenBtn); }
     if(window.PORTICOS_INFORME){ ir(); return; }
-    var sc = document.createElement("script"); sc.src = "informe.js?v=20261019a"; sc.onload = ir;
+    var sc = document.createElement("script"); sc.src = "informe.js?v=20261020a"; sc.onload = ir;
     sc.onerror = function(){ alert("No se pudo cargar el generador del informe. Revisa tu conexi\u00f3n e int\u00e9ntalo de nuevo."); };
     document.head.appendChild(sc);
   }
@@ -3285,6 +3302,14 @@ window.PORTICOS_LISTA = (function(){
   var API = "https://script.google.com/macros/s/AKfycbxVwcUS4vO4MRLBDd8e4O4p7WO-7V5h8bFENaPubJTlpRAzhifdCW7_Z6gVepvGVwKwWA/exec";
   var LS_CACHE = "porticos-remoto-cache-v1", SS_PIN = "porticos-pin";
   var REMOTO = { avance: [] };
+  /* condiciones constructivas por pórtico: se guardan como registros «Comentarios» con la marca [COND] y se leen aparte */
+  var CONDS = [
+    { k:"fpos", partida:"Inst. de Fundación", titulo:"Fundación", sub:"centrada · excéntrica", ops:[["Centrada","#2C6B7E","Centr."],["Excéntrica","#B8472F","Excén."]] },
+    { k:"ftipo", partida:"Inst. de Fundación", titulo:"Fundación", sub:"prefabricada · in situ", ops:[["Prefabricada","#4F5FB8","Prefab."],["In situ","#9A4B86","In situ"]] },
+    { k:"exc", partida:"Excavación", titulo:"Excavación", sub:"a mano · maquinaria", ops:[["A mano","#C98A4B","A mano"],["Con maquinaria","#7A5A2E","Maq."]] }
+  ];
+  var condLocal = {};
+  window.PORTICOS_CONDS = CONDS; window.PORTICOS_COND = {};
   function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g,function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]; }); }
   function lista(){ return window.PORTICOS_LISTA || []; }
   function numDe(p, k){ return String(p.num || (k+1)); }
@@ -3292,7 +3317,7 @@ window.PORTICOS_LISTA = (function(){
   function fmt(f){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f || ""); return m ? m[3]+"-"+m[2]+"-"+m[1] : (f || ""); }
   function hoyISO(){ var d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
   /* datos vivos para el informe (Resumen ejecutivo) */
-  window.PORTICOS_DATOS = function(){ return { lista: lista(), avance: REMOTO.avance, prog: window.PROGRAMACION || [], restr: window.RESTR_REMOTAS || [], causas: window.CAUSAS_LP || [], hoy: hoyISO() }; };
+  window.PORTICOS_DATOS = function(){ return { lista: lista(), avance: REMOTO.avance, prog: window.PROGRAMACION || [], restr: window.RESTR_REMOTAS || [], causas: window.CAUSAS_LP || [], hoy: hoyISO(), cond: window.PORTICOS_COND || {} }; };
   function getPin(){ try{ return sessionStorage.getItem(SS_PIN) || ""; }catch(e){ return ""; } }
   function setPin(p){ try{ if(p) sessionStorage.setItem(SS_PIN, p); else sessionStorage.removeItem(SS_PIN); }catch(e){} }
 
@@ -3330,7 +3355,14 @@ window.PORTICOS_LISTA = (function(){
         return { num:p.num, nombre:p.nombre, comuna:p.comuna, ubicacion:"Ubicación " + p.nombre, lat:p.lat, lng:p.lng };
       });
     }
-    var av = clon(D.avance), hayNotas = COLA.some(function(t){ return t.accion === "guardarNota"; });
+    var av = clon(D.avance), cond = {}, cfec = {};
+    av = av.filter(function(a){
+      var m = a.partida === "Comentarios" && /^\[COND\]\s*(\w+)=(.*)$/.exec(String(a.obs || "")); if(!m) return true;
+      var k = String(a.portico) + "|" + m[1], t = (a.fecha || "") + (a.registrado || ""); if(!(k in cfec) || t >= cfec[k]){ cfec[k] = t; cond[k] = m[2].trim(); } return false;
+    });
+    Object.keys(condLocal).forEach(function(k){ if(cond[k] === condLocal[k]) delete condLocal[k]; else cond[k] = condLocal[k]; });
+    window.PORTICOS_COND = cond;
+    var hayNotas = COLA.some(function(t){ return t.accion === "guardarNota"; });
     var pr = Array.isArray(D.programacion) ? clon(D.programacion) : (hayNotas ? [] : null), pend = {};
     COLA.forEach(function(t){
       try{ if(t.parche) t.parche(av, pr, t); }catch(e){}
@@ -4981,7 +5013,8 @@ window.PORTICOS_LISTA = (function(){
       if(agrupa && vi != null && p.comuna !== prevC){ gh = '<div class="ep-gh">'+esc(p.comuna)+' \u00b7 '+corrida(vi)+'</div>'; }
       if(vi != null) prevC = p.comuna;
       var fx = d.orden.map(function(n){ var f = prim[num + "|" + n]; return '<span class="ep-fx">'+(f ? '<i class="dot dot-'+window.PARTIDA_TONE[n]+'"></i>'+dm(f) : '<em>\u2014</em>')+'</span>'; }).join("");
-      return gh + '<details class="ep-row" data-ep="'+num+'"'+(epAbiertos[num]?' open':'')+'><summary><span class="ep-n">'+esc(p.nombre)+'</span><span class="ep-t">'+tipoHtml(p.nombre)+'</span><span class="ep-c" title="'+esc(p.comuna)+'">'+esc(comunaCorta(p.comuna))+'</span><span class="ep-cf">'+esc(p.comuna)+'</span><span class="ep-e">'+est+'</span>'+fx+'<span class="ep-add-c"><button type="button" class="ep-add" data-epnota="'+num+'" title="Agregar nota a '+esc(p.nombre)+'" aria-label="Agregar nota a '+esc(p.nombre)+'">+</button></span><span class="ep-k">'+regs.length+' reg.</span></summary>'
+      return gh + '<details class="ep-row" data-ep="'+num+'"'+(epAbiertos[num]?' open':'')+'><summary><span class="ep-n">'+esc(p.nombre)+'</span><span class="ep-t">'+tipoHtml(p.nombre)+'</span><span class="ep-c" title="'+esc(p.comuna)+'">'+esc(comunaCorta(p.comuna))+'</span><span class="ep-cf">'+esc(p.comuna)+'</span><span class="ep-e">'+est+'</span>'+fx+CONDS.map(function(c){ var v = (window.PORTICOS_COND || {})[num + "|" + c.k] || "", op = null; c.ops.forEach(function(o){ if(o[0] === v) op = o; });
+        return '<span class="ep-cd"><button type="button" class="ep-tk'+(op?'':' vacio')+'" data-cond="'+c.k+'" data-cp="'+num+'" title="'+esc(c.titulo)+' ('+esc(c.sub)+') \u00b7 '+esc(p.nombre)+'"'+(op?' style="--c:'+op[1]+'"':'')+'>'+(op?'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 6.4l2.6 2.6 5-5.6"/></svg>'+esc(op[0]):'+ definir')+'</button></span>'; }).join("")+'<span class="ep-add-c"><button type="button" class="ep-add" data-epnota="'+num+'" title="Agregar nota a '+esc(p.nombre)+'" aria-label="Agregar nota a '+esc(p.nombre)+'">+</button></span><span class="ep-k">'+regs.length+' reg.</span></summary>'
         + (regs.length ? '<ul class="ep-h">' + regs.map(function(a){
             return '<li>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.avance!==""&&a.avance!=null&&!esNota(a.partida)?'<span class="pm-pct">'+esc(a.avance)+'%</span>':'')
               + (a.obs?'<span class="pm-obs">'+esc(a.obs)+'</span>':'')
@@ -4995,10 +5028,33 @@ window.PORTICOS_LISTA = (function(){
       + '<p class="ind-nota ep-acum">Conteo acumulado: cada partida cuenta los p\u00f3rticos que ya la ejecutaron, aunque hayan avanzado a la siguiente.</p>'
       + '<div class="ep-ctrl"><input type="search" class="ep-buscar" placeholder="Buscar p\u00f3rtico o comuna" aria-label="Buscar p\u00f3rtico" value="'+esc(epBusca)+'">'
       + '<label class="ep-ord"><span>Ordenar</span><select class="ep-orden" aria-label="Ordenar el listado">' + EP_ORDENES.map(function(o){ return '<option value="'+o[0]+'"'+(o[0]===epOrden?' selected':'')+'>'+o[1]+'</option>'; }).join("") + '</select></label></div>'
-      + '<div class="ep-lista"><div class="ep-th"><span>P\u00f3rtico</span><span></span><span>Comuna</span>' + d.orden.map(function(n, i){ var on = function(dr){ return epCol && epCol.i === i && epCol.dir === dr ? ' on' : ''; }; return '<span class="ep-hc"><i class="dot dot-'+window.PARTIDA_TONE[n]+'"></i><span class="ep-hn">'+esc(n)+'</span><span class="ep-ar"><button type="button" class="ep-up'+on(1)+'" data-epcol="'+i+'" data-dir="1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s antigua primero" aria-label="Ordenar por fecha de '+esc(n)+' ascendente">\u25b2</button><button type="button" class="ep-dn'+on(-1)+'" data-epcol="'+i+'" data-dir="-1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s reciente primero" aria-label="Ordenar por fecha de '+esc(n)+' descendente">\u25bc</button></span></span>'; }).join("") + '<span>Notas</span><span></span></div>' + (filas || '<p class="pm-vacio">Ning\u00fan p\u00f3rtico coincide.</p>') + '</div>'
+      + '<div class="ep-lista"><div class="ep-th"><span>P\u00f3rtico</span><span></span><span>Comuna</span>' + d.orden.map(function(n, i){ var on = function(dr){ return epCol && epCol.i === i && epCol.dir === dr ? ' on' : ''; }; return '<span class="ep-hc"><i class="dot dot-'+window.PARTIDA_TONE[n]+'"></i><span class="ep-hn">'+esc(n)+'</span><span class="ep-ar"><button type="button" class="ep-up'+on(1)+'" data-epcol="'+i+'" data-dir="1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s antigua primero" aria-label="Ordenar por fecha de '+esc(n)+' ascendente">\u25b2</button><button type="button" class="ep-dn'+on(-1)+'" data-epcol="'+i+'" data-dir="-1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s reciente primero" aria-label="Ordenar por fecha de '+esc(n)+' descendente">\u25bc</button></span></span>'; }).join("") + CONDS.map(function(c, i){ return '<span class="ep-hc ep-hcd'+(i === 0 ? ' ep-hg' : '')+'">'+'<i class="dot dot-'+window.PARTIDA_TONE[c.partida]+'"></i><span class="ep-hn"><b>'+esc(c.titulo)+'</b><small>'+esc(c.sub)+'</small></span></span>'; }).join("") + '<span>Notas</span><span></span></div>' + (filas || '<p class="pm-vacio">Ning\u00fan p\u00f3rtico coincide.</p>') + '</div>'
       + '<p class="ind-nota">Toca un p\u00f3rtico para ver las tareas realizadas (m\u00e1s reciente primero).</p></div></div>';
   }
   document.addEventListener("toggle", function(e){ var d = e.target; if(d && d.classList && d.classList.contains("ep-row")){ if(d.open) epAbiertos[d.dataset.ep] = 1; else delete epAbiertos[d.dataset.ep]; } }, true);
+  function cerrarPop(){ var p = document.querySelector(".ep-pop"); if(p) p.remove(); }
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") cerrarPop(); });
+  function guardarCond(num, k, valor){
+    var pin = getPin(); pedirAutor(); if(!pin) pin = (window.prompt("PIN de edici\u00f3n:") || "").trim(); if(!pin) return;
+    var sc = document.querySelector(".ep-box .ep-lista"), top = sc ? sc.scrollTop : 0, left = sc ? sc.scrollLeft : 0;
+    enviar({ accion:"registrar", id:nuevoId(), portico:Number(num), partida:"Comentarios", fecha:hoyISO(), obs:"[COND] " + k + "=" + valor, avance:"", pin:pin }).then(function(j){
+      if(!j || !j.ok){ if(j && /PIN/.test(j.error || "")) setPin(""); alert((j && j.error) || "No se pudo guardar."); return; }
+      setPin(pin); pintarEditBar(); condLocal[num + "|" + k] = valor; aplicarRemoto(j); guardarCopia(); window.renderPorticos();
+      var n = document.querySelector(".ep-box .ep-lista"); if(n){ n.scrollTop = top; n.scrollLeft = left; }
+    }).catch(function(){ alert("No se recibi\u00f3 confirmaci\u00f3n. Revisa en unos segundos antes de reintentar."); });
+  }
+  document.addEventListener("click", function(e){
+    var t = e.target.closest("[data-cond]");
+    if(!t){ if(!e.target.closest(".ep-pop")) cerrarPop(); return; }
+    e.preventDefault(); e.stopPropagation(); cerrarPop();
+    var c = CONDS.filter(function(x){ return x.k === t.dataset.cond; })[0]; if(!c) return;
+    var num = t.dataset.cp, act = (window.PORTICOS_COND || {})[num + "|" + c.k] || "", pop = document.createElement("div"); pop.className = "ep-pop";
+    pop.innerHTML = '<b>' + esc(c.titulo) + ' \u00b7 ' + esc(c.sub) + '</b>' + c.ops.map(function(o){ return '<button type="button" style="--c:'+o[1]+'" data-v="'+esc(o[0])+'">'+(o[0] === act ? '\u2713 ' : '')+esc(o[0])+'</button>'; }).join("") + (act ? '<button type="button" class="q" data-v="">Quitar</button>' : "");
+    document.body.appendChild(pop);
+    var r = t.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + "px"; pop.style.top = (r.bottom + h + 12 > window.innerHeight ? Math.max(8, r.top - h - 6) : r.bottom + 6) + "px";
+    pop.addEventListener("click", function(ev){ var b = ev.target.closest("[data-v]"); if(!b) return; var v = b.dataset.v; cerrarPop(); if(v !== act) guardarCond(num, c.k, v); });
+  }, true);
   document.addEventListener("click", function(e){ var b = e.target.closest("[data-epabrir]"); if(b) abrirPortico(b.dataset.epabrir); var c = e.target.closest("[data-epcol]"); if(c){ var i = +c.dataset.epcol, dr = +c.dataset.dir; epCol = (epCol && epCol.i === i && epCol.dir === dr) ? null : { i:i, dir:dr }; var lst = document.querySelector(".ep-box .ep-lista"); if(lst){ var tmp = document.createElement("div"); tmp.innerHTML = estadoPorticosHtml(); var nl = tmp.querySelector(".ep-lista"); if(nl) lst.innerHTML = nl.innerHTML; } return; } var n = e.target.closest("[data-epnota]"); if(n){ e.preventDefault(); e.stopPropagation(); abrirPortico(n.dataset.epnota); } });
   document.addEventListener("change", function(e){
     if(!e.target.classList || !e.target.classList.contains("ep-orden")) return;
