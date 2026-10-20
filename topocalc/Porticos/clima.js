@@ -1,6 +1,6 @@
 /* Clima por sector — Open-Meteo (sin clave). Solo lectura: no escribe en la planilla. */
 (function(){
-  var URL_API = "https://api.open-meteo.com/v1/forecast", LS = "porticos_clima_v1", TTL = 2 * 3600e3;
+  var URL_API = "https://api.open-meteo.com/v1/forecast", LS = "porticos_clima_v2", TTL = 2 * 3600e3;
   var cache = {}, pend = null, listeners = [];
   try{ var s = JSON.parse(localStorage.getItem(LS) || "{}"); if(s && s.t && Date.now() - s.t < TTL) cache = s.d || {}; }catch(e){}
   function guardar(){ try{ localStorage.setItem(LS, JSON.stringify({ t:Date.now(), d:cache })); }catch(e){} }
@@ -15,10 +15,13 @@
     var ks = Object.keys(falta); if(!ks.length) return Promise.resolve();
     if(pend) return pend;
     var q = URL_API + "?latitude=" + ks.map(function(k){ return k.split(",")[0]; }).join(",") + "&longitude=" + ks.map(function(k){ return k.split(",")[1]; }).join(",")
-      + "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant,uv_index_max&timezone=America%2FSantiago&forecast_days=7";
+      + "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant,uv_index_max&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,weather_code&timezone=America%2FSantiago&forecast_days=7";
     pend = fetch(q).then(function(r){ if(!r.ok) throw new Error("clima " + r.status); return r.json(); }).then(function(j){
       var arr = Array.isArray(j) ? j : [j];
-      arr.forEach(function(x, i){ if(x && x.daily) cache[ks[i]] = x.daily; });
+      arr.forEach(function(x, i){
+        if(!(x && x.daily)) return; var dd = x.daily, hh = x.hourly, hs = {};
+        if(hh && hh.time) hh.time.forEach(function(t, n){ var hr = +t.slice(11, 13); if(hr < 7 || hr > 19) return; var dk = t.slice(0, 10); (hs[dk] = hs[dk] || []).push([hr, hh.temperature_2m[n], hh.precipitation_probability[n], hh.relative_humidity_2m[n], hh.weather_code[n]]); });
+        dd.hrs = hs; cache[ks[i]] = dd; });
       guardar();
     }).catch(function(){}).then(function(){ pend = null; listeners.forEach(function(f){ try{ f(); }catch(e){} }); });
     return pend;
@@ -102,12 +105,17 @@
     if(x.min <= 3) a.push("Riesgo de helada: cuidar el curado del hormigón.");
     return a.length ? a.join(" ") : "Sin alertas de clima para las faenas.";
   }
+  function horas(d, iso){
+    var hs = d && d.hrs && d.hrs[iso]; if(!hs || !hs.length) return "";
+    return '<div class="wx-hrs"><div class="wx-hr wx-hh"><span>Hora</span><span></span><span>Temp.</span><span>Lluvia</span><span class="wx-hu">Humedad</span></div>' + hs.map(function(r){
+      return '<div class="wx-hr' + (r[2] >= 50 ? " wx-hl" : "") + '"><span>' + ("0" + r[0]).slice(-2) + ':00</span>' + icono(r[4], 15) + '<b>' + Math.round(r[1]) + '°</b><span class="wx-pp">' + (r[2] >= 5 ? '💧 ' + Math.round(r[2]) + ' %' : '') + '</span><span class="wx-hu">' + Math.round(r[3]) + ' %</span></div>'; }).join("") + '</div>';
+  }
   function detalle(v, centroF){
     var pr = v.split("|"), x = dia(cache[pr[0]], pr[1]); if(!x) return "";
     var dt = new Date(pr[1] + "T12:00:00"), dn = DSL[dt.getDay()];
     return '<div class="wx-tp-h">' + icono(x.code, 30) + '<div><b>' + dn.charAt(0).toUpperCase() + dn.slice(1) + ' ' + dt.getDate() + ' de ' + MESN[dt.getMonth()] + '</b><span>' + esc(txt(x.code)) + (centroF ? ' · centro de los pórticos' : '') + '</span></div></div>'
       + '<dl><dt>Máxima / mínima</dt><dd>' + Math.round(x.max) + '° / ' + Math.round(x.min) + '°</dd><dt>Prob. de lluvia</dt><dd>' + Math.round(x.pp || 0) + ' %</dd><dt>Viento máx.</dt><dd>' + Math.round(x.v) + ' km/h ' + brujula(x.dir) + '</dd><dt>Índice UV</dt><dd>' + Math.round(x.uv || 0) + '</dd></dl>'
-      + '<p class="' + (x.pp >= 50 ? "wx-tp-w" : "") + '">' + esc(consejo(x)) + '</p><small>Pronóstico Open-Meteo · alertas oficiales: DMC</small>';
+      + horas(cache[pr[0]], pr[1]) + '<small>Pronóstico Open-Meteo · alertas oficiales: DMC</small>';
   }
   function cerrar(){ if(tipEl){ tipEl.remove(); tipEl = null; tip = null; } }
   function abrir(el){
