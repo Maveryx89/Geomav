@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="clima.js?v=20261020a"></script>
 <script>
 /* Reintenta cargar ExcelJS bajo demanda (si falló al abrir la app sin conexión) */
 window.LP_cargarExcel = function(){
@@ -580,9 +581,9 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
 .ep-h{ list-style:none; margin:0 0 6px; padding:0 8px 0 18px; }
 .ep-h li{ display:flex; align-items:center; flex-wrap:wrap; gap:6px; padding:5px 0; font-size:.76rem; border-bottom:1px dashed var(--line); }
 /* matriz de escritorio (misma lectura que la hoja 2 del informe): primera fecha de cada partida por pórtico */
-.ep-cf, .ep-fx, .ep-th, .ep-gh, .ep-add-c, .ep-cd{ display:none; }
+.ep-cf, .ep-fx, .ep-th, .ep-gh, .ep-add-c, .ep-cd, .ep-w{ display:none; }
 @media (min-width:861px){
-  .ep-th{ display:grid; position:sticky; top:0; z-index:2; grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) repeat(3,116px) 150px 44px 46px; gap:8px; align-items:center; padding:8px 4px 8px 16px; background:var(--paper-sunken); font-size:.68rem; font-weight:700; color:var(--ink-soft); border-bottom:1px solid var(--line); }
+  .ep-th{ display:grid; position:sticky; top:0; z-index:2; grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) repeat(3,116px) 150px 96px 44px 46px; gap:8px; align-items:center; padding:8px 4px 8px 16px; background:var(--paper-sunken); font-size:.68rem; font-weight:700; color:var(--ink-soft); border-bottom:1px solid var(--line); }
   .ep-th span{ display:inline-flex; align-items:center; gap:5px; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .ep-th .ep-hc{ gap:3px; font-size:.64rem; letter-spacing:-.01em; } .ep-th .ep-hc .dot{ width:7px; height:7px; }
   .ep-th .ep-hn{ overflow:hidden; text-overflow:ellipsis; min-width:0; }
@@ -592,11 +593,11 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
   .ep-ar button.on{ opacity:1; color:var(--blueprint); }
   .ep-th .dot{ width:8px; height:8px; border-radius:50%; flex:none; }
   .ep-gh{ display:block; padding:10px 4px 4px 16px; font-size:.8rem; font-weight:700; color:var(--ink); border-bottom:1.5px solid var(--ink); }
-  .ep-row > summary{ grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) repeat(3,116px) 150px 44px 46px; }
+  .ep-row > summary{ grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) repeat(3,116px) 150px 96px 44px 46px; }
   .ep-row > summary .ep-c, .ep-row > summary .ep-e{ display:none; }
   .ep-row > summary .ep-cf{ display:block; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .ep-row > summary .ep-fx{ display:inline-flex; align-items:center; gap:5px; font-size:.78rem; color:var(--ink); min-width:0; }
-  .ep-row > summary .ep-add-c{ display:flex; justify-content:center; }
+  .ep-row > summary .ep-add-c{ display:flex; justify-content:center; } .ep-row > summary .ep-w{ display:flex; align-items:center; min-width:0; }
   .ep-row > summary .ep-cd{ display:flex; }
   .ep-add{ width:28px; height:28px; border-radius:8px; border:1.5px dashed var(--line-strong); background:transparent; color:var(--ink-soft); font:inherit; font-size:1.05rem; font-weight:700; line-height:1; cursor:pointer; opacity:.75; }
   .ep-add:hover, .ep-add:focus-visible{ opacity:1; border-color:var(--blueprint); color:var(--blueprint); outline:none; }
@@ -604,7 +605,7 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
   .ep-fx em{ font-style:normal; color:var(--ink-soft); opacity:.55; }
 }
 @media (min-width:861px){
-  .ep-lista{ overflow-x:auto; } .ep-lista > *{ min-width:1600px; }
+  .ep-lista{ overflow-x:auto; } .ep-lista > *{ min-width:1700px; }
   .ep-th .ep-hn{ white-space:normal; line-height:1.15; }
   .ep-th .ep-hcd .ep-hn{ display:flex; flex-direction:column; align-items:flex-start; } .ep-th .ep-hcd .ep-hn small{ font-weight:400; font-size:.58rem; opacity:.8; white-space:nowrap; }
   .ep-th .ep-hg{ position:relative; } .ep-th .ep-hg em{ position:absolute; left:-4px; top:-7px; font-style:normal; font-size:.5rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--blueprint); white-space:nowrap; }
@@ -1120,6 +1121,23 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .tour-pie .tour-saltar{ border:none; background:none; color:var(--ink-soft); padding:8px 4px; }
 .tour-pie button:focus-visible{ outline:2px solid var(--blueprint); outline-offset:2px; }
 
+/* ===== clima por sector ===== */
+.wx-i{ flex:none; vertical-align:middle; }
+.wx-box{ margin:10px 0 12px; padding:10px 12px; border:1px dashed color-mix(in srgb,#2F7FD1 55%,transparent); border-radius:12px; background:color-mix(in srgb,#2F7FD1 5%,transparent); }
+.wx-t{ font-size:.68rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px; }
+.wx-s{ font-size:.8rem; color:var(--ink-soft); }
+.wx-hoy{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.wx-tp b{ display:block; font-size:1.25rem; line-height:1.1; } .wx-tp span{ font-size:.74rem; color:var(--ink-soft); }
+.wx-vv{ margin-left:auto; display:flex; flex-direction:column; gap:2px; font-size:.74rem; color:var(--ink-soft); text-align:right; }
+.wx-dias{ display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin-top:8px; }
+.wx-d{ display:flex; flex-direction:column; align-items:center; gap:1px; padding:5px 2px; border-radius:8px; background:color-mix(in srgb,var(--ink) 5%,transparent); font-size:.66rem; }
+.wx-d span{ font-weight:600; } .wx-d em{ font-style:normal; color:var(--ink-soft); }
+.wx-d.wx-ll, .wx-hd.wx-ll{ background:color-mix(in srgb,#2F7FD1 16%,transparent); } .wx-d.wx-ll em{ color:#2F7FD1; font-weight:700; }
+.wx-av{ margin-top:8px; padding:6px 9px; border-radius:8px; background:#FBEFD0; color:#8A6A00; font-size:.74rem; font-weight:600; }
+.wx-f{ margin-top:7px; font-size:.64rem; color:var(--ink-soft); } .wx-f a{ color:inherit; }
+.wx-c{ display:inline-flex; align-items:center; gap:4px; font-size:.74rem; white-space:nowrap; } .wx-c i{ font-style:normal; color:var(--ink-soft); font-size:.68rem; } .wx-c.wx-ll i{ color:#2F7FD1; font-weight:700; } .wx-nd{ color:var(--ink-soft); }
+.wx-hd{ display:flex; align-items:center; justify-content:center; gap:3px; margin-top:3px; padding:2px 3px; border-radius:6px; font-size:.64rem; flex-wrap:wrap; } .wx-hd:empty{ display:none; } .wx-hd i{ font-style:normal; color:var(--ink-soft); } .wx-hd.wx-ll i{ color:#2F7FD1; font-weight:700; }
+.note-cell.wx-rain{ position:relative; } .note-cell.wx-rain::after{ content:"\1F4A7"; position:absolute; top:3px; right:4px; font-size:.7rem; line-height:1; padding:2px 3px; border-radius:50%; background:#E4EEF9; pointer-events:none; }
 /* ===== ajustes móvil/escritorio: listado y mapa 9/16, comunas completas, scroll encadenado ===== */
 @media (max-width:860px){
   body.pm-mapa[data-mtab="porticos"] .semanal-layout > .porticos-panel{ width:calc(100% - 24px); box-sizing:border-box; height:auto; align-self:start; justify-self:stretch; aspect-ratio:9 / 16; min-height:420px; max-height:calc(100vh - 150px); max-height:calc(100svh - 150px); }
@@ -2573,8 +2591,9 @@ window.PORTICOS_LISTA = (function(){
       });
       state.weeks.forEach(function(w, i){
         var col = 2+i;
+        var wxIso = ""; if(cfg.weekly && state.inicio){ try{ wxIso = isoFecha(addDays(new Date(state.inicio + "T12:00:00"), i)); }catch(e){} }
         html += '<div class="cell week-head" style="grid-row:2; grid-column:'+col+';">'
-          + '<span class="lbl">'+escapeHtml(w.label)+'</span>'
+          + '<span class="lbl">'+escapeHtml(w.label)+'</span>' + (wxIso ? '<span class="wx-hd" data-wxd="'+wxIso+'"></span>' : '')
           + '<button class="week-x" data-action="del-week" data-week="'+w.id+'" title="Eliminar columna" aria-label="Eliminar columna '+escapeHtml(w.label||'')+'">\u2715</button></div>';
       });
       state.categories.forEach(function(cat, ci){
@@ -2585,7 +2604,8 @@ window.PORTICOS_LISTA = (function(){
           var col = 2+wi;
           var notesHere = notesIn(cat.id, w.id);
           var wide = notesHere.length >= 3;
-          html += '<div class="cell note-cell'+(wide?' wide':'')+'" style="grid-row:'+row+'; grid-column:'+col+';">';
+          var wxI2 = (cfg.weekly && state.inicio) ? (function(){ try{ return isoFecha(addDays(new Date(state.inicio + "T12:00:00"), wi)); }catch(e){ return ""; } })() : "";
+          html += '<div class="cell note-cell'+(wide?' wide':'')+'" style="grid-row:'+row+'; grid-column:'+col+';"'+(wxI2 ? ' data-wxd="'+wxI2+'" data-hn="'+(notesHere.length?1:0)+'"' : '')+'>';
           if(wide){
             var perCol = Math.ceil(notesHere.length/2);
             notesHere.forEach(function(note, ni){
@@ -2603,6 +2623,7 @@ window.PORTICOS_LISTA = (function(){
         });
       });
       board.innerHTML = html;
+      if(cfg.weekly && window.PORTICOS_CLIMA){ PORTICOS_CLIMA.tablero(board); PORTICOS_CLIMA.iniciar(); }
       posInicio();
     }
 
@@ -4036,7 +4057,7 @@ window.PORTICOS_LISTA = (function(){
       + '<div class="pm-head"><div><strong>'+esc(p.nombre)+'</strong><span>'+esc(p.comuna)+'</span></div>'
       + '<button type="button" class="pm-comp" aria-label="Compartir el historial de este p\u00f3rtico" title="Compartir historial"><span aria-hidden="true">\ud83d\udd17</span></button><button type="button" class="pm-x" aria-label="Cerrar">\u2715</button></div>'
       + '<div class="pm-body">'
-      + '<div class="pm-label">Estado actual</div><div id="pmEstado">'+estadoTxt()+'</div><div id="pmCond">'+condChips(num)+'</div>'
+      + '<div class="pm-label">Estado actual</div><div id="pmEstado">'+estadoTxt()+'</div><div id="pmCond">'+condChips(num)+'</div><div id="pmClima" data-num="'+num+'">'+(window.PORTICOS_CLIMA ? PORTICOS_CLIMA.bloque(p) : '')+'</div>'
       + '<div class="pm-label">Registrar partida ejecutada o comentario</div>'
       + '<div class="pm-grid"><label>Partida<select id="pmPartida">'+opts+'</select></label>'
       + '<label>Fecha de ejecuci\u00f3n<input type="date" id="pmFecha" value="'+hoyISO()+'"></label></div>'
@@ -5061,7 +5082,7 @@ window.PORTICOS_LISTA = (function(){
       return gh + '<details class="ep-row" data-ep="'+num+'"'+(epAbiertos[num]?' open':'')+'><summary><span class="ep-n">'+esc(p.nombre)+'</span><span class="ep-t">'+tipoHtml(p.nombre)+'</span><span class="ep-c" title="'+esc(p.comuna)+'">'+esc(comunaCorta(p.comuna))+'</span><span class="ep-cf">'+esc(p.comuna)+'</span><span class="ep-e">'+est+'</span>'+fx+CONDS.map(function(c){ var vs = condVals(num, c), tt = ' data-cond="'+c.k+'" data-cp="'+num+'" title="'+esc(c.titulo)+' ('+esc(c.sub)+') \u00b7 '+esc(p.nombre)+'"';
         if(c.multi) return '<span class="ep-cd"><button type="button" class="ep-tk multi'+(vs.length?'':' vacio')+'"'+tt+'>'+(vs.length ? vs.map(function(v){ return condPill(c, v, true); }).join("") : '+ definir')+'</button></span>';
         var op = null; c.ops.forEach(function(o){ if(o[0] === vs[0]) op = o; });
-        return '<span class="ep-cd"><button type="button" class="ep-tk'+(op?'':' vacio')+'"'+tt+(op?' style="--c:'+op[1]+'"':'')+'>'+(op?'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 6.4l2.6 2.6 5-5.6"/></svg>'+esc(op[0]):'+ definir')+'</button></span>'; }).join("")+'<span class="ep-add-c"><button type="button" class="ep-add" data-epnota="'+num+'" title="Agregar nota a '+esc(p.nombre)+'" aria-label="Agregar nota a '+esc(p.nombre)+'">+</button></span><span class="ep-k">'+regs.length+' reg.</span></summary>'
+        return '<span class="ep-cd"><button type="button" class="ep-tk'+(op?'':' vacio')+'"'+tt+(op?' style="--c:'+op[1]+'"':'')+'>'+(op?'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 6.4l2.6 2.6 5-5.6"/></svg>'+esc(op[0]):'+ definir')+'</button></span>'; }).join("")+'<span class="ep-w" data-wc="'+num+'">'+(window.PORTICOS_CLIMA ? PORTICOS_CLIMA.celda(p) : '')+'</span><span class="ep-add-c"><button type="button" class="ep-add" data-epnota="'+num+'" title="Agregar nota a '+esc(p.nombre)+'" aria-label="Agregar nota a '+esc(p.nombre)+'">+</button></span><span class="ep-k">'+regs.length+' reg.</span></summary>'
         + (regs.length ? '<ul class="ep-h">' + regs.map(function(a){
             return '<li>'+chip(a.partida)+'<span class="pm-f">'+fmt(a.fecha)+'</span>'+(a.avance!==""&&a.avance!=null&&!esNota(a.partida)?'<span class="pm-pct">'+esc(a.avance)+'%</span>':'')
               + (a.obs?'<span class="pm-obs">'+esc(a.obs)+'</span>':'')
@@ -5075,10 +5096,18 @@ window.PORTICOS_LISTA = (function(){
       + '<p class="ind-nota ep-acum">Conteo acumulado: cada partida cuenta los p\u00f3rticos que ya la ejecutaron, aunque hayan avanzado a la siguiente.</p>'
       + '<div class="ep-ctrl"><input type="search" class="ep-buscar" placeholder="Buscar p\u00f3rtico o comuna" aria-label="Buscar p\u00f3rtico" value="'+esc(epBusca)+'">'
       + '<label class="ep-ord"><span>Ordenar</span><select class="ep-orden" aria-label="Ordenar el listado">' + EP_ORDENES.map(function(o){ return '<option value="'+o[0]+'"'+(o[0]===epOrden?' selected':'')+'>'+o[1]+'</option>'; }).join("") + '</select></label></div>'
-      + '<div class="ep-lista"><div class="ep-th"><span>P\u00f3rtico</span><span></span><span>Comuna</span>' + d.orden.map(function(n, i){ var on = function(dr){ return epCol && epCol.i === i && epCol.dir === dr ? ' on' : ''; }; return '<span class="ep-hc"><i class="dot dot-'+window.PARTIDA_TONE[n]+'"></i><span class="ep-hn">'+esc(n)+'</span><span class="ep-ar"><button type="button" class="ep-up'+on(1)+'" data-epcol="'+i+'" data-dir="1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s antigua primero" aria-label="Ordenar por fecha de '+esc(n)+' ascendente">\u25b2</button><button type="button" class="ep-dn'+on(-1)+'" data-epcol="'+i+'" data-dir="-1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s reciente primero" aria-label="Ordenar por fecha de '+esc(n)+' descendente">\u25bc</button></span></span>'; }).join("") + CONDS.map(function(c, i){ return '<span class="ep-hc ep-hcd'+(i === 0 ? ' ep-hg' : '')+'">'+(c.multi ? '<i class="ep-ins" aria-hidden="true">\u26a1\ud83d\udca7</i>' : '<i class="dot dot-'+window.PARTIDA_TONE[c.partida]+'"></i>')+'<span class="ep-hn"><b>'+esc(c.titulo)+'</b><small>'+esc(c.sub)+'</small></span></span>'; }).join("") + '<span>Notas</span><span></span></div>' + (filas || '<p class="pm-vacio">Ning\u00fan p\u00f3rtico coincide.</p>') + '</div>'
+      + '<div class="ep-lista"><div class="ep-th"><span>P\u00f3rtico</span><span></span><span>Comuna</span>' + d.orden.map(function(n, i){ var on = function(dr){ return epCol && epCol.i === i && epCol.dir === dr ? ' on' : ''; }; return '<span class="ep-hc"><i class="dot dot-'+window.PARTIDA_TONE[n]+'"></i><span class="ep-hn">'+esc(n)+'</span><span class="ep-ar"><button type="button" class="ep-up'+on(1)+'" data-epcol="'+i+'" data-dir="1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s antigua primero" aria-label="Ordenar por fecha de '+esc(n)+' ascendente">\u25b2</button><button type="button" class="ep-dn'+on(-1)+'" data-epcol="'+i+'" data-dir="-1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s reciente primero" aria-label="Ordenar por fecha de '+esc(n)+' descendente">\u25bc</button></span></span>'; }).join("") + CONDS.map(function(c, i){ return '<span class="ep-hc ep-hcd'+(i === 0 ? ' ep-hg' : '')+'">'+(c.multi ? '<i class="ep-ins" aria-hidden="true">\u26a1\ud83d\udca7</i>' : '<i class="dot dot-'+window.PARTIDA_TONE[c.partida]+'"></i>')+'<span class="ep-hn"><b>'+esc(c.titulo)+'</b><small>'+esc(c.sub)+'</small></span></span>'; }).join("") + '<span>Clima hoy</span><span>Notas</span><span></span></div>' + (filas || '<p class="pm-vacio">Ning\u00fan p\u00f3rtico coincide.</p>') + '</div>'
       + '<p class="ind-nota">Toca un p\u00f3rtico para ver las tareas realizadas (m\u00e1s reciente primero).</p></div></div>';
   }
   document.addEventListener("toggle", function(e){ var d = e.target; if(d && d.classList && d.classList.contains("ep-row")){ if(d.open) epAbiertos[d.dataset.ep] = 1; else delete epAbiertos[d.dataset.ep]; } }, true);
+  if(window.PORTICOS_CLIMA){
+    PORTICOS_CLIMA.alCambiar(function(){
+      var pm = document.getElementById("pmClima"); if(pm){ var pp = null; lista().forEach(function(x, k){ if(numDe(x, k) === pm.dataset.num) pp = x; }); if(pp) pm.innerHTML = PORTICOS_CLIMA.bloque(pp); }
+      Array.prototype.forEach.call(document.querySelectorAll("[data-wc]"), function(el){ var pp = null; lista().forEach(function(x, k){ if(numDe(x, k) === el.dataset.wc) pp = x; }); if(pp) el.innerHTML = PORTICOS_CLIMA.celda(pp); });
+      PORTICOS_CLIMA.tablero(document);
+    });
+    var iniClima = function(){ PORTICOS_CLIMA.iniciar(); }; iniClima(); setTimeout(iniClima, 4000); setTimeout(iniClima, 15000);
+  }
   function cerrarPop(){ var p = document.querySelector(".ep-pop"); if(p) p.remove(); }
   document.addEventListener("keydown", function(e){ if(e.key === "Escape") cerrarPop(); });
   /* guarda una o varias condiciones de un pórtico (un registro [COND] por cambio) */
