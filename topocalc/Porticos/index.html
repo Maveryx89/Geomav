@@ -1158,7 +1158,8 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .pdf-ov .gal-top{ gap:12px; } .pdf-ov .gal-info{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 .pm-pop{ min-width:190px; } .pm-pop strong{ font-size:.95rem; color:var(--ink); } .pm-pop .pm-s{ color:var(--ink-soft); margin:2px 0 8px; line-height:1.35; }
-.pm-pop .pm-acc{ display:flex; flex-direction:column; gap:6px; }
+.pm-pop .pm-acc{ display:flex; flex-direction:row; gap:6px; } .pm-pop .pm-acc .pm-b{ flex:1; padding:5px 6px; font-size:.72rem; white-space:nowrap; }
+.wx-fr{ display:flex; gap:3px; margin:6px 0 7px; } .wx-m{ flex:1; display:flex; flex-direction:column; align-items:center; gap:0; padding:2px 0; border-radius:6px; background:color-mix(in srgb,var(--ink) 5%,transparent); font-size:.6rem; line-height:1.2; } .wx-m b{ font-weight:700; } .wx-m i{ font-style:normal; } .wx-m.wx-ll{ background:color-mix(in srgb,#2F7FD1 18%,transparent); } .wx-m.wx-ll i{ color:#2F7FD1; font-weight:700; }
 .pm-pop .pm-b{ all:unset; box-sizing:border-box; cursor:pointer; text-align:center; padding:8px 10px; min-height:20px; border-radius:8px; font-size:.8rem; font-weight:700; border:1px solid var(--line-strong); background:var(--paper); color:var(--ink) !important; text-decoration:none; }
 .pm-pop .pm-b.pm-go{ background:var(--ink); border-color:var(--ink); color:#fff !important; }
 .pm-pop .pm-b.pm-on{ background:var(--blueprint-soft); border-color:var(--blueprint); color:var(--blueprint) !important; }
@@ -4526,9 +4527,9 @@ window.PORTICOS_LISTA = (function(){
     var p = datosPortico(num); if(!p) return "";
     var st = ultimoData ? estadoDe(String(num), ultimoData) : null, en = rutaPts.indexOf(String(num)) >= 0;
     return '<div class="pm-pop"><strong>' + esc(p.nombre) + '</strong>'
-      + '<div class="pm-s">' + esc(p.comuna || "") + '<br>' + (st ? esc(st.name) + ' \u00b7 ejecutado ' + fmt(st.fecha) : 'Sin iniciar') + (gpsPos ? '<br><span class="gps-tip">A ' + fmtDist(distKm(gpsPos, [p.lat, p.lng]) * 1000) + ' de ti (en l\u00ednea recta)</span>' : '') + '</div>' + (window.iptEnPunto ? window.iptEnPunto(p.lat, p.lng) : '')
-      + '<div class="pm-acc"><a class="pm-b pm-go" href="https://www.google.com/maps/dir/?api=1&destination=' + p.lat + ',' + p.lng + '&travelmode=driving" target="_blank" rel="noopener">\ud83e\udded Ir a la ubicaci\u00f3n</a>'
-      + '<button type="button" class="pm-b' + (en ? ' pm-on' : '') + '" onclick="window.rutaToggle(\'' + num + '\')">' + (en ? '\u2713 En la ruta (quitar)' : '\u2795 Agregar a la ruta') + '</button></div>'
+      + '<div class="pm-s">' + esc(p.comuna || "") + '<br>' + (st ? esc(st.name) + ' \u00b7 ejecutado ' + fmt(st.fecha) : 'Sin iniciar') + (gpsPos ? '<br><span class="gps-tip">A ' + fmtDist(distKm(gpsPos, [p.lat, p.lng]) * 1000) + ' de ti (en l\u00ednea recta)</span>' : '') + '</div>' + (window.PORTICOS_CLIMA ? PORTICOS_CLIMA.franja(p) : '') + (window.iptEnPunto ? window.iptEnPunto(p.lat, p.lng) : '')
+      + '<div class="pm-acc"><a class="pm-b pm-go" href="https://www.google.com/maps/dir/?api=1&destination=' + p.lat + ',' + p.lng + '&travelmode=driving" target="_blank" rel="noopener">\ud83e\udded Ir al lugar</a>'
+      + '<button type="button" class="pm-b' + (en ? ' pm-on' : '') + '" onclick="window.rutaToggle(\'' + num + '\')">' + (en ? '\u2713 En ruta' : '\u2795 A la ruta') + '</button></div>'
       + '<a class="pm-l" href="#" onclick="window.abrirPortico(' + num + ');return false;">Registrar avance</a></div>';
   }
   function distKm(a, b){ var R = 6371, t = Math.PI / 180, dLa = (b[0] - a[0]) * t, dLo = (b[1] - a[1]) * t, h = Math.sin(dLa / 2) * Math.sin(dLa / 2) + Math.cos(a[0] * t) * Math.cos(b[0] * t) * Math.sin(dLo / 2) * Math.sin(dLo / 2); return 2 * R * Math.asin(Math.sqrt(h)); }

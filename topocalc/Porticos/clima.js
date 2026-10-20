@@ -64,6 +64,17 @@
       + (lluvioso(x) || aviso.length ? '<div class="wx-av">⚠ ' + (lluvioso(x) ? "Hoy" + (aviso.length ? " y " : "") : "") + aviso.join(" y ") + ': lluvia probable · evaluar excavación y hormigonado</div>' : '')
       + '<div class="wx-f">Fuente: Open-Meteo · <a href="' + ALERTAS + '" target="_blank" rel="noopener">alertas oficiales DMC ↗</a></div></div>';
   }
+  /* ---- franja compacta de la semana (popup del mapa) ---- */
+  function franja(p){
+    var d = datos(p), h = hoyISO(); if(!d) return "";
+    var o = "";
+    for(var k = 0; k < 5; k++){
+      var iso = sumar(h, k), y = dia(d, iso); if(!y) continue;
+      var dt = new Date(iso + "T12:00:00");
+      o += '<span class="wx-m' + (lluvioso(y) ? " wx-ll" : "") + '" title="' + esc(txt(y.code)) + " \u00b7 " + Math.round(y.min) + "\u00b0/" + Math.round(y.max) + "\u00b0 \u00b7 lluvia " + Math.round(y.pp || 0) + ' %"><b>' + (k ? DS[dt.getDay()] : "Hoy") + '</b>' + icono(y.code, 16) + '<i>' + Math.round(y.max) + '\u00b0</i></span>';
+    }
+    return o ? '<div class="wx-fr">' + o + '</div>' : "";
+  }
   /* ---- celda compacta (Estado actual) ---- */
   function celda(p){ var x = dia(datos(p), hoyISO()); if(!x) return '<span class="wx-c wx-nd">—</span>'; return '<span class="wx-c' + (lluvioso(x) ? " wx-ll" : "") + '" title="' + esc(txt(x.code)) + ' · viento ' + Math.round(x.v) + ' km/h ' + brujula(x.dir) + '">' + icono(x.code, 20) + '<b>' + Math.round(x.max) + '°</b><i>' + Math.round(x.pp || 0) + ' %</i></span>'; }
 
@@ -78,6 +89,6 @@
     });
   }
   function iniciar(){ var l = lista(), c = centro(); var pts = l.slice(); if(c) pts.push(c); return pedir(pts); }
-  window.PORTICOS_CLIMA = { pedir:pedir, iniciar:iniciar, bloque:bloque, celda:celda, tablero:tablero, datos:datos, dia:dia, centro:centro, hoyISO:hoyISO, icono:icono, txt:txt, lluvioso:lluvioso, brujula:brujula, sumar:sumar, DS:DS, cache:function(){ return cache; }, alertas:ALERTAS,
+  window.PORTICOS_CLIMA = { pedir:pedir, iniciar:iniciar, bloque:bloque, franja:franja, celda:celda, tablero:tablero, datos:datos, dia:dia, centro:centro, hoyISO:hoyISO, icono:icono, txt:txt, lluvioso:lluvioso, brujula:brujula, sumar:sumar, DS:DS, cache:function(){ return cache; }, alertas:ALERTAS,
     alCambiar:function(f){ listeners.push(f); } };
 })();
