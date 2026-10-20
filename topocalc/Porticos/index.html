@@ -1273,6 +1273,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
         <div class="menu-pop">
           <button class="btn-sm" data-action="add-week">+ Día</button>
           <button class="btn-sm" data-action="importar-planilla"><span aria-hidden="true">&#x1F4E5;</span> Importar planilla&hellip;</button>
+          <button class="btn-sm" data-action="rescatar-cond"><span aria-hidden="true">&#x1F50E;</span> Rescatar condiciones&hellip;</button>
           <button class="btn-sm danger" data-action="borrar-grupo"><span aria-hidden="true">&#x1F5D1;&#xFE0F;</span> Borrar tareas&hellip;</button>
           <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
@@ -1351,6 +1352,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
         <div class="menu-pop">
           <button class="btn-sm" data-action="add-week">+ Semana</button>
           <button class="btn-sm" data-action="importar-planilla"><span aria-hidden="true">&#x1F4E5;</span> Importar planilla&hellip;</button>
+          <button class="btn-sm" data-action="rescatar-cond"><span aria-hidden="true">&#x1F50E;</span> Rescatar condiciones&hellip;</button>
           <button class="btn-sm danger" data-action="borrar-grupo"><span aria-hidden="true">&#x1F5D1;&#xFE0F;</span> Borrar tareas&hellip;</button>
           <div class="menu-sep">Exportar</div>
           <button class="btn-sm" data-action="export-excel">Exportar Excel</button>
@@ -2969,6 +2971,11 @@ window.PORTICOS_LISTA = (function(){
       else if(action === "m-col"){ mCol = el.dataset.week; state.editingNoteId = null; render(); }
       else if(action === "liberar-hoy"){ if(window.PORTICOS_API && window.PORTICOS_API.liberar) window.PORTICOS_API.liberar(el.dataset.portico, el); }
       else if(action === "borrar-grupo"){ abrirBorrado(); }
+      else if(action === "rescatar-cond"){
+        var go2 = function(){ if(window.PORTICOS_RESCATE) window.PORTICOS_RESCATE.abrir(); };
+        if(window.PORTICOS_RESCATE){ go2(); }
+        else { var sc2 = document.createElement("script"); sc2.src = "rescatar-condiciones.js?v=20261020a"; sc2.onload = go2; sc2.onerror = function(){ alert("No se pudo cargar la herramienta. Revisa tu conexi\u00f3n."); }; document.head.appendChild(sc2); }
+      }
       else if(action === "importar-planilla"){
         var go = function(){ if(window.PORTICOS_IMPORTAR) window.PORTICOS_IMPORTAR.abrir(); };
         if(window.PORTICOS_IMPORTAR){ go(); }
@@ -3562,6 +3569,7 @@ window.PORTICOS_LISTA = (function(){
       }).catch(function(){ alert("No se recibi\u00f3 confirmaci\u00f3n. Revisa en unos segundos."); btn.disabled = false; btn.textContent = "\u2713 Liberar hoy"; });
     },
     enviar: function(body){ return enviar(body); },
+    condiciones: function(num, lista, pin){ return enviarConds(num, lista, pin); },
     getPin: function(){ return getPin(); },
     setPin: function(p){ setPin(p); pintarEditBar(); },
     v2: function(){ return API_V2; },
