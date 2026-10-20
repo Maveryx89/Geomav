@@ -55,10 +55,10 @@
       var iso = sumar(h, k), y = dia(d, iso); if(!y) continue;
       var dt = new Date(iso + "T12:00:00");
       if(lluvioso(y)) aviso.push(DS[dt.getDay()]);
-      dias += '<div class="wx-d' + (lluvioso(y) ? " wx-ll" : "") + '"><b>' + DS[dt.getDay()] + '</b>' + icono(y.code, 26) + '<span>' + Math.round(y.max) + '° / ' + Math.round(y.min) + '°</span><em>' + Math.round(y.pp || 0) + ' %</em></div>';
+      dias += '<div class="wx-d' + (lluvioso(y) ? " wx-ll" : "") + '" data-wx="' + key(p.lat, p.lng) + '|' + iso + '"><b>' + DS[dt.getDay()] + '</b>' + icono(y.code, 26) + '<span>' + Math.round(y.max) + '° / ' + Math.round(y.min) + '°</span><em>' + Math.round(y.pp || 0) + ' %</em></div>';
     }
     return '<div class="wx-box"><div class="wx-t">Clima en el sector</div>'
-      + '<div class="wx-hoy">' + icono(x.code, 44) + '<div class="wx-tp"><b>' + Math.round(x.max) + '° / ' + Math.round(x.min) + '°</b><span>' + esc(txt(x.code)) + ' · Hoy</span></div>'
+      + '<div class="wx-hoy" data-wx="' + key(p.lat, p.lng) + '|' + h + '">' + icono(x.code, 44) + '<div class="wx-tp"><b>' + Math.round(x.max) + '° / ' + Math.round(x.min) + '°</b><span>' + esc(txt(x.code)) + ' · Hoy</span></div>'
       + '<div class="wx-vv"><span>💨 ' + Math.round(x.v) + ' km/h ' + brujula(x.dir) + '</span><span>💧 Lluvia ' + Math.round(x.pp || 0) + ' % · UV ' + Math.round(x.uv || 0) + '</span></div></div>'
       + '<div class="wx-dias">' + dias + '</div>'
       + (lluvioso(x) || aviso.length ? '<div class="wx-av">⚠ ' + (lluvioso(x) ? "Hoy" + (aviso.length ? " y " : "") : "") + aviso.join(" y ") + ': lluvia probable · evaluar excavación y hormigonado</div>' : '')
@@ -71,12 +71,12 @@
     for(var k = 0; k < 5; k++){
       var iso = sumar(h, k), y = dia(d, iso); if(!y) continue;
       var dt = new Date(iso + "T12:00:00");
-      o += '<span class="wx-m' + (lluvioso(y) ? " wx-ll" : "") + '" title="' + esc(txt(y.code)) + " \u00b7 " + Math.round(y.min) + "\u00b0/" + Math.round(y.max) + "\u00b0 \u00b7 lluvia " + Math.round(y.pp || 0) + ' %"><b>' + (k ? DS[dt.getDay()] : "Hoy") + '</b>' + icono(y.code, 16) + '<i>' + Math.round(y.max) + '\u00b0</i></span>';
+      o += '<span class="wx-m' + (lluvioso(y) ? " wx-ll" : "") + '" data-wx="' + key(p.lat, p.lng) + '|' + iso + '"><b>' + (k ? DS[dt.getDay()] : "Hoy") + '</b>' + icono(y.code, 16) + '<i>' + Math.round(y.max) + '\u00b0</i></span>';
     }
     return o ? '<div class="wx-fr">' + o + '</div>' : "";
   }
   /* ---- celda compacta (Estado actual) ---- */
-  function celda(p){ var x = dia(datos(p), hoyISO()); if(!x) return '<span class="wx-c wx-nd">—</span>'; return '<span class="wx-c' + (lluvioso(x) ? " wx-ll" : "") + '" title="' + esc(txt(x.code)) + ' · viento ' + Math.round(x.v) + ' km/h ' + brujula(x.dir) + '">' + icono(x.code, 20) + '<b>' + Math.round(x.max) + '°</b><i>' + Math.round(x.pp || 0) + ' %</i></span>'; }
+  function celda(p){ var x = dia(datos(p), hoyISO()); if(!x) return '<span class="wx-c wx-nd">—</span>'; return '<span class="wx-c' + (lluvioso(x) ? " wx-ll" : "") + '" data-wx="' + key(p.lat, p.lng) + '|' + hoyISO() + '">' + icono(x.code, 20) + '<b>' + Math.round(x.max) + '°</b><i>' + Math.round(x.pp || 0) + ' %</i></span>'; }
 
   /* ---- tablero semanal: clima por día en el encabezado y gota en tareas ---- */
   function tablero(root){
@@ -84,10 +84,45 @@
     var d = cache[key(c.lat, c.lng)];
     Array.prototype.forEach.call(root.querySelectorAll("[data-wxd]"), function(el){
       var x = dia(d, el.getAttribute("data-wxd"));
-      if(el.classList.contains("wx-hd")){ el.innerHTML = x ? icono(x.code, 18) + '<b>' + Math.round(x.max) + '°</b><i>💧' + Math.round(x.pp || 0) + '%</i>' : ""; el.title = x ? txt(x.code) + " · " + Math.round(x.min) + "° / " + Math.round(x.max) + "° · lluvia " + Math.round(x.pp || 0) + " % · viento " + Math.round(x.v) + " km/h (centro de los pórticos)" : ""; el.classList.toggle("wx-ll", lluvioso(x)); }
+      if(el.classList.contains("wx-hd")){ el.innerHTML = x ? icono(x.code, 18) + '<b>' + Math.round(x.max) + '°</b><i>💧' + Math.round(x.pp || 0) + '%</i>' : ""; el.setAttribute("data-wx", key(c.lat, c.lng) + "|" + el.getAttribute("data-wxd")); el.setAttribute("data-wxc", "1"); el.classList.toggle("wx-ll", lluvioso(x)); }
       else el.classList.toggle("wx-rain", !!(lluvioso(x) && el.getAttribute("data-hn") === "1"));
     });
   }
+
+  /* ---- detalle del día: al pasar el mouse (escritorio) o al tocar ---- */
+  var tip = null, tipEl = null;
+  var MESN = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"], DSL = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+  function consejo(x){
+    var a = [];
+    if(x.pp >= 50) a.push("Lluvia probable: evaluar excavación, emplantillado y hormigonado.");
+    else if(x.pp >= 30) a.push("Posibilidad de lluvia: tener plan alternativo.");
+    if(x.v >= 40) a.push("Viento fuerte: cuidado con izajes y maniobras."); else if(x.v >= 25) a.push("Viento moderado a fuerte.");
+    if(x.uv >= 8) a.push("UV muy alto: protección solar y pausas.");
+    if(x.max >= 30) a.push("Calor: hidratación y pausas.");
+    if(x.min <= 3) a.push("Riesgo de helada: cuidar el curado del hormigón.");
+    return a.length ? a.join(" ") : "Sin alertas de clima para las faenas.";
+  }
+  function detalle(v, centroF){
+    var pr = v.split("|"), x = dia(cache[pr[0]], pr[1]); if(!x) return "";
+    var dt = new Date(pr[1] + "T12:00:00"), dn = DSL[dt.getDay()];
+    return '<div class="wx-tp-h">' + icono(x.code, 30) + '<div><b>' + dn.charAt(0).toUpperCase() + dn.slice(1) + ' ' + dt.getDate() + ' de ' + MESN[dt.getMonth()] + '</b><span>' + esc(txt(x.code)) + (centroF ? ' · centro de los pórticos' : '') + '</span></div></div>'
+      + '<dl><dt>Máxima / mínima</dt><dd>' + Math.round(x.max) + '° / ' + Math.round(x.min) + '°</dd><dt>Prob. de lluvia</dt><dd>' + Math.round(x.pp || 0) + ' %</dd><dt>Viento máx.</dt><dd>' + Math.round(x.v) + ' km/h ' + brujula(x.dir) + '</dd><dt>Índice UV</dt><dd>' + Math.round(x.uv || 0) + '</dd></dl>'
+      + '<p class="' + (x.pp >= 50 ? "wx-tp-w" : "") + '">' + esc(consejo(x)) + '</p><small>Pronóstico Open-Meteo · alertas oficiales: DMC</small>';
+  }
+  function cerrar(){ if(tipEl){ tipEl.remove(); tipEl = null; tip = null; } }
+  function abrir(el){
+    var v = el.getAttribute("data-wx"); if(!v || tip === el) return;
+    var h = detalle(v, el.hasAttribute("data-wxc")); if(!h) return; cerrar();
+    tipEl = document.createElement("div"); tipEl.className = "wx-tip"; tipEl.innerHTML = h; document.body.appendChild(tipEl); tip = el;
+    var r = el.getBoundingClientRect(), w = tipEl.offsetWidth, hh = tipEl.offsetHeight;
+    var x = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8)), y = r.bottom + 6; if(y + hh > innerHeight - 8) y = Math.max(8, r.top - hh - 6);
+    tipEl.style.left = x + "px"; tipEl.style.top = y + "px";
+  }
+  var fino = window.matchMedia && matchMedia("(hover:hover) and (pointer:fine)").matches;
+  document.addEventListener("mouseover", function(e){ if(!fino) return; var t = e.target.closest ? e.target : e.target.parentElement, el = t && t.closest("[data-wx]"); if(el) abrir(el); else if(tip && !(t && t.closest(".wx-tip"))) cerrar(); }, true);
+  document.addEventListener("click", function(e){ var t = e.target.closest ? e.target : e.target.parentElement, el = t && t.closest("[data-wx]"); if(el){ if(tip === el && !fino) cerrar(); else abrir(el); } else if(!(t && t.closest(".wx-tip"))) cerrar(); }, true);
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") cerrar(); });
+  window.addEventListener("scroll", cerrar, true);
   function iniciar(){ var l = lista(), c = centro(); var pts = l.slice(); if(c) pts.push(c); return pedir(pts); }
   window.PORTICOS_CLIMA = { pedir:pedir, iniciar:iniciar, bloque:bloque, franja:franja, celda:celda, tablero:tablero, datos:datos, dia:dia, centro:centro, hoyISO:hoyISO, icono:icono, txt:txt, lluvioso:lluvioso, brujula:brujula, sumar:sumar, DS:DS, cache:function(){ return cache; }, alertas:ALERTAS,
     alCambiar:function(f){ listeners.push(f); } };
