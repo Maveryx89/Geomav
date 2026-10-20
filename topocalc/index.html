@@ -553,6 +553,35 @@ footer.app-foot .foot-copy{font-size:10px; opacity:.75;}
 }
 
 /* ===================== VISOR 360° ===================== */
+.v360-hero{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center; padding:22px 18px; color:#fff; background:radial-gradient(120% 90% at 50% 0%, #2C6B7E 0%, #123556 55%, #0A2240 100%); overflow:auto;}
+.v360-hero h2{font-size:clamp(22px,6.2vw,34px); line-height:1.12; font-weight:800; letter-spacing:-.01em; color:#fff;}
+.v360-hero h2 em{font-style:normal; color:#F0C9A4;}
+.v360-hero p{font-size:13.5px; line-height:1.5; color:rgba(255,255,255,.82); max-width:34ch; margin:0;}
+.v360-hero .v360-cta{display:inline-flex; align-items:center; gap:9px; margin-top:6px; padding:14px 26px; border-radius:999px; border:0; background:var(--accent); color:var(--accent-ink); font:800 15px/1 var(--font-body); letter-spacing:.05em; text-transform:uppercase; cursor:pointer; box-shadow:0 8px 22px -6px rgba(0,0,0,.45);}
+.v360-hero .v360-cta:hover{filter:brightness(1.06);}
+.v360-hero .v360-cta:focus-visible,.v360-hero .v360-alt:focus-visible{outline:2px solid #fff; outline-offset:3px;}
+.v360-hero .v360-cta:disabled{opacity:.55; cursor:default;}
+.v360-hero .v360-alt{background:none; border:0; color:#fff; font:600 12.5px/1 var(--font-body); text-decoration:underline; text-underline-offset:3px; cursor:pointer; padding:8px;}
+.v360-hero small{font-size:11.5px; color:rgba(255,255,255,.7);}
+.v360-pasos{display:grid; gap:10px; grid-template-columns:1fr; margin-top:12px;}
+@media (min-width:600px){ .v360-pasos{grid-template-columns:repeat(3, 1fr);} }
+.v360-paso{position:relative; display:flex; gap:12px; align-items:flex-start; padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--paper-raised);}
+.v360-paso b{display:block; font-size:14px; color:var(--ink); margin-bottom:2px;}
+.v360-paso span.t{font-size:12.5px; line-height:1.45; color:var(--ink-soft);}
+.v360-paso .n{flex:none; width:34px; height:34px; border-radius:50%; background:var(--blueprint-soft); color:var(--blueprint); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px;}
+.v360-acc{border:1px solid var(--line); border-radius:12px; background:var(--paper-raised); margin-top:8px; overflow:hidden;}
+.v360-acc > summary{list-style:none; cursor:pointer; padding:13px 14px; font-weight:700; font-size:13.5px; color:var(--ink); display:flex; align-items:center; gap:8px;}
+.v360-acc > summary::-webkit-details-marker{display:none;}
+.v360-acc > summary::after{content:"▾"; margin-left:auto; color:var(--ink-soft); transition:transform .15s;}
+.v360-acc[open] > summary::after{transform:rotate(180deg);}
+.v360-acc > summary:focus-visible{outline:2px solid var(--blueprint); outline-offset:-2px;}
+.v360-acc > div{padding:2px 14px 14px;}
+.v360-chips{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 10px;}
+.v360-chip{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; background:var(--blueprint-soft); color:var(--ink); font-size:12.5px; font-weight:600;}
+.v360-chip::before{content:"✓"; color:var(--blueprint); font-weight:800;}
+.v360-qr{display:flex; flex-direction:column; align-items:center; gap:10px;}
+.v360-qr svg{width:180px; height:180px; background:#fff; border-radius:8px; padding:6px; border:1px solid var(--line);}
+.v360-code{width:100%; min-height:84px; font:12px/1.45 var(--font-mono); padding:10px; border:1px solid var(--line-strong); border-radius:8px; background:var(--paper-sunken); color:var(--ink); resize:vertical;}
 .v360-vrx{display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:5;background:rgba(10,15,20,.7);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:6px 14px;font:600 12px/1 system-ui,sans-serif;cursor:pointer;}
 .v360-stage.v360-vr .v360-vrx{display:block;}
 .v360-stage.v360-vr .v360-bar,.v360-stage.v360-vr .v360-hud{display:none !important;}
@@ -10759,7 +10788,7 @@ async function v360Abrir(id){
     const an = gl.getExtension('EXT_texture_filter_anisotropic');
     if(an) gl.texParameterf(gl.TEXTURE_2D, an.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, gl.getParameter(an.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
     S.texOk = true; S.imgAsp = bw/bh; S.id = id; S.meta = m; S.cargada = {w:bw, h:bh};
-    S.stage.classList.add('v360-has'); const e = document.getElementById('v360Empty'); if(e) e.style.display = 'none';
+    S.stage.classList.add('v360-has'); const e = document.getElementById('v360Empty'); if(e) e.style.display = 'none'; const ps = document.getElementById('v360Pasos'); if(ps) ps.style.display = 'none';
     v360AplicarTipo(S, m);
     v360PanelInfo(m, bw, bh);
     document.querySelectorAll('.v360-card').forEach(c=> c.classList.toggle('sel', c.dataset.id === id));
@@ -10812,7 +10841,7 @@ async function v360Galeria(){
       try{ await v360Borrar(id); }catch(e){ v360Msg('No se pudo eliminar.'); return; }
       if(v360S && v360S.id === id){
         v360S.texOk = false; v360S.id = null; v360S.meta = null; v360S.stage.classList.remove('v360-has');
-        const e = document.getElementById('v360Empty'); if(e) e.style.display = '';
+        const e = document.getElementById('v360Empty'); if(e) e.style.display = ''; const ps = document.getElementById('v360Pasos'); if(ps) ps.style.display = '';
         document.getElementById('v360Info').style.display = 'none'; document.getElementById('v360Share').style.display = 'none'; v360Pedir(v360S);
       }
       v360Galeria();
@@ -10822,7 +10851,7 @@ async function v360Galeria(){
 async function v360CargarArchivos(files){
   if(!files || !files.length) return;
   const arr = Array.from(files);
-  const btns = ['v360Cargar', 'v360CargarG'].map(i=> document.getElementById(i)); btns.forEach(b=>{ if(b) b.disabled = true; });
+  const btns = ['v360Cargar', 'v360CargarG', 'v360HeroG', 'v360HeroA'].map(i=> document.getElementById(i)); btns.forEach(b=>{ if(b) b.disabled = true; });
   const av = document.getElementById('v360Aviso'); if(av){ av.style.display = 'none'; av.textContent = ''; }
   const r = await v360Importar(arr, t=> v360Msg(t));
   btns.forEach(b=>{ if(b) b.disabled = false; });
@@ -10957,6 +10986,27 @@ function v360SubirMeta(m, tok){
   const sh = m.share, meta = v360MetaPublica(m, sh.titulo, sh.w, sh.h);
   return v360Sb(`/storage/v1/object/${V360_SB.bucket}/${sh.token}/meta.json`, {method:'POST', headers:{'Content-Type':'application/json', 'x-upsert':'true'}, body:new Blob([JSON.stringify(meta)], {type:'application/json'})}, tok);
 }
+function v360CargarQr(){
+  if(window.qrcode) return Promise.resolve();
+  if(v360CargarQr.p) return v360CargarQr.p;
+  return v360CargarQr.p = new Promise((res, rej)=>{
+    const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+    sc.onload = ()=> res(); sc.onerror = ()=>{ v360CargarQr.p = null; rej(new Error('No se pudo cargar el generador de QR (revisa tu conexión).')); };
+    document.head.appendChild(sc);
+  });
+}
+async function v360Qr(texto){
+  const box = document.getElementById('v360QrBox'); if(!box) return;
+  box.innerHTML = '<span class="tool-blurb">Generando…</span>';
+  try{
+    await v360CargarQr();
+    const qr = window.qrcode(0, 'M'); qr.addData(texto); qr.make();
+    const svg = qr.createSvgTag({cellSize:6, margin:2, scalable:true});
+    if(document.getElementById('v360QrBox') !== box) return;
+    box.innerHTML = svg + '<button type="button" class="btn-sm" id="v360QrDescarga">Descargar QR</button>';
+    document.getElementById('v360QrDescarga').addEventListener('click', ()=> v360Descargar(new Blob([svg], {type:'image/svg+xml'}), 'qr-recorrido-360.svg'));
+  }catch(e){ box.innerHTML = `<span class="err-msg">${vrEsc(e.message)}</span>`; }
+}
 function v360ShareMsg(t){ const e = document.getElementById('v360ShareMsg'); if(e) e.textContent = t || ''; }
 function v360LinkDe(m){ return V360_VISTA + '?t=' + m.share.token; }
 function v360PanelShare(m){
@@ -10969,7 +11019,11 @@ function v360PanelShare(m){
   if(comp) ti.value = m.share.titulo; else if(ti.dataset.para !== m.id){ ti.value = m.name.replace(/\.[^.]+$/, ''); ti.dataset.para = m.id; }   // no pisa el título que ya escribiste
   $('v360Sesion').innerHTML = a && a.access ? `Sesión: ${vrEsc(a.email || 'iniciada')} · <a href="#" id="v360Cerrar">Cerrar sesión</a>` : '';
   const cs = $('v360Cerrar'); if(cs) cs.addEventListener('click', e=>{ e.preventDefault(); v360AuthSet(null); v360PanelShare(m); });
-  if(comp) $('v360LinkTxt').value = v360LinkDe(m);
+  if(comp){
+    const lk = v360LinkDe(m); $('v360LinkTxt').value = lk;
+    $('v360Embed').value = `<iframe src="${lk}" width="100%" height="480" style="border:0" allow="fullscreen; accelerometer; gyroscope; xr-spatial-tracking" allowfullscreen loading="lazy" title="${vrEsc(m.share.titulo)}"></iframe>`;
+    v360Qr(lk);
+  }
   v360ShareMsg('');
 }
 async function v360Compartir(S){
@@ -11026,7 +11080,13 @@ function renderVisor360(){
   const body = `
   <div class="v360-stage" id="v360Stage" tabindex="0" role="application" aria-label="Visor de imágenes 360°. Arrastra para mirar, rueda o pellizco para acercar.">
     <canvas id="v360Canvas"></canvas>
-    <div class="v360-empty" id="v360Empty">Carga una imagen 360° con el botón de abajo y tócala en «Mis imágenes» para recorrerla aquí.</div>
+    <div class="v360-hero" id="v360Empty">
+      <h2>Recorre y comparte<br><em>tu imagen 360°</em></h2>
+      <p>Sube una foto de tu dron DJI o de la Insta360 y envía un enlace a tu cliente.</p>
+      <button type="button" class="v360-cta" id="v360HeroG">⬆ Subir imagen 360°</button>
+      <button type="button" class="v360-alt" id="v360HeroA">o elegir desde archivos</button>
+      <small>Se guarda en tu equipo · no necesitas cuenta para verla</small>
+    </div>
     <div class="v360-hud" id="v360Hud"></div>
     <button type="button" class="v360-vrx" id="v360VrX" aria-label="Salir del modo VR">✕ Salir de VR</button>
     <div class="v360-bar">
@@ -11039,6 +11099,15 @@ function renderVisor360(){
     </div>
   </div>
   <p id="v360Msg" class="proj-msg" role="status" aria-live="polite"></p>
+
+  <div id="v360Pasos">
+    <h3 style="margin-top:16px; font-size:15px;">Cómo funciona</h3>
+    <div class="v360-pasos">
+      <div class="v360-paso"><span class="n">1</span><div><b>Subir</b><span class="t">Elige una imagen 360° desde tu galería o tus archivos.</span></div></div>
+      <div class="v360-paso"><span class="n">2</span><div><b>Explorar</b><span class="t">Recórrela con el dedo, el sensor del teléfono o en modo VR.</span></div></div>
+      <div class="v360-paso"><span class="n">3</span><div><b>Compartir</b><span class="t">Crea un enlace, un QR o un código para insertarla en una web.</span></div></div>
+    </div>
+  </div>
 
   <div class="field-card" id="v360Info" style="display:none;">
     <h3>Imagen actual</h3>
@@ -11072,13 +11141,18 @@ function renderVisor360(){
       <button type="button" class="btn" id="v360Crear" style="margin-top:6px;">🔗 Crear enlace</button>
     </div>
     <div id="v360ShareDone" style="display:none;">
-      <div class="field-row"><label for="v360LinkTxt">Enlace para el cliente</label><input type="text" id="v360LinkTxt" readonly></div>
-      <div class="action-row" style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button type="button" class="btn-sm" id="v360Copiar">Copiar enlace</button>
-        <button type="button" class="btn-sm" id="v360Wsp">Enviar por WhatsApp</button>
-        <button type="button" class="btn-sm" id="v360Abrir2">Ver como cliente</button>
-        <button type="button" class="btn-sm" id="v360Dejar">Dejar de compartir</button>
-      </div>
+      <details class="v360-acc" open><summary>🔗 Enlace directo</summary><div>
+        <div class="field-row"><label for="v360LinkTxt">Enlace para el cliente</label><input type="text" id="v360LinkTxt" readonly></div>
+        <div class="action-row" style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn-sm" id="v360Copiar">Copiar enlace</button>
+          <button type="button" class="btn-sm" id="v360Wsp">Enviar por WhatsApp</button>
+          <button type="button" class="btn-sm" id="v360Abrir2">Ver como cliente</button>
+        </div></div></details>
+      <details class="v360-acc" id="v360AccQr"><summary>▦ Código QR</summary><div><div class="v360-qr" id="v360QrBox"><span class="tool-blurb">Generando…</span></div></div></details>
+      <details class="v360-acc"><summary>&lt;/&gt; Código para insertar en una web</summary><div>
+        <textarea class="v360-code" id="v360Embed" readonly rows="4" aria-label="Código de inserción"></textarea>
+        <button type="button" class="btn-sm" id="v360CopiarEmbed" style="margin-top:8px;">Copiar código</button></div></details>
+      <button type="button" class="btn-sm" id="v360Dejar" style="margin-top:12px;">Dejar de compartir</button>
     </div>
     <p class="proj-msg" id="v360ShareMsg" role="status" aria-live="polite" style="margin-top:8px;"></p>
     <p class="proj-msg" id="v360Sesion" style="margin-top:2px;"></p>
@@ -11090,7 +11164,14 @@ function renderVisor360(){
     <p class="proj-msg" id="v360MapaMsg" style="margin-top:6px;"></p>
   </div>
 
-  <div class="field-card" id="v360Gal">
+  <details class="v360-acc" id="v360Formatos"><summary>Formatos y límites</summary><div>
+    <div class="v360-chips"><span class="v360-chip">JPG</span><span class="v360-chip">PNG</span><span class="v360-chip">WebP</span></div>
+    <p class="tool-blurb" style="margin:0 0 8px;">Imágenes 360° en proyección equirectangular (2:1): panoramas de esfera del dron DJI y fotos de la Insta360 X4 exportadas como JPG. HEIC, TIFF y los archivos propios de la cámara (.insp, .insv, .dng) se deben exportar o convertir antes.</p>
+    <div class="v360-chips"><span class="v360-chip">Hasta 16384 px de ancho</span><span class="v360-chip">Copia para clientes: 40 MB máx.</span></div>
+    <p class="tool-blurb" style="margin:0;">En el teléfono se muestran hasta 8192 px; las imágenes se guardan solo en este equipo.</p>
+  </div></details>
+
+  <div class="field-card" id="v360Gal" style="margin-top:12px;">
     <h3>Mis imágenes</h3>
     <p class="tool-blurb" style="margin:0 0 10px;">Se guardan solo en este equipo (no se suben a internet). Admite JPG, PNG y WebP: panoramas de esfera del dron DJI e imágenes de la Insta360 X4 exportadas como JPG.</p>
     <input type="file" id="v360FileG" accept="image/*" multiple hidden>
@@ -11116,10 +11197,10 @@ function renderVisor360(){
 
   if(!gl){
     document.getElementById('v360Empty').textContent = 'Este navegador o equipo no soporta WebGL 2, que el visor 360° necesita. Prueba con Chrome actualizado.';
-    ['v360Cargar', 'v360CargarG'].forEach(i=>{ document.getElementById(i).disabled = true; });
+    ['v360Cargar', 'v360CargarG', 'v360HeroG', 'v360HeroA'].forEach(i=>{ const e = document.getElementById(i); if(e) e.disabled = true; });
   } else {
     try{ v360MontarGL(S); }catch(e){
-      document.getElementById('v360Empty').textContent = 'No se pudo iniciar el visor 3D en este equipo.'; console.error(e); ['v360Cargar', 'v360CargarG'].forEach(i=>{ document.getElementById(i).disabled = true; });
+      document.getElementById('v360Empty').textContent = 'No se pudo iniciar el visor 3D en este equipo.'; console.error(e); ['v360Cargar', 'v360CargarG', 'v360HeroG', 'v360HeroA'].forEach(i=>{ const e = document.getElementById(i); if(e) e.disabled = true; });
     }
   }
   v360S = S;
@@ -11245,6 +11326,10 @@ function renderVisor360(){
     const t = S.meta && S.meta.share ? v360LinkDe(S.meta) : ''; if(!t) return;
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(()=> v360ShareMsg('Enlace copiado.'), ()=>{ const i = document.getElementById('v360LinkTxt'); i.select(); v360ShareMsg('Selecciona y copia el enlace.'); });
   });
+  document.getElementById('v360CopiarEmbed').addEventListener('click', ()=>{
+    const t = document.getElementById('v360Embed').value; if(!t) return;
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(()=> v360ShareMsg('Código copiado.'), ()=>{ document.getElementById('v360Embed').select(); v360ShareMsg('Selecciona y copia el código.'); });
+  });
   document.getElementById('v360Wsp').addEventListener('click', ()=>{
     if(!S.meta || !S.meta.share) return;
     const txt = `Hola, aquí puedes recorrer la imagen 360° «${S.meta.share.titulo}»: ${v360LinkDe(S.meta)}`;
@@ -11257,6 +11342,8 @@ function renderVisor360(){
   inp.addEventListener('change', ()=>{ const f = Array.from(inp.files); inp.value = ''; v360CargarArchivos(f); });
   const inpG = document.getElementById('v360FileG');   // galería: solo "image/*" hace que Android abra el selector de fotos
   document.getElementById('v360CargarG').addEventListener('click', ()=> inpG.click());
+  document.getElementById('v360HeroG').addEventListener('click', ()=> inpG.click());
+  document.getElementById('v360HeroA').addEventListener('click', ()=> inp.click());
   inpG.addEventListener('change', ()=>{ const f = Array.from(inpG.files); inpG.value = ''; v360CargarArchivos(f); });
   const gal = document.getElementById('v360Gal');
   ['dragenter', 'dragover'].forEach(n=> gal.addEventListener(n, e=>{ e.preventDefault(); gal.classList.add('v360-over'); }));

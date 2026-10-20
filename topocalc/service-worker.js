@@ -1,7 +1,7 @@
 // Service Worker — Topo de Bolsillo (GeoMav)
 // v2: además de la app, guarda para uso SIN INTERNET las librerías externas (mapa, Excel, capturas), las tipografías
 //     y los mosaicos del mapa que ya se hayan visto (hasta MAX_TILES, para no llenar el teléfono).
-const CACHE_VERSION = 'topocalc-v5';
+const CACHE_VERSION = 'topocalc-v6';
 const SHARE_CACHE = 'topocalc-compartido';   // imágenes recibidas desde «Compartir» de la galería (se borran al abrirse en el visor 360°)
 const TILES_CACHE = 'topocalc-tiles-v1';
 const MAX_TILES = 300;
@@ -22,7 +22,8 @@ const LIBS_EXTERNAS = [
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js'
 ];
 const FUENTES_CSS = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap';
 const HOSTS_EXTERNOS = ['cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
