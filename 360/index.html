@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recorrido 360° · GEOMAV</title>
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0A1118">
+<link rel="icon" href="/assets/img/geomav-icono.png">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:#0A1118;color:#E8EDF3;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+#stage{position:fixed;inset:0;touch-action:none;cursor:grab}
+#stage.drag{cursor:grabbing}
+canvas{width:100%;height:100%;display:block}
+#top{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;gap:10px;padding:max(10px,env(safe-area-inset-top)) 14px 10px;background:linear-gradient(#0A1118cc,#0A111800);pointer-events:none;z-index:3}
+#top img{height:28px;width:auto;opacity:.95}
+#top h1{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bar{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:10px 12px max(12px,env(safe-area-inset-bottom));z-index:3}
+button,a.b{font:600 13px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#fff;background:#0A1118b3;border:1px solid #ffffff40;border-radius:999px;padding:10px 14px;cursor:pointer;text-decoration:none;backdrop-filter:blur(6px)}
+button.on{background:#D49A6A;color:#0A2240;border-color:#D49A6A}
+button:focus-visible,a.b:focus-visible{outline:2px solid #D49A6A;outline-offset:2px}
+#msg{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;z-index:4;background:#0A1118}
+#msg p{max-width:420px;line-height:1.5}
+#pb{width:220px;height:6px;border-radius:3px;background:#ffffff26;overflow:hidden}
+#pb i{display:block;height:100%;width:0;background:#D49A6A;transition:width .2s}
+#vrx{display:none;position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:5}
+body.vr #bar,body.vr #top{display:none}
+body.vr #vrx{display:block}
+body.vr::after{content:"";position:fixed;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:#000;z-index:4;pointer-events:none}
+#tip{position:fixed;left:0;right:0;bottom:70px;text-align:center;font-size:12px;opacity:.75;pointer-events:none;z-index:2;transition:opacity .6s}
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="cv"></canvas></div>
+<div id="top"><img src="/assets/img/geomav-logo.png" alt="GEOMAV"><h1 id="tit"></h1></div>
+<div id="tip">Arrastra para mirar · pellizca o usa la rueda para acercar</div>
+<button id="vrx" type="button">✕ Salir de VR</button>
+<div id="bar">
+  <button type="button" data-a="reset">⟲ Centrar</button>
+  <button type="button" data-a="auto">▶ Giro</button>
+  <button type="button" data-a="gyro">📱 Sensor</button>
+  <button type="button" data-a="vr">🥽 VR</button>
+  <button type="button" data-a="full">⛶</button>
+  <a class="b" id="wsp" href="https://wa.me/56984867813" target="_blank" rel="noopener">Contactar a GEOMAV</a>
+</div>
+<div id="msg"><p id="mtxt">Cargando recorrido…</p><div id="pb"><i></i></div></div>
+<script>
+(function(){
+'use strict';
+const $ = id=> document.getElementById(id);
+const M = {
+  mul:(a,b)=>{ const r=new Array(9); for(let i=0;i<3;i++) for(let j=0;j<3;j++) r[i*3+j]=a[i*3]*b[j]+a[i*3+1]*b[3+j]+a[i*3+2]*b[6+j]; return r; },
+  rx:t=>{const c=Math.cos(t),s=Math.sin(t);return [1,0,0,0,c,-s,0,s,c];},
+  ry:t=>{const c=Math.cos(t),s=Math.sin(t);return [c,0,s,0,1,0,-s,0,c];},
+  rz:t=>{const c=Math.cos(t),s=Math.sin(t);return [c,-s,0,s,c,0,0,0,1];},
+  gl:m=>new Float32Array([m[0],m[3],m[6],m[1],m[4],m[7],m[2],m[5],m[8]]),
+  fwd:m=>[m[2],m[5],m[8]]
+};
+const matVista=(yaw,pitch)=>{const d=Math.PI/180;return M.mul(M.ry(yaw*d),M.rx(-pitch*d));};
+const matSensor=(al,be,ga,pan,off)=>{const d=Math.PI/180;
+  const R=M.mul(M.mul(M.rz(al*d),M.rx(be*d)),M.ry(ga*d));
+  const cam=M.mul(M.rz(-pan*d),[1,0,0,0,1,0,0,0,-1]);
+  return M.mul(M.ry(off),M.mul([1,0,0,0,0,1,0,1,0],M.mul(R,cam)));};
+const pan0=()=>(screen.orientation&&typeof screen.orientation.angle==='number')?screen.orientation.angle:(window.orientation||0);
+const rumbo=o=>{const f=M.fwd(matSensor(o[0],o[1],o[2],pan0(),0));return Math.atan2(f[0],f[2]);};
+
+const VS='#version 300 es\nin vec2 aPos; out vec2 vP; void main(){ gl_Position=vec4(aPos,0.0,1.0); vP=aPos; }';
+const FS=`#version 300 es
+precision highp float; precision highp sampler2D;
+in vec2 vP; uniform sampler2D uTex; uniform mat3 uRot; uniform float uAspect,uTan,uFlat,uImgAsp;
+uniform vec4 uCrop; uniform vec3 uBg,uFlatV; out vec4 outc;
+const float PI=3.14159265358979;
+void main(){
+  if(uFlat>0.5){
+    vec2 p=vec2(vP.x*uAspect,vP.y);
+    vec2 uv=vec2(uFlatV.x+p.x*0.5*uFlatV.z/uImgAsp,uFlatV.y-p.y*0.5*uFlatV.z);
+    vec2 gx=dFdx(uv),gy=dFdy(uv);
+    if(uv.x<0.0||uv.x>1.0||uv.y<0.0||uv.y>1.0){outc=vec4(uBg,1.0);return;}
+    outc=vec4(textureGrad(uTex,uv,gx,gy).rgb,1.0);return;
+  }
+  vec3 d=normalize(uRot*vec3(vP.x*uAspect*uTan,vP.y*uTan,1.0));
+  float u=atan(d.x,d.z)/(2.0*PI)+0.5; float v=0.5-asin(clamp(d.y,-1.0,1.0))/PI;
+  float u2=fract(u+0.5)-0.5; bool alt=fwidth(u2)<fwidth(u);
+  vec2 gx=alt?vec2(dFdx(u2),dFdx(v)):vec2(dFdx(u),dFdx(v));
+  vec2 gy=alt?vec2(dFdy(u2),dFdy(v)):vec2(dFdy(u),dFdy(v));
+  vec2 uvc=vec2((u-uCrop.x)/uCrop.z,(v-uCrop.y)/uCrop.w); gx/=uCrop.zw; gy/=uCrop.zw;
+  if(uvc.y<0.0||uvc.y>1.0||(uCrop.z<0.9995&&(uvc.x<0.0||uvc.x>1.0))){outc=vec4(uBg,1.0);return;}
+  outc=vec4(textureGrad(uTex,uvc,gx,gy).rgb,1.0);
+}`;
+
+function fail(t){ $('mtxt').textContent=t; $('pb').style.display='none'; $('msg').style.display='flex'; }
+const token=(new URLSearchParams(location.search).get('t')||'').toLowerCase();
+if(!/^[a-z0-9]{12,40}$/.test(token)){ fail('Este enlace no es válido. Pide a GEOMAV que te lo envíe nuevamente.'); return; }
+const cv=$('cv'); let gl=null;
+try{ gl=cv.getContext('webgl2',{antialias:false,alpha:false}); }catch(e){}
+if(!gl){ fail('Tu navegador no admite el visor 3D (WebGL 2). Prueba con Chrome, Safari o Edge actualizados.'); return; }
+
+const S={tipo:'sphere',crop:[0,0,1,1],yaw:0,pitch:0,fov:75,vyaw:0,vpitch:0,fc:[.5,.5],fs:1,fsFit:1,imgAsp:2,M:matVista(0,0),yawOff:0,ok:false,raf:0};
+const sh=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(o));return o;};
+const pr=gl.createProgram(); gl.attachShader(pr,sh(gl.VERTEX_SHADER,VS)); gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FS));
+gl.bindAttribLocation(pr,0,'aPos'); gl.linkProgram(pr); gl.useProgram(pr);
+gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+const U={}; ['uTex','uRot','uAspect','uTan','uFlat','uImgAsp','uCrop','uBg','uFlatV'].forEach(n=>U[n]=gl.getUniformLocation(pr,n));
+const tex=gl.createTexture();
+
+function pedir(){ if(!S.raf) S.raf=requestAnimationFrame(cuadro); }
+function ajustar(){ const d=Math.min(2,devicePixelRatio||1),w=Math.max(1,Math.round(cv.clientWidth*d)),h=Math.max(1,Math.round(cv.clientHeight*d)); if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;} pedir(); }
+function reiniciar(){
+  S.yaw=S.yaw0||0; S.pitch=0; S.fov=75; S.vyaw=S.vpitch=0; S.fc=[.5,.5];
+  S.fsFit=S.fs=Math.max(1,S.imgAsp/(cv.clientWidth/Math.max(1,cv.clientHeight)));
+  if(S.gyro&&S.ori) S.yawOff=S.yaw*Math.PI/180-rumbo(S.ori);
+  pedir();
+}
+function dibujar(){
+  gl.viewport(0,0,cv.width,cv.height); gl.clearColor(.04,.06,.08,1); gl.clear(gl.COLOR_BUFFER_BIT);
+  if(!S.ok) return;
+  const plano=S.tipo==='flat', vr=S.vr&&!plano, mitad=Math.floor(cv.width/2);
+  gl.uniform1i(U.uTex,0); gl.uniformMatrix3fv(U.uRot,false,M.gl(S.M));
+  gl.uniform1f(U.uAspect,(vr?mitad:cv.width)/Math.max(1,cv.height)); gl.uniform1f(U.uTan,Math.tan(S.fov*Math.PI/360));
+  gl.uniform1f(U.uFlat,plano?1:0); gl.uniform1f(U.uImgAsp,S.imgAsp); gl.uniform4fv(U.uCrop,S.crop);
+  gl.uniform3f(U.uBg,.04,.06,.08); gl.uniform3f(U.uFlatV,S.fc[0],S.fc[1],S.fs);
+  if(vr){ gl.viewport(0,0,mitad,cv.height); gl.drawArrays(gl.TRIANGLE_STRIP,0,4); gl.viewport(cv.width-mitad,0,mitad,cv.height); gl.drawArrays(gl.TRIANGLE_STRIP,0,4); }
+  else gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+}
+function cuadro(t){
+  S.raf=0; const dt=Math.min(.1,S.t0?(t-S.t0)/1000:.016); S.t0=t; let anim=false;
+  if(S.tipo!=='flat'&&!S.drag){
+    if(Math.abs(S.vyaw)>.02||Math.abs(S.vpitch)>.02){ if(S.gyro) S.yawOff+=S.vyaw*dt*Math.PI/180; else {S.yaw+=S.vyaw*dt;S.pitch+=S.vpitch*dt;} const f=Math.exp(-dt*3.5);S.vyaw*=f;S.vpitch*=f;anim=true; } else S.vyaw=S.vpitch=0;
+    if(S.auto){ if(S.gyro) S.yawOff+=8*dt*Math.PI/180; else S.yaw+=8*dt; anim=true; }
+  }
+  S.pitch=Math.max(-89.5,Math.min(89.5,S.pitch)); if(S.yaw>180)S.yaw-=360; else if(S.yaw<-180)S.yaw+=360;
+  if(S.gyro&&S.ori){ S.M=matSensor(S.ori[0],S.ori[1],S.ori[2],pan0(),S.yawOff); anim=true; } else S.M=matVista(S.yaw,S.pitch);
+  dibujar(); if(anim) pedir(); else S.t0=0;
+}
+function zoom(k){ if(S.tipo==='flat') S.fs=Math.max(.03,Math.min(S.fsFit*1.5,S.fs*k)); else S.fov=Math.max(20,Math.min(100,S.fov*k)); pedir(); }
+
+/* ---- gestos ---- */
+const st=$('stage'), ptrs=new Map(); let d0=0, ult=null;
+function ocultarTip(){ $('tip').style.opacity=0; }
+st.addEventListener('pointerdown',e=>{ if(!S.ok) return; try{st.setPointerCapture(e.pointerId);}catch(_){} ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY}); S.drag=true; S.vyaw=S.vpitch=0; st.classList.add('drag'); ocultarTip();
+  if(ptrs.size===2){const [a,b]=[...ptrs.values()]; d0=Math.hypot(a.x-b.x,a.y-b.y);} ult={t:performance.now()}; });
+st.addEventListener('pointermove',e=>{ const p=ptrs.get(e.pointerId); if(!p||!S.ok) return;
+  const dx=e.clientX-p.x, dy=e.clientY-p.y; p.x=e.clientX; p.y=e.clientY; const H=Math.max(1,cv.clientHeight);
+  if(ptrs.size===2){ const [a,b]=[...ptrs.values()], d=Math.hypot(a.x-b.x,a.y-b.y); if(d0>0&&d>0) zoom(d0/d); d0=d; }
+  else if(S.tipo==='flat'){ S.fc[0]=Math.max(0,Math.min(1,S.fc[0]-dx*S.fs/(H*S.imgAsp))); S.fc[1]=Math.max(0,Math.min(1,S.fc[1]-dy*S.fs/H)); }
+  else { const k=S.fov/H; if(S.gyro) S.yawOff-=dx*k*Math.PI/180; else {S.yaw-=dx*k;S.pitch+=dy*k;}
+    const n=performance.now(), dt=Math.max(1,n-ult.t)/1000; S.vyaw=.6*S.vyaw+.4*(-dx*k/dt); S.vpitch=S.gyro?0:.6*S.vpitch+.4*(dy*k/dt); ult={t:n}; }
+  pedir(); });
+const soltar=e=>{ ptrs.delete(e.pointerId); if(ptrs.size===1) d0=0; if(!ptrs.size){ S.drag=false; st.classList.remove('drag'); if(performance.now()-(ult?ult.t:0)>90) S.vyaw=S.vpitch=0; pedir(); } };
+st.addEventListener('pointerup',soltar); st.addEventListener('pointercancel',soltar);
+st.addEventListener('wheel',e=>{ if(!S.ok) return; e.preventDefault(); zoom(Math.exp(e.deltaY*.0012)); },{passive:false});
+st.addEventListener('dblclick',()=>{ if(S.ok) reiniciar(); });
+addEventListener('keydown',e=>{ if(!S.ok) return; if(e.key==='Escape'&&S.vr){vr(false);return;}
+  const z={'+':.9,'=':.9,'-':1.1,'_':1.1}; if(z[e.key]){zoom(z[e.key]);return;}
+  if(S.tipo==='flat') return; const m={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,1],ArrowDown:[0,-1]}[e.key]; if(!m) return;
+  if(S.gyro) S.yawOff+=m[0]*5*Math.PI/180; else {S.yaw+=m[0]*5;S.pitch+=m[1]*5;} e.preventDefault(); pedir(); });
+new ResizeObserver(ajustar).observe(cv);
+
+/* ---- sensor, pantalla completa, VR ---- */
+async function sensorOn(){
+  if(typeof DeviceOrientationEvent==='undefined') return false;
+  try{ if(typeof DeviceOrientationEvent.requestPermission==='function'&&(await DeviceOrientationEvent.requestPermission())!=='granted') return false; }catch(e){ return false; }
+  S.ori=null; S.gyro=true;
+  S.onOri=e=>{ if(e.alpha===null||e.beta===null||e.gamma===null) return; const p=!S.ori; S.ori=[e.alpha,e.beta,e.gamma]; if(p) S.yawOff=S.yaw*Math.PI/180-rumbo(S.ori); pedir(); };
+  addEventListener('deviceorientation',S.onOri,true);
+  setTimeout(()=>{ if(S.gyro&&!S.ori) sensorOff(); },1500);
+  document.querySelector('[data-a=gyro]').classList.add('on'); return true;
+}
+function sensorOff(){
+  if(S.onOri) removeEventListener('deviceorientation',S.onOri,true);
+  if(S.gyro&&S.ori){ const f=M.fwd(S.M); S.yaw=Math.atan2(f[0],f[2])*180/Math.PI; S.pitch=Math.asin(Math.max(-1,Math.min(1,f[1])))*180/Math.PI; }
+  S.gyro=false; S.ori=null; S.onOri=null; document.querySelector('[data-a=gyro]').classList.remove('on'); pedir();
+}
+function pantalla(on){ const el=document.documentElement; try{ if(on&&el.requestFullscreen) return el.requestFullscreen({navigationUI:'hide'}).catch(()=>{}); if(!on&&document.fullscreenElement) return document.exitFullscreen(); }catch(e){} }
+async function vr(on){
+  if(on){
+    if(S.tipo==='flat') return;
+    if(!S.gyro){ if(!(await sensorOn())) return; S.vrSensor=true; }
+    S.vr=true; S.fovPrev=S.fov; S.fov=90; S.auto=false; document.querySelector('[data-a=auto]').classList.remove('on');
+    document.body.classList.add('vr'); pantalla(true);
+    try{ screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{}); }catch(e){}
+  } else {
+    S.vr=false; S.fov=S.fovPrev||75; document.body.classList.remove('vr'); pantalla(false);
+    try{ screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock(); }catch(e){}
+    if(S.vrSensor){ sensorOff(); S.vrSensor=false; }
+  }
+  ajustar();
+}
+$('vrx').addEventListener('click',()=>vr(false));
+$('bar').addEventListener('click',async e=>{ const b=e.target.closest('button'); if(!b||!S.ok) return; const a=b.dataset.a;
+  if(a==='reset') reiniciar();
+  else if(a==='auto'){ S.auto=!S.auto; b.classList.toggle('on',S.auto); b.textContent=S.auto?'❚❚ Giro':'▶ Giro'; pedir(); }
+  else if(a==='gyro'){ if(S.tipo==='flat') return; if(S.gyro) sensorOff(); else await sensorOn(); }
+  else if(a==='vr') vr(!S.vr);
+  else if(a==='full') pantalla(!document.fullscreenElement);
+});
+document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElement&&S.vr) vr(false); setTimeout(ajustar,100); });
+
+/* ---- carga ---- */
+const BASE='https://xoorsgrgptxvqtfaqdfw.supabase.co/storage/v1/object/public/panoramas/'+token+'/';
+function bajar(url,tipoRes){
+  return new Promise((res,rej)=>{
+    const x=new XMLHttpRequest(); x.open('GET',url); x.responseType=tipoRes;
+    x.onprogress=e=>{ if(e.lengthComputable) $('pb').firstElementChild.style.width=Math.round(100*e.loaded/e.total)+'%'; };
+    x.onload=()=> x.status===200?res(x.response):rej(new Error(x.status===400||x.status===404?'noexiste':'http'+x.status));
+    x.onerror=()=>rej(new Error('red')); x.send();
+  });
+}
+(async function(){
+  try{
+    const meta=JSON.parse(await bajar(BASE+'meta.json?'+Date.now()%1e6,'text'));
+    document.title=(meta.titulo||'Recorrido 360°')+' · GEOMAV'; $('tit').textContent=meta.titulo||'';
+    $('mtxt').textContent='Descargando imagen…';
+    const blob=await bajar(BASE+(meta.img==='img.jpg'?'img.jpg':'img.jpg'),'blob');
+    let bm; try{ bm=await createImageBitmap(blob,{imageOrientation:'none'}); }catch(e){ bm=await new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=URL.createObjectURL(blob);}); }
+    const maxT=gl.getParameter(gl.MAX_TEXTURE_SIZE); let w=bm.width||bm.naturalWidth, h=bm.height||bm.naturalHeight, src=bm;
+    const tope=Math.min(maxT,/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)?8192:16384);
+    if(w>tope){ const k=tope/w, c=document.createElement('canvas'); c.width=Math.round(w*k); c.height=Math.round(h*k); c.getContext('2d').drawImage(bm,0,0,c.width,c.height); src=c; w=c.width; h=c.height; }
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,tex);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);
+    gl.getError(); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB8,gl.RGB,gl.UNSIGNED_BYTE,src);
+    if(gl.getError()!==gl.NO_ERROR) gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);
+    if(gl.getError()!==gl.NO_ERROR) throw new Error('gpu');
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,meta.tipo==='sphere'?gl.REPEAT:gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    const an=gl.getExtension('EXT_texture_filter_anisotropic'); if(an) gl.texParameterf(gl.TEXTURE_2D,an.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(8,gl.getParameter(an.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
+    if(bm.close) bm.close();
+    S.tipo=meta.tipo==='partial'||meta.tipo==='flat'?meta.tipo:'sphere';
+    S.crop=Array.isArray(meta.crop)&&meta.crop.length===4?meta.crop:[0,0,1,1];
+    S.imgAsp=w/h; S.ok=true;
+    const ini=(typeof meta.initH==='number'&&typeof meta.pose==='number')?meta.initH-meta.pose:0; S.yaw0=((ini+540)%360)-180;
+    if(S.tipo==='flat'){ for(const n of ['gyro','vr']) document.querySelector('[data-a='+n+']').style.display='none'; document.querySelector('[data-a=auto]').style.display='none'; $('tip').textContent='Arrastra para moverte · pellizca para acercar'; }
+    $('msg').style.display='none'; reiniciar(); setTimeout(ocultarTip,6000);
+  }catch(e){
+    fail(e&&e.message==='noexiste'?'Este recorrido ya no está disponible. Pide a GEOMAV un enlace actualizado.':e&&e.message==='red'?'No se pudo descargar el recorrido. Revisa tu conexión e inténtalo de nuevo.':'No se pudo mostrar el recorrido en este equipo.');
+  }
+})();
+})();
+</script>
+</body>
+</html>
