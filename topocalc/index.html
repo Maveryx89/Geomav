@@ -10822,10 +10822,10 @@ async function v360Galeria(){
 async function v360CargarArchivos(files){
   if(!files || !files.length) return;
   const arr = Array.from(files);
-  const btn = document.getElementById('v360Cargar'); if(btn) btn.disabled = true;
+  const btns = ['v360Cargar', 'v360CargarG'].map(i=> document.getElementById(i)); btns.forEach(b=>{ if(b) b.disabled = true; });
   const av = document.getElementById('v360Aviso'); if(av){ av.style.display = 'none'; av.textContent = ''; }
   const r = await v360Importar(arr, t=> v360Msg(t));
-  if(btn) btn.disabled = false;
+  btns.forEach(b=>{ if(b) b.disabled = false; });
   await v360Galeria();
   v360Msg('');
   if(r.fallas.length && av){ av.textContent = 'No se cargó: ' + r.fallas.join(' '); av.style.display = ''; }   // aviso propio: no lo pisa el mensaje de apertura
@@ -11093,8 +11093,11 @@ function renderVisor360(){
   <div class="field-card" id="v360Gal">
     <h3>Mis imágenes</h3>
     <p class="tool-blurb" style="margin:0 0 10px;">Se guardan solo en este equipo (no se suben a internet). Admite JPG, PNG y WebP: panoramas de esfera del dron DJI e imágenes de la Insta360 X4 exportadas como JPG.</p>
+    <input type="file" id="v360FileG" accept="image/*" multiple hidden>
     <input type="file" id="v360File" accept="image/*,.insp,.insv,.dng" multiple hidden>
-    <button class="btn" id="v360Cargar" type="button">＋ Cargar imágenes 360°</button>
+    <button class="btn" id="v360CargarG" type="button">🖼 Cargar desde la galería</button>
+    <button class="btn-sm" id="v360Cargar" type="button" style="margin-top:8px;">📁 Cargar desde archivos</button>
+    <p class="tool-blurb" style="margin:8px 0 0;">Algunos teléfonos quitan el GPS de las fotos al elegirlas desde la galería; si necesitas la ubicación en el mapa, usa «desde archivos».</p>
     <p class="proj-msg" id="v360Total" style="margin-top:8px;"></p>
     <div class="err-msg" id="v360Aviso" role="alert" style="display:none; margin-top:10px;"></div>
     <div id="v360Lista"></div>
@@ -11113,10 +11116,10 @@ function renderVisor360(){
 
   if(!gl){
     document.getElementById('v360Empty').textContent = 'Este navegador o equipo no soporta WebGL 2, que el visor 360° necesita. Prueba con Chrome actualizado.';
-    document.getElementById('v360Cargar').disabled = true;
+    ['v360Cargar', 'v360CargarG'].forEach(i=>{ document.getElementById(i).disabled = true; });
   } else {
     try{ v360MontarGL(S); }catch(e){
-      document.getElementById('v360Empty').textContent = 'No se pudo iniciar el visor 3D en este equipo.'; console.error(e); document.getElementById('v360Cargar').disabled = true;
+      document.getElementById('v360Empty').textContent = 'No se pudo iniciar el visor 3D en este equipo.'; console.error(e); ['v360Cargar', 'v360CargarG'].forEach(i=>{ document.getElementById(i).disabled = true; });
     }
   }
   v360S = S;
@@ -11252,6 +11255,9 @@ function renderVisor360(){
   const inp = document.getElementById('v360File');
   document.getElementById('v360Cargar').addEventListener('click', ()=> inp.click());
   inp.addEventListener('change', ()=>{ const f = Array.from(inp.files); inp.value = ''; v360CargarArchivos(f); });
+  const inpG = document.getElementById('v360FileG');   // galería: solo "image/*" hace que Android abra el selector de fotos
+  document.getElementById('v360CargarG').addEventListener('click', ()=> inpG.click());
+  inpG.addEventListener('change', ()=>{ const f = Array.from(inpG.files); inpG.value = ''; v360CargarArchivos(f); });
   const gal = document.getElementById('v360Gal');
   ['dragenter', 'dragover'].forEach(n=> gal.addEventListener(n, e=>{ e.preventDefault(); gal.classList.add('v360-over'); }));
   ['dragleave', 'drop'].forEach(n=> gal.addEventListener(n, e=>{ e.preventDefault(); gal.classList.remove('v360-over'); }));
