@@ -604,6 +604,7 @@ footer.app-foot .foot-copy{font-size:10px; opacity:.75;}
 .v360-rb svg{width:24px; height:24px; fill:none; stroke:#fff; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
 .v360-rb[data-a="gyro"]{left:10px; bottom:10px;}
 .v360-rb[data-a="vr"]{left:64px; bottom:10px;}
+.v360-rb[data-a="info"]{left:118px; bottom:10px;}
 .v360-rb[data-a="full"]{right:64px; bottom:10px;}
 .v360-rb[data-a="menu"]{right:10px; bottom:10px; z-index:4;}
 .v360-rb[data-a="menu"] svg{transition:transform .2s;}
@@ -611,6 +612,21 @@ footer.app-foot .foot-copy{font-size:10px; opacity:.75;}
 .v360-rb.v360-brujula{right:10px; top:50%; margin-top:-23px;}
 .v360-rb.v360-brujula svg{width:32px; height:32px; fill:none; stroke:none;}
 .v360-rb:focus-visible,.v360-pill:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+.v360-info-pop{position:absolute; left:10px; right:10px; bottom:66px; max-height:62%; overflow:auto; display:none; padding:6px 14px 10px; border-radius:16px; background:rgba(10,17,24,.84); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:#fff; pointer-events:auto; z-index:3; font-size:12.5px;}
+.v360-stage.v360-info-open .v360-info-pop{display:block;}
+.v360-info-pop details{border-bottom:1px solid rgba(255,255,255,.14);}
+.v360-info-pop details:last-child{border-bottom:0;}
+.v360-info-pop summary{list-style:none; cursor:pointer; padding:10px 0; font-weight:700; font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.85); display:flex; align-items:center;}
+.v360-info-pop summary::-webkit-details-marker{display:none;}
+.v360-info-pop summary::after{content:"▾"; margin-left:auto; transition:transform .15s;}
+.v360-info-pop details[open] summary::after{transform:rotate(180deg);}
+.v360-info-pop .r{display:flex; justify-content:space-between; gap:12px; padding:5px 0; border-top:1px dashed rgba(255,255,255,.12);}
+.v360-info-pop .r span{color:rgba(255,255,255,.62); flex:none;}
+.v360-info-pop .r b{font-family:var(--font-mono); font-weight:500; text-align:right; word-break:break-word;}
+.v360-info-pop .r small{opacity:.7;}
+.v360-info-pop a,.v360-info-pop button{color:#9fe0d3;}
+.v360-info-pop .mini{margin-top:6px; padding:5px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.3); background:rgba(255,255,255,.08); font:600 12px var(--font-body); cursor:pointer; color:#fff; text-decoration:none; display:inline-block;}
+.v360-stage.v360-vr .v360-info-pop{display:none !important;}
 .v360-tip{position:absolute; left:10px; top:30px; display:flex; align-items:center; gap:8px; padding:7px 14px 7px 8px; border-radius:999px; background:rgba(18,54,90,.8); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); color:#fff; font-size:12.5px; pointer-events:none; transition:opacity .6s, transform .6s; max-width:calc(100% - 20px); z-index:3;}
 .v360-tip.off{opacity:0; transform:translateY(-6px);}
 .v360-tip i{flex:none; width:28px; height:28px; border-radius:50%; background:#0A2240; display:flex; align-items:center; justify-content:center;}
@@ -10840,6 +10856,18 @@ function v360PanelInfo(m, bw, bh){
     ((bw !== m.w) ? fila('En pantalla', `${bw} × ${bh} px (reducida para la GPU)`) : '') +
     fila('Proyección', `${proy} <small>(${fuente})</small>`) + (equipo ? fila('Equipo', vrEsc(equipo)) : '') +
     (m.fecha ? fila('Captura', v360Fecha(m.fecha)) : '') + (gps ? fila('GPS', `${gps} <button type="button" class="btn-sm" id="v360CopiarGps" style="margin-left:6px;">Copiar</button>`) : '');
+  const pop = document.getElementById('v360InfoPop');
+  if(pop){
+    const r = (k, v)=> `<div class="r"><span>${k}</span><b>${v}</b></div>`;
+    pop.innerHTML = `<details open><summary>Datos de la imagen</summary>` +
+      r('Archivo', vrEsc(m.name)) + r('Tamaño', `${m.w} × ${m.h} px<br>${(m.w*m.h/1e6).toFixed(1)} MP · ${(m.size/1048576).toFixed(1)} MB`) +
+      ((bw !== m.w) ? r('En pantalla', `${bw} × ${bh} px`) : '') + r('Proyección', `${proy}<br><small>${fuente}</small>`) +
+      (equipo ? r('Equipo', vrEsc(equipo)) : '') + (m.fecha ? r('Captura', v360Fecha(m.fecha)) : '') + `</details>` +
+      (m.gps ? `<details><summary>Ubicación GPS</summary>${r('Coordenadas', `${m.gps.lat.toFixed(6)}, ${m.gps.lon.toFixed(6)}`)}${m.gps.alt !== null && m.gps.alt !== undefined ? r('Altitud', fmtNum(m.gps.alt, 1) + ' m') : ''}
+        <button type="button" class="mini" id="v360PopGps">Copiar</button> <a class="mini" target="_blank" rel="noopener" href="https://www.google.com/maps?q=${m.gps.lat},${m.gps.lon}">Ver en Google Maps</a></details>` : '');
+    const pg = document.getElementById('v360PopGps');
+    if(pg) pg.addEventListener('click', ()=>{ const t = `${m.gps.lat.toFixed(6)}, ${m.gps.lon.toFixed(6)}`; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(()=> v360Msg('Coordenadas copiadas.'), ()=> v360Msg(t)); });
+  }
   const cp = document.getElementById('v360CopiarGps');
   if(cp) cp.addEventListener('click', ()=>{ const t = `${m.gps.lat.toFixed(6)}, ${m.gps.lon.toFixed(6)}`; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(()=> v360Msg('Coordenadas copiadas.'), ()=> v360Msg(t)); });
   document.getElementById('v360Tipo').value = m.tipo;
@@ -10900,7 +10928,16 @@ function v360Consejo(S){
 function v360Menu(S, on){
   S.menu = on === undefined ? !S.menu : on;
   S.stage.classList.toggle('v360-menu-open', S.menu);
-  const sh = S.meta && S.meta.share, c = document.getElementById('v360MCompartir'); if(c) c.style.display = sh ? '' : 'none';
+  if(S.menu) v360InfoPop(S, false);
+  const sh = S.meta && S.meta.share, eOn = document.getElementById('v360MShareOn'), eOff = document.getElementById('v360MShareOff');
+  if(eOn) eOn.style.display = sh ? '' : 'none'; if(eOff) eOff.style.display = sh ? 'none' : '';
+}
+function v360InfoPop(S, on){
+  S.infoOpen = on === undefined ? !S.infoOpen : on;
+  if(S.infoOpen && S.menu) v360Menu(S, false);
+  S.stage.classList.toggle('v360-info-open', S.infoOpen);
+  const b = S.stage.querySelector('[data-a="info"]'); if(b) b.classList.toggle('on', S.infoOpen);
+  if(S.infoOpen){ const t = document.getElementById('v360Tip'); if(t) t.classList.add('off'); }
 }
 function v360Brujula(S){
   const c = document.getElementById('v360Cono'); if(!c || S.tipo === 'flat') return;
@@ -11136,6 +11173,8 @@ function renderVisor360(){
     <div class="v360-bar">
       <button type="button" class="v360-rb" data-a="gyro" title="Mover la vista con el sensor del teléfono" aria-label="Mover con el sensor del teléfono"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9.5" ry="4"/><ellipse cx="12" cy="12" rx="4" ry="9.5"/><circle cx="12" cy="12" r="2.2"/></svg></button>
       <button type="button" class="v360-rb" data-a="vr" title="Modo VR para visor tipo Cardboard" aria-label="Modo VR"><svg viewBox="0 0 24 24"><rect x="2.5" y="7" width="19" height="10.5" rx="3.5"/><circle cx="8" cy="12" r="1.8"/><circle cx="16" cy="12" r="1.8"/><path d="M10.5 15.5h3"/></svg></button>
+      <button type="button" class="v360-rb" data-a="info" title="Datos de la imagen" aria-label="Datos de la imagen"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.5v.01"/></svg></button>
+      <div class="v360-info-pop" id="v360InfoPop"></div>
       <button type="button" class="v360-rb v360-brujula" data-a="reset" title="Centrar la vista" aria-label="Centrar la vista"><svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="16" fill="#8a8f94" opacity=".75"/><g id="v360Cono"><path d="M17 17 L9 5 A16 16 0 0 1 25 5 Z" fill="#0A1118"/></g><circle cx="17" cy="17" r="3.5" fill="#000" stroke="#fff" stroke-width="1.6"/></svg></button>
       <button type="button" class="v360-rb" data-a="full" title="Pantalla completa" aria-label="Pantalla completa"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       <button type="button" class="v360-rb" data-a="menu" title="Menú" aria-label="Menú"><svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></svg></button>
@@ -11146,11 +11185,22 @@ function renderVisor360(){
           <button type="button" class="v360-pill" data-a="reset"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></i><span>Centrar<br>vista</span></button>
           <button type="button" class="v360-pill" data-a="shot"><i><svg viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></i><span>Guardar<br>captura</span></button>
         </div>
-        <div id="v360MCompartir" style="display:none; text-align:center;">
+        <div id="v360MCompartir" style="text-align:center;">
           <h4>Compartir</h4>
-          <div class="fila" style="margin-top:10px;">
-            <button type="button" class="v360-pill" data-a="mlink"><i><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></i><span>Copiar<br>enlace</span></button>
-            <button type="button" class="v360-pill" data-a="mwsp"><i><svg viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 0 1-12.5 7.5L3 21l1.5-5.3A8.5 8.5 0 1 1 21 12z"/></svg></i><span>Enviar por<br>WhatsApp</span></button>
+          <div id="v360MShareOff" class="fila" style="margin-top:10px;">
+            <button type="button" class="v360-pill" data-a="mcrear"><i><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 11l7.6-4M8.2 13l7.6 4"/></svg></i><span>Crear enlace<br>para compartir</span></button>
+          </div>
+          <div id="v360MShareOn" style="display:none;">
+            <div class="fila" style="margin:10px 0;">
+              <button type="button" class="v360-rb" style="position:static;border:1.5px solid #6fd0c0;" data-a="mwsp" aria-label="WhatsApp"><svg viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 0 1-12.5 7.5L3 21l1.5-5.3A8.5 8.5 0 1 1 21 12z"/></svg></button>
+              <button type="button" class="v360-rb" style="position:static;border:1.5px solid #6fd0c0;" data-a="mfb" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8z" style="fill:#fff;stroke:none"/></svg></button>
+              <button type="button" class="v360-rb" style="position:static;border:1.5px solid #6fd0c0;" data-a="mx" aria-label="X"><svg viewBox="0 0 24 24"><path d="M5 4l14 16M19 4L5 20"/></svg></button>
+              <button type="button" class="v360-rb" style="position:static;border:1.5px solid #6fd0c0;font-weight:800;font-size:12px;" data-a="msms" aria-label="SMS">SMS</button>
+            </div>
+            <div class="fila">
+              <button type="button" class="v360-pill" data-a="mlink"><i><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></i><span>Enlace<br>directo</span></button>
+              <button type="button" class="v360-pill" data-a="membed"><i><svg viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg></i><span>Código de<br>inserción</span></button>
+            </div>
           </div>
         </div>
       </div>
@@ -11282,7 +11332,7 @@ function renderVisor360(){
   canvas.addEventListener('pointerdown', e=>{
     if(!S.texOk) return;
     try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
-    const tp = document.getElementById('v360Tip'); if(tp) tp.classList.add('off'); if(S.menu) v360Menu(S, false);
+    const tp = document.getElementById('v360Tip'); if(tp) tp.classList.add('off'); if(S.menu) v360Menu(S, false); if(S.infoOpen) v360InfoPop(S, false);
     ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY}); S.drag = true; S.vyaw = S.vpitch = 0; stage.classList.add('v360-drag');
     if(ptrs.size === 2){ const [a, b] = [...ptrs.values()]; dist0 = Math.hypot(a.x-b.x, a.y-b.y); }
     ultimo = {t:performance.now(), x:e.clientX, y:e.clientY};
@@ -11335,11 +11385,22 @@ function renderVisor360(){
     if(a === 'reset'){ v360Reiniciar(S); v360Menu(S, false); }
     else if(a === 'auto'){ S.auto = !S.auto; b.classList.toggle('on', S.auto); v360Pedir(S); v360Menu(S, false); }
     else if(a === 'menu') v360Menu(S);
-    else if(a === 'mlink' || a === 'mwsp'){
+    else if(a === 'info') v360InfoPop(S);
+    else if(a === 'mcrear'){   // el enlace se crea en el panel «Compartir con un cliente» (ahí se elige título y calidad)
+      v360Menu(S, false); if(S.full) v360Pantalla(S, false);
+      const pn = document.getElementById('v360Share'); if(pn) pn.scrollIntoView({block:'start', behavior:'smooth'});
+      v360Compartir(S);
+    }
+    else if(['mlink', 'mwsp', 'mfb', 'mx', 'msms', 'membed'].includes(a)){
       const sh = S.meta && S.meta.share; if(!sh) return;
-      const url = v360LinkDe(S.meta);
-      if(a === 'mwsp'){ const t = `Hola, aquí puedes recorrer la imagen 360° «${sh.titulo}»: ${url}`; if(navigator.share) navigator.share({text:t}).catch(()=>{}); else window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank', 'noopener'); }
-      else (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(()=> v360Msg('Enlace copiado.'), ()=> v360Msg(url));
+      const url = v360LinkDe(S.meta), t = `Recorre la imagen 360° «${sh.titulo}» de GEOMAV`;
+      const cp = (txt, ok)=> (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(()=> v360Msg(ok), ()=> v360Msg(txt));
+      if(a === 'mwsp'){ if(navigator.share) navigator.share({text:`${t}: ${url}`}).catch(()=>{}); else window.open('https://wa.me/?text=' + encodeURIComponent(`${t}: ${url}`), '_blank', 'noopener'); }
+      else if(a === 'mfb') window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url), '_blank', 'noopener');
+      else if(a === 'mx') window.open('https://twitter.com/intent/tweet?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(t), '_blank', 'noopener');
+      else if(a === 'msms') location.href = 'sms:?&body=' + encodeURIComponent(`${t}: ${url}`);
+      else if(a === 'membed') cp(document.getElementById('v360Embed').value, 'Código de inserción copiado.');
+      else cp(url, 'Enlace copiado.');
       v360Menu(S, false);
     }
     else if(a === 'gyro'){
