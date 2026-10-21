@@ -642,6 +642,10 @@ footer.app-foot .foot-copy{font-size:10px; opacity:.75;}
 .v360-pill.on svg{stroke:#0A2240;}
 .v360-stage.v360-vr .v360-tip,.v360-stage.v360-vr .v360-menu{display:none !important;}
 .v360-stage.v360-full{position:fixed; inset:0; z-index:9998; width:100vw; height:100vh; height:100dvh; max-height:none; aspect-ratio:auto; border-radius:0; border:0;}
+#v360Share{display:none; position:fixed; inset:0; z-index:1200; margin:0 !important; border-radius:0; overflow:auto; background:var(--paper, #F4F3EF); padding:56px 16px 24px;}
+#v360Share.abierto{display:block;}
+#v360Share .v360-x{position:fixed; top:10px; right:12px; width:40px; height:40px; border-radius:50%; border:1px solid var(--line, #d8dde0); background:#fff; font-size:18px; line-height:1; cursor:pointer;}
+#v360Share > *{max-width:560px; margin-left:auto; margin-right:auto;}
 #v360Gal.v360-over{outline:2px dashed var(--blueprint); outline-offset:2px;}
 .v360-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:10px; margin-top:12px;}
 .v360-card{position:relative; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--paper-raised); overflow:hidden;}
@@ -10835,7 +10839,7 @@ async function v360Abrir(id){
     v360AplicarTipo(S, m);
     v360PanelInfo(m, bw, bh);
     document.querySelectorAll('.v360-card').forEach(c=> c.classList.toggle('sel', c.dataset.id === id));
-    document.getElementById('v360Share').style.display = ''; v360PanelShare(m); v360MapaSel(S);
+    v360PanelShare(m); v360MapaSel(S);
     v360Msg('');
   }catch(e){
     if(v360S === S && tok === S.tok) v360Msg('No se pudo abrir la imagen: ' + (e && e.message ? e.message : 'error desconocido') + '.');
@@ -10897,7 +10901,7 @@ async function v360Galeria(){
       if(v360S && v360S.id === id){
         v360S.texOk = false; v360S.id = null; v360S.meta = null; v360S.stage.classList.remove('v360-has');
         const e = document.getElementById('v360Empty'); if(e) e.style.display = ''; const ps = document.getElementById('v360Pasos'); if(ps) ps.style.display = '';
-        document.getElementById('v360Info').style.display = 'none'; document.getElementById('v360Share').style.display = 'none'; v360Pedir(v360S);
+        document.getElementById('v360Info').style.display = 'none'; document.getElementById('v360Share').classList.remove('abierto'); v360Pedir(v360S);
       }
       v360Galeria();
     });
@@ -10906,7 +10910,7 @@ async function v360Galeria(){
 async function v360CargarArchivos(files){
   if(!files || !files.length) return;
   const arr = Array.from(files);
-  const btns = ['v360Cargar', 'v360CargarG', 'v360HeroG', 'v360HeroA'].map(i=> document.getElementById(i)); btns.forEach(b=>{ if(b) b.disabled = true; });
+  const btns = ['v360HeroG', 'v360HeroA'].map(i=> document.getElementById(i)); btns.forEach(b=>{ if(b) b.disabled = true; });
   const av = document.getElementById('v360Aviso'); if(av){ av.style.display = 'none'; av.textContent = ''; }
   const r = await v360Importar(arr, t=> v360Msg(t));
   btns.forEach(b=>{ if(b) b.disabled = false; });
@@ -11184,6 +11188,7 @@ function renderVisor360(){
           <button type="button" class="v360-pill" data-a="auto" id="v360MAuto"><i><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/></svg></i><span>Giro<br>automático</span></button>
           <button type="button" class="v360-pill" data-a="reset"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></i><span>Centrar<br>vista</span></button>
           <button type="button" class="v360-pill" data-a="shot"><i><svg viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></i><span>Guardar<br>captura</span></button>
+          <button type="button" class="v360-pill" data-a="subir"><i><svg viewBox="0 0 24 24"><path d="M12 16V5M7.5 9.5 12 5l4.5 4.5M5 19h14"/></svg></i><span>Subir otra<br>imagen</span></button>
         </div>
         <div id="v360MCompartir" style="text-align:center;">
           <h4>Compartir</h4>
@@ -11234,7 +11239,8 @@ function renderVisor360(){
     </details>
   </div>
 
-  <div class="field-card" id="v360Share" style="display:none;">
+  <div class="field-card" id="v360Share" role="dialog" aria-modal="true" aria-label="Compartir con un cliente">
+    <button type="button" class="v360-x" id="v360ShareX" aria-label="Cerrar">✕</button>
     <h3>Compartir con un cliente</h3>
     <div id="v360ShareForm">
       <p class="tool-blurb" style="margin:0 0 10px;">Sube una copia de esta imagen y genera un enlace que tu cliente abre en el navegador, sin instalar nada. Quien tenga el enlace puede verla. La copia no incluye tu ubicación GPS.</p>
@@ -11280,15 +11286,10 @@ function renderVisor360(){
   </div></details>
 
   <div class="field-card" id="v360Gal" style="margin-top:12px;">
-    <h3>Mis imágenes</h3>
-    <p class="tool-blurb" style="margin:0 0 10px;">Se guardan solo en este equipo (no se suben a internet). Admite JPG, PNG y WebP: panoramas de esfera del dron DJI e imágenes de la Insta360 X4 exportadas como JPG.</p>
     <input type="file" id="v360FileG" accept="image/*" multiple hidden>
     <input type="file" id="v360File" accept="image/*,.insp,.insv,.dng" multiple hidden>
-    <button class="btn" id="v360CargarG" type="button">🖼 Cargar desde la galería</button>
-    <button class="btn-sm" id="v360Cargar" type="button" style="margin-top:8px;">📁 Cargar desde archivos</button>
-    <p class="tool-blurb" style="margin:8px 0 0;">Algunos teléfonos quitan el GPS de las fotos al elegirlas desde la galería; si necesitas la ubicación en el mapa, usa «desde archivos».</p>
-    <p class="proj-msg" id="v360Total" style="margin-top:8px;"></p>
-    <div class="err-msg" id="v360Aviso" role="alert" style="display:none; margin-top:10px;"></div>
+    <p class="proj-msg" id="v360Total" style="margin:0 0 8px;"></p>
+    <div class="err-msg" id="v360Aviso" role="alert" style="display:none; margin-bottom:10px;"></div>
     <div id="v360Lista"></div>
   </div>`;
   toolShell('visor360', 'Visor de imágenes 360° exportadas por drones DJI (Mavic Air 2S, Matrice 4E) y por la Insta360 X4. Arrastra para mirar alrededor, rueda o pellizco para acercar, doble toque para centrar.', body);
@@ -11305,10 +11306,10 @@ function renderVisor360(){
 
   if(!gl){
     document.getElementById('v360Empty').textContent = 'Este navegador o equipo no soporta WebGL 2, que el visor 360° necesita. Prueba con Chrome actualizado.';
-    ['v360Cargar', 'v360CargarG', 'v360HeroG', 'v360HeroA'].forEach(i=>{ const e = document.getElementById(i); if(e) e.disabled = true; });
+    ['v360HeroG', 'v360HeroA'].forEach(i=>{ const e = document.getElementById(i); if(e) e.disabled = true; });
   } else {
     try{ v360MontarGL(S); }catch(e){
-      document.getElementById('v360Empty').textContent = 'No se pudo iniciar el visor 3D en este equipo.'; console.error(e); ['v360Cargar', 'v360CargarG', 'v360HeroG', 'v360HeroA'].forEach(i=>{ const e = document.getElementById(i); if(e) e.disabled = true; });
+      document.getElementById('v360Empty').textContent = 'No se pudo iniciar el visor 3D en este equipo.'; console.error(e); ['v360HeroG', 'v360HeroA'].forEach(i=>{ const e = document.getElementById(i); if(e) e.disabled = true; });
     }
   }
   v360S = S;
@@ -11384,12 +11385,12 @@ function renderVisor360(){
     const a = b.dataset.a;
     if(a === 'reset'){ v360Reiniciar(S); v360Menu(S, false); }
     else if(a === 'auto'){ S.auto = !S.auto; b.classList.toggle('on', S.auto); v360Pedir(S); v360Menu(S, false); }
+    else if(a === 'subir'){ v360Menu(S, false); const f = document.getElementById('v360FileG'); if(f) f.click(); }
     else if(a === 'menu') v360Menu(S);
     else if(a === 'info') v360InfoPop(S);
-    else if(a === 'mcrear'){   // el enlace se crea en el panel «Compartir con un cliente» (ahí se elige título y calidad)
+    else if(a === 'mcrear'){   // se abre la ficha «Compartir con un cliente» (ahí se elige título y calidad y se crea el enlace)
       v360Menu(S, false); if(S.full) v360Pantalla(S, false);
-      const pn = document.getElementById('v360Share'); if(pn) pn.scrollIntoView({block:'start', behavior:'smooth'});
-      v360Compartir(S);
+      const pn = document.getElementById('v360Share'); if(pn){ v360PanelShare(S.meta); pn.classList.add('abierto'); pn.scrollTop = 0; }
     }
     else if(['mlink', 'mwsp', 'mfb', 'mx', 'msms', 'membed'].includes(a)){
       const sh = S.meta && S.meta.share; if(!sh) return;
@@ -11445,6 +11446,7 @@ function renderVisor360(){
   document.getElementById('v360VrX').addEventListener('click', ()=> v360VR(S, false));
 
   /* ---- compartir ---- */
+  document.getElementById('v360ShareX').addEventListener('click', ()=> document.getElementById('v360Share').classList.remove('abierto'));
   document.getElementById('v360Crear').addEventListener('click', ()=> v360Compartir(S));
   document.getElementById('v360Entrar').addEventListener('click', ()=> v360EntrarSb(S));
   document.getElementById('v360Clave').addEventListener('keydown', e=>{ if(e.key === 'Enter') v360EntrarSb(S); });
@@ -11466,10 +11468,8 @@ function renderVisor360(){
 
   /* ---- importar: botón y arrastrar-soltar ---- */
   const inp = document.getElementById('v360File');
-  document.getElementById('v360Cargar').addEventListener('click', ()=> inp.click());
   inp.addEventListener('change', ()=>{ const f = Array.from(inp.files); inp.value = ''; v360CargarArchivos(f); });
   const inpG = document.getElementById('v360FileG');   // galería: solo "image/*" hace que Android abra el selector de fotos
-  document.getElementById('v360CargarG').addEventListener('click', ()=> inpG.click());
   document.getElementById('v360HeroG').addEventListener('click', ()=> inpG.click());
   document.getElementById('v360HeroA').addEventListener('click', ()=> inp.click());
   inpG.addEventListener('change', ()=>{ const f = Array.from(inpG.files); inpG.value = ''; v360CargarArchivos(f); });

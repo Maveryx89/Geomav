@@ -1,7 +1,7 @@
 // Service Worker — Topo de Bolsillo (GeoMav)
 // v2: además de la app, guarda para uso SIN INTERNET las librerías externas (mapa, Excel, capturas), las tipografías
 //     y los mosaicos del mapa que ya se hayan visto (hasta MAX_TILES, para no llenar el teléfono).
-const CACHE_VERSION = 'topocalc-v6';
+const CACHE_VERSION = 'topocalc-v7';
 const SHARE_CACHE = 'topocalc-compartido';   // imágenes recibidas desde «Compartir» de la galería (se borran al abrirse en el visor 360°)
 const TILES_CACHE = 'topocalc-tiles-v1';
 const MAX_TILES = 300;
