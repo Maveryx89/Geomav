@@ -593,12 +593,38 @@ footer.app-foot .foot-copy{font-size:10px; opacity:.75;}
 .v360-stage:focus-visible{box-shadow:0 0 0 2px var(--blueprint);}
 .v360-empty{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:24px; color:rgba(232,237,243,.78); font-size:13.5px; line-height:1.5; pointer-events:none;}
 .v360-hud{position:absolute; top:8px; left:10px; right:10px; display:flex; justify-content:space-between; gap:8px; font-family:var(--font-mono); font-size:11px; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.9); pointer-events:none;}
-.v360-bar{position:absolute; left:8px; right:8px; bottom:8px; display:none; gap:6px; justify-content:center; flex-wrap:wrap;}
-.v360-stage.v360-has .v360-bar{display:flex;}
-.v360-bar button{font-family:var(--font-body); font-weight:600; font-size:12px; padding:7px 11px; border-radius:var(--radius-sm); border:1px solid rgba(255,255,255,.3); background:rgba(10,20,32,.66); color:#fff; cursor:pointer; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);}
-.v360-bar button:hover{border-color:rgba(255,255,255,.6);}
-.v360-bar button.on{background:var(--accent); border-color:var(--accent); color:#0A2240;}
-.v360-bar button:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+.v360-bar{position:absolute; inset:0; display:none; pointer-events:none;}
+.v360-stage.v360-has .v360-bar{display:block;}
+.v360-bar button{pointer-events:auto; cursor:pointer; color:#fff; font-family:var(--font-body);}
+.v360-rb{position:absolute; width:46px; height:46px; border-radius:50%; border:0; background:rgba(10,17,24,.66); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; transition:background .15s, transform .1s;}
+.v360-rb:hover{background:rgba(10,17,24,.85);}
+.v360-rb:active{transform:scale(.94);}
+.v360-rb.on{background:var(--accent);}
+.v360-rb.on svg{stroke:#0A2240;}
+.v360-rb svg{width:24px; height:24px; fill:none; stroke:#fff; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+.v360-rb[data-a="gyro"]{left:10px; bottom:10px;}
+.v360-rb[data-a="vr"]{left:64px; bottom:10px;}
+.v360-rb[data-a="full"]{right:64px; bottom:10px;}
+.v360-rb[data-a="menu"]{right:10px; bottom:10px; z-index:4;}
+.v360-rb[data-a="menu"] svg{transition:transform .2s;}
+.v360-stage.v360-menu-open .v360-rb[data-a="menu"] svg{transform:rotate(45deg);}
+.v360-rb.v360-brujula{right:10px; top:50%; margin-top:-23px;}
+.v360-rb.v360-brujula svg{width:32px; height:32px; fill:none; stroke:none;}
+.v360-rb:focus-visible,.v360-pill:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+.v360-tip{position:absolute; left:10px; top:30px; display:flex; align-items:center; gap:8px; padding:7px 14px 7px 8px; border-radius:999px; background:rgba(18,54,90,.8); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); color:#fff; font-size:12.5px; pointer-events:none; transition:opacity .6s, transform .6s; max-width:calc(100% - 20px); z-index:3;}
+.v360-tip.off{opacity:0; transform:translateY(-6px);}
+.v360-tip i{flex:none; width:28px; height:28px; border-radius:50%; background:#0A2240; display:flex; align-items:center; justify-content:center;}
+.v360-tip svg{width:18px; height:18px; fill:none; stroke:#fff; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+.v360-menu{position:absolute; inset:0; z-index:3; display:none; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:16px 16px 70px; background:rgba(10,17,24,.84); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); overflow:auto; pointer-events:auto;}
+.v360-stage.v360-menu-open .v360-menu{display:flex;}
+.v360-menu h4{margin:6px 0 0; font-size:11px; letter-spacing:.3em; text-transform:uppercase; font-weight:500; color:rgba(255,255,255,.65);}
+.v360-menu .fila{display:flex; flex-wrap:wrap; gap:10px; justify-content:center;}
+.v360-pill{display:flex; align-items:center; gap:8px; padding:5px 14px 5px 5px; border-radius:999px; border:1.5px solid #6fd0c0; background:rgba(18,54,90,.6); color:#fff; font:600 11.5px/1.15 var(--font-body); letter-spacing:.04em; text-transform:uppercase; text-align:left; cursor:pointer;}
+.v360-pill i{flex:none; width:36px; height:36px; border-radius:50%; background:var(--blueprint); display:flex; align-items:center; justify-content:center;}
+.v360-pill svg{width:19px; height:19px; fill:none; stroke:#fff; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+.v360-pill.on i{background:var(--accent);}
+.v360-pill.on svg{stroke:#0A2240;}
+.v360-stage.v360-vr .v360-tip,.v360-stage.v360-vr .v360-menu{display:none !important;}
 .v360-stage.v360-full{position:fixed; inset:0; z-index:9998; width:100vw; height:100vh; height:100dvh; max-height:none; aspect-ratio:auto; border-radius:0; border:0;}
 #v360Gal.v360-over{outline:2px dashed var(--blueprint); outline-offset:2px;}
 .v360-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:10px; margin-top:12px;}
@@ -10690,7 +10716,7 @@ function v360Cuadro(S, t){
     S.M = v360MatSensor(S.ori[0], S.ori[1], S.ori[2], v360Pantalla0(), S.yawOff);
     anim = true;
   } else S.M = v360MatVista(S.yaw, S.pitch);
-  v360Dibujar(S); v360Hud(S);
+  v360Dibujar(S); v360Hud(S); v360Brujula(S);
   if(anim) v360Pedir(S); else S.t0 = 0;
 }
 function v360Hud(S){
@@ -10788,6 +10814,7 @@ async function v360Abrir(id){
     const an = gl.getExtension('EXT_texture_filter_anisotropic');
     if(an) gl.texParameterf(gl.TEXTURE_2D, an.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, gl.getParameter(an.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
     S.texOk = true; S.imgAsp = bw/bh; S.id = id; S.meta = m; S.cargada = {w:bw, h:bh};
+    S.menu = false; S.stage.classList.remove('v360-menu-open'); v360Consejo(S);
     S.stage.classList.add('v360-has'); const e = document.getElementById('v360Empty'); if(e) e.style.display = 'none'; const ps = document.getElementById('v360Pasos'); if(ps) ps.style.display = 'none';
     v360AplicarTipo(S, m);
     v360PanelInfo(m, bw, bh);
@@ -10865,11 +10892,27 @@ function v360Descargar(blob, nombre){
   a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=> URL.revokeObjectURL(url), 1500);
 }
+function v360Consejo(S){
+  const t = document.getElementById('v360Tip'); if(!t) return;
+  t.classList.remove('off'); clearTimeout(S.tipT); S.tipT = setTimeout(()=> t.classList.add('off'), 6000);
+  const br = S.stage.querySelector('.v360-brujula'); if(br) br.style.display = S.meta && S.meta.tipo === 'flat' ? 'none' : '';
+}
+function v360Menu(S, on){
+  S.menu = on === undefined ? !S.menu : on;
+  S.stage.classList.toggle('v360-menu-open', S.menu);
+  const sh = S.meta && S.meta.share, c = document.getElementById('v360MCompartir'); if(c) c.style.display = sh ? '' : 'none';
+}
+function v360Brujula(S){
+  const c = document.getElementById('v360Cono'); if(!c || S.tipo === 'flat') return;
+  const f = V360M.fwd(S.M), az = Math.atan2(f[0], f[2])*180/Math.PI;
+  if(az === S.azCono) return; S.azCono = az;
+  c.style.transformOrigin = '17px 17px'; c.style.transform = `rotate(${az.toFixed(1)}deg)`;
+}
 function v360Pantalla(S, on){
   S.full = on === undefined ? !S.full : on;
   S.stage.classList.toggle('v360-full', S.full);
   document.body.style.overflow = S.full ? 'hidden' : '';
-  const b = S.stage.querySelector('[data-a="full"]'); if(b){ b.classList.toggle('on', S.full); b.textContent = S.full ? '✕ Salir' : '⛶'; }
+  const b = S.stage.querySelector('[data-a="full"]'); if(b){ b.classList.toggle('on', S.full); b.title = b.ariaLabel = S.full ? 'Salir de pantalla completa' : 'Pantalla completa'; }
   v360Ajustar(S); if(S.full) S.stage.focus();
 }
 
@@ -10883,7 +10926,7 @@ async function v360VR(S, on){
       S.vrSensor = true;
     }
     S.vr = true; S.fovPrev = S.fov; S.fov = 90; S.auto = false;
-    const ba = S.stage.querySelector('[data-a="auto"]'); if(ba){ ba.classList.remove('on'); ba.textContent = '▶ Giro'; }
+    const ba = S.stage.querySelector('[data-a="auto"]'); if(ba){ ba.classList.remove('on'); }
     if(!S.full){ v360Pantalla(S, true); S.vrFull = true; }
     S.stage.classList.add('v360-vr');
     try{ if(screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{}); }catch(e){}
@@ -11089,13 +11132,28 @@ function renderVisor360(){
     </div>
     <div class="v360-hud" id="v360Hud"></div>
     <button type="button" class="v360-vrx" id="v360VrX" aria-label="Salir del modo VR">✕ Salir de VR</button>
+    <div class="v360-tip" id="v360Tip"><i><svg viewBox="0 0 24 24"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V10m0-.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L4 15.5a1.5 1.5 0 0 1 2.4-1.7L9 16"/></svg></i><span>Toca y arrastra para mirar a tu alrededor.</span></div>
     <div class="v360-bar">
-      <button type="button" data-a="reset" title="Reiniciar la vista" aria-label="Reiniciar la vista">⟲ Centrar</button>
-      <button type="button" data-a="auto" title="Giro automático" aria-label="Giro automático">▶ Giro</button>
-      <button type="button" data-a="gyro" title="Mover la vista con el sensor del teléfono" aria-label="Mover con el sensor del teléfono">📱 Sensor</button>
-      <button type="button" data-a="vr" title="Modo VR para visor tipo Cardboard" aria-label="Modo VR">🥽 VR</button>
-      <button type="button" data-a="shot" title="Guardar una captura de la vista" aria-label="Guardar captura de la vista">📷 Captura</button>
-      <button type="button" data-a="full" title="Pantalla completa" aria-label="Pantalla completa">⛶</button>
+      <button type="button" class="v360-rb" data-a="gyro" title="Mover la vista con el sensor del teléfono" aria-label="Mover con el sensor del teléfono"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9.5" ry="4"/><ellipse cx="12" cy="12" rx="4" ry="9.5"/><circle cx="12" cy="12" r="2.2"/></svg></button>
+      <button type="button" class="v360-rb" data-a="vr" title="Modo VR para visor tipo Cardboard" aria-label="Modo VR"><svg viewBox="0 0 24 24"><rect x="2.5" y="7" width="19" height="10.5" rx="3.5"/><circle cx="8" cy="12" r="1.8"/><circle cx="16" cy="12" r="1.8"/><path d="M10.5 15.5h3"/></svg></button>
+      <button type="button" class="v360-rb v360-brujula" data-a="reset" title="Centrar la vista" aria-label="Centrar la vista"><svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="16" fill="#8a8f94" opacity=".75"/><g id="v360Cono"><path d="M17 17 L9 5 A16 16 0 0 1 25 5 Z" fill="#0A1118"/></g><circle cx="17" cy="17" r="3.5" fill="#000" stroke="#fff" stroke-width="1.6"/></svg></button>
+      <button type="button" class="v360-rb" data-a="full" title="Pantalla completa" aria-label="Pantalla completa"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button type="button" class="v360-rb" data-a="menu" title="Menú" aria-label="Menú"><svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></svg></button>
+      <div class="v360-menu" id="v360Menu">
+        <h4>Vista</h4>
+        <div class="fila">
+          <button type="button" class="v360-pill" data-a="auto" id="v360MAuto"><i><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/></svg></i><span>Giro<br>automático</span></button>
+          <button type="button" class="v360-pill" data-a="reset"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></i><span>Centrar<br>vista</span></button>
+          <button type="button" class="v360-pill" data-a="shot"><i><svg viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></i><span>Guardar<br>captura</span></button>
+        </div>
+        <div id="v360MCompartir" style="display:none; text-align:center;">
+          <h4>Compartir</h4>
+          <div class="fila" style="margin-top:10px;">
+            <button type="button" class="v360-pill" data-a="mlink"><i><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></i><span>Copiar<br>enlace</span></button>
+            <button type="button" class="v360-pill" data-a="mwsp"><i><svg viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 0 1-12.5 7.5L3 21l1.5-5.3A8.5 8.5 0 1 1 21 12z"/></svg></i><span>Enviar por<br>WhatsApp</span></button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <p id="v360Msg" class="proj-msg" role="status" aria-live="polite"></p>
@@ -11224,6 +11282,7 @@ function renderVisor360(){
   canvas.addEventListener('pointerdown', e=>{
     if(!S.texOk) return;
     try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
+    const tp = document.getElementById('v360Tip'); if(tp) tp.classList.add('off'); if(S.menu) v360Menu(S, false);
     ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY}); S.drag = true; S.vyaw = S.vpitch = 0; stage.classList.add('v360-drag');
     if(ptrs.size === 2){ const [a, b] = [...ptrs.values()]; dist0 = Math.hypot(a.x-b.x, a.y-b.y); }
     ultimo = {t:performance.now(), x:e.clientX, y:e.clientY};
@@ -11273,8 +11332,16 @@ function renderVisor360(){
   stage.querySelector('.v360-bar').addEventListener('click', async e=>{
     const b = e.target.closest('button'); if(!b || !S.texOk) return;
     const a = b.dataset.a;
-    if(a === 'reset') v360Reiniciar(S);
-    else if(a === 'auto'){ S.auto = !S.auto; b.classList.toggle('on', S.auto); b.textContent = S.auto ? '❚❚ Giro' : '▶ Giro'; v360Pedir(S); }
+    if(a === 'reset'){ v360Reiniciar(S); v360Menu(S, false); }
+    else if(a === 'auto'){ S.auto = !S.auto; b.classList.toggle('on', S.auto); v360Pedir(S); v360Menu(S, false); }
+    else if(a === 'menu') v360Menu(S);
+    else if(a === 'mlink' || a === 'mwsp'){
+      const sh = S.meta && S.meta.share; if(!sh) return;
+      const url = v360LinkDe(S.meta);
+      if(a === 'mwsp'){ const t = `Hola, aquí puedes recorrer la imagen 360° «${sh.titulo}»: ${url}`; if(navigator.share) navigator.share({text:t}).catch(()=>{}); else window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank', 'noopener'); }
+      else (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(()=> v360Msg('Enlace copiado.'), ()=> v360Msg(url));
+      v360Menu(S, false);
+    }
     else if(a === 'gyro'){
       if(S.tipo === 'flat'){ v360Msg('El sensor solo funciona con imágenes 360°.'); return; }
       if(S.gyro){ v360SensorOff(S); v360Msg(''); } else if(await v360SensorOn(S)){ b.classList.add('on'); v360Msg(''); }
@@ -11282,7 +11349,7 @@ function renderVisor360(){
     else if(a === 'vr') v360VR(S, !S.vr);
     else if(a === 'full'){ if(S.vr) v360VR(S, false); else v360Pantalla(S); }
     else if(a === 'shot'){
-      v360Dibujar(S);
+      v360Menu(S, false); v360Dibujar(S);
       canvas.toBlob(blob=>{
         if(!blob){ v360Msg('No se pudo generar la captura.'); return; }
         const nombre = 'vista360-' + ((S.meta && S.meta.name) || 'imagen').replace(/\.[^.]+$/, '') + '.jpg';
