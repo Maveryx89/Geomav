@@ -10,42 +10,107 @@
 <link rel="icon" href="/assets/img/geomav-icono.png">
 <style>
 *{box-sizing:border-box;margin:0}
-html,body{height:100%;background:#0A1118;color:#E8EDF3;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+html,body{height:100%;background:#0A1118;color:#E8EDF3;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent}
 #stage{position:fixed;inset:0;touch-action:none;cursor:grab}
 #stage.drag{cursor:grabbing}
 canvas{width:100%;height:100%;display:block}
-#top{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;gap:10px;padding:max(10px,env(safe-area-inset-top)) 14px 10px;background:linear-gradient(#0A1118cc,#0A111800);pointer-events:none;z-index:3}
-#top img{height:28px;width:auto;opacity:.95}
-#top h1{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#bar{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:10px 12px max(12px,env(safe-area-inset-bottom));z-index:3}
-button,a.b{font:600 13px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#fff;background:#0A1118b3;border:1px solid #ffffff40;border-radius:999px;padding:10px 14px;cursor:pointer;text-decoration:none;backdrop-filter:blur(6px)}
-button.on{background:#D49A6A;color:#0A2240;border-color:#D49A6A}
-button:focus-visible,a.b:focus-visible{outline:2px solid #D49A6A;outline-offset:2px}
-#msg{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;z-index:4;background:#0A1118}
+button{font:inherit;color:#fff;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid #D49A6A;outline-offset:3px}
+/* título */
+#top{position:fixed;top:max(12px,env(safe-area-inset-top));left:12px;display:flex;align-items:center;gap:9px;padding:6px 14px 6px 8px;border-radius:999px;background:#0A1118a6;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);max-width:calc(100% - 24px);z-index:3;pointer-events:none}
+#top img{height:26px;width:26px;object-fit:contain;background:#fff;border-radius:50%;padding:2px}
+#top h1{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#top h1:empty{display:none}
+/* aviso de uso */
+#tip{position:fixed;top:calc(max(12px,env(safe-area-inset-top)) + 46px);left:12px;display:flex;align-items:center;gap:10px;padding:9px 18px 9px 10px;border-radius:999px;background:#12365acc;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:14px;z-index:3;pointer-events:none;transition:opacity .6s,transform .6s;max-width:calc(100% - 24px)}
+#tip.off{opacity:0;transform:translateY(-6px)}
+#tip i{flex:none;width:34px;height:34px;border-radius:50%;background:#0A2240;display:flex;align-items:center;justify-content:center}
+/* botones redondos flotantes */
+.rb{width:50px;height:50px;border-radius:50%;border:0;background:#0A1118a6;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s}
+.rb:hover{background:#0A1118d9}
+.rb:active{transform:scale(.94)}
+.rb.on{background:#D49A6A}
+.rb.on svg{stroke:#0A2240}
+.rb svg,#tip svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.dock{position:fixed;bottom:max(14px,env(safe-area-inset-bottom));display:flex;gap:10px;z-index:3}
+#dl{left:12px}#dr{right:12px}
+#compass{position:fixed;right:12px;top:50%;margin-top:-25px;z-index:3}
+#compass svg{width:34px;height:34px;transition:none}
+/* menú */
+#menu{position:fixed;inset:0;z-index:6;display:none;flex-direction:column;align-items:center;background:#0A1118d9;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);overflow:auto;padding:max(16px,env(safe-area-inset-top)) 18px max(90px,env(safe-area-inset-bottom))}
+#menu.open{display:flex}
+#menu .hd{display:flex;align-items:center;gap:10px;margin-bottom:auto;padding:6px 18px 6px 10px;border-radius:999px;background:linear-gradient(90deg,#2C6B7E,#123556)}
+#menu .hd img{height:28px;width:28px;object-fit:contain;background:#fff;border-radius:50%;padding:2px}
+#menu .hd b{font-size:14px}
+#menu h2{font-size:12px;letter-spacing:.35em;text-transform:uppercase;font-weight:500;color:#ffffffa6;margin:26px 0 14px;text-align:center}
+#menu .row{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;max-width:420px}
+#menu .rnd{width:58px;height:58px;border-radius:50%;border:1.5px solid #6fd0c0;background:#12365a99;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+#menu .rnd svg{width:28px;height:28px;fill:#fff}
+#menu .pill{display:flex;align-items:center;gap:10px;min-width:150px;padding:6px 16px 6px 6px;border-radius:999px;border:1.5px solid #6fd0c0;background:#12365a99;font-size:12.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;text-align:left;line-height:1.15}
+#menu .pill i{flex:none;width:44px;height:44px;border-radius:50%;background:#2C6B7E;display:flex;align-items:center;justify-content:center}
+#menu .pill svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#menu .pill.on i{background:#D49A6A}
+#menu .pill.on svg{stroke:#0A2240}
+#mx{position:fixed;left:50%;margin-left:-26px;bottom:max(18px,env(safe-area-inset-bottom));z-index:7;display:none;background:linear-gradient(180deg,#2C6B7E,#5a78e0)}
+#menu.open ~ #mx{display:flex}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;padding:10px 18px;border-radius:999px;background:#0A2240;border:1px solid #ffffff40;font-size:13px;z-index:9;opacity:0;pointer-events:none;transition:opacity .25s}
+#toast.on{opacity:1}
+/* carga / error */
+#msg{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;z-index:10;background:radial-gradient(120% 90% at 50% 0%,#2C6B7E 0%,#123556 55%,#0A2240 100%)}
+#msg img{height:54px}
 #msg p{max-width:420px;line-height:1.5}
 #pb{width:220px;height:6px;border-radius:3px;background:#ffffff26;overflow:hidden}
 #pb i{display:block;height:100%;width:0;background:#D49A6A;transition:width .2s}
-#vrx{display:none;position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:5}
-body.vr #bar,body.vr #top{display:none}
+#vrx{display:none;position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:5;padding:8px 16px;border-radius:999px;border:1px solid #ffffff59;background:#0A1118b3;font-size:13px;font-weight:600}
+body.vr #top,body.vr #tip,body.vr #dl,body.vr #dr,body.vr #compass{display:none}
 body.vr #vrx{display:block}
 body.vr::after{content:"";position:fixed;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:#000;z-index:4;pointer-events:none}
-#tip{position:fixed;left:0;right:0;bottom:70px;text-align:center;font-size:12px;opacity:.75;pointer-events:none;z-index:2;transition:opacity .6s}
 </style>
 </head>
 <body>
 <div id="stage"><canvas id="cv"></canvas></div>
 <div id="top"><img src="/assets/img/geomav-logo.png" alt="GEOMAV"><h1 id="tit"></h1></div>
-<div id="tip">Arrastra para mirar · pellizca o usa la rueda para acercar</div>
+<div id="tip"><i><svg viewBox="0 0 24 24"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V10m0-.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L4 15.5a1.5 1.5 0 0 1 2.4-1.7L9 16"/></svg></i><span id="tiptxt">Toca y arrastra para mirar a tu alrededor.</span></div>
 <button id="vrx" type="button">✕ Salir de VR</button>
 <div id="bar">
-  <button type="button" data-a="reset">⟲ Centrar</button>
-  <button type="button" data-a="auto">▶ Giro</button>
-  <button type="button" data-a="gyro">📱 Sensor</button>
-  <button type="button" data-a="vr">🥽 VR</button>
-  <button type="button" data-a="full">⛶</button>
-  <a class="b" id="wsp" href="https://wa.me/56984867813" target="_blank" rel="noopener">Contactar a GEOMAV</a>
+  <div class="dock" id="dl">
+    <button class="rb" type="button" data-a="gyro" aria-label="Mover con el sensor del teléfono" title="Sensor de movimiento"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9.5" ry="4"/><ellipse cx="12" cy="12" rx="4" ry="9.5"/><circle cx="12" cy="12" r="2.2"/></svg></button>
+    <button class="rb" type="button" data-a="vr" aria-label="Modo VR" title="Modo VR"><svg viewBox="0 0 24 24"><rect x="2.5" y="7" width="19" height="10.5" rx="3.5"/><circle cx="8" cy="12" r="1.8"/><circle cx="16" cy="12" r="1.8"/><path d="M10.5 15.5h3"/></svg></button>
+  </div>
+  <button class="rb" id="compass" type="button" data-a="reset" aria-label="Centrar la vista" title="Centrar la vista"><svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="16" fill="#8a8f94" stroke="none" opacity=".75"/><g id="cone"><path d="M17 17 L9 5 A16 16 0 0 1 25 5 Z" fill="#0A1118" stroke="none"/></g><circle cx="17" cy="17" r="3.5" fill="#000" stroke="#fff" stroke-width="1.6"/></svg></button>
+  <div class="dock" id="dr">
+    <button class="rb" type="button" data-a="full" aria-label="Pantalla completa" title="Pantalla completa"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    <button class="rb" type="button" data-a="menu" aria-label="Menú" title="Menú"><svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></svg></button>
+  </div>
 </div>
-<div id="msg"><p id="mtxt">Cargando recorrido…</p><div id="pb"><i></i></div></div>
+<div id="menu" role="dialog" aria-label="Menú del recorrido">
+  <div class="hd"><img src="/assets/img/geomav-logo.png" alt=""><b>GEOMAV</b></div>
+  <h2>Compartir</h2>
+  <div class="row">
+    <button class="rnd" type="button" data-m="wa" aria-label="WhatsApp"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.2 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1.1.1-3.6-.9a12 12 0 0 1-5-4.4c-.4-.6-1.2-1.7-1.2-3.200 0-1.500.8-2.200 1.100-2.500.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .6l-.4.6-.4.500c-.2.200-.4.400-.2.800.2.400.9 1.500 2 2.400 1.300 1.200 2.400 1.500 2.800 1.700.4.2.600.2.800-.1l1-1.200c.2-.3.500-.3.800-.2l2 1c.3.1.5.2.6.3.1.2.1.8-.1 1.400z"/></svg></button>
+    <button class="rnd" type="button" data-m="fb" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M13.500 22v-8.200h2.800l.4-3.300h-3.200V8.400c0-.9.300-1.600 1.600-1.600h1.700V3.900c-.3 0-1.300-.1-2.500-.1-2.500 0-4.200 1.500-4.200 4.300v2.400H7.500v3.300h2.900V22z"/></svg></button>
+    <button class="rnd" type="button" data-m="x" aria-label="X (Twitter)"><svg viewBox="0 0 24 24"><path d="M17.800 3h3l-6.600 7.600L22 21h-6.100l-4.800-6.200L5.600 21h-3l7-8.100L2.200 3h6.200l4.300 5.700zm-1.100 16.200h1.700L7.400 4.700H5.600z"/></svg></button>
+    <button class="rnd" type="button" data-m="sms" aria-label="SMS">SMS</button>
+    <button class="rnd" type="button" data-m="share" aria-label="Compartir con otras apps" id="mshare"><svg viewBox="0 0 24 24" style="fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="6" cy="12" r="2.500"/><circle cx="18" cy="6" r="2.500"/><circle cx="18" cy="18" r="2.500"/><path d="M8.200 11l7.600-4M8.200 13l7.600 4"/></svg></button>
+  </div>
+  <h2>Copiar</h2>
+  <div class="row">
+    <button class="pill" type="button" data-m="link"><i><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.700 0l3-3a4 4 0 0 0-5.700-5.700l-1 1M14 10a4 4 0 0 0-5.700 0l-3 3a4 4 0 0 0 5.700 5.700l1-1"/></svg></i><span>Enlace<br>directo</span></button>
+    <button class="pill" type="button" data-m="embed"><i><svg viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg></i><span>Código de<br>inserción</span></button>
+  </div>
+  <h2>Vista</h2>
+  <div class="row">
+    <button class="pill" type="button" data-m="auto" id="mauto"><i><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.300-5.600M20 4v4h-4"/></svg></i><span>Giro<br>automático</span></button>
+    <button class="pill" type="button" data-m="reset"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></i><span>Centrar<br>vista</span></button>
+  </div>
+  <h2>Contacto</h2>
+  <div class="row">
+    <a class="pill" id="wsp" href="https://wa.me/56984867813" target="_blank" rel="noopener" style="text-decoration:none;color:#fff"><i><svg viewBox="0 0 24 24"><path d="M21 12a8.500 8.500 0 0 1-12.500 7.500L3 21l1.500-5.300A8.500 8.500 0 1 1 21 12z"/></svg></i><span>Escribir a<br>GEOMAV</span></a>
+  </div>
+</div>
+<button class="rb" id="mx" type="button" aria-label="Cerrar menú"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="msg"><img src="/assets/img/geomav-logo.png" alt="GEOMAV"><p id="mtxt">Cargando recorrido…</p><div id="pb"><i></i></div></div>
 <script>
 (function(){
 'use strict';
@@ -133,13 +198,16 @@ function cuadro(t){
   }
   S.pitch=Math.max(-89.5,Math.min(89.5,S.pitch)); if(S.yaw>180)S.yaw-=360; else if(S.yaw<-180)S.yaw+=360;
   if(S.gyro&&S.ori){ S.M=matSensor(S.ori[0],S.ori[1],S.ori[2],pan0(),S.yawOff); anim=true; } else S.M=matVista(S.yaw,S.pitch);
-  dibujar(); if(anim) pedir(); else S.t0=0;
+  dibujar();
+  if(S.tipo!=='flat'){ const f=M.fwd(S.M); $('cone').style.transform='rotate('+(Math.atan2(f[0],f[2])*180/Math.PI)+'deg)'; $('cone').style.transformOrigin='17px 17px'; }
+  if(anim) pedir(); else S.t0=0;
 }
 function zoom(k){ if(S.tipo==='flat') S.fs=Math.max(.03,Math.min(S.fsFit*1.5,S.fs*k)); else S.fov=Math.max(20,Math.min(100,S.fov*k)); pedir(); }
 
 /* ---- gestos ---- */
 const st=$('stage'), ptrs=new Map(); let d0=0, ult=null;
-function ocultarTip(){ $('tip').style.opacity=0; }
+function ocultarTip(){ $('tip').classList.add('off'); }
+function toast(t){ const e=$('toast'); e.textContent=t; e.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>e.classList.remove('on'),1800); }
 st.addEventListener('pointerdown',e=>{ if(!S.ok) return; try{st.setPointerCapture(e.pointerId);}catch(_){} ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY}); S.drag=true; S.vyaw=S.vpitch=0; st.classList.add('drag'); ocultarTip();
   if(ptrs.size===2){const [a,b]=[...ptrs.values()]; d0=Math.hypot(a.x-b.x,a.y-b.y);} ult={t:performance.now()}; });
 st.addEventListener('pointermove',e=>{ const p=ptrs.get(e.pointerId); if(!p||!S.ok) return;
@@ -179,7 +247,7 @@ async function vr(on){
   if(on){
     if(S.tipo==='flat') return;
     if(!S.gyro){ if(!(await sensorOn())) return; S.vrSensor=true; }
-    S.vr=true; S.fovPrev=S.fov; S.fov=90; S.auto=false; document.querySelector('[data-a=auto]').classList.remove('on');
+    S.vr=true; S.fovPrev=S.fov; S.fov=90; S.auto=false; $('mauto').classList.remove('on');
     document.body.classList.add('vr'); pantalla(true);
     try{ screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{}); }catch(e){}
   } else {
@@ -192,11 +260,30 @@ async function vr(on){
 $('vrx').addEventListener('click',()=>vr(false));
 $('bar').addEventListener('click',async e=>{ const b=e.target.closest('button'); if(!b||!S.ok) return; const a=b.dataset.a;
   if(a==='reset') reiniciar();
-  else if(a==='auto'){ S.auto=!S.auto; b.classList.toggle('on',S.auto); b.textContent=S.auto?'❚❚ Giro':'▶ Giro'; pedir(); }
+  else if(a==='menu') $('menu').classList.add('open');
   else if(a==='gyro'){ if(S.tipo==='flat') return; if(S.gyro) sensorOff(); else await sensorOn(); }
   else if(a==='vr') vr(!S.vr);
   else if(a==='full') pantalla(!document.fullscreenElement);
 });
+/* ---- menú: compartir / copiar / vista ---- */
+const urlPagina=()=>location.origin+location.pathname+location.search;
+const textoComp=()=>($('tit').textContent||'Recorrido 360°')+' · recorrido 360° de GEOMAV';
+const copiar=(t,ok)=>(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast(ok),()=>toast('No se pudo copiar'));
+function cerrarMenu(){ $('menu').classList.remove('open'); }
+$('mx').addEventListener('click',cerrarMenu);
+$('menu').addEventListener('click',e=>{ if(e.target===$('menu')) cerrarMenu(); });
+if(!navigator.share) $('mshare').style.display='none';
+$('menu').addEventListener('click',e=>{ const b=e.target.closest('[data-m]'); if(!b) return; const m=b.dataset.m, u=urlPagina(), t=textoComp();
+  if(m==='wa') window.open('https://wa.me/?text='+encodeURIComponent(t+' '+u),'_blank','noopener');
+  else if(m==='fb') window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(u),'_blank','noopener');
+  else if(m==='x') window.open('https://twitter.com/intent/tweet?url='+encodeURIComponent(u)+'&text='+encodeURIComponent(t),'_blank','noopener');
+  else if(m==='sms') location.href='sms:?&body='+encodeURIComponent(t+' '+u);
+  else if(m==='share') navigator.share({title:t,url:u}).catch(()=>{});
+  else if(m==='link') copiar(u,'Enlace copiado');
+  else if(m==='embed') copiar('<iframe src="'+u+'" width="100%" height="480" style="border:0" allow="fullscreen; accelerometer; gyroscope; xr-spatial-tracking" allowfullscreen loading="lazy" title="'+t.replace(/"/g,'')+'"></iframe>','Código copiado');
+  else if(m==='auto'){ S.auto=!S.auto; b.classList.toggle('on',S.auto); pedir(); cerrarMenu(); }
+  else if(m==='reset'){ reiniciar(); cerrarMenu(); } });
+addEventListener('keydown',e=>{ if(e.key==='Escape') cerrarMenu(); });
 document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElement&&S.vr) vr(false); setTimeout(ajustar,100); });
 
 /* ---- carga ---- */
@@ -233,8 +320,8 @@ function bajar(url,tipoRes){
     S.crop=Array.isArray(meta.crop)&&meta.crop.length===4?meta.crop:[0,0,1,1];
     S.imgAsp=w/h; S.ok=true;
     const ini=(typeof meta.initH==='number'&&typeof meta.pose==='number')?meta.initH-meta.pose:0; S.yaw0=((ini+540)%360)-180;
-    if(S.tipo==='flat'){ for(const n of ['gyro','vr']) document.querySelector('[data-a='+n+']').style.display='none'; document.querySelector('[data-a=auto]').style.display='none'; $('tip').textContent='Arrastra para moverte · pellizca para acercar'; }
-    $('msg').style.display='none'; reiniciar(); setTimeout(ocultarTip,6000);
+    if(S.tipo==='flat'){ for(const n of ['gyro','vr']) document.querySelector('[data-a='+n+']').style.display='none'; $('compass').style.display='none'; $('mauto').style.display='none'; $('tiptxt').textContent='Arrastra para moverte · pellizca para acercar'; }
+    $('msg').style.display='none'; reiniciar(); setTimeout(ocultarTip,6000); if(S.tipo!=='flat'&&matchMedia('(pointer:fine)').matches) $('tiptxt').textContent='Arrastra para mirar a tu alrededor.';
   }catch(e){
     fail(e&&e.message==='noexiste'?'Este recorrido ya no está disponible. Pide a GEOMAV un enlace actualizado.':e&&e.message==='red'?'No se pudo descargar el recorrido. Revisa tu conexión e inténtalo de nuevo.':'No se pudo mostrar el recorrido en este equipo.');
   }
