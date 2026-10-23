@@ -583,7 +583,7 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
 /* matriz de escritorio (misma lectura que la hoja 2 del informe): primera fecha de cada partida por pórtico */
 .ep-cf, .ep-fx, .ep-th, .ep-gh, .ep-add-c, .ep-cd, .ep-w{ display:none; }
 @media (min-width:861px){
-  .ep-th{ display:grid; position:sticky; top:0; z-index:2; grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) repeat(3,116px) 150px 96px 44px 46px; gap:8px; align-items:center; padding:8px 4px 8px 16px; background:var(--paper-sunken); font-size:.68rem; font-weight:700; color:var(--ink-soft); border-bottom:1px solid var(--line); }
+  .ep-th{ display:grid; position:sticky; top:0; z-index:2; grid-template-columns:var(--ep-cols); gap:8px; align-items:center; padding:8px 4px 8px 16px; background:var(--paper-sunken); font-size:.68rem; font-weight:700; color:var(--ink-soft); border-bottom:1px solid var(--line); }
   .ep-th span{ display:inline-flex; align-items:center; gap:5px; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .ep-th .ep-hc{ gap:3px; font-size:.64rem; letter-spacing:-.01em; } .ep-th .ep-hc .dot{ width:7px; height:7px; }
   .ep-th .ep-hn{ overflow:hidden; text-overflow:ellipsis; min-width:0; }
@@ -593,7 +593,7 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
   .ep-ar button.on{ opacity:1; color:var(--blueprint); }
   .ep-th .dot{ width:8px; height:8px; border-radius:50%; flex:none; }
   .ep-gh{ display:block; padding:10px 4px 4px 16px; font-size:.8rem; font-weight:700; color:var(--ink); border-bottom:1.5px solid var(--ink); }
-  .ep-row > summary{ grid-template-columns:70px 28px 110px repeat(8,minmax(0,1fr)) repeat(3,116px) 150px 96px 44px 46px; }
+  .ep-row > summary{ grid-template-columns:var(--ep-cols); }
   .ep-row > summary .ep-c, .ep-row > summary .ep-e{ display:none; }
   .ep-row > summary .ep-cf{ display:block; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .ep-row > summary .ep-fx{ display:inline-flex; align-items:center; gap:5px; font-size:.78rem; color:var(--ink); min-width:0; }
@@ -605,7 +605,18 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
   .ep-fx em{ font-style:normal; color:var(--ink-soft); opacity:.55; }
 }
 @media (min-width:861px){
-  .ep-lista{ overflow-x:auto; } .ep-lista > *{ min-width:1700px; }
+  /* sin scroll horizontal desde ~1200 px: las columnas se reparten el ancho; bajo ese ancho se mantiene el minimo */
+  .ep-lista{ overflow-x:auto; --ep-cols:62px 22px 56px repeat(var(--np,9),minmax(42px,1fr)) repeat(3,minmax(78px,.9fr)) minmax(122px,1.3fr) 84px 34px 38px; } .ep-lista > *{ min-width:1190px; }
+  .ep-th, .ep-row > summary{ gap:6px; }
+  .ep-box, .ind-block{ min-width:0; max-width:100%; } .ep-lista{ max-width:100%; }
+  .ep-row > summary .ep-c{ display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.74rem; color:var(--ink-soft); }
+  .ep-row > summary .ep-cf{ display:none; }
+  .ep-row > summary .ep-fx .dot{ display:none; } .ep-row > summary .ep-fx{ gap:0; justify-content:center; }
+  .ep-th .ep-hcd .ep-hn small{ white-space:normal; }
+  /* titulos de partida girados: caben en columnas angostas */
+  .ep-th .ep-hc:not(.ep-hcd){ flex-direction:column-reverse; justify-content:flex-end; align-items:center; gap:3px; align-self:end; }
+  .ep-th .ep-hc:not(.ep-hcd) .ep-hn{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap; max-height:74px; text-overflow:clip; }
+  .ep-th .ep-hc:not(.ep-hcd) .ep-ar{ flex-direction:row; margin:0; }
   .ep-th .ep-hn{ white-space:normal; line-height:1.15; }
   .ep-th .ep-hcd .ep-hn{ display:flex; flex-direction:column; align-items:flex-start; } .ep-th .ep-hcd .ep-hn small{ font-weight:400; font-size:.58rem; opacity:.8; white-space:nowrap; }
   .ep-th .ep-hg{ position:relative; } .ep-th .ep-hg em{ position:absolute; left:-4px; top:-7px; font-style:normal; font-size:.5rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--blueprint); white-space:nowrap; }
@@ -791,7 +802,7 @@ body[data-mtab="recorrido"] .rv-block{ display:block; }
 /* ---------- indicadores ---------- */
 .ind-block{ display:none; padding:14px 16px 30px; }
 body[data-mtab="indicadores"] .ind-block{ display:block; }
-@media screen and (min-width:861px){ .ind-block{ max-width:1720px; margin:0 auto; padding:18px 28px 40px; box-sizing:border-box; } }
+@media screen and (min-width:861px){ .ind-block{ width:100%; max-width:1720px; margin:0 auto; padding:18px 28px 40px; box-sizing:border-box; } }
 @media print{ .ind-block{ display:none !important; } }
 .ind-cards{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:14px; margin-bottom:14px; }
 .ind-card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); padding:14px 16px; display:flex; flex-direction:column; gap:4px; }
@@ -932,6 +943,10 @@ body:not([data-mtab="porticos"]) #fichaPortico{ display:none !important; }
 .porticos-table .ubic-link:hover{ text-decoration:underline; }
 .porticos-table .ubic-pend{ opacity:.75; }
 .porticos-table td.estado{ white-space:nowrap; }
+@media (max-width:860px){
+  .porticos-table{ font-size:.76rem; } .porticos-table th{ padding-left:3px; padding-right:3px; letter-spacing:.02em; } .porticos-table td{ padding-left:3px; padding-right:3px; }
+  .porticos-table td.comuna, .porticos-table td.estado{ white-space:normal; } .porticos-table th.th-tipo, .porticos-table td.tipo{ width:28px; } .porticos-table th.th-fotos, .porticos-table td.fotos{ width:26px; }
+}
 .porticos-sync{ font-weight:600; } .porticos-sync.ok{ color:var(--success); } .porticos-sync.warn{ color:var(--danger); }
 .estado-btn{ all:unset; cursor:pointer; display:block; border-radius:8px; padding:2px; }
 .estado-btn:hover .estado-chip, .estado-btn:hover .estado-none{ outline:2px solid var(--blueprint); outline-offset:1px; border-radius:999px; }
@@ -2612,10 +2627,13 @@ window.PORTICOS_LISTA = (function(){
       var wideCol = state.weeks.map(function(w){
         return state.categories.some(function(cat){ return notesIn(cat.id, w.id).length >= 3; });
       });
-      var colTemplate = "150px " + state.weeks.map(function(w,i){ return wideCol[i] ? "302px" : "148px"; }).join(" ");
+      /* Semanal en escritorio: los dias se reparten el ancho (sin scroll horizontal); en celular y en el Intermedio, ancho fijo */
+      var flex = cfg.weekly && window.matchMedia && window.matchMedia("(min-width:861px)").matches;
+      var colTemplate = flex ? "130px " + state.weeks.map(function(w,i){ return wideCol[i] ? "minmax(215px,2fr)" : "minmax(120px,1fr)"; }).join(" ")
+                             : "150px " + state.weeks.map(function(w,i){ return wideCol[i] ? "302px" : "148px"; }).join(" ");
       board.style.gridTemplateColumns = colTemplate;
-      board.style.width = "max-content"; /* ancho fijo: mismas celdas en celular y PC */
-      var totalMin = 150 + wideCol.reduce(function(s,w2){ return s + (w2?302:148); }, 0);
+      board.style.width = flex ? "100%" : "max-content"; /* ancho fijo: mismas celdas en celular y PC */
+      var totalMin = flex ? 130 + wideCol.reduce(function(s,w2){ return s + (w2?215:120); }, 0) : 150 + wideCol.reduce(function(s,w2){ return s + (w2?302:148); }, 0);
       board.style.minWidth = totalMin + "px";
       board.style.setProperty("--cols", nWeeks);
       board.style.gridTemplateRows = "auto auto repeat(" + nCats + ", minmax(60px,auto))";
@@ -5170,7 +5188,7 @@ window.PORTICOS_LISTA = (function(){
       + '<p class="ind-nota ep-acum">Conteo acumulado: cada partida cuenta los p\u00f3rticos que ya la ejecutaron, aunque hayan avanzado a la siguiente.</p>'
       + '<div class="ep-ctrl"><input type="search" class="ep-buscar" placeholder="Buscar p\u00f3rtico o comuna" aria-label="Buscar p\u00f3rtico" value="'+esc(epBusca)+'">'
       + '<label class="ep-ord"><span>Ordenar</span><select class="ep-orden" aria-label="Ordenar el listado">' + EP_ORDENES.map(function(o){ return '<option value="'+o[0]+'"'+(o[0]===epOrden?' selected':'')+'>'+o[1]+'</option>'; }).join("") + '</select></label></div>'
-      + '<div class="ep-lista"><div class="ep-th"><span>P\u00f3rtico</span><span></span><span>Comuna</span>' + d.orden.map(function(n, i){ var on = function(dr){ return epCol && epCol.i === i && epCol.dir === dr ? ' on' : ''; }; return '<span class="ep-hc"><i class="dot dot-'+window.PARTIDA_TONE[n]+'"></i><span class="ep-hn">'+esc(n)+'</span><span class="ep-ar"><button type="button" class="ep-up'+on(1)+'" data-epcol="'+i+'" data-dir="1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s antigua primero" aria-label="Ordenar por fecha de '+esc(n)+' ascendente">\u25b2</button><button type="button" class="ep-dn'+on(-1)+'" data-epcol="'+i+'" data-dir="-1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s reciente primero" aria-label="Ordenar por fecha de '+esc(n)+' descendente">\u25bc</button></span></span>'; }).join("") + CONDS.map(function(c, i){ return '<span class="ep-hc ep-hcd'+(i === 0 ? ' ep-hg' : '')+'">'+(c.multi ? '<i class="ep-ins" aria-hidden="true">\u26a1\ud83d\udca7</i>' : '<i class="dot dot-'+window.PARTIDA_TONE[c.partida]+'"></i>')+'<span class="ep-hn"><b>'+esc(c.titulo)+'</b><small>'+esc(c.sub)+'</small></span></span>'; }).join("") + '<span>Clima hoy</span><span>Notas</span><span></span></div>' + (filas || '<p class="pm-vacio">Ning\u00fan p\u00f3rtico coincide.</p>') + '</div>'
+      + '<div class="ep-lista" style="--np:'+d.orden.length+'"><div class="ep-th"><span>P\u00f3rtico</span><span></span><span>Comuna</span>' + d.orden.map(function(n, i){ var on = function(dr){ return epCol && epCol.i === i && epCol.dir === dr ? ' on' : ''; }; return '<span class="ep-hc" title="'+esc(n)+'"><i class="dot dot-'+window.PARTIDA_TONE[n]+'"></i><span class="ep-hn">'+esc(n.replace(/^Inst\. (de )?/, ""))+'</span><span class="ep-ar"><button type="button" class="ep-up'+on(1)+'" data-epcol="'+i+'" data-dir="1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s antigua primero" aria-label="Ordenar por fecha de '+esc(n)+' ascendente">\u25b2</button><button type="button" class="ep-dn'+on(-1)+'" data-epcol="'+i+'" data-dir="-1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s reciente primero" aria-label="Ordenar por fecha de '+esc(n)+' descendente">\u25bc</button></span></span>'; }).join("") + CONDS.map(function(c, i){ return '<span class="ep-hc ep-hcd'+(i === 0 ? ' ep-hg' : '')+'">'+(c.multi ? '<i class="ep-ins" aria-hidden="true">\u26a1\ud83d\udca7</i>' : '<i class="dot dot-'+window.PARTIDA_TONE[c.partida]+'"></i>')+'<span class="ep-hn"><b>'+esc(c.titulo)+'</b><small>'+esc(c.sub)+'</small></span></span>'; }).join("") + '<span>Clima hoy</span><span>Notas</span><span></span></div>' + (filas || '<p class="pm-vacio">Ning\u00fan p\u00f3rtico coincide.</p>') + '</div>'
       + '<p class="ind-nota">Toca un p\u00f3rtico para ver las tareas realizadas (m\u00e1s reciente primero).</p></div></div>';
   }
   document.addEventListener("toggle", function(e){ var d = e.target; if(d && d.classList && d.classList.contains("ep-row")){ if(d.open) epAbiertos[d.dataset.ep] = 1; else delete epAbiertos[d.dataset.ep]; } }, true);
