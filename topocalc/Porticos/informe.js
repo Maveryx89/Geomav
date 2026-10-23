@@ -6,8 +6,8 @@
 var NAVY = "#0A2240", MUTE = "rgba(10,34,64,.65)", LINE = "#D8D5CB", CHIP = "#EDEBE4";
 var FUENTE = "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif";
 var MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
-var TONOS = { copper:"#D49A6A", neutral:"#8C949E", blueprint:"#2C6B7E", amber:"#D6A828", success:"#26694B", violet:"#7A52AA", sky:"#3F8FC4", danger:"#B23B3B" };
-var TONE0 = { "Trazado":"sky", "Excavación":"copper", "Emplantillado":"neutral", "Inst. de Fundación":"blueprint", "Inst. Malla":"amber", "Relleno":"success", "Inst. Pórtico":"violet", "Inst. Cámara":"danger" };
+var TONOS = { copper:"#D49A6A", neutral:"#8C949E", blueprint:"#2C6B7E", amber:"#D6A828", success:"#26694B", violet:"#7A52AA", sky:"#3F8FC4", rose:"#C0508A", danger:"#B23B3B" };
+var TONE0 = { "Trazado":"sky", "Excavación":"copper", "Emplantillado":"neutral", "Inst. de Fundación":"blueprint", "Inst. Malla":"amber", "Relleno":"success", "Inst. Pórtico":"violet", "Inst. Poste V":"violet", "Inst. Brazo H":"rose", "Inst. Cámara":"danger" };
 var ABREV = { "san fernando":"S.Fdo.", "santa cruz":"S.Cruz", "chimbarongo":"Chimb.", "nancagua":"Nanc.", "chépica":"Chép.", "placilla":"Plac.", "pichilemu":"Pich.", "peralillo":"Peral.", "palmilla":"Palm.", "pumanque":"Pum.", "paredones":"Pared.", "marchigüe":"March.", "litueche":"Lit.", "navidad":"Nav.", "la estrella":"L.Estr.", "lolol":"Lolol" };
 var DIAS = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
 var MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
@@ -20,7 +20,7 @@ var CAUSAS0 = { A:"Mala planificación", B:"Trabajo anterior sin terminar", C:"T
 var ORDEN = Object.keys(TONE0), COL = {};
 function initOrden(){
   var pt = window.PARTIDA_TONE;
-  if(pt && Object.keys(pt).length){ ORDEN = Object.keys(pt); }
+  if(pt && Object.keys(pt).length){ ORDEN = window.PARTIDAS_ORDEN ? window.PARTIDAS_ORDEN() : Object.keys(pt); }
   COL = {}; ORDEN.forEach(function(p){ COL[p] = TONOS[(pt && pt[p]) || TONE0[p]] || "#8C949E"; });
 }
 

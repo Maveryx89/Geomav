@@ -4,7 +4,7 @@
 (function(){
 "use strict";
 var PM = { "trazado excavacion":"Trazado", "trazado":"Trazado", "excavacion":"Excavación", "emplantillado":"Emplantillado", "instalacion fundacion":"Inst. de Fundación",
-  "instalacion barra tierra":"Inst. Malla", "instalacion malla":"Inst. Malla", "relleno lateral":"Relleno", "instalacion portico":"Inst. Pórtico", "instalacion camaras":"Inst. Cámara" };
+  "instalacion barra tierra":"Inst. Malla", "instalacion malla":"Inst. Malla", "relleno lateral":"Relleno", "instalacion portico":"Inst. Pórtico", "instalacion poste":"Inst. Poste V", "instalacion poste v":"Inst. Poste V", "instalacion brazo":"Inst. Brazo H", "instalacion brazo h":"Inst. Brazo H", "instalacion camaras":"Inst. Cámara" };
 var NOTAS = ["Comentarios", "Prevención"];
 function sinTilde(s){ return String(s == null ? "" : s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim(); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c]; }); }

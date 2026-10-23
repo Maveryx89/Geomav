@@ -1220,6 +1220,19 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .note .portico-tag.tag-sky{ background:var(--stripe-sky); color:#fff; }
 .note.editing.note-sky{ background:var(--note-sky); }
 </style>
+<style id="partida-rose">
+/* partida 7.2 "Inst. Brazo H": 9º color fijo (rosa) */
+:root{ --note-rose: rgba(192,80,138,.18); --stripe-rose:#C0508A; }
+:root[data-theme="dark"]{ --note-rose: rgba(224,122,174,.20); --stripe-rose:#E07AAE; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --note-rose: rgba(224,122,174,.20); --stripe-rose:#E07AAE; } }
+.note-rose{ background:var(--note-rose); }
+.row-label.stripe-rose{ box-shadow:inset 5px 0 0 var(--stripe-rose); }
+.lpf-dot.stripe-rose{ background:#C0508A; }
+.m-group.stripe-rose{ border-left-color:var(--stripe-rose); }
+.dot-rose{ background:var(--stripe-rose); }
+.note .portico-tag.tag-rose{ background:var(--stripe-rose); color:#fff; }
+.note.editing.note-rose{ background:var(--note-rose); }
+</style>
 <style>
 /* ---- capas vectoriales del mapa ---- */
 .leaflet-tooltip.com-lbl{ background:transparent; border:0; box-shadow:none; color:#0A2240; font:700 11px/1.1 Inter, Arial, sans-serif; text-shadow:0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff; padding:0; white-space:nowrap; pointer-events:none; }
@@ -1685,13 +1698,19 @@ window.PORTICOS_LISTA = (function(){
   ];
   var MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
   var DIAS = ["Lun","Mar","Mi\u00e9","Jue","Vie"];
-  var TONES = ["copper","blueprint","success","danger","neutral","amber","violet","sky"];
+  var TONES = ["copper","blueprint","success","danger","neutral","amber","violet","sky","rose"];
   /* Color fijo por partida: al elegir la partida, la nota toma su color automaticamente */
   var PARTIDA_TONE = {
     "Trazado":"sky", "Excavaci\u00f3n":"copper", "Emplantillado":"neutral", "Inst. de Fundaci\u00f3n":"blueprint",
-    "Inst. Malla":"amber", "Relleno":"success", "Inst. P\u00f3rtico":"violet", "Inst. C\u00e1mara":"danger"
+    "Inst. Malla":"amber", "Relleno":"success", "Inst. P\u00f3rtico":"violet", "Inst. Poste V":"violet", "Inst. Brazo H":"rose", "Inst. C\u00e1mara":"danger"
   };
   window.PARTIDA_TONE = PARTIDA_TONE;
+  /* "Inst. P\u00f3rtico" (7) qued\u00f3 como hist\u00f3rico: solo se muestra si la planilla a\u00fan tiene registros con ese nombre. Ahora la 7 se divide en 7.1 Poste V y 7.2 Brazo H */
+  var PARTIDA_LEGACY = "Inst. P\u00f3rtico";
+  window.PARTIDAS_ORDEN = function(){
+    var usa = false; try{ var D = window.PROGRAMACION || []; for(var i = 0; i < D.length && !usa; i++) if(D[i].partida === PARTIDA_LEGACY) usa = true; var R = (window.REMOTO_AVANCE && window.REMOTO_AVANCE()) || []; for(var k = 0; k < R.length && !usa; k++) if(R[k].partida === PARTIDA_LEGACY) usa = true; }catch(e){}
+    return Object.keys(PARTIDA_TONE).filter(function(n){ return n !== PARTIDA_LEGACY || usa; });
+  };
   setTimeout(function(){ try{ window.CAUSAS_LP = CAUSAS; }catch(e){} }, 0);
   var RESPONSABLES = [
     ["Jos\u00e9 Ramirez \u00b7 Jefe de Obra", "JR \u00b7 Jefe de Obra"],
@@ -1726,7 +1745,7 @@ window.PORTICOS_LISTA = (function(){
     var LS_KEY = cfg.storageKey;
 
     function defaultCategories(){
-      return ["Trazado","Excavaci\u00f3n","Emplantillado","Inst. de Fundaci\u00f3n","Inst. Malla","Relleno","Inst. P\u00f3rtico","Inst. C\u00e1mara"]
+      return ["Trazado","Excavaci\u00f3n","Emplantillado","Inst. de Fundaci\u00f3n","Inst. Malla","Relleno","Inst. Poste V","Inst. Brazo H","Inst. C\u00e1mara"]
         .map(function(n){ return {id:uid(), name:n}; });
     }
     function defaultState(){
@@ -1805,6 +1824,7 @@ window.PORTICOS_LISTA = (function(){
       var DSEM2 = ["Dom","Lun","Mar","Mi\u00e9","Jue","Vie","S\u00e1b"];
       for(var xd = 5; cfg.weekly && xd < nDias; xd++){ var dx = addDays(start, xd); weeks.push({ id:uid(), label: DSEM2[dx.getDay()] + " " + dx.getDate(), month: MESES[dx.getMonth()] }); }
       var categories = defaultCategories();
+      if(prog.some(function(r){ return r.partida === "Inst. P\u00f3rtico"; })){ var ixP = categories.findIndex(function(c){ return c.name === "Inst. Poste V"; }); categories.splice(ixP, 0, {id:uid(), name:"Inst. P\u00f3rtico"}); }
       var catId = {}; categories.forEach(function(c){ catId[c.name] = c.id; });
       var notes = [], causas = {};
       prog.slice().sort(function(a,b){ return String(a.fecha).localeCompare(String(b.fecha)) || (a.portico - b.portico); }).forEach(function(r){
@@ -2038,7 +2058,7 @@ window.PORTICOS_LISTA = (function(){
       /* PNG/JPG/PDF a 300 ppp (A3 = 3508 x 4961); se limita el total de píxeles para que el celular no falle */
       if(PW * PH * K * K > 16000000) K = Math.sqrt(16000000 / (PW * PH));
       var MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-      var TONOS = { copper:"#D49A6A", neutral:"#8C949E", blueprint:"#2C6B7E", amber:"#D6A828", success:"#26694B", violet:"#7A52AA", sky:"#3F8FC4", danger:"#B23B3B" };
+      var TONOS = { copper:"#D49A6A", neutral:"#8C949E", blueprint:"#2C6B7E", amber:"#D6A828", success:"#26694B", violet:"#7A52AA", sky:"#3F8FC4", rose:"#C0508A", danger:"#B23B3B" };
       var FUENTE = 'Inter, system-ui, -apple-system, "Segoe UI", sans-serif';
       var MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
       var NAVY = "#0A2240", MUTE = "rgba(10,34,64,.65)";
@@ -2239,8 +2259,8 @@ window.PORTICOS_LISTA = (function(){
         return;
       }
       /* Mismo estilo que el informe A3: titulo, resumen, desglose por partida y pizarra con los colores de pantalla */
-      var TONE_ARGB = { copper: "FFF6E8DE", blueprint: "FFEAF0F2", success: "FFE3F1EA", danger: "FFF7E7E5", neutral: "FFEDEBE4", amber: "FFF8EDC6", violet: "FFEDE6F4", sky: "FFE1EEF8" };
-      var STRIPE = { copper:"D49A6A", neutral:"8C949E", blueprint:"2C6B7E", amber:"D6A828", success:"26694B", violet:"7A52AA", sky:"3F8FC4", danger:"B23B3B" };
+      var TONE_ARGB = { copper: "FFF6E8DE", blueprint: "FFEAF0F2", success: "FFE3F1EA", danger: "FFF7E7E5", neutral: "FFEDEBE4", amber: "FFF8EDC6", violet: "FFEDE6F4", sky: "FFE1EEF8", rose: "FFF6E2EC" };
+      var STRIPE = { copper:"D49A6A", neutral:"8C949E", blueprint:"2C6B7E", amber:"D6A828", success:"26694B", violet:"7A52AA", sky:"3F8FC4", rose:"C0508A", danger:"B23B3B" };
       var HEAD_ARGB = "FFEDEBE4", INK_ARGB = "FF0A2240", MUTE_ARGB = "FF5B6B80", BORDER_ARGB = "FFD9DCE1", WHITE = "FFFFFFFF";
       var MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
       var FONT = "Calibri";
@@ -3363,6 +3383,7 @@ window.PORTICOS_LISTA = (function(){
   var API = "https://script.google.com/macros/s/AKfycbxVwcUS4vO4MRLBDd8e4O4p7WO-7V5h8bFENaPubJTlpRAzhifdCW7_Z6gVepvGVwKwWA/exec";
   var LS_CACHE = "porticos-remoto-cache-v1", SS_PIN = "porticos-pin";
   var REMOTO = { avance: [] };
+  window.REMOTO_AVANCE = function(){ return REMOTO.avance; };
   /* condiciones constructivas por pórtico: se guardan como registros «Comentarios» con la marca [COND] y se leen aparte */
   var CONDS = [
     { k:"fpos", partida:"Inst. de Fundación", titulo:"Fundación", sub:"centrada · excéntrica", ops:[["Centrada","#2C6B7E","Centr."],["Excéntrica","#B8472F","Excén."]] },
@@ -3380,7 +3401,7 @@ window.PORTICOS_LISTA = (function(){
   function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g,function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]; }); }
   function lista(){ return window.PORTICOS_LISTA || []; }
   function numDe(p, k){ return String(p.num || (k+1)); }
-  function orden(){ return Object.keys(window.PARTIDA_TONE || {}); }
+  function orden(){ return window.PARTIDAS_ORDEN ? window.PARTIDAS_ORDEN() : Object.keys(window.PARTIDA_TONE || {}); }
   function fmt(f){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f || ""); return m ? m[3]+"-"+m[2]+"-"+m[1] : (f || ""); }
   function hoyISO(){ var d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
   /* datos vivos para el informe (Resumen ejecutivo) */
@@ -4468,7 +4489,7 @@ window.PORTICOS_LISTA = (function(){
   }
 
   /* ===== Mapa de pórticos (Leaflet, se carga solo al abrirlo) ===== */
-  var TONE_HEX = { copper:"#D49A6A", neutral:"#8C949E", blueprint:"#2C6B7E", amber:"#D6A828", success:"#26694B", violet:"#7A52AA", sky:"#3F8FC4", danger:"#B23B3B" };
+  var TONE_HEX = { copper:"#D49A6A", neutral:"#8C949E", blueprint:"#2C6B7E", amber:"#D6A828", success:"#26694B", violet:"#7A52AA", sky:"#3F8FC4", rose:"#C0508A", danger:"#B23B3B" };
   var SIN_INICIAR_HEX = "#FFFFFF"; /* todos parten en blanco y avanzan con el color de su partida */
   var OHIGGINS = [[-35.02,-72.06],[-33.83,-69.98]];
   var mapa = null, capa = null, capaRuta = null, capaGps = null, capaMedir = null, capaBases = null, rutaPts = [], reabrirPopup = false;
@@ -4735,7 +4756,7 @@ window.PORTICOS_LISTA = (function(){
   }
   function pintarLeyenda(){
     var el = document.getElementById("mapaLeyenda"); if(!el) return;
-    var html = Object.keys(window.PARTIDA_TONE || {}).map(function(n){
+    var html = (window.PARTIDAS_ORDEN ? window.PARTIDAS_ORDEN() : Object.keys(window.PARTIDA_TONE || {})).map(function(n){
       return '<span><i style="background:'+TONE_HEX[window.PARTIDA_TONE[n]]+'"></i>'+esc(n)+'</span>';
     }).join("");
     el.innerHTML = '<span><i style="background:'+SIN_INICIAR_HEX+';border-color:#0A2240;box-shadow:none"></i>Sin iniciar</span>' + html;
@@ -4980,7 +5001,7 @@ window.PORTICOS_LISTA = (function(){
   function etqSem(iso){ var d = isoD(iso); return d ? d.getDate() + "-" + MES3[d.getMonth()] : iso; }
   function pintarIndicadores(){
     var box = document.getElementById("indBody"); if(!box) return;
-    var prog = window.PROGRAMACION || [], orden = Object.keys(window.PARTIDA_TONE || {});
+    var prog = window.PROGRAMACION || [], orden = window.PARTIDAS_ORDEN ? window.PARTIDAS_ORDEN() : Object.keys(window.PARTIDA_TONE || {});
     var hoy = hoyISO(), lunHoy = lunesIso(hoy), total = lista().length * orden.length;
     /* ejecutadas oficiales (registro de avance, 100% o sin %) por p\u00f3rtico+partida */
     var real = {};
