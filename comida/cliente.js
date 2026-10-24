@@ -18,7 +18,7 @@
   if (pub.a) { const a = $('#aviso'); a.textContent = pub.a; a.classList.remove('hide'); }
 
   /* --- retiro + mapa --- */
-  if (pub.r) { const r = $('#retiro'); const mapa = pub.l ? ` · <a href="https://www.google.com/maps?q=${pub.l[0]},${pub.l[1]}" target="_blank" rel="noopener">📍 Ver en el mapa</a>` : '';
+  if (pub.r) { const r = $('#retiro'); const mapa = ` · <a href="${mapaUrl(pub.r, pub.l)}" target="_blank" rel="noopener">📍 Ver en el mapa</a>`;
     r.innerHTML = `<b>Retiro:</b> ${esc(pub.r)}${mapa}`; r.classList.remove('hide'); }
 
   /* --- fechas disponibles (próximos 14 días) --- */

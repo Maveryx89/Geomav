@@ -50,7 +50,9 @@ const CATALOGO_BASE = [
   ['cat_pan','Pan amasado','extra','fotos/pan_amasado.jpg']
 ].map(([id, nombre, tipo, foto]) => ({id, nombre, tipo, foto}));
 const DEF_CFG = {nombre:'La Cocina de Emi', wa:'56986200429', capacidad:20, aviso:'Despacho gratis en Bicentenario y Valles del Country',
-  retiro:'23 Norte #3634, Talca', lat:-35.412829, lng:-71.612425, reparto:''};
+  retiro:'23 Norte #3634, Talca', lat:null, lng:null, reparto:''};
+/* Enlace de mapa: por dirección (así Google ubica la calle y número); coordenadas solo si el dueño las puso a mano */
+const mapaUrl = (dir, l) => l ? `https://www.google.com/maps?q=${l[0]},${l[1]}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dir + ', Chile')}`;
 /* Extras que el cliente puede sumar al pedido (el dueño los edita en Ajustes → Extras y asistente) */
 const EXTRAS_BASE = [{id:'x_emp', nombre:'Empanada de horno (pino)', precio:1000, activo:true},
   {id:'x_pan', nombre:'Pan amasado (6 unidades)', precio:1000, activo:false}, {id:'x_ceb', nombre:'Ceviche de salmón', precio:3000, activo:false}];
@@ -88,7 +90,8 @@ function migrarCfg(c) {
   if (WA_VIEJOS.includes(c.wa)) c.wa = DEF_CFG.wa;
   if (c.nombre === NOMBRE_VIEJO) c.nombre = DEF_CFG.nombre;
   if (c.aviso === '' && !c.avisoEditado) c.aviso = DEF_CFG.aviso;
-  if (c.retiro === undefined) { c.retiro = DEF_CFG.retiro; c.lat = DEF_CFG.lat; c.lng = DEF_CFG.lng; c.reparto = c.reparto || ''; }
+  if (c.retiro === undefined) { c.retiro = DEF_CFG.retiro; c.lat = null; c.lng = null; c.reparto = c.reparto || ''; }
+  if (c.lat === -35.412829 && c.lng === -71.612425) { c.lat = null; c.lng = null; }  // coordenadas iniciales erradas: se usa la dirección
   return c;
 }
 function loadDB() {

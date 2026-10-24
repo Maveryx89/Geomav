@@ -288,7 +288,7 @@ function openAjustes() {
     <label class="field"><span>Aviso para clientes (opcional)</span><input id="a-avi" value="${esc(c.aviso)}" placeholder="Ej: Pedidos hasta las 11:00 del mismo día"></label>
     <label class="field"><span>¿Dónde retiran? (para el asistente)</span><input id="a-ret" value="${esc(c.retiro || '')}" placeholder="Ej: Pasaje X #123, Villa Y"></label>
     <label class="field"><span>Horario de reparto (para el asistente)</span><input id="a-rep" value="${esc(c.reparto || '')}" placeholder="Ej: de 12:30 a 14:30"></label>
-    <label class="field"><span>Ubicación del retiro: latitud, longitud (para el mapa)</span><input id="a-ll" value="${c.lat != null ? c.lat + ', ' + c.lng : ''}" placeholder="-35.412829, -71.612425"></label>
+    <label class="field"><span>Coordenadas del mapa (opcional: si lo dejas vacío, el mapa usa la dirección)</span><input id="a-ll" value="${c.lat != null ? c.lat + ', ' + c.lng : ''}" placeholder="-35.412829, -71.612425"></label>
     <button class="btn block" id="a-xf" style="margin-bottom:10px">🧩 Extras y preguntas del asistente</button>
     <button class="btn primary block" id="a-ok">Guardar</button>
     <h2>Respaldo</h2><p class="muted">Tus datos viven en este dispositivo. Exporta un respaldo de vez en cuando.</p>

@@ -54,7 +54,7 @@
       return {h: '<strong>Hoy no atendemos</strong> (' + e.motivo + ').' + (p ? ' Volvemos <strong>' + nomDia(p.s, p.i) + '</strong>.' : ''), pedir: !!p};
     },
     ubicacion() {
-      return {h: pub.r ? '<strong>Retiro:</strong> ' + esc(pub.r) + '<br>Si prefieres, <strong>despachamos a domicilio</strong>: ' + esc(lc(pub.a) || 'despacho gratis en Bicentenario y Valles del Country') + '.' : 'Para <strong>retirar</strong> te indicamos la dirección exacta por WhatsApp al confirmar tu pedido.<br>' + 'Despacho a domicilio: ' + esc(pub.a ? lc(pub.a) : 'despacho gratis en Bicentenario y Valles del Country') + '.', wa: 'quiero saber dónde retirar mi pedido', mapa: pub.l};
+      return {h: pub.r ? '<strong>Retiro:</strong> ' + esc(pub.r) + '<br>Si prefieres, <strong>despachamos a domicilio</strong>: ' + esc(lc(pub.a) || 'despacho gratis en Bicentenario y Valles del Country') + '.' : 'Para <strong>retirar</strong> te indicamos la dirección exacta por WhatsApp al confirmar tu pedido.<br>' + 'Despacho a domicilio: ' + esc(pub.a ? lc(pub.a) : 'despacho gratis en Bicentenario y Valles del Country') + '.', wa: 'quiero saber dónde retirar mi pedido', mapa: pub.r ? mapaUrl(pub.r, pub.l) : null};
     },
     reparto() {
       return {h: '<strong>Despacho a domicilio:</strong> ' + esc(lc(pub.a) || 'despacho gratis en Bicentenario y Valles del Country') + '.' + (pub.h ? '<br><strong>Horario de reparto:</strong> ' + esc(pub.h) + '.' : '<br>La hora la eliges al hacer el pedido (12:00 a 14:30) y la confirmamos por WhatsApp.'), pedir: 1};
@@ -116,7 +116,7 @@
     const ch = document.createElement('div'); ch.className = 'abot-chips';
     if (r.pedir) { const b = document.createElement('button'); b.type = 'button'; b.className = 'abot-chip on'; b.textContent = '🍽 Hacer mi pedido'; b.onclick = () => { cerrar(); const x = $('#platos'); if (x) x.scrollIntoView({behavior: 'smooth', block: 'start'}); }; ch.appendChild(b); }
     if (r.wa) { const a = document.createElement('a'); a.className = 'abot-chip wa'; a.href = wa(r.wa); a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Escribir por WhatsApp'; ch.appendChild(a); }
-    if (r.mapa) { const a = document.createElement('a'); a.className = 'abot-chip'; a.href = 'https://www.google.com/maps?q=' + r.mapa[0] + ',' + r.mapa[1]; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '📍 Ver en el mapa'; ch.appendChild(a); }
+    if (r.mapa) { const a = document.createElement('a'); a.className = 'abot-chip'; a.href = r.mapa; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '📍 Ver en el mapa'; ch.appendChild(a); }
     if (r.tel) { const a = document.createElement('a'); a.className = 'abot-chip'; a.href = 'tel:+' + r.tel; a.textContent = '📞 Llamar'; ch.appendChild(a); }
     if (ch.children.length) d.appendChild(ch);
     $m.appendChild(d); bajar();
