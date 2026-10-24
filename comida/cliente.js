@@ -10,7 +10,7 @@
   if (!pub) { try { pub = JSON.parse(localStorage.getItem('comida_pub')); } catch (e) {} }
   if (!pub || !pub.m) pub = buildPub(seedDB());
   migrarPub(pub);
-  pub.b = pub.b || []; pub.f = pub.f || {};
+  pub.b = pub.b || []; pub.f = pub.f || {}; window.__pub = pub;
 
   $('#marca').innerHTML = `${esc(pub.n || 'Almuerzos')}<small>Menú del día · pedidos por WhatsApp</small>`;
   document.title = (pub.n || 'Almuerzos') + ' — Haz tu pedido';

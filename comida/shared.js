@@ -107,7 +107,7 @@ function buildPub(db) {
   const f = {};
   for (const [s, d] of Object.entries(db.menuFecha || {})) if (s >= hoy) f[s] = lite(d);
   const b = Object.keys(db.bloqueados || {}).filter(s => s >= hoy);
-  return {v: 2, n: db.cfg.nombre, w: db.cfg.wa, a: db.cfg.aviso || '', m, f, b};
+  return {v: 2, n: db.cfg.nombre, w: db.cfg.wa, a: db.cfg.aviso || '', r: db.cfg.retiro || '', h: db.cfg.reparto || '', m, f, b};
 }
 function migrarPub(p) {
   if (!p) return p;

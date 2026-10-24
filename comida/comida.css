@@ -112,3 +112,25 @@ table.t td.r,table.t th.r{text-align:right}
 .tour-tip h4{margin:0 0 4px}
 .tour-tip p{margin:0 0 10px;font-size:.92rem}
 .hide{display:none!important}
+/* asistente (respuestas automáticas) */
+.abot-lan{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:70;height:48px;padding:0 16px;border:0;border-radius:24px;background:var(--tomate);color:#fff;font-weight:700;box-shadow:0 8px 22px rgba(43,29,20,.3);cursor:pointer}
+.abot-pan{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:75;width:360px;max-width:calc(100vw - 24px);height:520px;max-height:calc(100dvh - 24px);display:flex;flex-direction:column;background:var(--crema);border:1px solid var(--borde);border-radius:16px;overflow:hidden;box-shadow:0 18px 50px rgba(43,29,20,.35)}
+.abot-pan[hidden]{display:none}
+.abot-pan header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 14px;background:var(--tomate);color:#fff}
+.abot-pan header small{display:block;font-size:.74rem;opacity:.8}
+.abot-x{width:34px;height:34px;border:0;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;cursor:pointer}
+.abot-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:9px;overscroll-behavior:contain}
+.abot-m{max-width:88%;padding:9px 12px;border-radius:12px;font-size:.9rem;line-height:1.45;overflow-wrap:anywhere}
+.abot-m ul,.abot-m ol{margin:5px 0 5px 18px;padding:0}
+.abot-m.b{align-self:flex-start;background:#fff;border:1px solid var(--borde);border-bottom-left-radius:4px}
+.abot-m.u{align-self:flex-end;background:var(--tinta);color:#fff;border-bottom-right-radius:4px}
+.abot-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.abot-chip{display:inline-block;border:1px solid var(--borde);background:#fff;border-radius:99px;padding:6px 12px;font-size:.82rem;font-weight:600;color:var(--tinta);text-decoration:none;cursor:pointer}
+.abot-chip.on{background:var(--tomate);border-color:var(--tomate);color:#fff}
+.abot-chip.wa{background:#1FA855;border-color:#1FA855;color:#fff}
+.abot-atajos{display:flex;gap:6px;overflow-x:auto;padding:6px 10px;border-top:1px solid var(--borde);scrollbar-width:none}
+.abot-atajos::-webkit-scrollbar{display:none}
+.abot-atajo{flex:0 0 auto;border:1px solid var(--borde);background:#fff;border-radius:99px;padding:6px 12px;font-size:.8rem;cursor:pointer}
+.abot-form{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--borde);background:#fff}
+.abot-in{flex:1;min-width:0;border:1px solid var(--borde);border-radius:99px;padding:9px 14px}
+.abot-form button{width:40px;border:0;border-radius:50%;background:var(--tomate);color:#fff;cursor:pointer}

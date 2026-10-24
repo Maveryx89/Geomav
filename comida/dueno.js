@@ -238,11 +238,13 @@ function openAjustes() {
     <label class="field"><span>WhatsApp (con 56, sin +)</span><input id="a-wa" value="${esc(c.wa)}"></label>
     <label class="field"><span>Capacidad diaria (porciones)</span><input id="a-cap" type="number" value="${c.capacidad}"></label>
     <label class="field"><span>Aviso para clientes (opcional)</span><input id="a-avi" value="${esc(c.aviso)}" placeholder="Ej: Pedidos hasta las 11:00 del mismo día"></label>
+    <label class="field"><span>¿Dónde retiran? (para el asistente)</span><input id="a-ret" value="${esc(c.retiro || '')}" placeholder="Ej: Pasaje X #123, Villa Y"></label>
+    <label class="field"><span>Horario de reparto (para el asistente)</span><input id="a-rep" value="${esc(c.reparto || '')}" placeholder="Ej: de 12:30 a 14:30"></label>
     <button class="btn primary block" id="a-ok">Guardar</button>
     <h2>Respaldo</h2><p class="muted">Tus datos viven en este dispositivo. Exporta un respaldo de vez en cuando.</p>
     <div class="row wrap"><button class="btn" id="a-exp">⬇️ Exportar respaldo</button><button class="btn" id="a-imp">⬆️ Importar respaldo</button><button class="btn" id="a-tour">Ver recorrido guiado</button></div>
     <input type="file" id="a-file" accept="application/json" class="hide">`);
-  $('#a-ok', m).onclick = () => { c.nombre = $('#a-nom', m).value.trim() || 'La Cocina de Emi'; c.wa = $('#a-wa', m).value.replace(/\D/g, ''); c.capacidad = Math.max(1, +$('#a-cap', m).value || 20); c.aviso = $('#a-avi', m).value.trim(); c.avisoEditado = true; save(); m.close(); head(); render(); };
+  $('#a-ok', m).onclick = () => { c.nombre = $('#a-nom', m).value.trim() || 'La Cocina de Emi'; c.wa = $('#a-wa', m).value.replace(/\D/g, ''); c.capacidad = Math.max(1, +$('#a-cap', m).value || 20); c.aviso = $('#a-avi', m).value.trim(); c.avisoEditado = true; c.retiro = $('#a-ret', m).value.trim(); c.reparto = $('#a-rep', m).value.trim(); save(); m.close(); head(); render(); };
   $('#a-exp', m).onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(DB)], {type: 'application/json'})); a.download = `respaldo-comida-${hoyISO()}.json`; a.click(); };
   $('#a-imp', m).onclick = () => $('#a-file', m).click();
   $('#a-file', m).onchange = async e => { try { const j = JSON.parse(await e.target.files[0].text()); if (j.v !== 1 || !j.menu) throw 0; if (confirm('Esto reemplaza todos los datos actuales. ¿Continuar?')) { DB = j; save(); m.close(); head(); render(); toast('Respaldo importado'); } } catch (x) { toast('Archivo de respaldo no válido'); } };
