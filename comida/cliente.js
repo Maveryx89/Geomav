@@ -82,7 +82,7 @@
     Object.entries(qty).forEach(([k, v]) => L.push(`- ${v} x ${k}`));
     if (p != null) L.push(`Total: ${money(n * p)}`);
     if ($('#f-nota').value.trim()) L.push(`Nota: ${$('#f-nota').value.trim().replace(/\n/g, ' ')}`);
-    window.open(`https://wa.me/${pub.w || '56984867813'}?text=${encodeURIComponent(L.join('\n'))}`, '_blank');
+    window.open(`https://wa.me/${pub.w || '56946728283'}?text=${encodeURIComponent(L.join('\n'))}`, '_blank');
   };
 
   /* --- ayuda + recorrido --- */
