@@ -13,6 +13,7 @@
   pub.b = pub.b || []; pub.f = pub.f || {}; window.__pub = pub;
 
   $('#marca').innerHTML = `${esc(pub.n || 'Almuerzos')}<small>Menú del día · pedidos por WhatsApp</small>`;
+  { const fn = $('#foot-n'); if (fn) fn.textContent = pub.n || 'la cocina'; }
   document.title = (pub.n || 'Almuerzos') + ' — Haz tu pedido';
   if (pub.a) { const a = $('#aviso'); a.textContent = pub.a; a.classList.remove('hide'); }
 
