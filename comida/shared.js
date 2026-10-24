@@ -32,7 +32,7 @@ const feriado = s => s.startsWith('2026-') ? (FER_2026[s] || null) : (FER_FIJOS[
 
 /* ===== Datos del dueño (localStorage) ===== */
 const DB_KEY = 'comida_v1';
-const DEF_CFG = {nombre:'La Cocina de Emi', wa:'56984867813', capacidad:20, aviso:''};
+const DEF_CFG = {nombre:'La Cocina de Emi', wa:'56984867813', capacidad:20, aviso:'Despacho gratis en Bicentenario y Valles del Country'};
 
 function seedDB() {
   const mk = (k, items, guar, precio) => ({
