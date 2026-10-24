@@ -33,6 +33,8 @@ const feriado = s => s.startsWith('2026-') ? (FER_2026[s] || null) : (FER_FIJOS[
 /* ===== Datos del dueño (localStorage) ===== */
 const DB_KEY = 'comida_v1';
 const PRECIO_BASE = 5000; // precio único del almuerzo (CLP)
+/* Fotos referenciales (CC0/dominio público, ver fotos/CREDITOS.md) por id de plato; se reemplazan subiendo fotos propias */
+const FOTOS_BASE = {lun1:'fotos/lun1.jpg', jue1:'fotos/jue1.jpg', jue2:'fotos/jue2.jpg', mie3:'fotos/mie3.jpg', sab1:'fotos/sab1.jpg', sab2:'fotos/sab2.jpg'};
 const DEF_CFG = {nombre:'La Cocina de Emi', wa:'56986200429', capacidad:20, aviso:'Despacho gratis en Bicentenario y Valles del Country'};
 
 function seedDB() {
@@ -50,7 +52,7 @@ function seedDB() {
       vie: mk('vie', [['Chuleta … (revisar)', 1], ['Budín de zapallo'], ['Lentejas']], ''),
       sab: mk('sab', [['Pollo asado con papas'], ['Pollo asado con arroz y papas fritas']], '')
     },
-    menuFecha: {}, fotos: {}, clientes: [], pedidos: [], gastos: [], compras: [], bloqueados: {}
+    menuFecha: {}, fotos: {...FOTOS_BASE}, fotosInit: true, clientes: [], pedidos: [], gastos: [], compras: [], bloqueados: {}
   };
 }
 /* Migra valores por defecto antiguos (guardados antes de configurar La Cocina de Emi) */
@@ -65,6 +67,7 @@ function migrarCfg(c) {
 function loadDB() {
   try { const r = JSON.parse(localStorage.getItem(DB_KEY)); if (r && r.v === 1) {
       migrarCfg(r.cfg);
+      if (!r.fotosInit) { r.fotos = r.fotos || {}; for (const [id, u] of Object.entries(FOTOS_BASE)) if (!r.fotos[id]) r.fotos[id] = u; r.fotosInit = true; }
       if (!r.preciosInit) { for (const k of Object.keys(r.menu)) if (r.menu[k].precio == null) r.menu[k].precio = PRECIO_BASE; r.preciosInit = true; }
       return r;
     } } catch (e) {}
@@ -179,16 +182,16 @@ async function renderDia(canvas, o) {
   c.fillStyle = '#fff'; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
   c.font = '700 34px system-ui,sans-serif'; c.fillText((o.nombre || '').toUpperCase(), 70, 100);
   c.globalAlpha = .85; c.font = '500 30px system-ui,sans-serif'; c.fillText('MENÚ DEL DÍA', 70, 146); c.globalAlpha = 1;
-  c.font = '800 128px system-ui,sans-serif'; c.fillText(DIAS_NOM[o.fecha.getDay()], 66, 290);
+  c.font = 'italic 700 124px Georgia, "Times New Roman", serif'; c.fillText(DIAS_NOM[o.fecha.getDay()], 66, 290);
   c.font = '500 40px system-ui,sans-serif'; c.fillText(`${o.fecha.getDate()} de ${MESES[o.fecha.getMonth()].toLowerCase()}`, 70, 350);
   const cx = 50, cy = 395, cw = W - 100, ch = 800;
   rr(c, cx, cy, cw, ch, 36); c.fillStyle = '#FFF8EE'; c.fill();
   const imgs = await Promise.all(o.items.map(i => loadImg(i.foto)));
   const reserve = o.guar ? 150 : 40, n = Math.max(o.items.length, 1);
-  const rowH = Math.min(200, (ch - 40 - reserve) / n);
+  const rowH = Math.min(270, (ch - 40 - reserve) / n), off = Math.max(0, ((ch - 40 - reserve) - n * rowH) / 2);
   if (!o.items.length) { c.fillStyle = '#7A6A5A'; c.font = '500 40px system-ui,sans-serif'; c.textAlign = 'center'; c.fillText('Menú por confirmar', W / 2, cy + 200); c.textAlign = 'left'; }
   o.items.forEach((it, i) => {
-    const y0 = cy + 30 + i * rowH, r = Math.min(80, rowH / 2 - 14), px = cx + 50 + r, py = y0 + rowH / 2;
+    const y0 = cy + 30 + off + i * rowH, r = Math.min(112, rowH / 2 - 14), px = cx + 50 + r, py = y0 + rowH / 2;
     if (imgs[i]) {
       c.save(); c.beginPath(); c.arc(px, py, r, 0, 7); c.clip();
       const im = imgs[i], s = Math.max(2 * r / im.width, 2 * r / im.height), w = im.width * s, h = im.height * s;
@@ -199,7 +202,7 @@ async function renderDia(canvas, o) {
     }
     c.fillStyle = '#2B1D14';
     const tx = cx + 50 + 2 * r + 36, mw = cw - (tx - cx) - 40;
-    let fs = 46; c.font = `700 ${fs}px system-ui,sans-serif`;
+    let fs = 50; c.font = `700 ${fs}px system-ui,sans-serif`;
     let lines = wrapText(c, it.nombre, mw);
     if (lines.length > 2) { fs = 36; c.font = `700 ${fs}px system-ui,sans-serif`; lines = wrapText(c, it.nombre, mw).slice(0, 2); }
     const lh = fs * 1.15, top = py - (lines.length * lh) / 2 + fs * .85;
