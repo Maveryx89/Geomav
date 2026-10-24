@@ -90,17 +90,25 @@
   $('#f-hora').value = '13:00';
   const ls = (k, v) => { try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); } catch (e) { return ''; } };
   $('#f-nombre').value = ls('comida_nombre'); $('#f-tel').value = ls('comida_tel'); $('#f-dir').value = ls('comida_dir');
-  const tipoChg = () => {
+  const bu = $('#btn-ubic2');
+  const pintaUbic = () => {
     const d = $('#f-tipo').value === 'despacho';
-    $('#w-dir').classList.toggle('hide', !d);
-    const r = $('#ent-retiro'); r.classList.toggle('hide', d);
-    r.innerHTML = pub.r ? `<b>📍 Retiro en:</b> ${esc(pub.r)} · <a href="${mapaLocal}" target="_blank" rel="noopener">Ver en el mapa</a>` : 'La dirección de retiro te la confirmamos por WhatsApp.';
+    $('#ubic-lbl').textContent = d ? 'Tu ubicación' : 'Local';
+    bu.classList.toggle('ok', d && !!ubic);
+    bu.textContent = d ? (ubic ? '✓ Ubicación enviada' : '📍 Enviar ubicación') : '📍 Cómo llegar';
   };
-  $('#btn-geo').onclick = () => {
-    if (!navigator.geolocation) return toast('Tu navegador no permite compartir ubicación');
-    $('#geo-est').textContent = 'Buscando tu ubicación…';
-    navigator.geolocation.getCurrentPosition(p => { ubic = [+p.coords.latitude.toFixed(6), +p.coords.longitude.toFixed(6)]; $('#geo-est').textContent = '✓ Ubicación lista'; },
-      () => { ubic = null; $('#geo-est').textContent = ''; toast('No pude obtener tu ubicación: escribe tu dirección'); }, {enableHighAccuracy: true, timeout: 15000});
+  const tipoChg = () => { $('#w-dir').classList.toggle('hide', $('#f-tipo').value !== 'despacho'); pintaUbic(); };
+  bu.onclick = () => {
+    if ($('#f-tipo').value !== 'despacho') {   // retiro: abrir el local en el mapa
+      if (mapaLocal) window.open(mapaLocal, '_blank'); else toast('Te confirmamos la dirección por WhatsApp');
+      return;
+    }
+    if (!navigator.geolocation) return toast('Tu navegador no permite compartir ubicación: escribe tu dirección');
+    bu.textContent = 'Buscando GPS…'; bu.disabled = true;
+    navigator.geolocation.getCurrentPosition(p => { ubic = [+p.coords.latitude.toFixed(6), +p.coords.longitude.toFixed(6)]; bu.disabled = false; pintaUbic(); },
+      e => { ubic = null; bu.disabled = false; pintaUbic();
+        toast(e && e.code === 1 ? 'Permite la ubicación en tu navegador y toca de nuevo' : 'Enciende el GPS de tu teléfono y toca de nuevo'); },
+      {enableHighAccuracy: true, timeout: 20000, maximumAge: 0});
   };
   $('#f-tipo').onchange = tipoChg;
 
