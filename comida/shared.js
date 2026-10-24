@@ -35,6 +35,20 @@ const DB_KEY = 'comida_v1';
 const PRECIO_BASE = 5000; // precio único del almuerzo (CLP)
 /* Fotos referenciales (CC0/dominio público, ver fotos/CREDITOS.md) por id de plato; se reemplazan subiendo fotos propias */
 const FOTOS_BASE = {lun1:'fotos/lun1.jpg', jue1:'fotos/jue1.jpg', jue2:'fotos/jue2.jpg', mie3:'fotos/mie3.jpg', sab1:'fotos/sab1.jpg', sab2:'fotos/sab2.jpg'};
+/* Catálogo de platos (sacado del historial de La Cocina de Emi en Facebook). Se agrega al menú desde Menú → 📚 Catálogo */
+const CATALOGO_BASE = [
+  ['cat_carneolla','Carne de olla','almuerzo','fotos/lun1.jpg'],['cat_polloarv','Pollo arvejado','almuerzo',''],
+  ['cat_porotos','Porotos con riendas','almuerzo',''],['cat_chuletajugo','Chuleta al jugo con puré','almuerzo',''],
+  ['cat_pechuga','Pechuga apanada','almuerzo',''],['cat_charquican','Charquicán con huevo frito','almuerzo',''],
+  ['cat_pescado','Pescado frito','almuerzo',''],['cat_estofado','Estofado de vacuno','almuerzo','fotos/mie3.jpg'],
+  ['cat_polloasado','Pollo asado','almuerzo','fotos/pollo_horno.jpg'],['cat_pollopapas','Pollo al horno con papas fritas y ensalada','almuerzo','fotos/sab1.jpg'],
+  ['cat_polloarroz','Pollo asado con arroz y papas fritas','almuerzo','fotos/sab2.jpg'],['cat_pollotallarin','Pollo con verduras y tallarín','almuerzo','fotos/pollo_tallarin.jpg'],
+  ['cat_tallarin','Tallarín con salsa de carne','almuerzo','fotos/tallarin_carne.jpg'],['cat_chuletavelada','Chuleta velada al horno','almuerzo',''],
+  ['cat_lentejas','Lentejas con longaniza y ensalada','almuerzo',''],['cat_budin','Budín de zapallo','almuerzo',''],
+  ['cat_pastelchoclo','Pastel de choclo','almuerzo',''],['cat_cebiche','Cebiche de salmón','almuerzo',''],
+  ['cat_ensalada','Ensalada surtida','extra','fotos/ensalada.jpg'],['cat_empanada','Empanada de horno (pino) $1.000','extra','fotos/emp_horno.jpg'],
+  ['cat_pan','Pan amasado','extra','fotos/pan_amasado.jpg']
+].map(([id, nombre, tipo, foto]) => ({id, nombre, tipo, foto}));
 const DEF_CFG = {nombre:'La Cocina de Emi', wa:'56986200429', capacidad:20, aviso:'Despacho gratis en Bicentenario y Valles del Country'};
 
 function seedDB() {
@@ -52,7 +66,7 @@ function seedDB() {
       vie: mk('vie', [['Chuleta … (revisar)', 1], ['Budín de zapallo'], ['Lentejas']], ''),
       sab: mk('sab', [['Pollo asado con papas'], ['Pollo asado con arroz y papas fritas']], '')
     },
-    menuFecha: {}, fotos: {...FOTOS_BASE}, fotosInit: true, clientes: [], pedidos: [], gastos: [], compras: [], bloqueados: {}
+    menuFecha: {}, fotos: {...FOTOS_BASE}, fotosInit: true, catInit: true, catalogo: structuredClone(CATALOGO_BASE), clientes: [], pedidos: [], gastos: [], compras: [], bloqueados: {}
   };
 }
 /* Migra valores por defecto antiguos (guardados antes de configurar La Cocina de Emi) */
@@ -68,6 +82,7 @@ function loadDB() {
   try { const r = JSON.parse(localStorage.getItem(DB_KEY)); if (r && r.v === 1) {
       migrarCfg(r.cfg);
       if (!r.fotosInit) { r.fotos = r.fotos || {}; for (const [id, u] of Object.entries(FOTOS_BASE)) if (!r.fotos[id]) r.fotos[id] = u; r.fotosInit = true; }
+      if (!r.catInit) { r.catalogo = r.catalogo || structuredClone(CATALOGO_BASE); r.catInit = true; }
       if (!r.preciosInit) { for (const k of Object.keys(r.menu)) if (r.menu[k].precio == null) r.menu[k].precio = PRECIO_BASE; r.preciosInit = true; }
       return r;
     } } catch (e) {}

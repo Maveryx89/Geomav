@@ -60,13 +60,37 @@ function vMenu() {
     (isF ? `<button class="chip on"><small>solo esta fecha</small><b>${parseISO(S.edit.iso).getDate()} ${MESES[parseISO(S.edit.iso).getMonth()].slice(0, 3)}</b></button>` : '');
   return `<h2 style="margin-top:4px">Menú ${isF ? 'de ' + fmtFecha(S.edit.iso) : 'semanal (se repite cada semana)'}</h2><div class="chips">${chips}</div>
     <div class="card">${e.items.map((it, i) => { const f = DB.fotos[it.id]; return `<div class="item-ed"><div class="thumb" data-act="foto" data-i="${i}" ${f ? `style="background-image:url('${f}')"` : ''}>${f ? '' : '📷'}</div>
-      <input class="inp" data-b="itemNombre" data-i="${i}" value="${esc(it.nombre)}"><button class="ibtn" data-act="rev" data-i="${i}" title="Por confirmar">${it.revisar ? '⚠️' : '✅'}</button><button class="ibtn" data-act="delItem" data-i="${i}">🗑</button></div>`; }).join('') || '<p class="muted">Sin platos.</p>'}
-      <button class="btn sm" data-act="addItem">+ Agregar plato</button>
+      <input class="inp" data-b="itemNombre" data-i="${i}" value="${esc(it.nombre)}"><button class="ibtn" data-act="rev" data-i="${i}" title="Por confirmar">${it.revisar ? '⚠️' : '✅'}</button><button class="ibtn" data-act="aCat" data-i="${i}" title="Guardar en catálogo">📚</button><button class="ibtn" data-act="delItem" data-i="${i}">🗑</button></div>`; }).join('') || '<p class="muted">Sin platos.</p>'}
+      <div class="row wrap"><button class="btn sm" data-act="addItem">+ Plato nuevo</button><button class="btn sm primary" data-act="catalogo">📚 Elegir del catálogo</button></div>
       <p class="muted" style="margin:8px 0 0">⚠️ = por confirmar: no se muestra a clientes ni en la plantilla. Toca ✅ para confirmarlo. La foto es opcional (📷).</p></div>
     <div class="card"><label class="field"><span>Acompañamientos (texto libre)</span><input data-b="guar" value="${esc(e.guar)}" placeholder="Puré · Arroz · Ensalada"></label>
       <label class="field"><span>Precio del almuerzo (CLP)</span><input data-b="precio" type="number" inputmode="numeric" value="${e.precio ?? ''}" placeholder="Ej: 4500"></label></div>
     <div class="row wrap"><button class="btn primary" data-act="plantillaEd">🖼 Plantilla del día</button><button class="btn" data-act="plantillaSemana">🗓 Plantilla semanal</button><button class="btn wa" data-act="publicar">🔗 Publicar para clientes</button>
       ${isF ? '<button class="btn danger" data-act="quitarFecha">Quitar cambios de esta fecha</button>' : ''}</div>`;
+}
+
+
+/* ---------- CATÁLOGO DE PLATOS ---------- */
+function openCatalogo() {
+  const m = modal('<div id="cat-box"></div>');
+  const draw = () => {
+    const l = [...DB.catalogo].sort((a, b) => a.tipo.localeCompare(b.tipo) || a.nombre.localeCompare(b.nombre, 'es'));
+    $('#cat-box', m).innerHTML = `<h3>Catálogo de platos <button class="ibtn" data-close>✕</button></h3>
+      <p class="muted" style="margin:0 0 8px">Toca un plato para agregarlo al menú que estás editando. Con ✏️ cambias el nombre y 🗑 lo quita del catálogo.</p>
+      ${l.map(c => `<div class="item-ed"><div class="thumb" ${c.foto ? `style="background-image:url('${c.foto}')"` : ''}>${c.foto ? '' : '🍽'}</div>
+        <div class="grow"><b>${esc(c.nombre)}</b><br><small class="muted">${c.tipo === 'extra' ? 'Extra / acompañamiento' : 'Almuerzo'}</small></div>
+        <button class="btn sm primary" data-add="${c.id}">+ Menú</button><button class="ibtn" data-ren="${c.id}">✏️</button><button class="ibtn" data-del="${c.id}">🗑</button></div>`).join('')}
+      <button class="btn block" id="cat-new" style="margin-top:8px">+ Nuevo plato en el catálogo</button>`;
+  };
+  draw();
+  m.addEventListener('click', ev => {
+    const t = ev.target.closest('button'); if (!t) return;
+    if (t.hasAttribute('data-close')) m.close();
+    else if (t.dataset.add) { const c = DB.catalogo.find(x => x.id === t.dataset.add), id = uid(); ed().items.push({id, nombre: c.nombre, revisar: false}); if (c.foto) DB.fotos[id] = c.foto; save(); toast('Agregado: ' + c.nombre); render(); }
+    else if (t.dataset.ren) { const c = DB.catalogo.find(x => x.id === t.dataset.ren), n = prompt('Nombre del plato', c.nombre); if (n && n.trim()) { c.nombre = n.trim(); save(); draw(); } }
+    else if (t.dataset.del) { const c = DB.catalogo.find(x => x.id === t.dataset.del); if (confirm('¿Quitar "' + c.nombre + '" del catálogo?')) { DB.catalogo = DB.catalogo.filter(x => x !== c); save(); draw(); } }
+    else if (t.id === 'cat-new') { const n = prompt('Nombre del plato nuevo', ''); if (n && n.trim()) { DB.catalogo.push({id: 'cat_' + uid(), nombre: n.trim(), tipo: 'almuerzo', foto: ''}); save(); draw(); } }
+  });
 }
 
 /* ---------- PEDIDOS ---------- */
@@ -259,6 +283,9 @@ const ACT = {
   plantillaDia: b => openPlantillaDia(b.dataset.d),
   menuFecha: b => { const s = b.dataset.d; if (!DB.menuFecha[s]) DB.menuFecha[s] = structuredClone(menuDe(s) || {items: [], guar: '', precio: null}); save(); S.edit = {kind: 'fecha', iso: s}; S.tab = 'menu'; render(); },
   editDia: b => { S.edit = {kind: 'dia', key: b.dataset.k}; render(); },
+  catalogo: () => openCatalogo(),
+  aCat: b => { const it = ed().items[+b.dataset.i], n = it.nombre.trim(); if (!n) return; const c = DB.catalogo.find(x => x.nombre.toLowerCase() === n.toLowerCase()); const f = DB.fotos[it.id] || '';
+    if (c) { if (f) c.foto = f; } else DB.catalogo.push({id: 'cat_' + uid(), nombre: n, tipo: 'almuerzo', foto: f}); save(); toast('Guardado en el catálogo'); },
   addItem: () => { ed().items.push({id: uid(), nombre: 'Nuevo plato', revisar: false}); save(); render(); },
   delItem: b => { const e = ed(), i = +b.dataset.i; delete DB.fotos[e.items[i].id]; e.items.splice(i, 1); save(); render(); },
   rev: b => { const it = ed().items[+b.dataset.i]; it.revisar = !it.revisar; save(); render(); },
