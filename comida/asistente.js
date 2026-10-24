@@ -27,7 +27,7 @@
     }
     return out;
   }
-  const platos = m => '<ul>' + m.i.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' + (m.g ? '<small>Con: ' + esc(m.g) + '</small><br>' : '') + '<strong>' + money(m.p) + '</strong> por almuerzo.';
+  const platos = m => '<ul>' + m.i.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' + (m.g ? '<small>Con:<br>' + esc(m.g).split(/\s*·\s*|\s*,\s*/).join('<br>') + '</small><br>' : '') + '<strong>' + money(m.p) + '</strong> por almuerzo.';
   const nomDia = (s, i) => (i === 0 ? 'Hoy ' : i === 1 ? 'Mañana ' : '') + fmtFecha(s);
 
   /* ---- respuestas ---- */
@@ -41,7 +41,7 @@
     semana() {
       const l = proximos(6);
       if (!l.length) return {h: 'Por ahora no hay menú publicado. Escríbenos por WhatsApp y te contamos.', wa: 'quiero saber el menú de la semana'};
-      return {h: '<strong>Próximos almuerzos:</strong>' + l.map(x => '<p style="margin:6px 0 2px"><b>' + nomDia(x.s, x.i) + '</b></p><div>' + esc(x.m.i.join(' · ')) + '</div>').join('') + '<p style="margin:8px 0 0"><strong>' + money(l[0].m.p) + '</strong> por almuerzo.</p>', pedir: 1};
+      return {h: '<strong>Próximos almuerzos:</strong>' + l.map(x => '<p style="margin:6px 0 2px"><b>' + nomDia(x.s, x.i) + '</b></p><ul style="margin:0 0 0 18px;padding:0">' + x.m.i.map(n => '<li>' + esc(n) + '</li>').join('') + '</ul>').join('') + '<p style="margin:8px 0 0"><strong>' + money(l[0].m.p) + '</strong> por almuerzo.</p>', pedir: 1};
     },
     precio() {
       const p = proximos(1)[0], v = p ? p.m.p : null;

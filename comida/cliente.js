@@ -54,7 +54,7 @@
     box.innerHTML = `<div class="row sb" style="margin-bottom:4px"><b>${fmtFecha(sel)}</b><span class="badge">${m.p != null ? money(m.p) + ' c/u' : 'Precio: consultar'}</span></div>` +
       m.i.map((n, k) => { const f = fotoPlato(n, m.ph); return `<div class="plato">${f ? `<img class="pfoto" src="${f}" alt="" loading="lazy">` : ''}<span class="nm">${esc(n)}</span>
         <div class="stepper"><button data-k="${k}" data-d="-1" aria-label="Quitar">−</button><output>${qty[n] || 0}</output><button class="plus" data-k="${k}" data-d="1" aria-label="Agregar">+</button></div></div>`; }).join('') +
-      (m.g ? `<p class="muted" style="margin:8px 0 0">Acompañamientos: ${esc(m.g)} — indícalo en la nota.</p>` : '');
+      (m.g ? `<p class="muted" style="margin:8px 0 0">Acompañamientos:<br>${esc(m.g).split(/\s*·\s*|\s*,\s*/).join('<br>')}<br>Indícalo en la nota.</p>` : '');
     $$('#platos .stepper button').forEach(b => b.onclick = () => {
       const n = m.i[+b.dataset.k]; qty[n] = Math.max(0, (qty[n] || 0) + +b.dataset.d); if (!qty[n]) delete qty[n];
       b.parentElement.querySelector('output').textContent = qty[n] || 0; drawTotal();
@@ -69,7 +69,7 @@
   function drawHoy() {
     const x = dias.find(z => !z.motivo); const box = $('#hoy'); if (!x) return;
     box.innerHTML = `<div class="row sb"><b>${x.s === iso(hoy) ? 'Hoy' : 'Próximo almuerzo'} · ${fmtFecha(x.s)}</b><span class="badge ok">${x.m.p != null ? money(x.m.p) : 'consultar'}</span></div>
-      <p style="margin:6px 0 10px">${esc(x.m.i.join(' · '))}</p><button class="btn primary block" id="hoy-pedir">🍽 Pedir ahora</button>`;
+      <ul class="lista">${x.m.i.map(n => `<li>${esc(n)}</li>`).join('')}</ul><button class="btn primary block" id="hoy-pedir">🍽 Pedir ahora</button>`;
     box.classList.remove('hide');
     $('#hoy-pedir').onclick = () => { sel = x.s; qty = {}; drawFechas(); drawPlatos(); drawTotal(); $('#platos').scrollIntoView({behavior: 'smooth', block: 'start'}); };
   }
@@ -77,7 +77,7 @@
     const n = nPorc(), p = pr();
     const T = (n && p != null ? n * p : 0) + totX(), alg = n + nX() > 0;
     $('#total').textContent = alg ? ((n && p == null) ? 'A confirmar' : money(T)) : '—';
-    $('#resumen').textContent = alg ? [...Object.entries(qty), ...Object.entries(qtyX)].map(([k, v]) => `${v}× ${k}`).join(' · ') : 'Aún no has elegido platos.';
+    $('#resumen').innerHTML = alg ? [...Object.entries(qty), ...Object.entries(qtyX)].map(([k, v]) => `${v}× ${esc(k)}`).join('<br>') : 'Aún no has elegido platos.';
     $('#btn-enviar').disabled = !alg;
   }
 

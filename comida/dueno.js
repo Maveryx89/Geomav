@@ -34,7 +34,7 @@ function panelDia(s) {
   const mn = menuDe(s), fer = feriado(s), bl = DB.bloqueados[s], peds = DB.pedidos.filter(p => p.fecha === s).sort((a, b) => (a.hora || '').localeCompare(b.hora || ''));
   const prod = {}; pedidosDe(s).forEach(p => p.items.forEach(i => prod[i.nombre] = (prod[i.nombre] || 0) + i.cant));
   return `<div class="card" style="margin-top:12px"><div class="row sb wrap"><b>${fmtFecha(s)}</b><span>${fer ? `<span class="badge fer">Feriado: ${esc(fer)}</span> ` : ''}${bl !== undefined ? `<span class="badge bl">⛔ Bloqueado${bl ? ': ' + esc(bl) : ''}</span>` : ''}</span></div>
-    <p class="muted" style="margin:6px 0">${mn ? mn.items.map(i => (i.revisar ? '⚠️ ' : '') + esc(i.nombre)).join(' · ') : 'Sin menú este día.'}</p>
+    <p class="muted" style="margin:6px 0">${mn ? mn.items.map(i => (i.revisar ? '⚠️ ' : '') + esc(i.nombre)).join('<br>') : 'Sin menú este día.'}</p>
     <div class="row wrap">
       <button class="btn sm primary" data-act="nuevoPed" data-d="${s}">+ Pedido</button>
       ${mn ? `<button class="btn sm" data-act="plantillaDia" data-d="${s}">🖼 Plantilla</button>` : ''}
@@ -46,7 +46,7 @@ function panelDia(s) {
 }
 function pedCard(p) {
   return `<div class="ped est-${p.estado}"><div class="row sb"><b>${esc(p.nombre)}</b><span>${esc(p.hora || '')}</span></div>
-    <div class="s">${esc(itemsTxt(p))}${p.nota ? ` · <i>${esc(p.nota)}</i>` : ''}</div>
+    <div class="s">${p.items.map(i => `${i.cant}× ${esc(i.nombre)}`).join('<br>')}${p.nota ? `<br><i>${esc(p.nota)}</i>` : ''}</div>
     <div class="row sb"><span class="muted">${p.tipo === 'despacho' ? '🛵 ' + esc(p.dir) : '🥡 Retiro'}</span><b>${money(p.total)}</b></div>
     <div class="acts"><select data-b="estado" data-id="${p.id}">${ESTADOS.map(e => `<option value="${e}" ${p.estado === e ? 'selected' : ''}>${LAB_EST[e]}</option>`).join('')}</select>
       <button class="btn sm" data-act="pagado" data-id="${p.id}">${p.pagado ? '✅ Pagado' : '💲 Cobrar'}</button>

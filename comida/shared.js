@@ -272,9 +272,9 @@ function renderSemana(canvas, o) {
     rr(c, 40, y, W - 80, bh, 28); c.fillStyle = COLOR_DIA[d.key]; c.fill();
     c.fillStyle = '#fff'; c.font = '800 54px system-ui,sans-serif'; c.fillText(DIAS_NOM[DIAS_KEY.indexOf(d.key)], 76, y + 82);
     if (d.precio != null && d.precio !== '') { c.font = '700 38px system-ui,sans-serif'; c.fillText(money(d.precio), 76, y + 140); }
-    c.font = '600 36px system-ui,sans-serif';
-    const txt = d.items.length ? d.items.join(' · ') : 'Por confirmar';
-    wrapText(c, txt, 560).slice(0, 4).forEach((l, k) => c.fillText(l, 400, y + 66 + k * 46));
+    const its = d.items.length ? d.items.slice(0, 4) : ['Por confirmar'], lh = 50;
+    let y1 = y + bh / 2 - (its.length * lh) / 2 + 36;
+    its.forEach(t => { let fs = 36; do { c.font = `600 ${fs}px system-ui,sans-serif`; fs -= 2; } while (c.measureText('• ' + t).width > 560 && fs > 22); c.fillText('• ' + t, 400, y1); y1 += lh; });
   });
   c.fillStyle = '#2B1D14'; c.font = '500 32px system-ui,sans-serif'; c.fillText('Pedidos por WhatsApp', 60, 1830);
   c.font = '800 46px system-ui,sans-serif'; c.fillText(fmtWa(o.wa || ''), 60, 1884);
