@@ -266,7 +266,7 @@ async function openPlantillaDia(s) {
 function openPlantillaSemana() {
   const m = modal(`<h3>Plantilla semanal <button class="ibtn" data-close>✕</button></h3><canvas id="cv"></canvas>
     <div class="row" style="margin-top:10px"><button class="btn primary grow" id="dl">⬇️ Descargar</button><button class="btn wa grow" id="sh">📤 Compartir</button></div>`);
-  renderSemana($('#cv', m), {nombre: DB.cfg.nombre, wa: DB.cfg.wa, dias: ['lun', 'mar', 'mie', 'jue', 'vie', 'sab'].map(k => ({key: k, items: DB.menu[k].items.filter(i => !i.revisar).map(i => i.nombre), precio: DB.menu[k].precio}))});
+  renderSemana($('#cv', m), {nombre: DB.cfg.nombre, wa: DB.cfg.wa, dias: ['lun', 'mar', 'mie', 'jue', 'vie', 'sab'].map(k => { const it = DB.menu[k].items.filter(i => !i.revisar); return {key: k, items: it.map(i => i.nombre), fotos: it.map(i => DB.fotos[i.id] || fotoPlato(i.nombre)), precio: DB.menu[k].precio}; })});
   $('#dl', m).onclick = () => descargarOCompartir($('#cv', m), 'menu-semana', false);
   $('#sh', m).onclick = () => descargarOCompartir($('#cv', m), 'menu-semana', true);
 }

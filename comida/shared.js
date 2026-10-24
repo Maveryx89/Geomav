@@ -211,47 +211,79 @@ function wrapText(c, text, maxW) {
 }
 const loadImg = src => new Promise(res => { if (!src) return res(null); const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
 
+/* Fotos de respaldo para fondos (si el plato no tiene foto propia) */
+const POOL_FOTOS = ['fotos/emp_horno2.jpg','fotos/pollo_horno.jpg','fotos/tallarin_carne.jpg','fotos/pan_amasado.jpg','fotos/lun1.jpg','fotos/mie3.jpg','fotos/sab1.jpg','fotos/pollo_tallarin.jpg','fotos/emp_horno.jpg','fotos/sab2.jpg'];
+/* Devuelve hasta n imágenes de fondo: foto del plato → foto del catálogo → respaldo */
+async function fotosFondo(srcs, n, sem) {
+  const out = [], vistos = new Set();
+  for (const s of srcs) { if (s && !vistos.has(s) && out.length < n) { const im = await loadImg(s); if (im) { out.push(im); vistos.add(s); } } }
+  for (let k = 0; out.length < Math.min(n, 3) && k < POOL_FOTOS.length; k++) { const p = POOL_FOTOS[(sem + k) % POOL_FOTOS.length]; if (!vistos.has(p)) { const im = await loadImg(p); if (im) { out.push(im); vistos.add(p); } } }
+  return out;
+}
+/* Fusiona las fotos en diagonal con degradados entre ellas y oscurece para que el texto se lea */
+function pintarFondo(c, W, H, imgs, col, oscuro) {
+  c.fillStyle = '#1c130d'; c.fillRect(0, 0, W, H);
+  const n = imgs.length;
+  imgs.forEach((im, k) => {
+    const L = document.createElement('canvas'); L.width = W; L.height = H; const lc = L.getContext('2d');
+    const s = Math.max(W / im.width, H / im.height), w = im.width * s, h = im.height * s;
+    lc.drawImage(im, (W - w) / 2, (H - h) / 2, w, h);
+    const g = lc.createLinearGradient(0, 0, W * .55, H), tk = (k + .5) / n, hw = .95 / n, st = (t, a) => g.addColorStop(Math.min(1, Math.max(0, t)), `rgba(0,0,0,${a})`);
+    if (k === 0) { st(0, 1); } else { st(tk - hw, 0); st(tk - hw * .25, 1); }
+    if (k === n - 1) { st(1, 1); } else { st(tk + hw * .25, 1); st(tk + hw, 0); }
+    lc.globalCompositeOperation = 'destination-in'; lc.fillStyle = g; lc.fillRect(0, 0, W, H);
+    c.drawImage(L, 0, 0);
+  });
+  c.globalAlpha = .28; c.fillStyle = col; c.fillRect(0, 0, W, H); c.globalAlpha = 1;
+  const d = c.createLinearGradient(0, 0, 0, H);
+  d.addColorStop(0, `rgba(14,8,3,${oscuro[0]})`); d.addColorStop(.5, `rgba(14,8,3,${oscuro[1]})`); d.addColorStop(1, `rgba(14,8,3,${oscuro[2]})`);
+  c.fillStyle = d; c.fillRect(0, 0, W, H);
+}
+function sombra(c, on) { c.shadowColor = on ? 'rgba(0,0,0,.55)' : 'transparent'; c.shadowBlur = on ? 14 : 0; c.shadowOffsetY = on ? 3 : 0; }
+
 /* o = {dia, fecha:Date, nombre, wa, items:[{nombre, foto(dataURL|null)}], guar, precio} — 1080×1350 */
 async function renderDia(canvas, o) {
   const W = 1080, H = 1350; canvas.width = W; canvas.height = H;
   const c = canvas.getContext('2d'), col = COLOR_DIA[o.dia] || '#444';
-  c.fillStyle = col; c.fillRect(0, 0, W, H);
+  const own = await Promise.all(o.items.map(i => loadImg(i.foto || fotoPlato(i.nombre))));
+  const fondo = await fotosFondo(o.items.map(i => i.foto || fotoPlato(i.nombre)), 4, o.fecha.getDate());
+  pintarFondo(c, W, H, fondo, col, [.55, .30, .72]);
   const lg = await loadImg('logo.png');
-  c.globalAlpha = .10; c.fillStyle = '#fff';
-  c.beginPath(); c.arc(W - 80, 120, 260, 0, 7); c.fill(); c.beginPath(); c.arc(40, H - 60, 300, 0, 7); c.fill(); c.globalAlpha = 1;
   if (lg) c.drawImage(lg, W - 250, 36, 190, 190);
-  c.fillStyle = '#fff'; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+  c.fillStyle = '#fff'; c.textAlign = 'left'; c.textBaseline = 'alphabetic'; sombra(c, true);
   c.font = '700 34px system-ui,sans-serif'; c.fillText((o.nombre || '').toUpperCase(), 70, 100);
-  c.globalAlpha = .85; c.font = '500 30px system-ui,sans-serif'; c.fillText('MENÚ DEL DÍA', 70, 146); c.globalAlpha = 1;
+  c.globalAlpha = .9; c.font = '500 30px system-ui,sans-serif'; c.fillText('MENÚ DEL DÍA', 70, 146); c.globalAlpha = 1;
   c.font = 'italic 700 124px Georgia, "Times New Roman", serif'; c.fillText(DIAS_NOM[o.fecha.getDay()], 66, 290);
   c.font = '500 40px system-ui,sans-serif'; c.fillText(`${o.fecha.getDate()} de ${MESES[o.fecha.getMonth()].toLowerCase()}`, 70, 350);
+  sombra(c, false);
   const cx = 50, cy = 395, cw = W - 100, ch = 800;
-  rr(c, cx, cy, cw, ch, 36); c.fillStyle = '#FFF8EE'; c.fill();
-  const imgs = await Promise.all(o.items.map(i => loadImg(i.foto)));
+  rr(c, cx, cy, cw, ch, 36); c.fillStyle = 'rgba(18,10,4,.58)'; c.fill();
+  c.strokeStyle = 'rgba(255,255,255,.22)'; c.lineWidth = 2; c.stroke();
   const reserve = o.guar ? 150 : 40, n = Math.max(o.items.length, 1);
   const rowH = Math.min(270, (ch - 40 - reserve) / n), off = Math.max(0, ((ch - 40 - reserve) - n * rowH) / 2);
-  if (!o.items.length) { c.fillStyle = '#7A6A5A'; c.font = '500 40px system-ui,sans-serif'; c.textAlign = 'center'; c.fillText('Menú por confirmar', W / 2, cy + 200); c.textAlign = 'left'; }
+  if (!o.items.length) { c.fillStyle = '#fff'; c.font = '500 40px system-ui,sans-serif'; c.textAlign = 'center'; c.fillText('Menú por confirmar', W / 2, cy + 200); c.textAlign = 'left'; }
   o.items.forEach((it, i) => {
     const y0 = cy + 30 + off + i * rowH, r = Math.min(112, rowH / 2 - 14), px = cx + 50 + r, py = y0 + rowH / 2;
-    if (imgs[i]) {
+    if (own[i]) {
       c.save(); c.beginPath(); c.arc(px, py, r, 0, 7); c.clip();
-      const im = imgs[i], s = Math.max(2 * r / im.width, 2 * r / im.height), w = im.width * s, h = im.height * s;
+      const im = own[i], s = Math.max(2 * r / im.width, 2 * r / im.height), w = im.width * s, h = im.height * s;
       c.drawImage(im, px - w / 2, py - h / 2, w, h); c.restore();
+      c.strokeStyle = '#fff'; c.lineWidth = 6; c.beginPath(); c.arc(px, py, r, 0, 7); c.stroke();
     } else {
-      c.fillStyle = '#F0E3CC'; c.beginPath(); c.arc(px, py, r, 0, 7); c.fill();
-      c.strokeStyle = '#D6C2A0'; c.lineWidth = 5; c.beginPath(); c.arc(px, py, r * .62, 0, 7); c.stroke();
+      c.fillStyle = 'rgba(255,255,255,.14)'; c.beginPath(); c.arc(px, py, r, 0, 7); c.fill();
+      c.strokeStyle = 'rgba(255,255,255,.5)'; c.lineWidth = 5; c.beginPath(); c.arc(px, py, r * .62, 0, 7); c.stroke();
     }
-    c.fillStyle = '#2B1D14';
+    c.fillStyle = '#fff';
     const tx = cx + 50 + 2 * r + 36, mw = cw - (tx - cx) - 40;
     let fs = 50; c.font = `700 ${fs}px system-ui,sans-serif`;
     let lines = wrapText(c, it.nombre, mw);
     if (lines.length > 2) { fs = 36; c.font = `700 ${fs}px system-ui,sans-serif`; lines = wrapText(c, it.nombre, mw).slice(0, 2); }
     const lh = fs * 1.15, top = py - (lines.length * lh) / 2 + fs * .85;
     lines.forEach((l, k) => c.fillText(l, tx, top + k * lh));
-    if (i < o.items.length - 1) { c.strokeStyle = '#EADFCB'; c.lineWidth = 2; c.beginPath(); c.moveTo(cx + 40, y0 + rowH); c.lineTo(cx + cw - 40, y0 + rowH); c.stroke(); }
+    if (i < o.items.length - 1) { c.strokeStyle = 'rgba(255,255,255,.2)'; c.lineWidth = 2; c.beginPath(); c.moveTo(cx + 40, y0 + rowH); c.lineTo(cx + cw - 40, y0 + rowH); c.stroke(); }
   });
   if (o.guar) {
-    c.fillStyle = '#6b5a48'; c.font = 'italic 500 32px system-ui,sans-serif';
+    c.fillStyle = 'rgba(255,255,255,.88)'; c.font = 'italic 500 32px system-ui,sans-serif';
     wrapText(c, 'Acompañamientos: ' + o.guar, cw - 330).slice(0, 2).forEach((l, k) => c.fillText(l, cx + 45, cy + ch - 80 + k * 40));
   }
   if (o.precio != null && o.precio !== '') {
@@ -259,31 +291,35 @@ async function renderDia(canvas, o) {
     c.fillStyle = '#2B1D14'; c.textAlign = 'center'; c.font = '800 48px system-ui,sans-serif'; c.fillText(money(o.precio), W - 160, cy + ch - 4);
     c.font = '600 24px system-ui,sans-serif'; c.fillText('almuerzo', W - 160, cy + ch + 26); c.textAlign = 'left';
   }
-  c.fillStyle = '#fff'; c.font = '500 32px system-ui,sans-serif'; c.fillText('Pedidos por WhatsApp', 70, 1262);
-  c.font = '800 46px system-ui,sans-serif'; c.fillText(fmtWa(o.wa || ''), 70, 1316);
+  c.fillStyle = '#fff'; sombra(c, true); c.font = '500 32px system-ui,sans-serif'; c.fillText('Pedidos por WhatsApp', 70, 1262);
+  c.font = '800 46px system-ui,sans-serif'; c.fillText(fmtWa(o.wa || ''), 70, 1316); sombra(c, false);
 }
 
-/* o = {nombre, wa, dias:[{key, items:[nombre], precio}]} — 1080×1920 */
+/* o = {nombre, wa, dias:[{key, items:[nombre], fotos:[src], precio}]} — 1080×1920 */
 async function renderSemana(canvas, o) {
   const W = 1080, H = 1920; canvas.width = W; canvas.height = H;
   const c = canvas.getContext('2d');
-  c.fillStyle = '#FFF8EE'; c.fillRect(0, 0, W, H);
+  const srcs = o.dias.map(d => (d.fotos || []).find(Boolean)).filter(Boolean);
+  const fondo = await fotosFondo(srcs, 5, new Date().getDate());
+  pintarFondo(c, W, H, fondo, '#2B1D14', [.35, .25, .60]);
   const lg = await loadImg('logo.png'); if (lg) c.drawImage(lg, W - 230, 30, 180, 180);
-  c.fillStyle = '#2B1D14'; c.textAlign = 'left';
+  c.fillStyle = '#fff'; c.textAlign = 'left'; sombra(c, true);
   c.font = '700 34px system-ui,sans-serif'; c.fillText((o.nombre || '').toUpperCase(), 60, 90);
-  c.font = '800 96px system-ui,sans-serif'; c.fillText('Menú de la semana', 56, 190);
+  c.font = 'italic 700 104px Georgia, "Times New Roman", serif'; c.fillText('Menú de la semana', 56, 190);
+  sombra(c, false);
   const bh = 232, y0 = 240;
   o.dias.forEach((d, i) => {
     const y = y0 + i * (bh + 14);
-    rr(c, 40, y, W - 80, bh, 28); c.fillStyle = COLOR_DIA[d.key]; c.fill();
+    rr(c, 40, y, W - 80, bh, 28); c.globalAlpha = .72; c.fillStyle = COLOR_DIA[d.key]; c.fill(); c.globalAlpha = 1;
+    c.strokeStyle = 'rgba(255,255,255,.28)'; c.lineWidth = 2; c.stroke();
     c.fillStyle = '#fff'; c.font = '800 54px system-ui,sans-serif'; c.fillText(DIAS_NOM[DIAS_KEY.indexOf(d.key)], 76, y + 82);
     if (d.precio != null && d.precio !== '') { c.font = '700 38px system-ui,sans-serif'; c.fillText(money(d.precio), 76, y + 140); }
     const its = d.items.length ? d.items.slice(0, 4) : ['Por confirmar'], lh = 50;
     let y1 = y + bh / 2 - (its.length * lh) / 2 + 36;
     its.forEach(t => { let fs = 36; do { c.font = `600 ${fs}px system-ui,sans-serif`; fs -= 2; } while (c.measureText('• ' + t).width > 560 && fs > 22); c.fillText('• ' + t, 400, y1); y1 += lh; });
   });
-  c.fillStyle = '#2B1D14'; c.font = '500 32px system-ui,sans-serif'; c.fillText('Pedidos por WhatsApp', 60, 1830);
-  c.font = '800 46px system-ui,sans-serif'; c.fillText(fmtWa(o.wa || ''), 60, 1884);
+  c.fillStyle = '#fff'; sombra(c, true); c.font = '500 32px system-ui,sans-serif'; c.fillText('Pedidos por WhatsApp', 60, 1830);
+  c.font = '800 46px system-ui,sans-serif'; c.fillText(fmtWa(o.wa || ''), 60, 1884); sombra(c, false);
 }
 
 /* Miniatura cuadrada (recorte centrado) para fotos de platos */
