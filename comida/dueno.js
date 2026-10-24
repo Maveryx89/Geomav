@@ -93,6 +93,47 @@ function openCatalogo() {
   });
 }
 
+/* ---------- EXTRAS Y PREGUNTAS DEL ASISTENTE ---------- */
+function openExtrasFaq() {
+  const ex = structuredClone(DB.extras || []), fq = structuredClone(DB.faq || []);
+  const m = modal('<div id="xf"></div>');
+  const draw = () => {
+    $('#xf', m).innerHTML = `<h3>Extras y asistente <button class="ibtn" data-close>✕</button></h3>
+      <h2 style="margin-top:0">Extras del pedido</h2><p class="muted" style="margin:0 0 8px">Se suman al almuerzo. Marca ✅ solo los que ofreces hoy.</p>
+      ${ex.map((e, i) => `<div class="item-ed"><input class="inp grow" data-x="n" data-i="${i}" value="${esc(e.nombre)}"><input class="inp" style="width:84px" type="number" inputmode="numeric" data-x="p" data-i="${i}" value="${e.precio ?? ''}"><button class="ibtn" data-x="a" data-i="${i}">${e.activo ? '✅' : '⬜'}</button><button class="ibtn" data-x="d" data-i="${i}">🗑</button></div>`).join('')}
+      <button class="btn sm" id="x-add">+ Extra</button>
+      <h2>Preguntas del asistente</h2><p class="muted" style="margin:0 0 8px">Tus respuestas tienen prioridad. Palabras clave separadas por coma.</p>
+      ${fq.map((q, i) => `<div class="card" style="padding:8px"><input class="inp" data-f="k" data-i="${i}" value="${esc(q.k)}" placeholder="Palabras clave: evento, cumpleaños, cotizar"><textarea data-f="r" data-i="${i}" placeholder="Respuesta">${esc(q.r)}</textarea><button class="btn sm danger" data-f="d" data-i="${i}">Quitar</button></div>`).join('')}
+      <button class="btn sm" id="f-add">+ Pregunta</button>
+      <button class="btn primary block" id="xf-ok" style="margin-top:12px">Guardar</button>`;
+  };
+  draw();
+  m.addEventListener('input', e => { const t = e.target, i = +t.dataset.i; if (t.dataset.x === 'n') ex[i].nombre = t.value; else if (t.dataset.x === 'p') ex[i].precio = t.value === '' ? null : +t.value; else if (t.dataset.f) fq[i][t.dataset.f] = t.value; });
+  m.addEventListener('click', e => {
+    const t = e.target.closest('button'); if (!t) return; const i = +t.dataset.i;
+    if (t.hasAttribute('data-close')) m.close();
+    else if (t.dataset.x === 'a') { ex[i].activo = !ex[i].activo; draw(); }
+    else if (t.dataset.x === 'd') { ex.splice(i, 1); draw(); }
+    else if (t.dataset.f === 'd') { fq.splice(i, 1); draw(); }
+    else if (t.id === 'x-add') { ex.push({id: 'x_' + uid(), nombre: '', precio: null, activo: true}); draw(); }
+    else if (t.id === 'f-add') { fq.push({k: '', r: ''}); draw(); }
+    else if (t.id === 'xf-ok') { DB.extras = ex.filter(x => x.nombre.trim()); DB.faq = fq.filter(q => q.k.trim() && q.r.trim()); save(); m.close(); toast('Guardado. Publica de nuevo para que lo vean los clientes.'); }
+  });
+}
+
+/* ---------- AVISAR A CLIENTES ---------- */
+function openAvisar() {
+  const base = location.href.replace(/dueno\.html.*$/, '').replace(/[?#].*$/, '');
+  const link = base + 'index.html?m=' + encodePub(buildPub(DB));
+  const txt = `🍽 ¡Hola! Te escribe ${DB.cfg.nombre}. Ya tenemos menú de almuerzos caseros. Mira el menú y pide aquí:\n${link}`;
+  const l = [...DB.clientes].filter(c => c.tel).sort((a, b) => (b.frec ? 1 : 0) - (a.frec ? 1 : 0) || a.nombre.localeCompare(b.nombre, 'es'));
+  const m = modal(`<h3>Avisar a clientes <button class="ibtn" data-close>✕</button></h3>
+    <p class="muted" style="margin:0 0 6px">Edita el mensaje y toca 💬 en cada cliente: se abre WhatsApp con el texto listo (WhatsApp no permite envíos masivos automáticos).</p>
+    <textarea id="av-t" rows="5">${esc(txt)}</textarea>
+    ${l.length ? l.map(c => `<div class="row sb" style="padding:7px 0;border-bottom:1px dashed var(--borde)"><span>${c.frec ? '⭐ ' : ''}${esc(c.nombre)}<br><small class="muted">${esc(c.tel)}</small></span><button class="btn sm wa" data-t="${esc(c.tel)}" data-n="${esc(c.nombre)}">💬 Avisar</button></div>`).join('') : '<p class="muted">Aún no tienes clientes con teléfono. Agrégalos en la pestaña Clientes o se crean al importar pedidos.</p>'}`);
+  m.addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (!b) return; const t = $('#av-t', m).value.replace(/^🍽 ¡Hola!/, '🍽 ¡Hola ' + b.dataset.n.split(' ')[0] + '!'); window.open('https://wa.me/' + normTel(b.dataset.t) + '?text=' + encodeURIComponent(t), '_blank'); });
+}
+
 /* ---------- PEDIDOS ---------- */
 function vPed() {
   const h = hoyISO(), f = S.pedF;
@@ -108,6 +149,7 @@ function parsePedidoWA(t) {
   const dia = g(/D[ií]a:\s*(.+)/i), f = dia.match(/(\d{1,2})-(\d{1,2})-(\d{4})/), ent = g(/Entrega:\s*(.+)/i), despacho = /despacho/i.test(ent);
   return {nombre: g(/Nombre:\s*(.+)/i), tel: g(/Tel[eé]fono:\s*(.+)/i), fecha: f ? `${f[3]}-${pad2(f[2])}-${pad2(f[1])}` : null, hora: g(/Hora:\s*(\d{1,2}:\d{2})/i),
     items: [...t.matchAll(/^\s*[-•]\s*(\d+)\s*[x×]\s*(.+)$/gim)].map(m => ({cant: +m[1], nombre: m[2].trim()})),
+    total: +((t.match(/Total:\s*\$?\s*([\d.]+)/i) || [])[1] || '0').replace(/\./g, '') || 0,
     tipo: despacho ? 'despacho' : 'retiro', dir: despacho ? ent.replace(/^despacho\s*[:\-–]?\s*/i, '').trim() : '', nota: g(/Nota:\s*(.+)/i)};
 }
 function openPedido(id, fecha, pre) {
@@ -164,7 +206,7 @@ function listaCli() {
       <p class="muted" style="margin:4px 0">${esc(c.tel || 'sin teléfono')}${c.dir ? ' · ' + esc(c.dir) : ''}${c.nota ? ' · ' + esc(c.nota) : ''}</p>
       <div class="row wrap"><button class="btn sm" data-act="editCli" data-id="${c.id}">✏️ Editar</button><button class="btn sm primary" data-act="pedCli" data-id="${c.id}">+ Pedido</button>${c.tel ? `<button class="btn sm" data-act="waCli" data-t="${esc(c.tel)}">💬 WhatsApp</button>` : ''}</div></div>`; }).join('') || '<p class="muted">Sin clientes. Se crean solos al registrar pedidos, o con + Cliente.</p>';
 }
-function vCli() { return `<div class="row" style="margin:4px 0 10px"><input class="inp grow" placeholder="Buscar cliente…" data-b="busca" value="${esc(S.q)}"><button class="btn primary" data-act="nuevoCli">+ Cliente</button></div><div id="lista-cli">${listaCli()}</div>`; }
+function vCli() { return `<div class="row" style="margin:4px 0 10px"><input class="inp grow" placeholder="Buscar cliente…" data-b="busca" value="${esc(S.q)}"><button class="btn primary" data-act="nuevoCli">+ Cliente</button></div><div class="row wrap" style="margin-bottom:10px"><button class="btn sm wa" data-act="avisar">📣 Avisar menú a clientes</button></div><div id="lista-cli">${listaCli()}</div>`; }
 function openCliente(id) {
   const c = id ? DB.clientes.find(x => x.id === id) : {id: null, nombre: '', tel: '', dir: '', frec: true, nota: ''};
   const m = modal(`<h3>${id ? 'Editar' : 'Nuevo'} cliente <button class="ibtn" data-close>✕</button></h3>
@@ -209,9 +251,15 @@ async function openPlantillaDia(s) {
   const vis = mn.items.filter(i => !i.revisar), oc = mn.items.length - vis.length;
   const m = modal(`<h3>Plantilla del día <button class="ibtn" data-close>✕</button></h3><canvas id="cv"></canvas>
     <div class="row" style="margin-top:10px"><button class="btn primary grow" id="dl">⬇️ Descargar</button><button class="btn wa grow" id="sh">📤 Compartir</button></div>
+    <button class="btn block" id="cap" style="margin-top:8px">📋 Copiar texto para Facebook</button>
     <p class="muted">${oc ? `⚠️ ${oc} plato(s) por confirmar no aparecen. ` : ''}Agrega fotos de los platos en la pestaña Menú (📷).</p>`);
   const d = parseISO(s);
   await renderDia($('#cv', m), {dia: dkey(d), fecha: d, nombre: DB.cfg.nombre, wa: DB.cfg.wa, items: vis.map(i => ({nombre: i.nombre, foto: DB.fotos[i.id] || null})), guar: mn.guar, precio: mn.precio});
+  $('#cap', m).onclick = async () => {
+    const t = `🍽 Almuerzos caseros — ${fmtFecha(s)}\n${vis.map(i => '• ' + i.nombre).join('\n')}${mn.guar ? '\nCon: ' + mn.guar : ''}\n💲 ${money(mn.precio)}\n🛵 ${DB.cfg.aviso || 'Despacho gratis'}${DB.cfg.retiro ? '\n📍 Retiro: ' + DB.cfg.retiro : ''}\n📲 Pedidos por WhatsApp: +${DB.cfg.wa.replace(/^56(9)(\d{4})(\d{4})$/, '56 $1 $2 $3')}`;
+    try { await navigator.clipboard.writeText(t); } catch (e) { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+    toast('Texto copiado: pégalo en Facebook');
+  };
   $('#dl', m).onclick = () => descargarOCompartir($('#cv', m), 'menu-' + s, false);
   $('#sh', m).onclick = () => descargarOCompartir($('#cv', m), 'menu-' + s, true);
 }
@@ -240,11 +288,14 @@ function openAjustes() {
     <label class="field"><span>Aviso para clientes (opcional)</span><input id="a-avi" value="${esc(c.aviso)}" placeholder="Ej: Pedidos hasta las 11:00 del mismo día"></label>
     <label class="field"><span>¿Dónde retiran? (para el asistente)</span><input id="a-ret" value="${esc(c.retiro || '')}" placeholder="Ej: Pasaje X #123, Villa Y"></label>
     <label class="field"><span>Horario de reparto (para el asistente)</span><input id="a-rep" value="${esc(c.reparto || '')}" placeholder="Ej: de 12:30 a 14:30"></label>
+    <label class="field"><span>Ubicación del retiro: latitud, longitud (para el mapa)</span><input id="a-ll" value="${c.lat != null ? c.lat + ', ' + c.lng : ''}" placeholder="-35.412829, -71.612425"></label>
+    <button class="btn block" id="a-xf" style="margin-bottom:10px">🧩 Extras y preguntas del asistente</button>
     <button class="btn primary block" id="a-ok">Guardar</button>
     <h2>Respaldo</h2><p class="muted">Tus datos viven en este dispositivo. Exporta un respaldo de vez en cuando.</p>
     <div class="row wrap"><button class="btn" id="a-exp">⬇️ Exportar respaldo</button><button class="btn" id="a-imp">⬆️ Importar respaldo</button><button class="btn" id="a-tour">Ver recorrido guiado</button></div>
     <input type="file" id="a-file" accept="application/json" class="hide">`);
-  $('#a-ok', m).onclick = () => { c.nombre = $('#a-nom', m).value.trim() || 'La Cocina de Emi'; c.wa = $('#a-wa', m).value.replace(/\D/g, ''); c.capacidad = Math.max(1, +$('#a-cap', m).value || 20); c.aviso = $('#a-avi', m).value.trim(); c.avisoEditado = true; c.retiro = $('#a-ret', m).value.trim(); c.reparto = $('#a-rep', m).value.trim(); save(); m.close(); head(); render(); };
+  $('#a-ok', m).onclick = () => { c.nombre = $('#a-nom', m).value.trim() || 'La Cocina de Emi'; c.wa = $('#a-wa', m).value.replace(/\D/g, ''); c.capacidad = Math.max(1, +$('#a-cap', m).value || 20); c.aviso = $('#a-avi', m).value.trim(); c.avisoEditado = true; c.retiro = $('#a-ret', m).value.trim(); { const ll = $('#a-ll', m).value.split(',').map(x => parseFloat(x)); if (ll.length === 2 && ll.every(x => !isNaN(x))) { c.lat = ll[0]; c.lng = ll[1]; } else { c.lat = null; c.lng = null; } } c.reparto = $('#a-rep', m).value.trim(); save(); m.close(); head(); render(); };
+  $('#a-xf', m).onclick = () => { m.close(); openExtrasFaq(); };
   $('#a-exp', m).onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(DB)], {type: 'application/json'})); a.download = `respaldo-comida-${hoyISO()}.json`; a.click(); };
   $('#a-imp', m).onclick = () => $('#a-file', m).click();
   $('#a-file', m).onchange = async e => { try { const j = JSON.parse(await e.target.files[0].text()); if (j.v !== 1 || !j.menu) throw 0; if (confirm('Esto reemplaza todos los datos actuales. ¿Continuar?')) { DB = j; save(); m.close(); head(); render(); toast('Respaldo importado'); } } catch (x) { toast('Archivo de respaldo no válido'); } };
@@ -299,8 +350,9 @@ const ACT = {
   pedF: b => { S.pedF = b.dataset.f; render(); },
   pegarWA: () => {
     const m = modal(`<h3>Pegar pedido de WhatsApp <button class="ibtn" data-close>✕</button></h3><textarea id="wa-t" rows="9" placeholder="Pega aquí el mensaje que te llegó…"></textarea><button class="btn primary block" id="wa-ok" style="margin-top:10px">Crear pedido</button>`);
-    $('#wa-ok', m).onclick = () => { const p = parsePedidoWA($('#wa-t', m).value); if (!p.nombre || !p.items.length) return toast('No pude leer el pedido: revisa que sea el mensaje de la app'); m.close(); openPedido(null, p.fecha, p); };
+    $('#wa-ok', m).onclick = () => { const p = parsePedidoWA($('#wa-t', m).value); if (!p.nombre || !p.items.length) return toast('No pude leer el pedido: revisa que sea el mensaje de la app'); m.close(); if (p.total) p.manual = true; openPedido(null, p.fecha, p); };
   },
+  avisar: openAvisar,
   nuevoCli: () => openCliente(null),
   editCli: b => openCliente(b.dataset.id),
   pedCli: b => { const c = DB.clientes.find(x => x.id === b.dataset.id); openPedido(null, hoyISO(), {nombre: c.nombre, tel: c.tel, dir: c.dir, tipo: c.dir ? 'despacho' : 'retiro'}); },

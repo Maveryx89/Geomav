@@ -49,7 +49,19 @@ const CATALOGO_BASE = [
   ['cat_ensalada','Ensalada surtida','extra','fotos/ensalada.jpg'],['cat_empanada','Empanada de horno (pino) $1.000','extra','fotos/emp_horno.jpg'],
   ['cat_pan','Pan amasado','extra','fotos/pan_amasado.jpg']
 ].map(([id, nombre, tipo, foto]) => ({id, nombre, tipo, foto}));
-const DEF_CFG = {nombre:'La Cocina de Emi', wa:'56986200429', capacidad:20, aviso:'Despacho gratis en Bicentenario y Valles del Country'};
+const DEF_CFG = {nombre:'La Cocina de Emi', wa:'56986200429', capacidad:20, aviso:'Despacho gratis en Bicentenario y Valles del Country',
+  retiro:'23 Norte #3634, Talca', lat:-35.412829, lng:-71.612425, reparto:''};
+/* Extras que el cliente puede sumar al pedido (el dueño los edita en Ajustes → Extras y asistente) */
+const EXTRAS_BASE = [{id:'x_emp', nombre:'Empanada de horno (pino)', precio:1000, activo:true},
+  {id:'x_pan', nombre:'Pan amasado (6 unidades)', precio:1000, activo:false}, {id:'x_ceb', nombre:'Ceviche de salmón', precio:3000, activo:false}];
+const normN = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+/* Foto de un plato por su nombre: primero la publicada (ph), luego el catálogo base */
+function fotoPlato(nombre, ph) {
+  if (ph && ph[nombre]) return ph[nombre];
+  const n = normN(nombre);
+  for (const c of CATALOGO_BASE) if (c.foto && c.foto.startsWith('fotos/')) { const k = normN(c.nombre); if (n === k || n.includes(k) || k.includes(n)) return c.foto; }
+  return '';
+}
 
 function seedDB() {
   const mk = (k, items, guar, precio) => ({
@@ -66,7 +78,7 @@ function seedDB() {
       vie: mk('vie', [['Chuleta … (revisar)', 1], ['Budín de zapallo'], ['Lentejas']], ''),
       sab: mk('sab', [['Pollo asado con papas'], ['Pollo asado con arroz y papas fritas']], '')
     },
-    menuFecha: {}, fotos: {...FOTOS_BASE}, fotosInit: true, catInit: true, catalogo: structuredClone(CATALOGO_BASE), clientes: [], pedidos: [], gastos: [], compras: [], bloqueados: {}
+    menuFecha: {}, fotos: {...FOTOS_BASE}, fotosInit: true, catInit: true, catalogo: structuredClone(CATALOGO_BASE), extras: structuredClone(EXTRAS_BASE), faq: [], clientes: [], pedidos: [], gastos: [], compras: [], bloqueados: {}
   };
 }
 /* Migra valores por defecto antiguos (guardados antes de configurar La Cocina de Emi) */
@@ -76,6 +88,7 @@ function migrarCfg(c) {
   if (WA_VIEJOS.includes(c.wa)) c.wa = DEF_CFG.wa;
   if (c.nombre === NOMBRE_VIEJO) c.nombre = DEF_CFG.nombre;
   if (c.aviso === '' && !c.avisoEditado) c.aviso = DEF_CFG.aviso;
+  if (c.retiro === undefined) { c.retiro = DEF_CFG.retiro; c.lat = DEF_CFG.lat; c.lng = DEF_CFG.lng; c.reparto = c.reparto || ''; }
   return c;
 }
 function loadDB() {
@@ -83,6 +96,8 @@ function loadDB() {
       migrarCfg(r.cfg);
       if (!r.fotosInit) { r.fotos = r.fotos || {}; for (const [id, u] of Object.entries(FOTOS_BASE)) if (!r.fotos[id]) r.fotos[id] = u; r.fotosInit = true; }
       if (!r.catInit) { r.catalogo = r.catalogo || structuredClone(CATALOGO_BASE); r.catInit = true; }
+      if (!r.extras) r.extras = structuredClone(EXTRAS_BASE);
+      if (!r.faq) r.faq = [];
       if (!r.preciosInit) { for (const k of Object.keys(r.menu)) if (r.menu[k].precio == null) r.menu[k].precio = PRECIO_BASE; r.preciosInit = true; }
       return r;
     } } catch (e) {}
@@ -101,13 +116,16 @@ function menuDeDB(db, s) {
 /* ===== Menú publicado para clientes (viaja dentro del enlace) ===== */
 function buildPub(db) {
   const hoy = iso(new Date());
-  const lite = d => ({i: d.items.filter(x => !x.revisar).map(x => x.nombre), g: d.guar || '', p: d.precio});
+  const lite = d => { const its = d.items.filter(x => !x.revisar), ph = {};
+    its.forEach(x => { const f = db.fotos[x.id]; if (f && f.startsWith('fotos/')) ph[x.nombre] = f; });
+    return {i: its.map(x => x.nombre), g: d.guar || '', p: d.precio, ph}; };
   const m = {};
   for (const k of ['lun','mar','mie','jue','vie','sab']) m[k] = lite(db.menu[k]);
   const f = {};
   for (const [s, d] of Object.entries(db.menuFecha || {})) if (s >= hoy) f[s] = lite(d);
   const b = Object.keys(db.bloqueados || {}).filter(s => s >= hoy);
-  return {v: 2, n: db.cfg.nombre, w: db.cfg.wa, a: db.cfg.aviso || '', r: db.cfg.retiro || '', h: db.cfg.reparto || '', m, f, b};
+  return {v: 2, n: db.cfg.nombre, w: db.cfg.wa, a: db.cfg.aviso || '', r: db.cfg.retiro || '', h: db.cfg.reparto || '', l: db.cfg.lat != null && db.cfg.lng != null ? [db.cfg.lat, db.cfg.lng] : null,
+    x: (db.extras || []).filter(e => e.activo && e.nombre).map(e => ({n: e.nombre, p: e.precio})), q: (db.faq || []).filter(q => q.k && q.r), m, f, b};
 }
 function migrarPub(p) {
   if (!p) return p;

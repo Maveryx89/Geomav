@@ -54,7 +54,7 @@
       return {h: '<strong>Hoy no atendemos</strong> (' + e.motivo + ').' + (p ? ' Volvemos <strong>' + nomDia(p.s, p.i) + '</strong>.' : ''), pedir: !!p};
     },
     ubicacion() {
-      return {h: pub.r ? '<strong>Retiro:</strong> ' + esc(pub.r) + '<br>Si prefieres, <strong>despachamos a domicilio</strong>: ' + esc(lc(pub.a) || 'despacho gratis en Bicentenario y Valles del Country') + '.' : 'Para <strong>retirar</strong> te indicamos la dirección exacta por WhatsApp al confirmar tu pedido.<br>' + 'Despacho a domicilio: ' + esc(pub.a ? lc(pub.a) : 'despacho gratis en Bicentenario y Valles del Country') + '.', wa: 'quiero saber dónde retirar mi pedido'};
+      return {h: pub.r ? '<strong>Retiro:</strong> ' + esc(pub.r) + '<br>Si prefieres, <strong>despachamos a domicilio</strong>: ' + esc(lc(pub.a) || 'despacho gratis en Bicentenario y Valles del Country') + '.' : 'Para <strong>retirar</strong> te indicamos la dirección exacta por WhatsApp al confirmar tu pedido.<br>' + 'Despacho a domicilio: ' + esc(pub.a ? lc(pub.a) : 'despacho gratis en Bicentenario y Valles del Country') + '.', wa: 'quiero saber dónde retirar mi pedido', mapa: pub.l};
     },
     reparto() {
       return {h: '<strong>Despacho a domicilio:</strong> ' + esc(lc(pub.a) || 'despacho gratis en Bicentenario y Valles del Country') + '.' + (pub.h ? '<br><strong>Horario de reparto:</strong> ' + esc(pub.h) + '.' : '<br>La hora la eliges al hacer el pedido (12:00 a 14:30) y la confirmamos por WhatsApp.'), pedir: 1};
@@ -66,7 +66,8 @@
       return {h: '<strong>Cómo pedir:</strong><ol><li>Elige el día.</li><li>Elige tu almuerzo con + y −.</li><li>Pon tu nombre y si retiras o despachamos.</li><li>Toca «Enviar pedido por WhatsApp».</li></ol>Tu pedido queda confirmado cuando te respondemos.', pedir: 1};
     },
     extras() {
-      return {h: 'Además del almuerzo preparamos <strong>empanadas de horno</strong>, <strong>pan amasado</strong> y <strong>ceviche de salmón</strong> según el día. Escríbenos para saber disponibilidad y valor.', wa: 'quiero consultar por empanadas, pan amasado o ceviche'};
+      const x = pub.x || [];
+      return {h: (x.length ? '<strong>Extras que puedes sumar a tu pedido:</strong><ul>' + x.map(e => '<li>' + esc(e.n) + ' — ' + money(e.p) + '</li>').join('') + '</ul>' : '') + 'Además preparamos <strong>empanadas de horno</strong>, <strong>pan amasado</strong> y <strong>ceviche de salmón</strong> según el día: escríbenos para confirmar disponibilidad y valor.', pedir: x.length > 0, wa: 'quiero consultar por empanadas, pan amasado o ceviche'};
     },
     receta() {
       return {h: 'Las recetas son de la casa 😊. Si quieres un plato en especial, escríbenos y vemos si lo preparamos.', wa: 'tengo una consulta sobre una preparación'};
@@ -115,12 +116,19 @@
     const ch = document.createElement('div'); ch.className = 'abot-chips';
     if (r.pedir) { const b = document.createElement('button'); b.type = 'button'; b.className = 'abot-chip on'; b.textContent = '🍽 Hacer mi pedido'; b.onclick = () => { cerrar(); const x = $('#platos'); if (x) x.scrollIntoView({behavior: 'smooth', block: 'start'}); }; ch.appendChild(b); }
     if (r.wa) { const a = document.createElement('a'); a.className = 'abot-chip wa'; a.href = wa(r.wa); a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Escribir por WhatsApp'; ch.appendChild(a); }
+    if (r.mapa) { const a = document.createElement('a'); a.className = 'abot-chip'; a.href = 'https://www.google.com/maps?q=' + r.mapa[0] + ',' + r.mapa[1]; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '📍 Ver en el mapa'; ch.appendChild(a); }
     if (r.tel) { const a = document.createElement('a'); a.className = 'abot-chip'; a.href = 'tel:+' + r.tel; a.textContent = '📞 Llamar'; ch.appendChild(a); }
     if (ch.children.length) d.appendChild(ch);
     $m.appendChild(d); bajar();
   }
   function responder(id) { bot(R[id]()); }
+  function propia(t) {   // preguntas y respuestas que agregó el dueño (tienen prioridad)
+    const n = norm(t); let mejor = null, bp = 0;
+    for (const q of pub.q || []) { const p = puntuar(n, String(q.k).split(',')); if (p > bp) { bp = p; mejor = q; } }
+    return bp >= 2 ? mejor : null;
+  }
   function texto(t) {
+    const q = propia(t); if (q) return bot({h: esc(q.r).replace(/\n/g, '<br>'), wa: 'tengo una consulta: «' + t.slice(0, 120) + '»'});
     const id = buscar(t);
     if (id) responder(id);
     else bot({h: 'No encontré una respuesta exacta para eso. Elige una opción del menú o consúltalo por WhatsApp.', wa: 'tengo una consulta: «' + t.slice(0, 120) + '»'});
