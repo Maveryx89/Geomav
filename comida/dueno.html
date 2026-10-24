@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Almuerzos — Panel del dueño</title>
+<meta name="theme-color" content="#0A2240">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest-dueno.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="comida.css">
+</head>
+<body>
+<div class="app wide">
+  <header class="top">
+    <h1 id="marca">Panel del dueño<small>Pedidos · menú · finanzas</small></h1>
+    <button class="ibtn" id="btn-ajustes" aria-label="Ajustes">⚙️</button>
+    <button class="ibtn" id="btn-ayuda" aria-label="Ayuda">?</button>
+  </header>
+  <main id="main"></main>
+  <p class="foot"><a href="index.html">Ver como cliente</a></p>
+</div>
+<nav class="tabbar"><div class="in" id="tabs">
+  <button class="tab" data-tab="cal"><span>📅</span>Calendario</button>
+  <button class="tab" data-tab="menu"><span>🍽</span>Menú</button>
+  <button class="tab" data-tab="ped"><span>🧾</span>Pedidos</button>
+  <button class="tab" data-tab="cli"><span>👥</span>Clientes</button>
+  <button class="tab" data-tab="fin"><span>💰</span>Finanzas</button>
+  <button class="tab" data-tab="comp"><span>🛒</span>Compras</button>
+</div></nav>
+<input type="file" id="file-foto" accept="image/*" class="hide">
+<script src="shared.js"></script>
+<script src="dueno.js"></script>
+</body>
+</html>

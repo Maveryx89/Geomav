@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Almuerzos — Haz tu pedido</title>
+<meta name="theme-color" content="#C8442B">
+<link rel="manifest" href="manifest-cliente.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="comida.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1 id="marca">Almuerzos<small>Menú del día · pedidos por WhatsApp</small></h1>
+    <button class="ibtn" id="btn-ayuda" aria-label="Ayuda">?</button>
+  </header>
+
+  <div id="aviso" class="card hide"></div>
+
+  <h2>1. Elige el día</h2>
+  <div class="chips" id="fechas"></div>
+
+  <h2>2. Elige tu almuerzo</h2>
+  <div class="card" id="platos"></div>
+
+  <h2>3. Tus datos</h2>
+  <div class="card" id="datos">
+    <label class="field"><span>Nombre</span><input id="f-nombre" autocomplete="name"></label>
+    <label class="field"><span>Teléfono (opcional)</span><input id="f-tel" type="tel" autocomplete="tel"></label>
+    <div class="row">
+      <label class="field grow"><span>Entrega</span>
+        <select id="f-tipo"><option value="retiro">Retiro</option><option value="despacho">Despacho a domicilio</option></select></label>
+      <label class="field grow"><span>Hora</span>
+        <select id="f-hora"></select></label>
+    </div>
+    <label class="field hide" id="w-dir"><span>Dirección de despacho</span><input id="f-dir" autocomplete="street-address"></label>
+    <label class="field"><span>Nota (opcional)</span><textarea id="f-nota" placeholder="Ej: sin ensalada, arroz en vez de puré"></textarea></label>
+  </div>
+
+  <div class="card">
+    <div class="row sb"><span>Total</span><span class="total" id="total">—</span></div>
+    <p class="muted" id="resumen" style="margin:6px 0 10px"></p>
+    <button class="btn wa block" id="btn-enviar" disabled>Enviar pedido por WhatsApp</button>
+    <p class="muted" style="margin:8px 0 0">Se abrirá WhatsApp con tu pedido listo. El pedido queda confirmado cuando te respondamos.</p>
+  </div>
+
+  <p class="foot"><a href="dueno.html">Soy el dueño</a></p>
+</div>
+<script src="shared.js"></script>
+<script src="cliente.js"></script>
+</body>
+</html>
