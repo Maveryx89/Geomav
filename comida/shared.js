@@ -52,8 +52,17 @@ function seedDB() {
     menuFecha: {}, fotos: {}, clientes: [], pedidos: [], gastos: [], compras: [], bloqueados: {}
   };
 }
+/* Migra valores por defecto antiguos (guardados antes de configurar La Cocina de Emi) */
+const WA_VIEJO = '56984867813', NOMBRE_VIEJO = 'Almuerzos caseros';
+function migrarCfg(c) {
+  if (!c) return c;
+  if (c.wa === WA_VIEJO) c.wa = DEF_CFG.wa;
+  if (c.nombre === NOMBRE_VIEJO) c.nombre = DEF_CFG.nombre;
+  if (c.aviso === '' && !c.avisoEditado) c.aviso = DEF_CFG.aviso;
+  return c;
+}
 function loadDB() {
-  try { const r = JSON.parse(localStorage.getItem(DB_KEY)); if (r && r.v === 1) return r; } catch (e) {}
+  try { const r = JSON.parse(localStorage.getItem(DB_KEY)); if (r && r.v === 1) { migrarCfg(r.cfg); return r; } } catch (e) {}
   return seedDB();
 }
 function saveDB(db) {
@@ -76,6 +85,13 @@ function buildPub(db) {
   for (const [s, d] of Object.entries(db.menuFecha || {})) if (s >= hoy) f[s] = lite(d);
   const b = Object.keys(db.bloqueados || {}).filter(s => s >= hoy);
   return {n: db.cfg.nombre, w: db.cfg.wa, a: db.cfg.aviso || '', m, f, b};
+}
+function migrarPub(p) {
+  if (!p) return p;
+  if (p.w === WA_VIEJO) p.w = DEF_CFG.wa;
+  if (p.n === NOMBRE_VIEJO) p.n = DEF_CFG.nombre;
+  if (!p.a) p.a = DEF_CFG.aviso;
+  return p;
 }
 function pubMenu(pub, s) {
   const x = (pub.f && pub.f[s]) || (pub.m && pub.m[dkey(parseISO(s))]);
