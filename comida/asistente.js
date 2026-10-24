@@ -106,7 +106,7 @@
   lan.className = 'abot-lan'; lan.type = 'button'; lan.setAttribute('aria-label', 'Abrir asistente'); lan.innerHTML = '💬 <span>¿Dudas?</span>';
   const pan = document.createElement('section');
   pan.className = 'abot-pan'; pan.hidden = true; pan.setAttribute('role', 'dialog'); pan.setAttribute('aria-label', 'Asistente');
-  pan.innerHTML = '<header><div><b>Asistente de ' + esc(pub.n || 'La Cocina de Emi') + '</b><small>Respuestas rápidas</small></div><button type="button" class="abot-x" aria-label="Cerrar">✕</button></header><div class="abot-msgs" role="log" aria-live="polite"></div><div class="abot-atajos"></div><form class="abot-form" autocomplete="off"><input class="abot-in" maxlength="160" placeholder="Escribe tu duda…" aria-label="Escribe tu duda"><button type="submit" aria-label="Enviar">➤</button></form>';
+  pan.innerHTML = '<header><img src="logo-192.png" alt=""><div><b>Asistente de ' + esc(pub.n || 'La Cocina de Emi') + '</b><small>Respuestas rápidas</small></div><button type="button" class="abot-x" aria-label="Cerrar">✕</button></header><div class="abot-msgs" role="log" aria-live="polite"></div><div class="abot-atajos"></div><form class="abot-form" autocomplete="off"><input class="abot-in" maxlength="160" placeholder="Escribe tu duda…" aria-label="Escribe tu duda"><button type="submit" aria-label="Enviar">➤</button></form>';
   document.body.append(lan, pan);
   const $m = $('.abot-msgs', pan), $a = $('.abot-atajos', pan), $in = $('.abot-in', pan);
   const bajar = () => { $m.scrollTop = $m.scrollHeight; };

@@ -216,8 +216,10 @@ async function renderDia(canvas, o) {
   const W = 1080, H = 1350; canvas.width = W; canvas.height = H;
   const c = canvas.getContext('2d'), col = COLOR_DIA[o.dia] || '#444';
   c.fillStyle = col; c.fillRect(0, 0, W, H);
+  const lg = await loadImg('logo.png');
   c.globalAlpha = .10; c.fillStyle = '#fff';
   c.beginPath(); c.arc(W - 80, 120, 260, 0, 7); c.fill(); c.beginPath(); c.arc(40, H - 60, 300, 0, 7); c.fill(); c.globalAlpha = 1;
+  if (lg) c.drawImage(lg, W - 250, 36, 190, 190);
   c.fillStyle = '#fff'; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
   c.font = '700 34px system-ui,sans-serif'; c.fillText((o.nombre || '').toUpperCase(), 70, 100);
   c.globalAlpha = .85; c.font = '500 30px system-ui,sans-serif'; c.fillText('MENÚ DEL DÍA', 70, 146); c.globalAlpha = 1;
@@ -262,10 +264,11 @@ async function renderDia(canvas, o) {
 }
 
 /* o = {nombre, wa, dias:[{key, items:[nombre], precio}]} — 1080×1920 */
-function renderSemana(canvas, o) {
+async function renderSemana(canvas, o) {
   const W = 1080, H = 1920; canvas.width = W; canvas.height = H;
   const c = canvas.getContext('2d');
   c.fillStyle = '#FFF8EE'; c.fillRect(0, 0, W, H);
+  const lg = await loadImg('logo.png'); if (lg) c.drawImage(lg, W - 230, 30, 180, 180);
   c.fillStyle = '#2B1D14'; c.textAlign = 'left';
   c.font = '700 34px system-ui,sans-serif'; c.fillText((o.nombre || '').toUpperCase(), 60, 90);
   c.font = '800 96px system-ui,sans-serif'; c.fillText('Menú de la semana', 56, 190);
