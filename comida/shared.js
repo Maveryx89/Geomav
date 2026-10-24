@@ -42,7 +42,7 @@ const CATALOGO_BASE = [
   ['cat_pechuga','Pechuga apanada','almuerzo',''],['cat_charquican','Charquicán con huevo frito','almuerzo',''],
   ['cat_pescado','Pescado frito','almuerzo',''],['cat_estofado','Estofado de vacuno','almuerzo','fotos/mie3.jpg'],
   ['cat_polloasado','Pollo asado','almuerzo','fotos/pollo_horno.jpg'],['cat_pollopapas','Pollo al horno con papas fritas y ensalada','almuerzo','fotos/sab1.jpg'],
-  ['cat_polloarroz','Pollo asado con arroz y papas fritas','almuerzo','fotos/sab2.jpg'],['cat_pollotallarin','Pollo con verduras y tallarín','almuerzo','fotos/pollo_tallarin.jpg'],
+  ['cat_pollopfritas','Pollo asado con papas fritas','almuerzo','fotos/sab1.jpg'],['cat_polloarroz','Pollo asado con arroz','almuerzo','fotos/sab2.jpg'],['cat_pollotallarin','Pollo con verduras y tallarín','almuerzo','fotos/pollo_tallarin.jpg'],
   ['cat_tallarin','Tallarín con salsa de carne','almuerzo','fotos/tallarin_carne.jpg'],['cat_chuletavelada','Chuleta velada al horno','almuerzo',''],
   ['cat_lentejas','Lentejas con longaniza y ensalada','almuerzo',''],['cat_budin','Budín de zapallo','almuerzo',''],
   ['cat_pastelchoclo','Pastel de choclo','almuerzo',''],['cat_cebiche','Cebiche de salmón','almuerzo',''],
@@ -78,7 +78,7 @@ function seedDB() {
       mie: mk('mie', [['Charquicán con… (completar)', 1], ['Pescado'], ['Estofado de vacuno']], ''),
       jue: mk('jue', [['Pollo asado'], ['Tallarín con salsa'], ['Chuleta velada al horno (revisar)', 1]], ''),
       vie: mk('vie', [['Chuleta … (revisar)', 1], ['Budín de zapallo'], ['Lentejas']], ''),
-      sab: mk('sab', [['Pollo asado con papas'], ['Pollo asado con arroz y papas fritas']], '')
+      sab: mk('sab', [['Pollo asado con papas fritas'], ['Pollo asado con arroz']], '')
     },
     menuFecha: {}, fotos: {...FOTOS_BASE}, fotosInit: true, catInit: true, catalogo: structuredClone(CATALOGO_BASE), extras: structuredClone(EXTRAS_BASE), faq: [], clientes: [], pedidos: [], gastos: [], compras: [], bloqueados: {}
   };
@@ -99,6 +99,9 @@ function loadDB() {
       migrarCfg(r.cfg);
       if (!r.fotosInit) { r.fotos = r.fotos || {}; for (const [id, u] of Object.entries(FOTOS_BASE)) if (!r.fotos[id]) r.fotos[id] = u; r.fotosInit = true; }
       if (!r.catInit) { r.catalogo = r.catalogo || structuredClone(CATALOGO_BASE); r.catInit = true; }
+      if (!r.sabInit) { r.sabInit = true; const sb = r.menu && r.menu.sab; if (sb && sb.items.length === 2 && sb.items[0].nombre === 'Pollo asado con papas' && sb.items[1].nombre === 'Pollo asado con arroz y papas fritas') { sb.items[0].nombre = 'Pollo asado con papas fritas'; sb.items[1].nombre = 'Pollo asado con arroz'; }
+        const ca = (r.catalogo || []).find(x => x.id === 'cat_polloarroz'); if (ca && ca.nombre === 'Pollo asado con arroz y papas fritas') ca.nombre = 'Pollo asado con arroz';
+        if (r.catalogo && !r.catalogo.some(x => x.id === 'cat_pollopfritas')) r.catalogo.push({id: 'cat_pollopfritas', nombre: 'Pollo asado con papas fritas', tipo: 'almuerzo', foto: 'fotos/sab1.jpg'}); }
       if (!r.extras) r.extras = structuredClone(EXTRAS_BASE);
       if (!r.faq) r.faq = [];
       if (!r.preciosInit) { for (const k of Object.keys(r.menu)) if (r.menu[k].precio == null) r.menu[k].precio = PRECIO_BASE; r.preciosInit = true; }
