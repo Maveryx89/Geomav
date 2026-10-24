@@ -32,8 +32,10 @@
 
   <h2>3. Tus datos</h2>
   <div class="card" id="datos">
-    <label class="field"><span>Nombre</span><input id="f-nombre" autocomplete="name"></label>
-    <label class="field"><span>Teléfono (opcional)</span><input id="f-tel" type="tel" autocomplete="tel"></label>
+    <div class="row">
+      <label class="field grow"><span>Nombre</span><input id="f-nombre" autocomplete="name"></label>
+      <label class="field grow"><span>Teléfono</span><input id="f-tel" type="tel" inputmode="tel" autocomplete="tel"></label>
+    </div>
     <div class="row">
       <label class="field grow"><span>Entrega</span>
         <select id="f-tipo"><option value="retiro">Retiro</option><option value="despacho">Despacho a domicilio</option></select></label>
