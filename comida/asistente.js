@@ -66,8 +66,7 @@
       return {h: '<strong>Cómo pedir:</strong><ol><li>Elige el día.</li><li>Elige tu almuerzo con + y −.</li><li>Pon tu nombre y si retiras o despachamos.</li><li>Toca «Enviar pedido por WhatsApp».</li></ol>Tu pedido queda confirmado cuando te respondemos.', pedir: 1};
     },
     extras() {
-      const x = pub.x || [];
-      return {h: (x.length ? '<strong>Extras que puedes sumar a tu pedido:</strong><ul>' + x.map(e => '<li>' + esc(e.n) + ' — ' + money(e.p) + '</li>').join('') + '</ul>' : '') + 'Además preparamos <strong>empanadas de horno</strong>, <strong>pan amasado</strong> y <strong>ceviche de salmón</strong> según el día: escríbenos para confirmar disponibilidad y valor.', pedir: x.length > 0, wa: 'quiero consultar por empanadas, pan amasado o ceviche'};
+      return {h: 'Además del almuerzo preparamos <strong>empanadas de horno</strong>, <strong>pan amasado</strong> y <strong>ceviche de salmón</strong> según el día: escríbenos para confirmar disponibilidad y valor.', wa: 'quiero consultar por empanadas, pan amasado o ceviche'};
     },
     receta() {
       return {h: 'Las recetas son de la casa 😊. Si quieres un plato en especial, escríbenos y vemos si lo preparamos.', wa: 'tengo una consulta sobre una preparación'};

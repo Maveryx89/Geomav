@@ -13,13 +13,15 @@
   pub.b = pub.b || []; pub.f = pub.f || {}; window.__pub = pub;
 
   $('#marca').innerHTML = `${esc(pub.n || 'Almuerzos')}<small>Menú del día · pedidos por WhatsApp</small>`;
-  { const fn = $('#foot-n'); if (fn) fn.textContent = pub.n || 'la cocina'; }
   document.title = (pub.n || 'Almuerzos') + ' — Haz tu pedido';
-  if (pub.a) { const a = $('#aviso'); a.textContent = pub.a; a.classList.remove('hide'); }
 
-  /* --- retiro + mapa --- */
-  if (pub.r) { const r = $('#retiro'); const mapa = ` · <a href="${mapaUrl(pub.r, pub.l)}" target="_blank" rel="noopener">📍 Ver en el mapa</a>`;
-    r.innerHTML = `<b>Retiro:</b> ${esc(pub.r)}${mapa}`; r.classList.remove('hide'); }
+  /* --- ubicación del local (botón junto al ?) --- */
+  const mapaLocal = pub.r ? mapaUrl(pub.r, pub.l) : '';
+  if (pub.r) {
+    $('#btn-ubic').classList.remove('hide');
+    $('#btn-ubic').onclick = () => { const m = modal(`<h3>Ubicación <button class="ibtn" data-close>✕</button></h3><p style="margin:0 0 12px">📍 ${esc(pub.r)}</p><a class="btn primary block" style="text-align:center;text-decoration:none" href="${mapaLocal}" target="_blank" rel="noopener">Abrir en Google Maps</a>`); };
+  }
+  let ubic = null;   // ubicación del cliente para despacho
 
   /* --- fechas disponibles (próximos 14 días) --- */
   const hoy = new Date(), dias = [];
@@ -33,10 +35,11 @@
   }
   let sel = (dias.find(x => !x.motivo) || {}).s || null;
   let qty = {}, qtyX = {};
+  const MOSTRAR_EXTRAS = false;   // extras ocultos por ahora (la lógica queda lista)
 
   const pr = () => { const m = sel && pubMenu(pub, sel); return m ? m.p : null; };
   const nPorc = () => Object.values(qty).reduce((a, b) => a + b, 0);
-  const xs = pub.x || [], totX = () => xs.reduce((a, e) => a + (qtyX[e.n] || 0) * (e.p || 0), 0), nX = () => Object.values(qtyX).reduce((a, b) => a + b, 0);
+  const xs = MOSTRAR_EXTRAS ? (pub.x || []) : [], totX = () => xs.reduce((a, e) => a + (qtyX[e.n] || 0) * (e.p || 0), 0), nX = () => Object.values(qtyX).reduce((a, b) => a + b, 0);
 
   function drawFechas() {
     $('#fechas').innerHTML = dias.filter(x => x.m).map(x =>
@@ -87,19 +90,30 @@
   $('#f-hora').value = '13:00';
   const ls = (k, v) => { try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); } catch (e) { return ''; } };
   $('#f-nombre').value = ls('comida_nombre'); $('#f-tel').value = ls('comida_tel'); $('#f-dir').value = ls('comida_dir');
-  const tipoChg = () => $('#w-dir').classList.toggle('hide', $('#f-tipo').value !== 'despacho');
+  const tipoChg = () => {
+    const d = $('#f-tipo').value === 'despacho';
+    $('#w-dir').classList.toggle('hide', !d);
+    const r = $('#ent-retiro'); r.classList.toggle('hide', d);
+    r.innerHTML = pub.r ? `<b>📍 Retiro en:</b> ${esc(pub.r)} · <a href="${mapaLocal}" target="_blank" rel="noopener">Ver en el mapa</a>` : 'La dirección de retiro te la confirmamos por WhatsApp.';
+  };
+  $('#btn-geo').onclick = () => {
+    if (!navigator.geolocation) return toast('Tu navegador no permite compartir ubicación');
+    $('#geo-est').textContent = 'Buscando tu ubicación…';
+    navigator.geolocation.getCurrentPosition(p => { ubic = [+p.coords.latitude.toFixed(6), +p.coords.longitude.toFixed(6)]; $('#geo-est').textContent = '✓ Ubicación lista'; },
+      () => { ubic = null; $('#geo-est').textContent = ''; toast('No pude obtener tu ubicación: escribe tu dirección'); }, {enableHighAccuracy: true, timeout: 15000});
+  };
   $('#f-tipo').onchange = tipoChg;
 
   $('#btn-enviar').onclick = () => {
     const nombre = $('#f-nombre').value.trim(), tipo = $('#f-tipo').value, dir = $('#f-dir').value.trim();
     if (!nombre) { toast('Escribe tu nombre'); $('#f-nombre').focus(); return; }
-    if (tipo === 'despacho' && !dir) { toast('Escribe la dirección de despacho'); $('#f-dir').focus(); return; }
+    if (tipo === 'despacho' && !dir && !ubic) { toast('Escribe tu dirección o toca «Enviar mi ubicación»'); $('#f-dir').focus(); return; }
     ls('comida_nombre', nombre); ls('comida_tel', $('#f-tel').value.trim()); ls('comida_dir', dir);
     const d = parseISO(sel), p = pr(), n = nPorc();
     const L = ['🍽 *Pedido de almuerzo*', `Nombre: ${nombre}`];
     if ($('#f-tel').value.trim()) L.push(`Teléfono: ${$('#f-tel').value.trim()}`);
     L.push(`Día: ${DIAS_NOM[d.getDay()]} ${pad2(d.getDate())}-${pad2(d.getMonth() + 1)}-${d.getFullYear()}`, `Hora: ${$('#f-hora').value}`,
-      tipo === 'despacho' ? `Entrega: Despacho: ${dir}` : 'Entrega: Retiro', 'Pedido:');
+      tipo === 'despacho' ? `Entrega: Despacho: ${dir || 'ver ubicación'}` : 'Entrega: Retiro', ...(tipo === 'despacho' && ubic ? [`Ubicación: https://maps.google.com/?q=${ubic[0]},${ubic[1]}`] : []), 'Pedido:');
     Object.entries(qty).forEach(([k, v]) => L.push(`- ${v} x ${k}`));
     Object.entries(qtyX).forEach(([k, v]) => L.push(`- ${v} x ${k}`));
     if (p != null || (!n && nX())) L.push(`Total: ${money((n && p != null ? n * p : 0) + totX())}`);
@@ -119,6 +133,7 @@
     const m = modal(`<h3>Cómo pedir <button class="ibtn" data-close>✕</button></h3>
       <ol><li>Elige el día con menú disponible.</li><li>Marca cuántas porciones de cada plato quieres.</li><li>Completa tus datos y la hora de retiro o despacho.</li><li>Presiona <b>Enviar pedido por WhatsApp</b>.</li></ol>
       <p class="muted">Tu pedido queda confirmado cuando te respondamos por WhatsApp.</p>
+      <p class="muted">Tus datos (nombre, teléfono, dirección y ubicación) se usan solo para tu pedido y se envían por WhatsApp a ${esc(pub.n || 'la cocina')}. No se guardan en ningún servidor.</p>
       <button class="btn primary block" id="rep">Ver recorrido guiado</button>`);
     $('#rep', m).onclick = () => { m.close(); tour(PASOS, 'comida_tour_cliente', true); };
   };

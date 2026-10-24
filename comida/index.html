@@ -15,11 +15,10 @@
   <header class="top">
     <img class="logo" src="logo-192.png" alt="La Cocina de Emi" width="40" height="40">
     <h1 id="marca">La Cocina de Emi<small>Menú del día · pedidos por WhatsApp</small></h1>
+    <button class="pill hide" id="btn-ubic" aria-label="Ubicación">📍 Ubicación</button>
     <button class="ibtn" id="btn-ayuda" aria-label="Ayuda">?</button>
   </header>
 
-  <div id="aviso" class="card hide"></div>
-  <div id="retiro" class="card hide"></div>
   <div id="hoy" class="card hoy hide"></div>
 
   <h2>1. Elige el día</h2>
@@ -41,7 +40,11 @@
       <label class="field grow"><span>Hora</span>
         <select id="f-hora"></select></label>
     </div>
-    <label class="field hide" id="w-dir"><span>Dirección de despacho</span><input id="f-dir" autocomplete="street-address"></label>
+    <div id="ent-retiro" class="info"></div>
+    <div id="w-dir" class="hide">
+      <label class="field"><span>Dirección de despacho</span><input id="f-dir" autocomplete="street-address"></label>
+      <button type="button" class="btn sm" id="btn-geo">📍 Enviar mi ubicación</button> <small class="muted" id="geo-est"></small>
+    </div>
     <label class="field"><span>Nota (opcional)</span><textarea id="f-nota" placeholder="Ej: sin ensalada, arroz en vez de puré"></textarea></label>
   </div>
 
@@ -49,10 +52,8 @@
     <div class="row sb"><span>Total</span><span class="total" id="total">—</span></div>
     <p class="muted" id="resumen" style="margin:6px 0 10px"></p>
     <button class="btn wa block" id="btn-enviar" disabled>Enviar pedido por WhatsApp</button>
-    <p class="muted" style="margin:8px 0 0">Se abrirá WhatsApp con tu pedido listo. El pedido queda confirmado cuando te respondamos.</p>
   </div>
 
-  <p class="foot">Tus datos (nombre, teléfono y dirección) se usan solo para tu pedido y se envían por WhatsApp a <span id="foot-n">la cocina</span>. No se guardan en ningún servidor.</p>
 </div>
 <script src="shared.js"></script>
 <script src="cliente.js"></script>
