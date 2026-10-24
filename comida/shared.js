@@ -32,7 +32,7 @@ const feriado = s => s.startsWith('2026-') ? (FER_2026[s] || null) : (FER_FIJOS[
 
 /* ===== Datos del dueño (localStorage) ===== */
 const DB_KEY = 'comida_v1';
-const DEF_CFG = {nombre:'La Cocina de Emi', wa:'56946728283', capacidad:20, aviso:'Despacho gratis en Bicentenario y Valles del Country'};
+const DEF_CFG = {nombre:'La Cocina de Emi', wa:'56986200429', capacidad:20, aviso:'Despacho gratis en Bicentenario y Valles del Country'};
 
 function seedDB() {
   const mk = (k, items, guar, precio) => ({
@@ -53,10 +53,10 @@ function seedDB() {
   };
 }
 /* Migra valores por defecto antiguos (guardados antes de configurar La Cocina de Emi) */
-const WA_VIEJO = '56984867813', NOMBRE_VIEJO = 'Almuerzos caseros';
+const WA_VIEJOS = ['56984867813', '56946728283'], NOMBRE_VIEJO = 'Almuerzos caseros';
 function migrarCfg(c) {
   if (!c) return c;
-  if (c.wa === WA_VIEJO) c.wa = DEF_CFG.wa;
+  if (WA_VIEJOS.includes(c.wa)) c.wa = DEF_CFG.wa;
   if (c.nombre === NOMBRE_VIEJO) c.nombre = DEF_CFG.nombre;
   if (c.aviso === '' && !c.avisoEditado) c.aviso = DEF_CFG.aviso;
   return c;
@@ -88,7 +88,7 @@ function buildPub(db) {
 }
 function migrarPub(p) {
   if (!p) return p;
-  if (p.w === WA_VIEJO) p.w = DEF_CFG.wa;
+  if (WA_VIEJOS.includes(p.w)) p.w = DEF_CFG.wa;
   if (p.n === NOMBRE_VIEJO) p.n = DEF_CFG.nombre;
   if (!p.a) p.a = DEF_CFG.aviso;
   return p;
