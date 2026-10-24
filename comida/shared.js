@@ -32,12 +32,13 @@ const feriado = s => s.startsWith('2026-') ? (FER_2026[s] || null) : (FER_FIJOS[
 
 /* ===== Datos del dueño (localStorage) ===== */
 const DB_KEY = 'comida_v1';
+const PRECIO_BASE = 5000; // precio único del almuerzo (CLP)
 const DEF_CFG = {nombre:'La Cocina de Emi', wa:'56986200429', capacidad:20, aviso:'Despacho gratis en Bicentenario y Valles del Country'};
 
 function seedDB() {
   const mk = (k, items, guar, precio) => ({
     items: items.map((t, i) => ({id: k + (i + 1), nombre: t[0], revisar: !!t[1]})),
-    guar: guar || '', precio: precio ?? null
+    guar: guar || '', precio: precio ?? PRECIO_BASE
   });
   return {
     v: 1, cfg: {...DEF_CFG},
@@ -62,7 +63,11 @@ function migrarCfg(c) {
   return c;
 }
 function loadDB() {
-  try { const r = JSON.parse(localStorage.getItem(DB_KEY)); if (r && r.v === 1) { migrarCfg(r.cfg); return r; } } catch (e) {}
+  try { const r = JSON.parse(localStorage.getItem(DB_KEY)); if (r && r.v === 1) {
+      migrarCfg(r.cfg);
+      if (!r.preciosInit) { for (const k of Object.keys(r.menu)) if (r.menu[k].precio == null) r.menu[k].precio = PRECIO_BASE; r.preciosInit = true; }
+      return r;
+    } } catch (e) {}
   return seedDB();
 }
 function saveDB(db) {
@@ -84,13 +89,14 @@ function buildPub(db) {
   const f = {};
   for (const [s, d] of Object.entries(db.menuFecha || {})) if (s >= hoy) f[s] = lite(d);
   const b = Object.keys(db.bloqueados || {}).filter(s => s >= hoy);
-  return {n: db.cfg.nombre, w: db.cfg.wa, a: db.cfg.aviso || '', m, f, b};
+  return {v: 2, n: db.cfg.nombre, w: db.cfg.wa, a: db.cfg.aviso || '', m, f, b};
 }
 function migrarPub(p) {
   if (!p) return p;
   if (WA_VIEJOS.includes(p.w)) p.w = DEF_CFG.wa;
   if (p.n === NOMBRE_VIEJO) p.n = DEF_CFG.nombre;
   if (!p.a) p.a = DEF_CFG.aviso;
+  if (!p.v && p.m) for (const k of Object.keys(p.m)) if (p.m[k].p == null) p.m[k].p = PRECIO_BASE;  // enlaces antiguos sin precio
   return p;
 }
 function pubMenu(pub, s) {
