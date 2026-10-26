@@ -359,10 +359,10 @@ function hoja2(M){
   var o = frame(2, "INFORME DE AVANCE · PÓRTICOS DE VIGILANCIA · DETALLE", "Pórticos trazados · avance por partida", "corte al " + M.corte);
   var post = TR.filter(function(n){ return NIV[n] >= 1; }), com = {}; TR.forEach(function(n){ com[PN[n].comuna] = 1; });
   o = o.concat(kpis([[TR.length, "pórticos trazados de " + PORT.length], [post.length, "con partidas posteriores"], [Object.keys(com).length, "comunas"], [Object.keys(M.ejec).length, "partidas ejecutadas"]]));
-  var x0 = 16, W = 265, y = 54, CW = 26.6;
+  var x0 = 16, W = 265, y = 54, CW = Math.min(26.6, (W - 53) / Math.max(1, ORDEN.length)), corto = function(p){ return p.replace(/^Inst\. (de )?/, ""); };   /* el ancho de cada columna se reparte segun cuantas partidas haya (hoy 9 o 10) */
   o.push(R(x0, y, W, 11, CHIP, { rx:.8 }));
   o.push(T(x0 + 2, y + 5.5, "Pórtico", 3.2, 700, MUTE)); o.push(T(x0 + 22, y + 5.5, "Comuna", 3.2, 700, MUTE));
-  ORDEN.forEach(function(p, i){ var cx = x0 + 52 + i * CW; o.push(circ(cx + 1.6, y + 5.5, 1.3, COL[p])); var hs = Math.max(2.4, Math.min(3, 3 * (CW - 4) / tw(p, 3, 700))); o.push(T(cx + 3.8, y + 5.5, fit(p, hs, 700, CW - 4), hs, 700, NAVY)); });
+  ORDEN.forEach(function(p, i){ var cx = x0 + 52 + i * CW; o.push(circ(cx + 1.6, y + 5.5, 1.3, COL[p])); var pc = corto(p), hs = Math.max(2.4, Math.min(3, 3 * (CW - 4) / tw(pc, 3, 700))); o.push(T(cx + 3.8, y + 5.5, fit(pc, hs, 700, CW - 4), hs, 700, NAVY)); });
   var lst = TR.slice().sort(function(a, b){ return PN[a].comuna.localeCompare(PN[b].comuna, "es") || cmpNat(PN[a].nombre, PN[b].nombre); });
   var ng = Object.keys(com).length, avail = 399 - (y + 11), rhG = lst.length ? (avail - ng * 10.9) / lst.length : 8, agrup = rhG >= 6.2;
   var rh = Math.min(8, agrup ? rhG : (lst.length ? avail / lst.length : 8)), k = Math.min(1, rh / 7.2), prev = null, yy = y + 11 + (agrup ? 0 : rh / 2);
@@ -675,8 +675,10 @@ function hoja8(M){
   var o = frame(8, "INFORME DE AVANCE · PÓRTICOS DE VIGILANCIA · ESTADO", "Estado actual de los " + PORT.length + " pórticos", "corte al " + M.corte);
   o = o.concat(kpis([[PORT.length, "pórticos en total"], [PORT.length - sin, "con avance registrado"], [sin, "sin iniciar"], [dist[0] || 0, "con trazado ejecutado"]]));
   var y = 53, xx = 16;
-  [["Sin iniciar", sin, "#C9C5B7"]].concat(ORDEN.map(function(nm, i){ return [nm, dist[i], COL[nm]]; })).forEach(function(it){
-    o.push(circ(xx + 1.4, y, 1.4, it[2])); var lab = it[0] + " "; o.push(T(xx + 3.8, y, lab, 3, 400, NAVY)); o.push(T(xx + 3.8 + tw(lab, 3), y, String(it[1]), 3, 700, NAVY)); xx += 3.8 + tw(lab + it[1], 3, 600) + 6;
+  var itL = [["Sin iniciar", sin, "#C9C5B7"]].concat(ORDEN.map(function(nm, i){ return [nm, dist[i], COL[nm]]; }));
+  var needL = itL.reduce(function(s_, it){ return s_ + 3.8 + tw(it[0] + " " + it[1], 3, 600) + 6; }, 0), szL = needL > 265 ? Math.max(2.2, 3 * 265 / needL * .96) : 3, gapL = needL > 265 ? 4 : 6;   /* con 9-10 partidas la leyenda se achica para caber en la hoja */
+  itL.forEach(function(it){
+    o.push(circ(xx + 1.4, y, 1.4 * szL / 3, it[2])); var lab = it[0] + " "; o.push(T(xx + 3.8, y, lab, szL, 400, NAVY)); o.push(T(xx + 3.8 + tw(lab, szL), y, String(it[1]), szL, 700, NAVY)); xx += 3.8 + tw(lab + it[1], szL, 600) + gapL;
   });
   o.push(T(16, y + 5, "Conteo acumulado: cada partida cuenta los pórticos que ya la ejecutaron, aunque hayan avanzado a la siguiente.", 2.6, 400, MUTE));
   /* leyenda de condiciones constructivas (ticket por valor) */
