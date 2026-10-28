@@ -4532,20 +4532,33 @@ window.PORTICOS_LISTA = (function(){
   }
   function iniciarGps(){
     if(!navigator.geolocation){ estadoMapa("Este dispositivo no permite usar el GPS."); return; }
-    estadoMapa("Buscando tu ubicaci\u00f3n\u2026");
-    var primera = true;
+    if(!window.isSecureContext){ estadoMapa("El GPS solo funciona en una p\u00e1gina segura (https)."); return; }
+    estadoMapa("Buscando tu ubicaci\u00f3n\u2026 (si el tel\u00e9fono lo pide, toca Permitir)");
+    var primera = true, preciso = true;
     document.getElementById("btnGps").setAttribute("aria-pressed", "true");
-    gpsWatch = navigator.geolocation.watchPosition(function(pos){
+    function ok(pos){
       gpsPos = [pos.coords.latitude, pos.coords.longitude]; gpsAcc = pos.coords.accuracy;
       pintarGps();
       estadoMapa("GPS activo \u00b7 precisi\u00f3n \u00b1" + Math.round(gpsAcc) + " m");
       document.getElementById("btnCentrar").hidden = false;
       if(primera && mapa){ primera = false; mapa.setView(gpsPos, Math.max(mapa.getZoom(), 14), { animate:true }); }
       pintarRuta(); refrescarPopups();
-    }, function(err){
-      var msg = err && err.code === 1 ? "Permiso de ubicaci\u00f3n denegado. Act\u00edvalo en el navegador para usar el GPS." : "No se pudo obtener tu ubicaci\u00f3n.";
+    }
+    function fallo(err){
+      var c = err && err.code;
+      /* sin se\u00f1al GPS de alta precisi\u00f3n (techo, edificio): se reintenta una vez con la ubicaci\u00f3n aproximada (Wi\u2011Fi / antenas) */
+      if(preciso && c !== 1){
+        preciso = false; if(gpsWatch != null) navigator.geolocation.clearWatch(gpsWatch);
+        estadoMapa("Sin se\u00f1al GPS precisa, buscando ubicaci\u00f3n aproximada\u2026");
+        gpsWatch = navigator.geolocation.watchPosition(ok, fallo, { enableHighAccuracy:false, maximumAge:15000, timeout:25000 });
+        return;
+      }
+      var msg = c === 1 ? "Ubicaci\u00f3n bloqueada para este sitio. Ve a Ajustes del navegador \u2192 Permisos del sitio \u2192 Ubicaci\u00f3n \u2192 Permitir (y revisa que la ubicaci\u00f3n del tel\u00e9fono est\u00e9 activada)."
+              : c === 2 ? "El tel\u00e9fono no entrega la ubicaci\u00f3n. Revisa que la ubicaci\u00f3n est\u00e9 activada y en modo preciso."
+              : "No se obtuvo la ubicaci\u00f3n a tiempo. Sal a cielo abierto o revisa que la ubicaci\u00f3n est\u00e9 activada.";
       detenerGps(); estadoMapa(msg);
-    }, { enableHighAccuracy:true, maximumAge:5000, timeout:20000 });
+    }
+    gpsWatch = navigator.geolocation.watchPosition(ok, fallo, { enableHighAccuracy:true, maximumAge:5000, timeout:15000 });
   }
   function pintarMedida(){
     var bu = document.getElementById("btnMedirUndo"), bc = document.getElementById("btnMedirClr");
