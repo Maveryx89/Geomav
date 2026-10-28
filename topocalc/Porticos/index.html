@@ -4553,7 +4553,7 @@ window.PORTICOS_LISTA = (function(){
         gpsWatch = navigator.geolocation.watchPosition(ok, fallo, { enableHighAccuracy:false, maximumAge:15000, timeout:25000 });
         return;
       }
-      var msg = c === 1 ? "Ubicaci\u00f3n bloqueada para este sitio. Ve a Ajustes del navegador \u2192 Permisos del sitio \u2192 Ubicaci\u00f3n \u2192 Permitir (y revisa que la ubicaci\u00f3n del tel\u00e9fono est\u00e9 activada)."
+      var msg = c === 1 ? "Ubicaci\u00f3n bloqueada: el navegador no vuelve a preguntar hasta que lo cambies. En Chrome: \u22ee \u2192 Configuraci\u00f3n \u2192 Configuraci\u00f3n del sitio \u2192 Ubicaci\u00f3n \u2192 geomav.me \u2192 elige Preguntar (o Permitir). Luego toca Mi ubicaci\u00f3n otra vez."
               : c === 2 ? "El tel\u00e9fono no entrega la ubicaci\u00f3n. Revisa que la ubicaci\u00f3n est\u00e9 activada y en modo preciso."
               : "No se obtuvo la ubicaci\u00f3n a tiempo. Sal a cielo abierto o revisa que la ubicaci\u00f3n est\u00e9 activada.";
       detenerGps(); estadoMapa(msg);
