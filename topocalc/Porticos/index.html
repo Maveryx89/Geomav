@@ -3345,7 +3345,7 @@ window.PORTICOS_LISTA = (function(){
     if(document.body.getAttribute("data-print-board") === "resumen") document.body.removeAttribute("data-print-board");
   });
   var resumenBtn = document.getElementById("printResumenBtn");
-  /* Resumen ejecutivo = informe de 8 hojas A3 (mapa · trazados · semana presente · anterior y siguiente · intermedio · restricciones · indicadores · estado), PDF directo */
+  /* Resumen ejecutivo = informe de 15 hojas A3 (8 de situación: mapa · trazados · semana presente · anterior y siguiente · intermedio · restricciones · indicadores · estado; 7 de proyección: 5 semanas de noviembre · intermedio de 2 meses · supuestos y riesgos), PDF directo */
   function abrirInformeEjecutivo(){
     function ir(){ if(window.PORTICOS_INFORME) window.PORTICOS_INFORME.pdf(resumenBtn); }
     if(window.PORTICOS_INFORME){ ir(); return; }
@@ -5678,7 +5678,7 @@ window.PORTICOS_LISTA = (function(){
     { sel:"#mTabs", t:"Secciones", p:"Semanal e Intermedio: programaci\u00f3n. P\u00f3rticos: listado, fotos y mapa. Avance: lo ejecutado cada semana. Indicadores: el resumen del proyecto." },
     { sel:".ayuda > summary", t:"Ayuda en cada pantalla", p:"Toca <b>?</b> para ver una explicaci\u00f3n corta de la secci\u00f3n en la que est\u00e1s." },
     { sel:"#btnManual", t:"Manual completo", p:"Gu\u00eda paso a paso, glosario y preguntas frecuentes. Se puede descargar en PDF." },
-    { sel:"#printResumenBtn", t:"Resumen ejecutivo", p:"Informe de 8 hojas A3: mapa de situación, pórticos trazados, semana presente, semana anterior y siguiente, intermedio, restricciones, indicadores y estado de los pórticos. Se descarga directo en PDF." },
+    { sel:"#printResumenBtn", t:"Resumen ejecutivo", p:"Informe de 15 hojas A3: mapa de situación, pórticos trazados, semana presente, semana anterior y siguiente, intermedio, restricciones, indicadores y estado de los pórticos, más la proyección de avance (5 semanas de noviembre, intermedio de 2 meses, supuestos y riesgos). Se descarga directo en PDF." },
     { t:"\u00bfVas a modificar datos?", p:"Registrar avance, subir fotos o programar tareas requiere el <b>PIN del equipo</b>. Si solo vas a consultar, no necesitas nada m\u00e1s." }
   ];
   var capa, hl, card, i = 0, pasos = [];

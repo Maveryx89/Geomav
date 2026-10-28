@@ -1,5 +1,5 @@
 /* Informe de avance · Pórticos (Resumen ejecutivo)
-   8 hojas A3 vertical (297 x 420 mm): 1 mapa · 2 trazados · 3 semana presente · 4 semana anterior y siguiente · 5 intermedio · 6 restricciones · 7 indicadores · 8 estado de los pórticos.
+   15 hojas A3 vertical (297 x 420 mm): 1 mapa · 2 trazados · 3 semana presente · 4 semana anterior y siguiente · 5 intermedio · 6 restricciones · 7 indicadores · 8 estado de los pórticos · 9 a 13 proyección semanal (noviembre) · 14 proyección intermedia de 2 meses · 15 supuestos y riesgos.
    Se genera en el navegador con los datos vivos de la app; salida PDF (300 ppp) y SVG (zip). */
 (function(){
 "use strict";
@@ -871,8 +871,256 @@ function zipDesde(files){
   return new Blob(parts.concat([cd, end]), { type:"application/zip" });
 }
 
+/* ====================== PROYECCIÓN DE AVANCE (hojas 9 en adelante) ====================== */
+var PROY = {
+  CH: ["Trazado", "Excavación", "Emplantillado", "Inst. de Fundación", "Relleno", "Inst. Poste V", "Inst. Brazo H", "Inst. Cámara"],
+  PESO: { "Excavación":2, "Emplantillado":1, "Inst. de Fundación":1, "Relleno":1, "Inst. Poste V":1, "Inst. Brazo H":1, "Inst. Cámara":1 },
+  CAP: 7,            /* unidades de trabajo por día con las 2 cuadrillas, sin pérdidas (1 unidad = tarea liviana; excavación = 2, a mano = 3) */
+  PERD: 0.15,        /* días perdidos por lluvia y otros */
+  TRZ: 6,            /* pórticos que se trazan por día (topografía, recurso aparte de las cuadrillas) */
+  TRZ_ADEL: 12,      /* máximo de pórticos trazados esperando excavación */
+  FERIADOS: ["2026-11-01", "2026-12-08", "2026-12-25", "2027-01-01"],
+  CENTRO: [-34.585, -70.99],   /* San Fernando: el orden de avance es por cercanía */
+  MESPROY: "2026-11",
+  FIN: "2026-12-31"        /* cierre del intermedio de 2 meses */
+};
+function esFeriado(d){ return PROY.FERIADOS.indexOf(iso(d)) >= 0; }
+function esHabil(d){ return wd(d) < 5 && !esFeriado(d); }
+function sigHabil(d){ d = addDays(d, 1); while(!esHabil(d)) d = addDays(d, 1); return d; }
+function distKm(lat, lng){
+  var R_ = 6371, a1 = lat * Math.PI / 180, a0 = PROY.CENTRO[0] * Math.PI / 180, dl = (lng - PROY.CENTRO[1]) * Math.PI / 180, dp = a1 - a0;
+  var h = Math.sin(dp / 2) * Math.sin(dp / 2) + Math.cos(a0) * Math.cos(a1) * Math.sin(dl / 2) * Math.sin(dl / 2);
+  return 2 * R_ * Math.asin(Math.sqrt(h));
+}
+function estadoCadena(M){
+  var CH = PROY.CH, est = {};
+  M.PORT.forEach(function(p){
+    if(p.lat == null || p.lng == null) return;
+    var k = -1;
+    CH.forEach(function(q, i){
+      var fe = M.ejec[p.num + "|" + q];
+      if(!fe && (q === "Inst. Poste V" || q === "Inst. Brazo H")) fe = M.ejec[p.num + "|Inst. Pórtico"];   /* la antigua "Inst. Pórtico" cuenta como poste V + brazo H */
+      if(fe) k = i;
+    });
+    est[p.num] = k;
+  });
+  return est;
+}
+/* simula día a día; devuelve las tareas proyectadas y la fecha de término de cada pórtico */
+function proyectar(M, perdida){
+  var CH = PROY.CH, est = estadoCadena(M), cap = PROY.CAP * (1 - perdida), hoy = pd(M.hoy);
+  var P = M.PORT.filter(function(p){ return est[p.num] != null; }).map(function(p){
+    var e = est[p.num], mano = /mano/i.test(M.COND[p.num + "|exc"] || "");
+    return { num:p.num, nombre:p.nombre, comuna:p.comuna, km:distKm(p.lat, p.lng), k:e, listo:null, mano:mano, fin:null, ini:null };
+  });
+  P.sort(function(a, b){ return a.km - b.km; });
+  var ini0 = sigHabil(hoy), tareas = [], pend = P.filter(function(p){ return p.k < CH.length - 1; }).length, trazados = 0;
+  P.forEach(function(p){ p.listo = iso(ini0); if(p.k >= 1) trazados++; });
+  var d = ini0, deuda = 0, guard = 0;
+  while(pend > 0 && guard++ < 700){
+    var di = iso(d), nt = 0;
+    /* topografía: traza por cercanía mientras no haya demasiado trazado sin excavar */
+    var sinExc = P.filter(function(p){ return p.k === 0; }).length;
+    P.forEach(function(p){
+      if(p.k === -1 && nt < PROY.TRZ && sinExc < PROY.TRZ_ADEL){ p.k = 0; p.listo = iso(sigHabil(d)); nt++; sinExc++; tareas.push({ fecha:di, portico:p.num, nombre:p.nombre, comuna:p.comuna, partida:"Trazado", estado:"Proyectado", obs:"", restr:"", aut:"" }); if(!p.ini) p.ini = di; }
+    });
+    /* cuadrillas: primero lo más avanzado, luego lo más cercano a San Fernando */
+    deuda = Math.min(deuda, 0) + cap;
+    var cand = P.filter(function(p){ return p.k >= 0 && p.k < CH.length - 1 && p.listo <= di; });
+    cand.sort(function(a, b){ return (b.k - a.k) || (a.km - b.km); });
+    for(var i = 0; i < cand.length && deuda > 0; i++){
+      var p = cand[i], sig = CH[p.k + 1];
+      if(sig === "Excavación"){
+        var w = (p.mano ? 3 : 2) + PROY.PESO["Emplantillado"];
+        tareas.push({ fecha:di, portico:p.num, nombre:p.nombre, comuna:p.comuna, partida:"Excavación", estado:"Proyectado", obs:p.mano ? "a mano" : "", restr:"", aut:"" });
+        tareas.push({ fecha:di, portico:p.num, nombre:p.nombre, comuna:p.comuna, partida:"Emplantillado", estado:"Proyectado", obs:"", restr:"", aut:"" });
+        p.k += 2; deuda -= w; if(!p.ini) p.ini = di;
+      } else {
+        tareas.push({ fecha:di, portico:p.num, nombre:p.nombre, comuna:p.comuna, partida:sig, estado:"Proyectado", obs:"", restr:"", aut:"" });
+        p.k += 1; deuda -= PROY.PESO[sig];
+      }
+      p.listo = iso(sigHabil(d));
+      if(p.k >= CH.length - 1){ p.fin = di; pend--; }
+    }
+    d = sigHabil(d);
+  }
+  var fin = {}; P.forEach(function(p){ fin[p.num] = p.fin; });
+  var ult = tareas.reduce(function(m, t){ return t.fecha > m ? t.fecha : m; }, M.hoy);
+  return { tareas:tareas, fin:fin, P:P, est:est, ult:ult, total:P.length * CH.length, hechas:Object.keys(est).reduce(function(a, n){ return a + est[n] + 1; }, 0), completos:Object.keys(est).filter(function(n){ return est[n] >= CH.length - 1; }).length, ini:iso(ini0) };
+}
+function semanasProy(M, Pr){
+  var out = [], m0 = pd(PROY.MESPROY + "-01"); while(wd(m0) !== 0) m0 = addDays(m0, 1);   /* primer lunes del mes */
+  var hasta = addDays(m0, 7 * 9);
+  for(var d = m0; d < hasta; d = addDays(d, 7)) out.push(d);
+  return out;
+}
+function enSemana(Pr, d0){ var A = iso(d0), B = iso(addDays(d0, 4)); return Pr.tareas.filter(function(t){ return t.fecha >= A && t.fecha <= B; }); }
+function acumHasta(Pr, fechaISO){ return Pr.hechas + Pr.tareas.filter(function(t){ return t.fecha <= fechaISO; }).length; }
+function pct(a, b){ return b ? Math.round(1000 * a / b) / 10 : 0; }
+function fcorta(s){ var d = pd(s); return d.getUTCDate() + " " + MES3[d.getUTCMonth()] + " " + d.getUTCFullYear(); }
+function fchm(s){ var d = pd(s); return d.getUTCDate() + "-" + MES3[d.getUTCMonth()]; }
+function fpct(v){ return String(v).replace(".", ",") + " %"; }
+function listaNombres(o, x, y, w, titulo, nombres, col, maxl){
+  o.push(R(x, y, w, 5.6, mix(col, .22), { rx:.9 })); o.push(R(x, y, 1, 5.6, col)); o.push(T(x + 3, y + 2.9, titulo + " · " + nombres.length, 3.1, 700, NAVY));
+  var txt = nombres.length ? nombres.join(" · ") : "—", ls = wrap(txt, 2.8, 500, w - 4, maxl || 8);
+  ls.forEach(function(l_, i){ o.push(T(x + 2, y + 9.2 + i * 3.8, l_, 2.8, 500, NAVY)); });
+  return y + 9.2 + ls.length * 3.8 + 2;
+}
+function hojaProySemana(M, Pr, d0, n, k, tot){
+  var d1 = addDays(d0, 4), rows = enSemana(Pr, d0), A = iso(d0), B = iso(d1);
+  var titulo = "Semana " + k + " proyectada · del " + rangoSem(d0) + " de " + d1.getUTCFullYear();
+  var o = frame(n, "PROYECCIÓN DE AVANCE · " + MESES[pd(PROY.MESPROY + "-01").getUTCMonth()].toUpperCase() + " " + pd(PROY.MESPROY + "-01").getUTCFullYear(), titulo, "corte al " + M.corte, " · proyección: 2 cuadrillas · lun–vie · 15 % de pérdida");
+  var dias = {}; rows.forEach(function(t){ dias[t.fecha] = 1; });
+  var ini = rows.filter(function(t){ return t.partida === "Excavación"; }), fin_ = rows.filter(function(t){ return t.partida === "Inst. Cámara"; }), trz = rows.filter(function(t){ return t.partida === "Trazado"; });
+  var a0 = acumHasta(Pr, iso(addDays(d0, -1))), a1 = acumHasta(Pr, B);
+  o = o.concat(kpis([[rows.length, "tareas proyectadas"], [ini.length, "pórticos inician excavación"], [fin_.length, "pórticos completan la cadena"], [fpct(pct(a1, Pr.total)), "avance acumulado"]]));
+  leyendaPartidas(o, rows);
+  var kk = 1, finY = 0;
+  function dib(oo, kk_){ return tablero(oo, 58, tituloSemana("Tareas por día", d0), d0, rows, false, kk_) + 3; }
+  finY = dib([], kk); while(finY > 292 && kk > .55){ kk -= .05; finY = dib([], kk); }
+  finY = dib(o, kk);
+  var y = finY + 8, w = (265 - 2 * 5) / 3;
+  o.push(T(16, y, "Hitos de la semana", 4.4, 700, NAVY)); o.push(L(16, y + 3.3, 281, y + 3.3, NAVY, .3)); y += 7;
+  var y1 = listaNombres(o, 16, y, w, "Se trazan", trz.map(function(t){ return t.nombre; }).sort(cmpNat), COL["Trazado"] || "#3F8FC4", 6);
+  var y2 = listaNombres(o, 16 + w + 5, y, w, "Inician excavación", ini.map(function(t){ return t.nombre; }).sort(cmpNat), COL["Excavación"] || "#D49A6A", 6);
+  var y3 = listaNombres(o, 16 + 2 * (w + 5), y, w, "Completan cámara (cadena completa)", fin_.map(function(t){ return t.nombre; }).sort(cmpNat), COL["Inst. Cámara"] || "#B23B3B", 6);
+  y = Math.max(y1, y2, y3) + 3;
+  /* avance acumulado */
+  var bw = 265, p0 = pct(a0, Pr.total), p1 = pct(a1, Pr.total);
+  o.push(T(16, y + 2, "Avance físico acumulado (tareas de la cadena sobre " + Pr.total + ")", 3.1, 700, NAVY));
+  o.push(R(16, y + 6, bw, 5, CHIP, { rx:1 })); o.push(R(16, y + 6, bw * p0 / 100, 5, mix("#26694B", .45), { rx:1 })); o.push(R(16 + bw * p0 / 100, y + 6, bw * (p1 - p0) / 100, 5, "#26694B", { rx:1 }));
+  o.push(T(16 + 2, y + 8.6, fpct(p0) + " al inicio de la semana", 2.6, 600, NAVY)); o.push(T(281 - 2, y + 8.6, fpct(p1) + " al cierre", 2.6, 700, bw * p1 / 100 > 230 ? "#ffffff" : NAVY, { anchor:"end" }));
+  y += 22;
+  o.push(T(16, y, "Estado de los pórticos al cierre de la semana · por comuna", 4.4, 700, NAVY)); o.push(L(16, y + 3.3, 281, y + 3.3, NAVY, .3)); y += 8;
+  var etapa = function(num){ var k = Pr.est[num]; Pr.tareas.forEach(function(t){ if(t.portico === num && t.fecha <= B){ var i = PROY.CH.indexOf(t.partida); if(i > k) k = i; } }); return k; };
+  var cm = {}; Pr.P.forEach(function(p){ var c = cm[p.comuna] = cm[p.comuna] || { km:p.km, n:0, sin:0, traz:0, obra:0, comp:0 }; c.km = Math.min(c.km, p.km); var k = etapa(p.num); c.n++; if(k < 0) c.sin++; else if(k === 0) c.traz++; else if(k >= PROY.CH.length - 1) c.comp++; else c.obra++; });
+  var cf = Object.keys(cm).sort(function(a, b){ return cm[a].km - cm[b].km; }).map(function(c){ var v = cm[c]; return [c, v.n, v.sin, v.traz, v.obra, v.comp]; });
+  var tt = cf.reduce(function(a, r_){ return [a[0] + r_[1], a[1] + r_[2], a[2] + r_[3], a[3] + r_[4], a[4] + r_[5]]; }, [0, 0, 0, 0, 0]);
+  cf.push(["Total", tt[0], tt[1], tt[2], tt[3], tt[4]]);
+  y = tabla(o, 16, y, 265, "Cada pórtico se cuenta en su etapa más avanzada", [["Comuna", 18], ["Pórticos", 9], ["Sin trazar", 10], ["Trazados, sin excavar", 14], ["En obra (excavación a cámara)", 18], ["Cadena completa", 12]], cf, "", 5.2, 1.2) + 4;
+  o.push(T(16, y + 15, "Proyección con los supuestos de la hoja " + (8 + 5 + 2) + ": no es programación comprometida. Los días con feriado o sin faena no tienen tareas.", 2.4, 400, MUTE));
+  return svgDoc(o, "Pórticos · Proyección · Hoja " + n + " · " + titulo);
+}
+function hojaProyIntermedio(M, Pr, n, escen){
+  var sem = semanasProy(M, Pr), o = frame(n, "PROYECCIÓN DE AVANCE · INTERMEDIO DE 2 MESES", "Proyección intermedia · noviembre y diciembre de 2026", "corte al " + M.corte, " · 2 cuadrillas · lun–vie · 15 % de pérdida");
+  var finD = PROY.FIN, nT = Pr.tareas.filter(function(t){ return t.fecha >= iso(sem[0]) && t.fecha <= finD; }).length, aF = acumHasta(Pr, finD);
+  var comp = Pr.P.filter(function(p){ return p.fin && p.fin <= finD; }).length + Pr.completos;
+  o = o.concat(kpis([[nT, "tareas proyectadas nov–dic"], [comp + "/" + Pr.P.length, "cadenas completas al " + fdm(finD)], [fpct(pct(aF, Pr.total)), "avance físico al " + fdm(finD)], [fchm(Pr.ult), "término estimado de todo · " + pd(Pr.ult).getUTCFullYear()]]));
+  /* A · columnas por semana + curva de avance acumulado */
+  var X0 = 16, W = 265, y = 54;
+  o.push(T(X0, y, "Tareas por semana y avance acumulado", 4.4, 700, NAVY)); o.push(L(X0, y + 3.3, X0 + W, y + 3.3, NAVY, .3));
+  var gx = X0 + 14, gw = W - 28, gy = y + 14, gh = 76, cw = gw / sem.length;
+  var cnt = sem.map(function(d0){ var rr = enSemana(Pr, d0), c = {}; rr.forEach(function(t){ c[t.partida] = (c[t.partida] || 0) + 1; }); return { n:rr.length, c:c }; });
+  var mx = Math.max(10, Math.ceil(Math.max.apply(0, cnt.map(function(c){ return c.n; })) / 10) * 10);
+  for(var g = 0; g <= 4; g++){ var yy = gy + gh - gh * g / 4; o.push(L(gx, yy, gx + gw, yy, g ? LINE : NAVY, g ? .2 : .3)); o.push(T(gx - 2, yy, String(Math.round(mx * g / 4)), 2.6, 400, MUTE, { anchor:"end" })); o.push(T(gx + gw + 2, yy, (25 * g) + " %", 2.6, 400, MUTE)); }
+  var pts = [];
+  sem.forEach(function(d0, i){
+    var bx = gx + i * cw + cw * .18, bw = cw * .64, yb = gy + gh;
+    ORDEN.forEach(function(p){ var v = cnt[i].c[p] || 0; if(!v) return; var h = gh * v / mx; yb -= h; o.push(R(bx, yb, bw, h, COL[p])); });
+    o.push(T(bx + bw / 2, gy + gh - gh * cnt[i].n / mx - 2.2, String(cnt[i].n), 2.8, 700, NAVY, { anchor:"middle" }));
+    o.push(T(gx + i * cw + cw / 2, gy + gh + 4, "Lun " + d0.getUTCDate() + " " + MES3[d0.getUTCMonth()], 2.5, 600, NAVY, { anchor:"middle" }));
+    var dh = 0; for(var q = 0; q < 5; q++) if(esHabil(addDays(d0, q))) dh++;
+    o.push(T(gx + i * cw + cw / 2, gy + gh + 7.6, dh + " días háb.", 2.2, 400, MUTE, { anchor:"middle" }));
+    pts.push([gx + i * cw + cw / 2, gy + gh - gh * pct(acumHasta(Pr, iso(addDays(d0, 4)) > finD ? finD : iso(addDays(d0, 4))), Pr.total) / 100]);
+  });
+  o.push('<polyline points="' + pts.map(function(q){ return f(q[0]) + "," + f(q[1]); }).join(" ") + '" fill="none" stroke="' + NAVY + '" stroke-width=".6" stroke-linejoin="round"/>');
+  pts.forEach(function(q, i){ o.push(circ(q[0], q[1], .9, "#ffffff", NAVY, .4)); o.push(T(q[0], gy - 4, fpct(pct(acumHasta(Pr, iso(addDays(sem[i], 4)) > finD ? finD : iso(addDays(sem[i], 4))), Pr.total)), 2.7, 700, NAVY, { anchor:"middle" })); });
+  o.push(T(gx - 2, gy - 4, "avance acum.", 2.3, 600, MUTE, { anchor:"end" }));
+  var lx = gx; ORDEN.filter(function(p){ return Pr.tareas.some(function(t){ return t.partida === p; }); }).forEach(function(p){ o.push(R(lx, gy + gh + 11.4, 2.8, 2.8, COL[p], { rx:.5 })); o.push(T(lx + 4, gy + gh + 12.8, p, 2.5, 400, NAVY)); lx += 4 + tw(p, 2.5) + 5; });
+  o.push(T(gx + gw, gy + gh + 12.8, "—○— avance acumulado", 2.5, 600, NAVY, { anchor:"end" }));
+  /* B · tabla semanal */
+  y = gy + gh + 20;
+  var filas = sem.map(function(d0, i){
+    var rr = enSemana(Pr, d0), A = iso(d0), B = iso(addDays(d0, 4)), nx = rr.filter(function(t){ return t.partida === "Excavación"; }).length, nc = rr.filter(function(t){ return t.partida === "Inst. Cámara"; }).length;
+    var dh = 0; for(var q = 0; q < 5; q++) if(esHabil(addDays(d0, q))) dh++;
+    return [rangoSem(d0), dh, rr.length, nx, nc, fpct(pct(acumHasta(Pr, B > finD ? finD : B), Pr.total))];
+  });
+  y = tabla(o, 16, y, 265, "Resumen semanal", [["Semana", 16], ["Días hábiles", 8], ["Tareas", 8], ["Inician excavación", 12], ["Completan cadena", 12], ["Avance acumulado", 12]], filas, "", 5.2, 1.25) + 6;
+  /* B2 · matriz partida x semana */
+  o.push(T(16, y, "Tareas por partida y semana", 3.6, 700, NAVY)); o.push(L(16, y + 2.7, 281, y + 2.7, NAVY, .3)); y += 6;
+  var LW2 = 34, cw2 = (265 - LW2 - 16) / sem.length, rh2 = 5;
+  o.push(R(16, y - 2.4, 265, 5, CHIP, { rx:.8 })); sem.forEach(function(d0, i){ o.push(T(16 + LW2 + i * cw2 + cw2 / 2, y, d0.getUTCDate() + "-" + MES3[d0.getUTCMonth()], 2.4, 600, MUTE, { anchor:"middle" })); }); o.push(T(281 - 2, y, "Total", 2.4, 600, MUTE, { anchor:"end" }));
+  ORDEN.filter(function(p){ return Pr.tareas.some(function(t){ return t.partida === p; }); }).forEach(function(p, j){
+    var yy = y + 5.2 + j * rh2, tot2 = 0; o.push(R(16, yy - 2.3, 1, rh2 - .3, COL[p])); o.push(T(19, yy, p, 2.7, 700, NAVY));
+    sem.forEach(function(d0, i){ var v = enSemana(Pr, d0).filter(function(t){ return t.partida === p; }).length; tot2 += v; if(v) o.push(R(16 + LW2 + i * cw2 + .6, yy - 2.2, cw2 - 1.2, rh2 - .5, mix(COL[p], Math.min(.8, .15 + v / 14)), { rx:.7 })); o.push(T(16 + LW2 + i * cw2 + cw2 / 2, yy, v ? String(v) : "·", 2.7, v ? 700 : 400, v ? NAVY : "rgba(10,34,64,.3)", { anchor:"middle" })); });
+    o.push(T(281 - 2, yy, String(tot2), 2.8, 700, NAVY, { anchor:"end" }));
+  });
+  y += 5.2 + ORDEN.filter(function(p){ return Pr.tareas.some(function(t){ return t.partida === p; }); }).length * rh2 + 4;
+  /* C · comunas */
+  var cs = {}; Pr.P.forEach(function(p){ var c = cs[p.comuna] = cs[p.comuna] || { n:0, hoy:0, fin:0, eta:"", km:p.km }; c.n++; c.km = Math.min(c.km, p.km); if(Pr.est[p.num] >= PROY.CH.length - 1) c.hoy++; if(p.fin && p.fin <= finD) c.fin++; if(Pr.est[p.num] >= PROY.CH.length - 1) c.fin++; if(p.fin && p.fin > c.eta) c.eta = p.fin; });
+  var fc = Object.keys(cs).sort(function(a, b){ return cs[a].km - cs[b].km; }).map(function(c){ var v = cs[c]; return [c, v.n, v.hoy, v.fin, v.eta ? fdmy(v.eta) : (v.hoy === v.n ? "completa" : "—")]; });
+  y = tabla(o, 16, y, 265, "Por comuna · orden de avance desde San Fernando", [["Comuna", 16], ["Pórticos", 8], ["Completos hoy", 11], ["Completos al " + fdm(finD), 12], ["Término estimado", 14]], fc, "", 4.7, 1.2);
+  o.push(T(16, Math.min(y + 3, 402), "Avance físico = tareas de la cadena (trazado, excavación, emplantillado, fundación, relleno, poste V, brazo H, cámara) hechas o proyectadas sobre el total de " + Pr.total + ".", 2.4, 400, MUTE));
+  return svgDoc(o, "Pórticos · Proyección · Hoja " + n + " · Intermedio de 2 meses");
+}
+function hojaProySupuestos(M, Pr, n){
+  var o = frame(n, "PROYECCIÓN DE AVANCE · SUPUESTOS Y RIESGOS", "Supuestos, escenarios y riesgos de la proyección", "corte al " + M.corte);
+  var sem = semanasProy(M, Pr), finD = PROY.FIN;
+  var E = [0, PROY.PERD, .25].map(function(pp){ var q = pp === PROY.PERD ? Pr : proyectar(M, pp), ts = q.tareas.length; var semanas = Math.max(1, (pd(q.ult) - pd(Pr.ini)) / 86400000 / 7); return { p:pp, q:q, tsem:Math.round(ts / semanas), fin:pct(acumHasta(q, finD), q.total), ult:q.ult, comp:q.completos + q.P.filter(function(p){ return p.fin && p.fin <= finD; }).length }; });
+  var nPorg = Pr.P.length;
+  o = o.concat(kpis([[nPorg, "pórticos en el modelo"], [Pr.completos, "con la cadena completa hoy"], [fpct(pct(Pr.hechas, Pr.total)), "avance físico al corte"], [fchm(Pr.ult), "término estimado (base) · " + pd(Pr.ult).getUTCFullYear()]]));
+  var sup = [
+    ["Cuadrillas", "2 (las mismas que ejecutan hoy). Capacidad nominal de " + PROY.CAP + " unidades de trabajo por día (35 por semana), calibrada con el ritmo real de las últimas 4 semanas (≈ 28 unidades por semana, con sus pérdidas incluidas)."],
+    ["Peso de cada tarea", "Excavación = 2 unidades (3 si es a mano); emplantillado, fundación, relleno, poste V, brazo H y cámara = 1. Excavación y emplantillado se hacen el mismo día; el montaje de la fundación, desde el día siguiente."],
+    ["Pérdida de días", "15 % de la capacidad por lluvia y otros imprevistos (≈ " + (PROY.CAP * (1 - PROY.PERD)).toFixed(1).replace(".", ",") + " unidades/día efectivas)."],
+    ["Jornada", "Lunes a viernes. Feriados: 8 de diciembre, 25 de diciembre y 1 de enero. Sin trabajo sábado ni domingo."],
+    ["Orden de avance", "Primero se termina lo ya iniciado (la etapa más avanzada); luego se parte por los pórticos más cercanos a San Fernando (distancia en línea recta)."],
+    ["Cadena de partidas", "Trazado → excavación → emplantillado → fundación → relleno → poste V → brazo H → cámara. Cada partida parte el día hábil siguiente a la anterior."],
+    ["Trazado", "Lo hace topografía aparte de las cuadrillas: hasta " + PROY.TRZ + " pórticos por día, sin acumular más de " + PROY.TRZ_ADEL + " trazados esperando excavación."],
+    ["Malla", "Solo se instaló en los primeros pórticos; no se proyecta para el resto. Se pide confirmar si corresponde a más pórticos."],
+    ["Inst. Pórtico (antigua)", "Los 'Inst. Pórtico' ejecutados se cuentan como poste V + brazo H terminados."],
+    ["Autorizaciones", "Todos los pórticos habilitados, sin restricción (dato del encargado de obra)."],
+    ["Fuera del modelo", "El Cartel (letrero), por no tener coordenadas ni ser parte de la cadena estándar."]
+  ];
+  var y = 54; o.push(T(16, y, "Supuestos", 4.4, 700, NAVY)); o.push(L(16, y + 3.3, 281, y + 3.3, NAVY, .3)); y += 8;
+  sup.forEach(function(s, i){
+    var ls = wrap(s[1], 2.9, 400, 190, 3), h = Math.max(6, ls.length * 3.7 + 2.6);
+    if(i % 2) o.push(R(16, y - 1.4, 265, h, "rgba(10,34,64,.03)"));
+    o.push(T(18, y + 2.1, s[0], 3, 700, NAVY)); ls.forEach(function(l_, j){ o.push(T(76, y + 2.1 + j * 3.7, l_, 2.9, 400, NAVY)); });
+    y += h;
+  });
+  y += 6; o.push(T(16, y, "Escenarios de pérdida de días", 4.4, 700, NAVY)); o.push(L(16, y + 3.3, 281, y + 3.3, NAVY, .3)); y += 8;
+  var cols = [["Escenario", 30], ["Tareas por semana", 14], ["Cadenas completas al " + fdm(finD), 18], ["Avance al " + fdm(finD), 14], ["Término estimado de todo", 18]];
+  var tot = cols.reduce(function(a, c){ return a + c[1]; }, 0), xs = [], ac = 0; cols.forEach(function(c){ xs.push(18 + ac * 261 / tot); ac += c[1]; });
+  o.push(R(16, y - 2.7, 265, 5.4, CHIP, { rx:.8 })); cols.forEach(function(c, j){ o.push(T(xs[j], y, c[0], 2.6, 600, MUTE)); });
+  E.forEach(function(e, i){
+    var yy = y + 6.2 + i * 6, base = e.p === PROY.PERD; if(base) o.push(R(16, yy - 3, 265, 6, mix("#26694B", .16)));
+    var nom = (e.p === 0 ? "Sin pérdidas (0 %)" : base ? "Base (15 %)" : "Pesimista (25 %)");
+    [nom, e.tsem + " tareas", e.comp + " de " + nPorg, fpct(e.fin), fdmy(e.ult)].forEach(function(v, j){ o.push(T(xs[j], yy, v, 3, base || j === 0 ? 700 : 400, NAVY)); });
+  });
+  y += 6.2 + 3 * 6 + 8;
+  o.push(T(16, y, "Riesgos y puntos a vigilar", 4.4, 700, NAVY)); o.push(L(16, y + 3.3, 281, y + 3.3, NAVY, .3)); y += 8;
+  var ries = [
+    "Distancia: los pórticos de la costa e interior (Marchigüe, Litueche, Navidad, Paredones, Pichilemu, La Estrella) están a más de 60 km de San Fernando; el traslado de cuadrillas no está descontado y podría bajar el ritmo.",
+    "Lluvia y napa: en octubre aparecieron roca y agua en excavaciones (P68). Un invierno tardío empuja el 15 % hacia arriba.",
+    "Excavación a mano: pesa 3 unidades; si más pórticos resultan a mano, el ritmo baja. Se toma de las condiciones registradas en la ficha de cada pórtico.",
+    "Interferencias de servicios (matrices de agua, tuberías) y desplazamientos de eje obligan a repetir trazado y retrasan la excavación.",
+    "Fin de año: semanas de diciembre con feriados y posibles vacaciones del personal; el modelo solo descuenta los feriados oficiales.",
+    "Los datos de partida son los registrados en la planilla al corte; tareas ejecutadas y no registradas harán que la proyección sea más pesimista de lo real."
+  ];
+  function vi(arr){ arr.forEach(function(r_){
+    var ls = wrap(r_, 2.9, 400, 255, 3);
+    o.push(circ(19, y + 1.9, .8, NAVY)); ls.forEach(function(l_, j){ o.push(T(22, y + 1.9 + j * 3.7, l_, 2.9, 400, NAVY)); }); y += ls.length * 3.7 + 2.2;
+  }); }
+  vi(ries);
+  y += 6; o.push(T(16, y, "Datos que afinarían la proyección", 4.4, 700, NAVY)); o.push(L(16, y + 3.3, 281, y + 3.3, NAVY, .3)); y += 8;
+  vi(["Rendimiento real por cuadrilla y por partida (tareas por día) en vez del promedio general de las últimas semanas.",
+      "Si la malla se instala en más pórticos que los primeros, y cuántos días toma.",
+      "Duración real de la cámara y si exige alguna espera o autorización adicional.",
+      "Tiempos de traslado y si una cuadrilla se puede dedicar a una zona (por ejemplo costa) para no perder días en ruta.",
+      "Vacaciones o cierre de faena de fin de año, y feriados internos del contrato."]);
+  return svgDoc(o, "Pórticos · Proyección · Hoja " + n + " · Supuestos y riesgos");
+}
+function hojasProyeccion(M){
+  var Pr = proyectar(M, PROY.PERD), sem = semanasProy(M, Pr).slice(0, 5), hs = [], n = 9;
+  /* 5 semanas de noviembre (hojas 9 a 13), intermedio (14), supuestos (15) */
+  sem.forEach(function(d0, i){ hs.push(hojaProySemana(M, Pr, d0, n++, i + 1)); });
+  hs.push(hojaProyIntermedio(M, Pr, n++)); hs.push(hojaProySupuestos(M, Pr, n++));
+  return { hojas:hs, Pr:Pr };
+}
+
 /* ====================== orquestación y ventana ====================== */
-var NOMBRES = ["Hoja1_Mapa", "Hoja2_Trazados", "Hoja3_Semana_presente", "Hoja4_Semana_anterior_y_siguiente", "Hoja5_Intermedio", "Hoja6_Restricciones", "Hoja7_Indicadores", "Hoja8_Estado_porticos"];
+var NOMBRES = ["Hoja1_Mapa", "Hoja2_Trazados", "Hoja3_Semana_presente", "Hoja4_Semana_anterior_y_siguiente", "Hoja5_Intermedio", "Hoja6_Restricciones", "Hoja7_Indicadores", "Hoja8_Estado_porticos", "Hoja9_Proyeccion_semana1", "Hoja10_Proyeccion_semana2", "Hoja11_Proyeccion_semana3", "Hoja12_Proyeccion_semana4", "Hoja13_Proyeccion_semana5", "Hoja14_Proyeccion_intermedio", "Hoja15_Supuestos_y_riesgos"];
 var _geo = null;
 function cargarGeo(){
   if(_geo) return Promise.resolve(_geo);
@@ -893,6 +1141,7 @@ function generar(paso){
     var G = r[0], css = r[2]; paso("Armando las hojas…");
     var M = modelo(D), hojas = [];
     hojas.push(hoja1(M, G)); hojas.push(hoja2(M)); var board = leerSemanal(); hojas.push(hoja3(M, board)); hojas.push(hoja4(M)); hojas.push(hoja5(M)); hojas.push(hoja6(M)); hojas.push(hoja7(M)); hojas.push(hoja8(M));
+    if(M.hoy <= PROY.MESPROY + "-30"){ TOTAL = 15; hojas.push.apply(hojas, hojasProyeccion(M).hojas); } else TOTAL = 8;
     return { hojas:hojas.map(function(s){ return conFuente(s, css); }), M:M };
   });
 }
