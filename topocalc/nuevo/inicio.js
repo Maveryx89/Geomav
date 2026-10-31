@@ -10,7 +10,7 @@ const nVisibles = g => g.tools.filter(id => !CATALOGO[id].oculta).length + PAGIN
 function tarjetaHerramienta(id, oculta){
   const t = CATALOGO[id];
   return `<button class="tool-card" data-tool="${id}" type="button">
-      ${oculta ? '<span class="badge">Próximamente</span>' : (t.migrada ? '<span class="badge nueva">nueva carpeta</span>' : '')}
+      ${oculta ? '<span class="badge">Próximamente</span>' : ''}
       <span class="glyph">${t.icon}</span><span class="name">${t.name}</span><span class="desc">${t.desc}</span>
     </button>`;
 }
