@@ -1,0 +1,3 @@
+"use strict";
+/* Metadatos de la herramienta «Poligonal Abierta» (grupo: Levantamiento y Coordenadas Planas). */
+const TOOLS = { "poligAbierta": {"name":"Poligonal Abierta","desc":"Coordenadas por tramos","icon":"<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M6 30 L16 12 L26 22 L34 8\"/><circle cx=\"6\" cy=\"30\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"16\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"26\" cy=\"22\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"34\" cy=\"8\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></svg>"} };

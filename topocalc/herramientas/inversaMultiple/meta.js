@@ -1,0 +1,3 @@
+"use strict";
+/* Metadatos de la herramienta «Inversa Múltiple» (grupo: Levantamiento y Coordenadas Planas). */
+const TOOLS = { "inversaMultiple": {"name":"Inversa Múltiple","desc":"Distancia y azimut de varios tramos a la vez","icon":"<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><path d=\"M6 32 L14 12 L24 24 L34 8\"/><circle cx=\"6\" cy=\"32\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"14\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"24\" cy=\"24\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"34\" cy=\"8\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></svg>"} };

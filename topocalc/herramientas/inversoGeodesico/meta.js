@@ -1,0 +1,3 @@
+"use strict";
+/* Metadatos de la herramienta «Problema Inverso de la Geodesia» (grupo: Geodesia y GNSS). */
+const TOOLS = { "inversoGeodesico": {"name":"Problema Inverso de la Geodesia","desc":"Dos puntos → distancia y azimutes (Vincenty)","icon":"<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><ellipse cx=\"20\" cy=\"20\" rx=\"16\" ry=\"10\"/><circle cx=\"8\" cy=\"24\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"32\" cy=\"14\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M8 24 Q20 10 32 14\" stroke-dasharray=\"2 2\"/></svg>"} };

@@ -1,0 +1,3 @@
+"use strict";
+/* Metadatos de la herramienta «Progresiva y Offset desde un Eje» (grupo: Vías y Curvas). */
+const TOOLS = { "progresivaOffset": {"name":"Progresiva y Offset desde un Eje","desc":"Inversa de un eje de proyecto","icon":"<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><path d=\"M4 34 L36 6\" stroke-width=\"2\"/><circle cx=\"30\" cy=\"24\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M30 24 L20.5 20\" stroke-dasharray=\"2 2\" stroke-width=\"1.1\"/><circle cx=\"20.5\" cy=\"20\" r=\"1.6\" fill=\"currentColor\" stroke=\"none\"/></svg>"} };

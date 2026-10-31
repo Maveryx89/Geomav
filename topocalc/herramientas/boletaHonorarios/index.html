@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Boleta de Honorarios e IVA · Topo de Bolsillo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F4F3EF">
+<link rel="manifest" href="../../manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="../../icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="../../icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../_comun/estilo.css">
+</head>
+<body class="in-tool" data-herramienta="boletaHonorarios" data-grupo="gestion" data-raiz="../../">
+
+<div id="app">
+  <div class="topbar">
+    <button class="back-btn" id="backBtn" aria-label="Volver" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="brand">
+      <img class="brand-logo" src="../../_comun/logo-geomav.png" alt="GeoMav">
+      <div class="brand-text">
+        <span class="mark">Topo</span>
+        <span class="tag">DE BOLSILLO &middot; POR GEOMAV</span>
+      </div>
+    </div>
+    <h1 class="tool-title" id="toolTitleTop"></h1>
+    <button class="theme-toggle" id="angSysToggle" aria-label="Cambiar sistema angular" type="button" title="Sistema angular"><span id="angSysLabel">SEX</span></button>
+    <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema" type="button">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+  </div>
+  <main id="main"></main>
+  <footer class="app-foot">
+    <img class="foot-logo" src="../../_comun/logo-geomav.png" alt="">
+    <span>Topo de Bolsillo &middot; herramientas de topograf&iacute;a de bolsillo</span>
+    <span class="foot-cta">&iquest;Necesitas un levantamiento topogr&aacute;fico, dron o recorrido 360&deg;? <a href="https://geomav.me/?utm_source=topocalc&amp;utm_medium=app&amp;utm_campaign=pie" target="_blank" rel="noopener">Cotiza en geomav.me</a></span>
+    <button class="btn-sm" id="btnQuitarAnuncios" type="button" style="display:none; margin:6px 0;">🚫 Quitar anuncios</button>
+    <span class="foot-copy">&copy; <span id="footYear"></span> Topo de Bolsillo. Todos los derechos reservados. &middot; <a href="https://geomav.me/topocalc/privacidad.html" target="_blank" rel="noopener">Pol&iacute;tica de privacidad</a></span>
+  </footer>
+</div>
+
+<script src="../../_comun/rutas.js"></script>
+<script src="../../_comun/nucleo.js"></script>
+<script src="meta.js"></script>
+<script src="tool.js"></script>
+<script src="../../_comun/tema.js"></script>
+<script src="../../_comun/arranque.js"></script>
+</body>
+</html>

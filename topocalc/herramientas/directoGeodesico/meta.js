@@ -1,0 +1,3 @@
+"use strict";
+/* Metadatos de la herramienta «Problema Directo de la Geodesia» (grupo: Geodesia y GNSS). */
+const TOOLS = { "directoGeodesico": {"name":"Problema Directo de la Geodesia","desc":"Punto, azimut y distancia → punto destino (Vincenty)","icon":"<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><ellipse cx=\"20\" cy=\"20\" rx=\"16\" ry=\"10\"/><circle cx=\"9\" cy=\"20\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M9 20 Q20 8 31 14\" stroke-width=\"1.3\"/><circle cx=\"31\" cy=\"14\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></svg>"} };
