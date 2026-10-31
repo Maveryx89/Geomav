@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Manual de uso · Topo de Bolsillo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F4F3EF">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_comun/estilo.css">
+<style>
+.man{display:flex; flex-direction:column; gap:14px;}
+.man h2{font-size:17px; margin:18px 0 0; color:var(--ink);}
+.man .buscar{width:100%; padding:10px 12px; border:1px solid var(--line-strong); border-radius:8px; background:var(--paper); color:var(--ink); font:inherit;}
+.man .toc{display:flex; flex-wrap:wrap; gap:6px;}
+.man .toc a{font-size:12.5px; padding:5px 9px; border:1px solid var(--line-strong); border-radius:999px; color:var(--ink); text-decoration:none;}
+.man .intro li{margin:3px 0;}
+.man .ficha{border:1px solid var(--line); border-radius:12px; padding:12px 14px; background:var(--paper); scroll-margin-top:12px;}
+.man .ficha:target{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent);}
+.man .ficha h3{margin:0 0 2px; font-size:15.5px;}
+.man .ficha .sub{font-size:12.5px; color:var(--ink-soft); margin:0 0 8px;}
+.man .ficha h4{margin:10px 0 3px; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--blueprint);}
+.man .ficha ul{margin:0; padding-left:18px; font-size:13.5px;}
+.man .ficha p{margin:0; font-size:13.5px;}
+.man .ficha .abrir{display:inline-block; margin-top:10px; text-decoration:none;}
+.man .prox{font-size:10px; font-family:var(--font-mono); text-transform:uppercase; color:var(--accent-text); background:var(--blueprint-soft); border-radius:3px; padding:1px 5px; margin-left:6px;}
+</style>
+</head>
+<body class="in-tool" data-raiz="./">
+<div id="app">
+  <div class="topbar">
+    <a class="back-btn" id="backBtn" aria-label="Volver" href="./" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:inherit">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M15 18l-6-6 6-6"/></svg>
+    </a>
+    <div class="brand">
+      <img class="brand-logo" src="_comun/logo-geomav.png" alt="GeoMav">
+      <div class="brand-text"><span class="mark">Topo</span><span class="tag">DE BOLSILLO &middot; POR GEOMAV</span></div>
+    </div>
+    <h1 class="tool-title">Manual de uso</h1>
+  </div>
+  <main id="main"><div class="tool-view man" id="man"></div></main>
+  <footer class="app-foot">
+    <img class="foot-logo" src="_comun/logo-geomav.png" alt="">
+    <span>Topo de Bolsillo &middot; herramientas de topograf&iacute;a de bolsillo</span>
+    <span class="foot-copy">&copy; Topo de Bolsillo. Todos los derechos reservados. &middot; <a href="https://geomav.me/topocalc/privacidad.html" target="_blank" rel="noopener">Pol&iacute;tica de privacidad</a></span>
+  </footer>
+</div>
+<script src="catalogo.js"></script>
+<script src="manual-datos.js"></script>
+<script>
+(function(){
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const li = a => a.map(x => '<li>'+esc(x)+'</li>').join('');
+  let h = `<p class="tool-blurb">Cómo usar Topo de Bolsillo y qué hace cada herramienta, agrupadas por función. Este manual se genera desde las propias herramientas, por lo que siempre coincide con lo que ves en pantalla.</p>
+  <input class="buscar" id="buscar" type="search" placeholder="Buscar herramienta…" aria-label="Buscar herramienta">
+  <div class="toc">${GRUPOS.map(g => `<a href="#g-${g.id}">${esc(g.nombre)}</a>`).join('')}</div>
+  <h2>Uso general</h2>
+  <ol class="intro">
+    <li><b>Elige un grupo</b> en el menú y luego la herramienta.</li>
+    <li><b>Ingresa los datos</b> en los campos; cada título indica la unidad (m, gon, °…). El botón SEX/CEN de la barra superior cambia el sistema angular.</li>
+    <li><b>Presiona Calcular</b>: los resultados y el diagrama aparecen debajo.</li>
+    <li><b>Exporta un informe</b> o <b>comparte una captura</b> con los botones bajo el resumen.</li>
+    <li>Toca <b>Recorrido guiado</b> en cualquier herramienta para ver estos pasos señalados en pantalla, y <b>Significado de las siglas</b> para entender cada letra.</li>
+    <li>Funciona sin conexión una vez instalada en el teléfono.</li>
+  </ol>`;
+  GRUPOS.forEach(g => {
+    h += `<h2 id="g-${g.id}">${esc(g.nombre)}</h2>`;
+    g.tools.forEach(id => {
+      const t = CATALOGO[id], d = MANUAL_DATOS[id]; if(!t || !d) return;
+      h += `<section class="ficha" id="${id}" data-q="${esc((t.name+' '+t.desc+' '+d.blurb).toLowerCase())}">
+        <h3>${esc(t.name)}${t.oculta ? '<span class="prox">Próximamente</span>' : ''}</h3>
+        <p class="sub">${esc(t.desc)}</p>
+        <p>${esc(d.blurb)}</p>
+        ${d.campos.length ? '<h4>Datos que ingresas</h4><ul>'+li(d.campos)+'</ul>' : ''}
+        ${d.botones.length ? '<h4>Acciones</h4><ul>'+li(d.botones)+'</ul>' : ''}
+        ${d.resultados.length ? '<h4>Resultados</h4><ul>'+li(d.resultados)+'</ul>' : '<h4>Resultados</h4><p>Aparecen en pantalla al usar la herramienta.</p>'}
+        <h4>Siglas</h4>${d.siglas.length ? '<ul>'+li(d.siglas)+'</ul>' : '<p>No usa siglas específicas.</p>'}
+        <a class="btn-sm abrir" href="herramientas/${id}/index.html">Abrir herramienta →</a>
+      </section>`;
+    });
+  });
+  document.getElementById('man').innerHTML = h;
+  document.getElementById('buscar').addEventListener('input', e => {
+    const q = e.target.value.trim().toLowerCase();
+    document.querySelectorAll('.ficha').forEach(f => f.hidden = !!q && !f.dataset.q.includes(q));
+  });
+  if(location.hash){ const el = document.getElementById(decodeURIComponent(location.hash.slice(1))); if(el) el.scrollIntoView(); }
+})();
+</script>
+</body>
+</html>
