@@ -2,7 +2,7 @@
 // v2: además de la app, guarda para uso SIN INTERNET las librerías externas (mapa, Excel, capturas), las tipografías
 //     y los mosaicos del mapa que ya se hayan visto (hasta MAX_TILES, para no llenar el teléfono).
 importScripts('precache.js');   // PRECACHE_NUEVO: menú por grupos, _comun/ y las carpetas de herramientas (generado)
-const CACHE_VERSION = 'topocalc-v8';
+const CACHE_VERSION = 'topocalc-v9';
 const SHARE_CACHE = 'topocalc-compartido';   // imágenes recibidas desde «Compartir» de la galería (se borran al abrirse en el visor 360°)
 const TILES_CACHE = 'topocalc-tiles-v1';
 const MAX_TILES = 300;

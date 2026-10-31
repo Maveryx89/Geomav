@@ -1,9 +1,7 @@
 "use strict";
 /* Archivos de la estructura por carpetas que el service worker guarda al instalar (para uso sin conexión).
    Generado junto con catalogo.js; el service worker lo carga con importScripts. */
-const PRECACHE_NUEVO = ["nuevo/",
-  "nuevo/index.html",
-  "nuevo/inicio.js",
+const PRECACHE_NUEVO = ["inicio.js",
   "catalogo.js",
   "_comun/arranque.js",
   "_comun/estilo.css",

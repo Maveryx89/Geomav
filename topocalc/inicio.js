@@ -70,6 +70,9 @@ function renderGrupo(g){
   conectar(main);
 }
 function render(){
+  /* Enlaces antiguos (index.html#curvaC): llevan a la carpeta de la herramienta */
+  const _h = location.hash.slice(1);
+  if(_h && !/^g-/.test(_h) && CATALOGO[_h]){ location.replace(urlHerramienta(_h)); return; }
   const g = grupoRuta();
   if(g) { renderGrupo(g); window.scrollTo(0,0); }
   else { renderGrupos(); requestAnimationFrame(() => window.scrollTo(0, homeScrollY)); }
