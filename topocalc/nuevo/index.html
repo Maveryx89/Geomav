@@ -18,7 +18,11 @@
 <style>
 /* Menú por grupos: la etiqueta de «Próximamente» también se usa fuera del desplegable; el aviso de grupo va a todo el ancho */
 .tool-card .badge{align-self:flex-start; font-family:var(--font-mono); font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--accent-text); background:var(--blueprint-soft); border-radius:3px; padding:1px 7px;}
-.tool-card .badge.nueva{color:var(--blueprint);}
+/* Tarjetas compactas: icono y nombre en la misma línea, descripción debajo */
+.tool-card{display:grid; grid-template-columns:auto 1fr; column-gap:10px; row-gap:6px; align-items:center; align-content:start;}
+.tool-card .glyph{width:28px; height:28px;}
+.tool-card .name{grid-column:2; font-size:14.5px;}
+.tool-card .desc,.tool-card .badge{grid-column:1 / -1;}
 main > .tool-blurb{margin:0 0 14px;}
 main > .card-grid + .proximamente{margin-top:18px;}
 </style>
