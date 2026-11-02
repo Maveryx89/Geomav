@@ -877,6 +877,7 @@ var PROY = {
   PESO: { "Excavación":2, "Emplantillado":1, "Inst. de Fundación":1, "Relleno":1, "Inst. Poste V":1, "Inst. Brazo H":1, "Inst. Cámara":1 },
   CAP: 7,            /* unidades de trabajo por día con las 2 cuadrillas, sin pérdidas (1 unidad = tarea liviana; excavación = 2, a mano = 3) */
   PERD: 0.15,        /* días perdidos por lluvia y otros */
+  MALLA: 3,         /* pórticos por día del frente de malla (barra de tierra): independiente de la cadena, ritmo del plan del 2 al 6 de noviembre */
   TRZ: 6,            /* pórticos que se trazan por día (topografía, recurso aparte de las cuadrillas) */
   TRZ_ADEL: 12,      /* máximo de pórticos trazados esperando excavación */
   FERIADOS: ["2026-11-01", "2026-12-08", "2026-12-25", "2027-01-01"],
@@ -884,6 +885,7 @@ var PROY = {
   MESPROY: "2026-11",
   FIN: "2026-12-31"        /* cierre del intermedio de 2 meses */
 };
+function ordProy(){ return PROY.CH.concat(["Inst. Malla"]); }
 function esFeriado(d){ return PROY.FERIADOS.indexOf(iso(d)) >= 0; }
 function esHabil(d){ return wd(d) < 5 && !esFeriado(d); }
 function sigHabil(d){ d = addDays(d, 1); while(!esHabil(d)) d = addDays(d, 1); return d; }
@@ -911,10 +913,25 @@ function proyectar(M, perdida){
   var CH = PROY.CH, est = estadoCadena(M), cap = PROY.CAP * (1 - perdida), hoy = pd(M.hoy);
   var P = M.PORT.filter(function(p){ return est[p.num] != null; }).map(function(p){
     var e = est[p.num], mano = /mano/i.test(M.COND[p.num + "|exc"] || "");
-    return { num:p.num, nombre:p.nombre, comuna:p.comuna, km:distKm(p.lat, p.lng), k:e, listo:null, mano:mano, fin:null, ini:null };
+    var mal = !!M.ejec[p.num + "|Inst. Malla"];
+    return { num:p.num, nombre:p.nombre, comuna:p.comuna, km:distKm(p.lat, p.lng), k:e, listo:null, mano:mano, fin:null, ini:null, malla:mal, malla0:mal };
   });
   P.sort(function(a, b){ return a.km - b.km; });
-  var ini0 = sigHabil(hoy), tareas = [], pend = P.filter(function(p){ return p.k < CH.length - 1; }).length, trazados = 0;
+  var malla0 = P.filter(function(p){ return p.malla; }).length, tareas = [], ini0 = sigHabil(hoy), planSem = null;
+  /* si la app ya trae una semana programada (plan de trabajo cargado), esa semana se toma tal cual y la simulación parte desde la siguiente */
+  var PRg = M.PR.filter(function(r){ return r.fecha >= M.hoy && /^programado/i.test(r.estado) && (CH.indexOf(r.partida) > 0 || r.partida === "Inst. Malla"); }), wk = {};
+  PRg.forEach(function(r){ var w = iso(lunes(r.fecha)); wk[w] = (wk[w] || 0) + 1; });
+  planSem = Object.keys(wk).sort().filter(function(w){ return wk[w] >= 8; })[0] || null;
+  if(planSem){
+    var porNum = {}; P.forEach(function(p){ porNum[p.num] = p; });
+    PRg.filter(function(r){ return iso(lunes(r.fecha)) === planSem; }).sort(function(a, b){ return a.fecha < b.fecha ? -1 : 1; }).forEach(function(r){
+      var p = porNum[String(r.portico)]; if(!p) return;
+      tareas.push({ fecha:r.fecha, portico:p.num, nombre:p.nombre, comuna:p.comuna, partida:r.partida, estado:"Programado", obs:"", restr:"", aut:"", plan:true });
+      if(r.partida === "Inst. Malla") p.malla = true; else { var ix = CH.indexOf(r.partida); if(ix > p.k) p.k = ix; if(p.k >= CH.length - 1 && !p.fin) p.fin = r.fecha; }
+    });
+    var lun1 = addDays(pd(planSem), 7); if(lun1 > ini0) ini0 = lun1;
+  }
+  var pend = P.filter(function(p){ return p.k < CH.length - 1; }).length + P.filter(function(p){ return !p.malla; }).length, trazados = 0, mdeuda = 0;
   P.forEach(function(p){ p.listo = iso(ini0); if(p.k >= 1) trazados++; });
   var d = ini0, deuda = 0, guard = 0;
   while(pend > 0 && guard++ < 700){
@@ -942,11 +959,18 @@ function proyectar(M, perdida){
       p.listo = iso(sigHabil(d));
       if(p.k >= CH.length - 1){ p.fin = di; pend--; }
     }
+    /* frente de malla (barra de tierra): aparte de la cadena, por cercanía a San Fernando */
+    mdeuda = Math.min(mdeuda, 0) + PROY.MALLA * (1 - perdida);
+    for(var m_ = 0; m_ < P.length && mdeuda > 0; m_++){
+      var pm = P[m_]; if(pm.malla) continue;
+      tareas.push({ fecha:di, portico:pm.num, nombre:pm.nombre, comuna:pm.comuna, partida:"Inst. Malla", estado:"Proyectado", obs:"", restr:"", aut:"" });
+      pm.malla = true; mdeuda -= 1; pend--;
+    }
     d = sigHabil(d);
   }
   var fin = {}; P.forEach(function(p){ fin[p.num] = p.fin; });
   var ult = tareas.reduce(function(m, t){ return t.fecha > m ? t.fecha : m; }, M.hoy);
-  return { tareas:tareas, fin:fin, P:P, est:est, ult:ult, total:P.length * CH.length, hechas:Object.keys(est).reduce(function(a, n){ return a + est[n] + 1; }, 0), completos:Object.keys(est).filter(function(n){ return est[n] >= CH.length - 1; }).length, ini:iso(ini0) };
+  return { tareas:tareas, planSem:planSem, fin:fin, P:P, est:est, ult:ult, total:P.length * (CH.length + 1), hechas:Object.keys(est).reduce(function(a, n){ return a + est[n] + 1; }, 0) + malla0, completos:Object.keys(est).filter(function(n){ return est[n] >= CH.length - 1; }).length, ini:iso(ini0) };
 }
 function semanasProy(M, Pr){
   var out = [], m0 = pd(PROY.MESPROY + "-01"); while(wd(m0) !== 0) m0 = addDays(m0, 1);   /* primer lunes del mes */
@@ -955,6 +979,7 @@ function semanasProy(M, Pr){
   return out;
 }
 function enSemana(Pr, d0){ var A = iso(d0), B = iso(addDays(d0, 4)); return Pr.tareas.filter(function(t){ return t.fecha >= A && t.fecha <= B; }); }
+function mallaAl(Pr, p, fechaISO){ return p.malla0 || Pr.tareas.some(function(t){ return t.portico === p.num && t.partida === "Inst. Malla" && t.fecha <= fechaISO; }); }
 function acumHasta(Pr, fechaISO){ return Pr.hechas + Pr.tareas.filter(function(t){ return t.fecha <= fechaISO; }).length; }
 function pct(a, b){ return b ? Math.round(1000 * a / b) / 10 : 0; }
 function fcorta(s){ var d = pd(s); return d.getUTCDate() + " " + MES3[d.getUTCMonth()] + " " + d.getUTCFullYear(); }
@@ -968,36 +993,37 @@ function listaNombres(o, x, y, w, titulo, nombres, col, maxl){
 }
 function hojaProySemana(M, Pr, d0, n, k, tot){
   var d1 = addDays(d0, 4), rows = enSemana(Pr, d0), A = iso(d0), B = iso(d1);
-  var titulo = "Semana " + k + " proyectada · del " + rangoSem(d0) + " de " + d1.getUTCFullYear();
+  var esPlan = rows.some(function(t){ return t.plan; }), titulo = "Semana " + k + (esPlan ? " programada (plan de trabajo)" : " proyectada") + " · del " + rangoSem(d0) + " de " + d1.getUTCFullYear();
   var o = frame(n, "PROYECCIÓN DE AVANCE · " + MESES[pd(PROY.MESPROY + "-01").getUTCMonth()].toUpperCase() + " " + pd(PROY.MESPROY + "-01").getUTCFullYear(), titulo, "corte al " + M.corte, " · proyección: 2 cuadrillas · lun–vie · 15 % de pérdida");
   var dias = {}; rows.forEach(function(t){ dias[t.fecha] = 1; });
   var ini = rows.filter(function(t){ return t.partida === "Excavación"; }), fin_ = rows.filter(function(t){ return t.partida === "Inst. Cámara"; }), trz = rows.filter(function(t){ return t.partida === "Trazado"; });
   var a0 = acumHasta(Pr, iso(addDays(d0, -1))), a1 = acumHasta(Pr, B);
   o = o.concat(kpis([[rows.length, "tareas proyectadas"], [ini.length, "pórticos inician excavación"], [fin_.length, "pórticos completan la cadena"], [fpct(pct(a1, Pr.total)), "avance acumulado"]]));
   leyendaPartidas(o, rows);
-  var kk = 1, finY = 0;
-  function dib(oo, kk_){ return tablero(oo, 58, tituloSemana("Tareas por día", d0), d0, rows, false, kk_) + 3; }
-  finY = dib([], kk); while(finY > 292 && kk > .55){ kk -= .05; finY = dib([], kk); }
+  var kk = 1, finY = 0, rowsC = rows.filter(function(t){ return t.partida !== "Inst. Malla"; }), rowsM = rows.filter(function(t){ return t.partida === "Inst. Malla"; });
+  function dib(oo, kk_){ var y1 = tablero(oo, 58, tituloSemana("Tareas por día", d0), d0, rowsC, false, kk_) + 3; return rowsM.length ? tablero(oo, y1 + 6, "Instalación de malla (barra de tierra) · frente aparte", d0, rowsM, false, kk_) + 3 : y1; }
+  finY = dib([], kk); while(finY > 280 && kk > .55){ kk -= .05; finY = dib([], kk); }
   finY = dib(o, kk);
-  var y = finY + 8, w = (265 - 2 * 5) / 3;
+  var y = finY + 8, w = (265 - 3 * 5) / 4, mal = rowsM;
   o.push(T(16, y, "Hitos de la semana", 4.4, 700, NAVY)); o.push(L(16, y + 3.3, 281, y + 3.3, NAVY, .3)); y += 7;
   var y1 = listaNombres(o, 16, y, w, "Se trazan", trz.map(function(t){ return t.nombre; }).sort(cmpNat), COL["Trazado"] || "#3F8FC4", 6);
-  var y2 = listaNombres(o, 16 + w + 5, y, w, "Inician excavación", ini.map(function(t){ return t.nombre; }).sort(cmpNat), COL["Excavación"] || "#D49A6A", 6);
-  var y3 = listaNombres(o, 16 + 2 * (w + 5), y, w, "Completan cámara (cadena completa)", fin_.map(function(t){ return t.nombre; }).sort(cmpNat), COL["Inst. Cámara"] || "#B23B3B", 6);
-  y = Math.max(y1, y2, y3) + 3;
+  var y2 = listaNombres(o, 16 + w + 5, y, w, "Inician excav.", ini.map(function(t){ return t.nombre; }).sort(cmpNat), COL["Excavación"] || "#D49A6A", 6);
+  var y3 = listaNombres(o, 16 + 2 * (w + 5), y, w, "Completan cámara", fin_.map(function(t){ return t.nombre; }).sort(cmpNat), COL["Inst. Cámara"] || "#B23B3B", 6);
+  var y4 = listaNombres(o, 16 + 3 * (w + 5), y, w, "Reciben malla", mal.map(function(t){ return t.nombre; }).sort(cmpNat), COL["Inst. Malla"] || "#D6A828", 6);
+  y = Math.max(y1, y2, y3, y4) + 3;
   /* avance acumulado */
   var bw = 265, p0 = pct(a0, Pr.total), p1 = pct(a1, Pr.total);
-  o.push(T(16, y + 2, "Avance físico acumulado (tareas de la cadena sobre " + Pr.total + ")", 3.1, 700, NAVY));
+  o.push(T(16, y + 2, "Avance físico acumulado (tareas sobre " + Pr.total + ", malla incluida)", 3.1, 700, NAVY));
   o.push(R(16, y + 6, bw, 5, CHIP, { rx:1 })); o.push(R(16, y + 6, bw * p0 / 100, 5, mix("#26694B", .45), { rx:1 })); o.push(R(16 + bw * p0 / 100, y + 6, bw * (p1 - p0) / 100, 5, "#26694B", { rx:1 }));
   o.push(T(16 + 2, y + 8.6, fpct(p0) + " al inicio de la semana", 2.6, 600, NAVY)); o.push(T(281 - 2, y + 8.6, fpct(p1) + " al cierre", 2.6, 700, bw * p1 / 100 > 230 ? "#ffffff" : NAVY, { anchor:"end" }));
   y += 22;
   o.push(T(16, y, "Estado de los pórticos al cierre de la semana · por comuna", 4.4, 700, NAVY)); o.push(L(16, y + 3.3, 281, y + 3.3, NAVY, .3)); y += 8;
   var etapa = function(num){ var k = Pr.est[num]; Pr.tareas.forEach(function(t){ if(t.portico === num && t.fecha <= B){ var i = PROY.CH.indexOf(t.partida); if(i > k) k = i; } }); return k; };
-  var cm = {}; Pr.P.forEach(function(p){ var c = cm[p.comuna] = cm[p.comuna] || { km:p.km, n:0, sin:0, traz:0, obra:0, comp:0 }; c.km = Math.min(c.km, p.km); var k = etapa(p.num); c.n++; if(k < 0) c.sin++; else if(k === 0) c.traz++; else if(k >= PROY.CH.length - 1) c.comp++; else c.obra++; });
-  var cf = Object.keys(cm).sort(function(a, b){ return cm[a].km - cm[b].km; }).map(function(c){ var v = cm[c]; return [c, v.n, v.sin, v.traz, v.obra, v.comp]; });
-  var tt = cf.reduce(function(a, r_){ return [a[0] + r_[1], a[1] + r_[2], a[2] + r_[3], a[3] + r_[4], a[4] + r_[5]]; }, [0, 0, 0, 0, 0]);
-  cf.push(["Total", tt[0], tt[1], tt[2], tt[3], tt[4]]);
-  y = tabla(o, 16, y, 265, "Cada pórtico se cuenta en su etapa más avanzada", [["Comuna", 18], ["Pórticos", 9], ["Sin trazar", 10], ["Trazados, sin excavar", 14], ["En obra (excavación a cámara)", 18], ["Cadena completa", 12]], cf, "", 5.2, 1.2) + 4;
+  var cm = {}; Pr.P.forEach(function(p){ var c = cm[p.comuna] = cm[p.comuna] || { km:p.km, n:0, sin:0, traz:0, obra:0, comp:0, mal:0 }; c.km = Math.min(c.km, p.km); var k = etapa(p.num); c.n++; if(mallaAl(Pr, p, B)) c.mal++; if(k < 0) c.sin++; else if(k === 0) c.traz++; else if(k >= PROY.CH.length - 1) c.comp++; else c.obra++; });
+  var cf = Object.keys(cm).sort(function(a, b){ return cm[a].km - cm[b].km; }).map(function(c){ var v = cm[c]; return [c, v.n, v.sin, v.traz, v.obra, v.comp, v.mal]; });
+  var tt = cf.reduce(function(a, r_){ return [a[0] + r_[1], a[1] + r_[2], a[2] + r_[3], a[3] + r_[4], a[4] + r_[5], a[5] + r_[6]]; }, [0, 0, 0, 0, 0, 0]);
+  cf.push(["Total", tt[0], tt[1], tt[2], tt[3], tt[4], tt[5]]);
+  y = tabla(o, 16, y, 265, "Cada pórtico se cuenta en su etapa más avanzada · la malla se cuenta aparte", [["Comuna", 18], ["Pórticos", 9], ["Sin trazar", 10], ["Trazados, sin excavar", 14], ["En obra (excavación a cámara)", 18], ["Cadena completa", 12], ["Malla instalada", 11]], cf, "", 5.2, 1.2) + 4;
   o.push(T(16, y + 15, "Proyección con los supuestos de la hoja " + (8 + 5 + 2) + ": no es programación comprometida. Los días con feriado o sin faena no tienen tareas.", 2.4, 400, MUTE));
   return svgDoc(o, "Pórticos · Proyección · Hoja " + n + " · " + titulo);
 }
@@ -1016,7 +1042,7 @@ function hojaProyIntermedio(M, Pr, n, escen){
   var pts = [];
   sem.forEach(function(d0, i){
     var bx = gx + i * cw + cw * .18, bw = cw * .64, yb = gy + gh;
-    ORDEN.forEach(function(p){ var v = cnt[i].c[p] || 0; if(!v) return; var h = gh * v / mx; yb -= h; o.push(R(bx, yb, bw, h, COL[p])); });
+    ordProy().forEach(function(p){ var v = cnt[i].c[p] || 0; if(!v) return; var h = gh * v / mx; yb -= h; o.push(R(bx, yb, bw, h, COL[p])); });
     o.push(T(bx + bw / 2, gy + gh - gh * cnt[i].n / mx - 2.2, String(cnt[i].n), 2.8, 700, NAVY, { anchor:"middle" }));
     o.push(T(gx + i * cw + cw / 2, gy + gh + 4, "Lun " + d0.getUTCDate() + " " + MES3[d0.getUTCMonth()], 2.5, 600, NAVY, { anchor:"middle" }));
     var dh = 0; for(var q = 0; q < 5; q++) if(esHabil(addDays(d0, q))) dh++;
@@ -1026,7 +1052,7 @@ function hojaProyIntermedio(M, Pr, n, escen){
   o.push('<polyline points="' + pts.map(function(q){ return f(q[0]) + "," + f(q[1]); }).join(" ") + '" fill="none" stroke="' + NAVY + '" stroke-width=".6" stroke-linejoin="round"/>');
   pts.forEach(function(q, i){ o.push(circ(q[0], q[1], .9, "#ffffff", NAVY, .4)); o.push(T(q[0], gy - 4, fpct(pct(acumHasta(Pr, iso(addDays(sem[i], 4)) > finD ? finD : iso(addDays(sem[i], 4))), Pr.total)), 2.7, 700, NAVY, { anchor:"middle" })); });
   o.push(T(gx - 2, gy - 4, "avance acum.", 2.3, 600, MUTE, { anchor:"end" }));
-  var lx = gx; ORDEN.filter(function(p){ return Pr.tareas.some(function(t){ return t.partida === p; }); }).forEach(function(p){ o.push(R(lx, gy + gh + 11.4, 2.8, 2.8, COL[p], { rx:.5 })); o.push(T(lx + 4, gy + gh + 12.8, p, 2.5, 400, NAVY)); lx += 4 + tw(p, 2.5) + 5; });
+  var lx = gx; ordProy().filter(function(p){ return Pr.tareas.some(function(t){ return t.partida === p; }); }).forEach(function(p){ o.push(R(lx, gy + gh + 11.4, 2.8, 2.8, COL[p], { rx:.5 })); o.push(T(lx + 4, gy + gh + 12.8, p, 2.5, 400, NAVY)); lx += 4 + tw(p, 2.5) + 5; });
   o.push(T(gx + gw, gy + gh + 12.8, "—○— avance acumulado", 2.5, 600, NAVY, { anchor:"end" }));
   /* B · tabla semanal */
   y = gy + gh + 20;
@@ -1040,17 +1066,17 @@ function hojaProyIntermedio(M, Pr, n, escen){
   o.push(T(16, y, "Tareas por partida y semana", 3.6, 700, NAVY)); o.push(L(16, y + 2.7, 281, y + 2.7, NAVY, .3)); y += 6;
   var LW2 = 34, cw2 = (265 - LW2 - 16) / sem.length, rh2 = 5;
   o.push(R(16, y - 2.4, 265, 5, CHIP, { rx:.8 })); sem.forEach(function(d0, i){ o.push(T(16 + LW2 + i * cw2 + cw2 / 2, y, d0.getUTCDate() + "-" + MES3[d0.getUTCMonth()], 2.4, 600, MUTE, { anchor:"middle" })); }); o.push(T(281 - 2, y, "Total", 2.4, 600, MUTE, { anchor:"end" }));
-  ORDEN.filter(function(p){ return Pr.tareas.some(function(t){ return t.partida === p; }); }).forEach(function(p, j){
-    var yy = y + 5.2 + j * rh2, tot2 = 0; o.push(R(16, yy - 2.3, 1, rh2 - .3, COL[p])); o.push(T(19, yy, p, 2.7, 700, NAVY));
+  ordProy().filter(function(p){ return Pr.tareas.some(function(t){ return t.partida === p; }); }).forEach(function(p, j){
+    var yy = y + 5.2 + j * rh2, tot2 = 0; o.push(R(16, yy - 2.3, 1, rh2 - .3, COL[p])); o.push(T(19, yy, p === "Inst. Malla" ? "Malla (aparte)" : p, 2.7, 700, NAVY));
     sem.forEach(function(d0, i){ var v = enSemana(Pr, d0).filter(function(t){ return t.partida === p; }).length; tot2 += v; if(v) o.push(R(16 + LW2 + i * cw2 + .6, yy - 2.2, cw2 - 1.2, rh2 - .5, mix(COL[p], Math.min(.8, .15 + v / 14)), { rx:.7 })); o.push(T(16 + LW2 + i * cw2 + cw2 / 2, yy, v ? String(v) : "·", 2.7, v ? 700 : 400, v ? NAVY : "rgba(10,34,64,.3)", { anchor:"middle" })); });
     o.push(T(281 - 2, yy, String(tot2), 2.8, 700, NAVY, { anchor:"end" }));
   });
-  y += 5.2 + ORDEN.filter(function(p){ return Pr.tareas.some(function(t){ return t.partida === p; }); }).length * rh2 + 4;
+  y += 5.2 + ordProy().filter(function(p){ return Pr.tareas.some(function(t){ return t.partida === p; }); }).length * rh2 + 4;
   /* C · comunas */
-  var cs = {}; Pr.P.forEach(function(p){ var c = cs[p.comuna] = cs[p.comuna] || { n:0, hoy:0, fin:0, eta:"", km:p.km }; c.n++; c.km = Math.min(c.km, p.km); if(Pr.est[p.num] >= PROY.CH.length - 1) c.hoy++; if(p.fin && p.fin <= finD) c.fin++; if(Pr.est[p.num] >= PROY.CH.length - 1) c.fin++; if(p.fin && p.fin > c.eta) c.eta = p.fin; });
-  var fc = Object.keys(cs).sort(function(a, b){ return cs[a].km - cs[b].km; }).map(function(c){ var v = cs[c]; return [c, v.n, v.hoy, v.fin, v.eta ? fdmy(v.eta) : (v.hoy === v.n ? "completa" : "—")]; });
-  y = tabla(o, 16, y, 265, "Por comuna · orden de avance desde San Fernando", [["Comuna", 16], ["Pórticos", 8], ["Completos hoy", 11], ["Completos al " + fdm(finD), 12], ["Término estimado", 14]], fc, "", 4.7, 1.2);
-  o.push(T(16, Math.min(y + 3, 402), "Avance físico = tareas de la cadena (trazado, excavación, emplantillado, fundación, relleno, poste V, brazo H, cámara) hechas o proyectadas sobre el total de " + Pr.total + ".", 2.4, 400, MUTE));
+  var cs = {}; Pr.P.forEach(function(p){ var c = cs[p.comuna] = cs[p.comuna] || { n:0, hoy:0, fin:0, eta:"", km:p.km, mal:0, mal0:0 }; if(mallaAl(Pr, p, finD)) c.mal++; if(p.malla0) c.mal0++; c.n++; c.km = Math.min(c.km, p.km); if(Pr.est[p.num] >= PROY.CH.length - 1) c.hoy++; if(p.fin && p.fin <= finD) c.fin++; if(Pr.est[p.num] >= PROY.CH.length - 1) c.fin++; if(p.fin && p.fin > c.eta) c.eta = p.fin; });
+  var fc = Object.keys(cs).sort(function(a, b){ return cs[a].km - cs[b].km; }).map(function(c){ var v = cs[c]; return [c, v.n, v.hoy, v.fin, v.mal0 + " → " + v.mal, v.eta ? fdmy(v.eta) : (v.hoy === v.n ? "completa" : "—")]; });
+  y = tabla(o, 16, y, 265, "Por comuna · orden de avance desde San Fernando", [["Comuna", 16], ["Pórticos", 8], ["Completos hoy", 11], ["Completos al " + fdm(finD), 12], ["Malla hoy → al " + fdm(finD), 12], ["Término estimado", 14]], fc, "", 4.7, 1.2);
+  o.push(T(16, Math.min(y + 3, 402), "Avance físico = tareas (la cadena de 8 partidas más la malla) hechas o proyectadas sobre el total de " + Pr.total + ".", 2.4, 400, MUTE));
   return svgDoc(o, "Pórticos · Proyección · Hoja " + n + " · Intermedio de 2 meses");
 }
 function hojaProySupuestos(M, Pr, n){
@@ -1060,14 +1086,15 @@ function hojaProySupuestos(M, Pr, n){
   var nPorg = Pr.P.length;
   o = o.concat(kpis([[nPorg, "pórticos en el modelo"], [Pr.completos, "con la cadena completa hoy"], [fpct(pct(Pr.hechas, Pr.total)), "avance físico al corte"], [fchm(Pr.ult), "término estimado (base) · " + pd(Pr.ult).getUTCFullYear()]]));
   var sup = [
+    ["Semana ya programada", Pr.planSem ? "La semana del " + rangoSem(pd(Pr.planSem)) + " se toma del plan de trabajo cargado en la app; la simulación parte desde la semana siguiente." : "No hay semana programada en la app: la simulación parte desde el próximo día hábil."],
     ["Cuadrillas", "2 (las mismas que ejecutan hoy). Capacidad nominal de " + PROY.CAP + " unidades de trabajo por día (35 por semana), calibrada con el ritmo real de las últimas 4 semanas (≈ 28 unidades por semana, con sus pérdidas incluidas)."],
     ["Peso de cada tarea", "Excavación = 2 unidades (3 si es a mano); emplantillado, fundación, relleno, poste V, brazo H y cámara = 1. Excavación y emplantillado se hacen el mismo día; el montaje de la fundación, desde el día siguiente."],
     ["Pérdida de días", "15 % de la capacidad por lluvia y otros imprevistos (≈ " + (PROY.CAP * (1 - PROY.PERD)).toFixed(1).replace(".", ",") + " unidades/día efectivas)."],
     ["Jornada", "Lunes a viernes. Feriados: 8 de diciembre, 25 de diciembre y 1 de enero. Sin trabajo sábado ni domingo."],
     ["Orden de avance", "Primero se termina lo ya iniciado (la etapa más avanzada); luego se parte por los pórticos más cercanos a San Fernando (distancia en línea recta)."],
-    ["Cadena de partidas", "Trazado → excavación → emplantillado → fundación → relleno → poste V → brazo H → cámara. Cada partida parte el día hábil siguiente a la anterior."],
+    ["Cadena de partidas", "Trazado → excavación → emplantillado → fundación → relleno → poste V → brazo H → cámara (la malla va aparte). Cada partida parte el día hábil siguiente a la anterior."],
     ["Trazado", "Lo hace topografía aparte de las cuadrillas: hasta " + PROY.TRZ + " pórticos por día, sin acumular más de " + PROY.TRZ_ADEL + " trazados esperando excavación."],
-    ["Malla", "Solo se instaló en los primeros pórticos; no se proyecta para el resto. Se pide confirmar si corresponde a más pórticos."],
+    ["Malla (barra de tierra)", "Frente aparte de la cadena, sin depender de ninguna partida: " + PROY.MALLA + " pórticos por día (ritmo del plan del 2 al 6 de noviembre, equipo Visionaria), también con 15 % de pérdida y por cercanía a San Fernando. Cuenta como una novena tarea por pórtico."],
     ["Inst. Pórtico (antigua)", "Los 'Inst. Pórtico' ejecutados se cuentan como poste V + brazo H terminados."],
     ["Autorizaciones", "Todos los pórticos habilitados, sin restricción (dato del encargado de obra)."],
     ["Fuera del modelo", "El Cartel (letrero), por no tener coordenadas ni ser parte de la cadena estándar."]
@@ -1105,7 +1132,7 @@ function hojaProySupuestos(M, Pr, n){
   vi(ries);
   y += 6; o.push(T(16, y, "Datos que afinarían la proyección", 4.4, 700, NAVY)); o.push(L(16, y + 3.3, 281, y + 3.3, NAVY, .3)); y += 8;
   vi(["Rendimiento real por cuadrilla y por partida (tareas por día) en vez del promedio general de las últimas semanas.",
-      "Si la malla se instala en más pórticos que los primeros, y cuántos días toma.",
+      "Si el frente de malla puede subir de 3 pórticos por día o si hay un segundo equipo.",
       "Duración real de la cámara y si exige alguna espera o autorización adicional.",
       "Tiempos de traslado y si una cuadrilla se puede dedicar a una zona (por ejemplo costa) para no perder días en ruta.",
       "Vacaciones o cierre de faena de fin de año, y feriados internos del contrato."]);
