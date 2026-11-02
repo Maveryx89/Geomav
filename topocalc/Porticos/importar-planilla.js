@@ -28,6 +28,13 @@ function fechaCelda(v){
   var s = String(v == null ? "" : v).trim(), m = /^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/.exec(s); if(m) return m[3] + "-" + pad(m[2]) + "-" + pad(m[1]);
   m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s); return m ? m[1] + "-" + m[2] + "-" + m[3] : null;
 }
+/* equipo del plan -> responsable de la app (abreviado) y forma de excavar */
+function equipoInfo(eq){
+  var t = String(eq || ""), par = (/\(([^)]*)\)/.exec(t) || [])[1] || "", nom = sinTilde(t.replace(/\([^)]*\)/g, "")), pk = sinTilde(par), r = { resp:"", obs:"", exc:"" };
+  if(nom === "oscar gonzalez") r.resp = "O.G"; else if(nom === "jose ramirez") r.resp = "JR \u00b7 Jefe de Obra"; else if(nom) r.obs = t.replace(/\([^)]*\)/g, "").trim();
+  if(/^manual/.test(pk)){ r.exc = "A mano"; r.obsx = "FORMA MANUAL"; } else if(/^maquin/.test(pk)){ r.exc = "Con maquinaria"; r.obsx = "MAQUINA"; }
+  return r;
+}
 function leerLista(ws, buscar){
   var cel = function(r, c){ var row = ws.getRow(r); return valor(row.getCell(c)); }, nR = ws.rowCount, nC = Math.max(ws.columnCount, 8), hdr = 0, col = {};
   for(var r = 1; r <= Math.min(nR, 15) && !hdr; r++){
@@ -91,7 +98,7 @@ function leerPlanilla(buf, anio, lista){
 }
 
 /* ---------- comparación ---------- */
-function comparar(pl, prog, avance, lista){
+function comparar(pl, prog, avance, lista, cond){
   var porNum = {}; lista.forEach(function(p){ porNum[String(p.num)] = p; });
   var cubiertos = {}; pl.ev.forEach(function(e){ cubiertos[e.p.num] = 1; });
   var keys = {};   /* clave pórtico|partida -> {p, partida, T:[objetivos], A:[filas app]} */
@@ -128,8 +135,8 @@ function comparar(pl, prog, avance, lista){
     });
     /* 3) lo que falta: crear */
     T.forEach(function(t){
-      var otra = prog.filter(function(r){ return String(r.portico) === String(g.p.num); }).sort(function(x, y){ return x.fecha < y.fecha ? 1 : -1; })[0];
-      var n = { id:nuevoId(), fecha:t.f, portico:Number(g.p.num), nombre:g.p.nombre, comuna:g.p.comuna, partida:g.partida, estado:t.e, autorizacion:(otra && otra.autorizacion) || "Sí", obs:t.eq ? "Equipo: " + t.eq : "", responsable:"", avance:t.e === "Ejecutado" ? "100" : "", restriccion:"", causa:"", accion:"" };
+      var eqi = equipoInfo(t.eq), otra = prog.filter(function(r){ return String(r.portico) === String(g.p.num); }).sort(function(x, y){ return x.fecha < y.fecha ? 1 : -1; })[0];
+      var n = { id:nuevoId(), fecha:t.f, portico:Number(g.p.num), nombre:g.p.nombre, comuna:g.p.comuna, partida:g.partida, estado:t.e, autorizacion:(otra && otra.autorizacion) || "Sí", obs:eqi.obs || eqi.obsx || "", responsable:eqi.resp, avance:t.e === "Ejecutado" ? "100" : "", restriccion:"", causa:"", accion:"" };
       ops.push({ g: t.e === "Ejecutado" ? "ejec" : (t.e === "No ejecutado" ? "noej" : "prog"), tipo:"new", nota:n, texto:g.p.nombre + " · " + g.partida + ": nueva " + t.e.toLowerCase() + " " + dm(t.f) });
     });
     /* 4) sobrantes de la app: se borra solo lo "programado"; lo ejecutado o no ejecutado nunca se toca */
@@ -145,12 +152,18 @@ function comparar(pl, prog, avance, lista){
     if(e.e !== "Ejecutado") return; var k = e.p.num + "|" + e.partida; if(tieneAv[k] || vistos[k]) return; vistos[k] = 1;
     ops.push({ g:"avance", tipo:"reg", body:{ accion:"registrar", portico:Number(e.p.num), partida:e.partida, fecha:e.f, obs:"Importado de la Hoja Maestra", avance:"100" }, texto:e.p.nombre + " · " + e.partida + ": registro de avance 100 % (" + dm(e.f) + ")" });
   });
+  /* forma de excavar (a mano / con maquinaria) que trae el plan: queda como condición del pórtico */
+  var cv = {}; pl.ev.forEach(function(e){
+    if(e.partida !== "Excavación" || !e.eq) return; var x = equipoInfo(e.eq).exc; if(!x) return;
+    var k = e.p.num; if(cv[k] || (cond || {})[k + "|exc"] === x) return; cv[k] = 1;
+    ops.push({ g:"cond", tipo:"reg", body:{ accion:"registrar", portico:Number(e.p.num), partida:"Comentarios", fecha:e.f, obs:"[COND] exc=" + x, avance:"" }, texto:e.p.nombre + " · excavación " + x.toLowerCase() });
+  });
   ops.sort(function(a, b){ return a.texto < b.texto ? -1 : 1; });
   return { ops:ops, avisos:avisos };
 }
 
 /* ---------- interfaz ---------- */
-var GRUPOS = [ ["ejec", "Pasan a ejecutadas", true], ["fecha", "Cambian de fecha", true], ["prog", "Nuevas programadas", true], ["noej", "No ejecutadas", true], ["del", "Programadas que ya no están en la planilla (se borran)", true], ["avance", "Registros de avance 100 % (opcional, sin fotos)", false] ];
+var GRUPOS = [ ["ejec", "Pasan a ejecutadas", true], ["fecha", "Cambian de fecha", true], ["prog", "Nuevas programadas", true], ["noej", "No ejecutadas", true], ["cond", "Excavación: a mano o con maquinaria (condición del pórtico)", true], ["del", "Programadas que ya no están en la planilla (se borran)", true], ["avance", "Registros de avance 100 % (opcional, sin fotos)", false] ];
 function abrir(){
   var api = window.PORTICOS_API; if(!api){ alert("Sin conexión con la planilla compartida."); return; }
   var ov = document.createElement("div"); ov.className = "bg-ov"; ov.style.overflow = "auto";
@@ -175,7 +188,7 @@ function abrir(){
     var anio = (D.hoy || new Date().toISOString()).slice(0, 4);
     Promise.all([cargarExcelJS(), f.arrayBuffer()]).then(function(r){ return leerPlanilla(r[1], anio, D.lista); }).then(function(pl){
       if(!pl.hojas.length) throw new Error("No encontré hojas de programación en este archivo (Hoja Maestra «Programacion …» o una lista con columnas Fecha, Pórtico y Tarea).");
-      R = comparar(pl, D.prog || [], D.avance || [], D.lista); R.pl = pl;
+      R = comparar(pl, D.prog || [], D.avance || [], D.lista, D.cond || {}); R.pl = pl;
       var por = {}; R.ops.forEach(function(o){ (por[o.g] = por[o.g] || []).push(o); });
       var h = '<p class="ip-sub">Hojas leídas: ' + esc(pl.hojas.join(", ")) + ' · ' + pl.ev.length + ' marcas de actividad' + (pl.rango ? ' entre el ' + dm(pl.rango.d) + ' y el ' + dm(pl.rango.h) : '') + (pl.ignoradas ? ' · ' + pl.ignoradas + ' tareas que no son partidas de pórtico se ignoran' : '') + '.</p>';
       if(!R.ops.length) h += '<p><b>La app ya coincide con la planilla.</b></p>';
