@@ -1,0 +1,3 @@
+"use strict";
+/* Metadatos de la herramienta «Nivelación Trig. + Reducción a NMM» (grupo: Altimetría y Nivelación). */
+const TOOLS = { "nivelTrigNMM": {"name":"Nivelación Trig. + Reducción a NMM","desc":"Cota con curvatura, refracción y radio de Euler","icon":"<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><path d=\"M4 30 L16 12 L34 8\"/><circle cx=\"4\" cy=\"30\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"34\" cy=\"8\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M4 34q4-4 8 0t8 0 8 0 8 0\" stroke-width=\"1.1\"/></svg>"} };

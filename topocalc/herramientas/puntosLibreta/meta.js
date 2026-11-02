@@ -1,0 +1,3 @@
+"use strict";
+/* Metadatos de la herramienta «Libreta de Puntos» (grupo: Proyecto y Datos). */
+const TOOLS = { "puntosLibreta": {"name":"Libreta de Puntos","desc":"Guarda, importa y exporta coordenadas","icon":"<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><rect x=\"5\" y=\"6\" width=\"20\" height=\"28\" rx=\"2\"/><path d=\"M10 13h10M10 19h10M10 25h6\"/><path d=\"M30 10c4 0 7 3 7 7 0 5-7 12-7 12s-7-7-7-12c0-4 3-7 7-7Z\" fill=\"currentColor\" fill-opacity=\".12\"/><circle cx=\"30\" cy=\"17\" r=\"2.2\" fill=\"currentColor\" stroke=\"none\"/></svg>"} };

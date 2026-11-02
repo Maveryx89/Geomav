@@ -1,0 +1,3 @@
+"use strict";
+/* Metadatos de la herramienta «Cota por Progresiva y Pendiente» (grupo: Altimetría y Nivelación). */
+const TOOLS = { "cotaProgresiva": {"name":"Cota por Progresiva y Pendiente","desc":"Cota de rasante en cualquier progresiva","icon":"<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><path d=\"M4 30 L36 12\" stroke-width=\"2\"/><circle cx=\"4\" cy=\"30\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"36\" cy=\"12\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M4 34h32M8 30v4M32 12v22\" stroke-dasharray=\"1.5 1.5\" stroke-width=\"1\"/></svg>"} };

@@ -1729,6 +1729,7 @@ window.PORTICOS_LISTA = (function(){
   setTimeout(function(){ try{ window.CAUSAS_LP = CAUSAS; }catch(e){} }, 0);
   var RESPONSABLES = [
     ["Jos\u00e9 Ramirez \u00b7 Jefe de Obra", "JR \u00b7 Jefe de Obra"],
+    ["Oscar Gonz\u00e1lez", "O.G"],
     ["Pedro Garcia \u00b7 Administrador", "PG \u00b7 Administrador"],
     ["Mario Verdugo \u00b7 Top\u00f3grafo", "MV \u00b7 Top\u00f3grafo"],
     ["Erika \u00b7 Prevenci\u00f3n", "E \u00b7 Prevenci\u00f3n"],
@@ -3054,7 +3055,7 @@ window.PORTICOS_LISTA = (function(){
       else if(action === "importar-planilla"){
         var go = function(){ if(window.PORTICOS_IMPORTAR) window.PORTICOS_IMPORTAR.abrir(); };
         if(window.PORTICOS_IMPORTAR){ go(); }
-        else { var sc = document.createElement("script"); sc.src = "importar-planilla.js?v=20261019a"; sc.onload = go; sc.onerror = function(){ alert("No se pudo cargar el importador. Revisa tu conexi\u00f3n."); }; document.head.appendChild(sc); }
+        else { var sc = document.createElement("script"); sc.src = "importar-planilla.js?v=20261102b"; sc.onload = go; sc.onerror = function(){ alert("No se pudo cargar el importador. Revisa tu conexi\u00f3n."); }; document.head.appendChild(sc); }
       }
       else if(action === "ruta"){ abrirRuta(); }
       else if(action === "guardar-todo"){ guardarTodo(el); }

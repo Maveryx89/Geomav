@@ -1,10 +1,10 @@
-/* Importar planilla (Hoja Maestra .xlsx) -> programación compartida de Pórticos.
-   Lee las hojas "Programacion ...", compara con lo que hay en la app, muestra las diferencias
+/* Importar planilla (Hoja Maestra .xlsx o Plan de trabajo por día) -> programación compartida de Pórticos.
+   Lee las hojas "Programacion ..." (Hoja Maestra) y las hojas de lista con columnas Fecha · Pórtico · Tarea (Plan de trabajo), compara con lo que hay en la app, muestra las diferencias
    y, con el PIN de edición, guarda solo lo que el usuario deja marcado. La planilla manda. */
 (function(){
 "use strict";
 var PM = { "trazado excavacion":"Trazado", "trazado":"Trazado", "excavacion":"Excavación", "emplantillado":"Emplantillado", "instalacion fundacion":"Inst. de Fundación",
-  "instalacion barra tierra":"Inst. Malla", "instalacion malla":"Inst. Malla", "relleno lateral":"Relleno", "instalacion portico":"Inst. Pórtico", "instalacion poste":"Inst. Poste V", "instalacion poste v":"Inst. Poste V", "instalacion brazo":"Inst. Brazo H", "instalacion brazo h":"Inst. Brazo H", "instalacion camaras":"Inst. Cámara" };
+  "instalacion barra tierra":"Inst. Malla", "instalacion malla":"Inst. Malla", "relleno lateral":"Relleno", "instalacion portico":"Inst. Pórtico", "instalacion portico (poste)":"Inst. Poste V", "instalacion portico (brazo)":"Inst. Brazo H", "instalacion poste":"Inst. Poste V", "instalacion poste v":"Inst. Poste V", "instalacion brazo":"Inst. Brazo H", "instalacion brazo h":"Inst. Brazo H", "instalacion camaras":"Inst. Cámara" };
 var NOTAS = ["Comentarios", "Prevención"];
 function sinTilde(s){ return String(s == null ? "" : s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim(); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c]; }); }
@@ -22,6 +22,38 @@ function valor(c){
   return v;
 }
 
+/* ---------- Plan de trabajo por día: lista con columnas Fecha · Pórtico · Tarea (· Equipo) ---------- */
+function fechaCelda(v){
+  if(v instanceof Date) return isoD(v);
+  var s = String(v == null ? "" : v).trim(), m = /^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/.exec(s); if(m) return m[3] + "-" + pad(m[2]) + "-" + pad(m[1]);
+  m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s); return m ? m[1] + "-" + m[2] + "-" + m[3] : null;
+}
+/* equipo del plan -> responsable de la app (abreviado) y forma de excavar */
+function equipoInfo(eq){
+  var t = String(eq || ""), par = (/\(([^)]*)\)/.exec(t) || [])[1] || "", nom = sinTilde(t.replace(/\([^)]*\)/g, "")), pk = sinTilde(par), r = { resp:"", obs:"", exc:"" };
+  if(nom === "oscar gonzalez") r.resp = "O.G"; else if(nom === "jose ramirez") r.resp = "JR \u00b7 Jefe de Obra"; else if(nom) r.obs = t.replace(/\([^)]*\)/g, "").trim();
+  if(/^manual/.test(pk)){ r.exc = "A mano"; r.obsx = "FORMA MANUAL"; } else if(/^maquin/.test(pk)){ r.exc = "Con maquinaria"; r.obsx = "MAQUINA"; }
+  return r;
+}
+function leerLista(ws, buscar){
+  var cel = function(r, c){ var row = ws.getRow(r); return valor(row.getCell(c)); }, nR = ws.rowCount, nC = Math.max(ws.columnCount, 8), hdr = 0, col = {};
+  for(var r = 1; r <= Math.min(nR, 15) && !hdr; r++){
+    var cc = {}; for(var c = 1; c <= nC; c++){ var k = sinTilde(cel(r, c)); if(k) cc[k] = c; }
+    if(cc.fecha && cc.portico && cc.tarea){ hdr = r; col = cc; }
+  }
+  if(!hdr) return null;
+  var ev = [], nh = {}, ign = 0;
+  for(var r2 = hdr + 1; r2 <= nR; r2++){
+    var f = fechaCelda(cel(r2, col.fecha)), port = cel(r2, col.portico), tar = cel(r2, col.tarea);
+    if(!f || port == null || port === "" || tar == null || tar === "") continue;
+    var part = PM[sinTilde(tar)]; if(!part){ ign++; continue; }
+    var nom = String(port).replace(/\([^)]*\)/g, "").trim(), p = buscar(nom); if(!p){ nh[nom] = 1; continue; }
+    var eq = col.equipo ? cel(r2, col.equipo) : null;
+    ev.push({ p:p, partida:part, f:f, e:"Programado", eq:eq == null ? "" : String(eq).trim() });
+  }
+  return { ev:ev, nh:Object.keys(nh), ign:ign };
+}
+
 /* ---------- lectura de la planilla ---------- */
 function leerPlanilla(buf, anio, lista){
   var wb = new ExcelJS.Workbook();
@@ -31,9 +63,11 @@ function leerPlanilla(buf, anio, lista){
       var k = sinTilde(n).replace(/\s+/g, ""); if(porNombre[k]) return porNombre[k]; if(porNombre[k + "-a"]) return porNombre[k + "-a"];
       var k2 = k.replace(/^(p\d+)([a-z])$/, "$1-$2"); return porNombre[k2] || null;
     }
-    var ev = [], auth = {}, noHallados = {}, hojas = [];
+    var ev = [], auth = {}, noHallados = {}, hojas = [], esLista = false, matriz = false, ignoradas = 0;
     wb.worksheets.forEach(function(ws){
-      if(!/^programacion/.test(sinTilde(ws.name))) return; hojas.push(ws.name.trim());
+      var lf = /^programacion/.test(sinTilde(ws.name)) ? null : leerLista(ws, buscar);
+      if(lf){ hojas.push(ws.name.trim()); esLista = true; ignoradas += lf.ign; lf.nh.forEach(function(n){ noHallados[n] = 1; }); lf.ev.forEach(function(e){ ev.push(e); }); return; }
+      if(!/^programacion/.test(sinTilde(ws.name))) return; hojas.push(ws.name.trim()); matriz = true;
       var rows = []; ws.eachRow({ includeEmpty:true }, function(r, i){ rows[i] = r; });
       var cel = function(r, c){ return rows[r] ? valor(rows[r].getCell(c)) : null; };
       var nR = ws.rowCount, nC = Math.max(ws.columnCount, 16), hdr = null;
@@ -57,19 +91,22 @@ function leerPlanilla(buf, anio, lista){
         }
       }
     });
-    return { ev:ev, auth:auth, noHallados:Object.keys(noHallados), hojas:hojas };
+    var rango = null, partL = {};
+    if(esLista && !matriz && ev.length){ ev.forEach(function(e){ partL[e.partida] = 1; if(!rango) rango = { d:e.f, h:e.f }; if(e.f < rango.d) rango.d = e.f; if(e.f > rango.h) rango.h = e.f; }); }
+    return { ev:ev, auth:auth, noHallados:Object.keys(noHallados), hojas:hojas, rango:rango, partL:partL, ignoradas:ignoradas };
   });
 }
 
 /* ---------- comparación ---------- */
-function comparar(pl, prog, avance, lista){
+function comparar(pl, prog, avance, lista, cond){
   var porNum = {}; lista.forEach(function(p){ porNum[String(p.num)] = p; });
   var cubiertos = {}; pl.ev.forEach(function(e){ cubiertos[e.p.num] = 1; });
   var keys = {};   /* clave pórtico|partida -> {p, partida, T:[objetivos], A:[filas app]} */
   function K(p, partida){ var k = p.num + "|" + partida; return keys[k] = keys[k] || { p:p, partida:partida, T:[], A:[] }; }
-  pl.ev.forEach(function(e){ K(e.p, e.partida).T.push({ f:e.f, e:e.e }); });
+  pl.ev.forEach(function(e){ K(e.p, e.partida).T.push({ f:e.f, e:e.e, eq:e.eq || "" }); });
   prog.forEach(function(r){
-    if(NOTAS.indexOf(r.partida) >= 0) return; if(!cubiertos[String(r.portico)]) return; if(!PM[sinTilde(r.partida)] && !/^inst\./i.test(r.partida) && !/^(trazado|excavaci|emplantillado|relleno)/i.test(r.partida)) return;
+    if(NOTAS.indexOf(r.partida) >= 0) return; if(!cubiertos[String(r.portico)]) return;
+    if(pl.rango && (r.fecha < pl.rango.d || r.fecha > pl.rango.h || !pl.partL[r.partida])) return;   /* plan de trabajo: solo se compara el período y las partidas que trae */ if(!PM[sinTilde(r.partida)] && !/^inst\./i.test(r.partida) && !/^(trazado|excavaci|emplantillado|relleno)/i.test(r.partida)) return;
     var p = porNum[String(r.portico)]; if(!p) return; K(p, r.partida).A.push(r);
   });
   /* si una partida ejecutada también trae "X" antes, el ✓ es lo definitivo; si hay ✓ no se agrega "programado" */
@@ -98,8 +135,8 @@ function comparar(pl, prog, avance, lista){
     });
     /* 3) lo que falta: crear */
     T.forEach(function(t){
-      var otra = prog.filter(function(r){ return String(r.portico) === String(g.p.num); }).sort(function(x, y){ return x.fecha < y.fecha ? 1 : -1; })[0];
-      var n = { id:nuevoId(), fecha:t.f, portico:Number(g.p.num), nombre:g.p.nombre, comuna:g.p.comuna, partida:g.partida, estado:t.e, autorizacion:(otra && otra.autorizacion) || "Sí", obs:"", responsable:"", avance:t.e === "Ejecutado" ? "100" : "", restriccion:"", causa:"", accion:"" };
+      var eqi = equipoInfo(t.eq), otra = prog.filter(function(r){ return String(r.portico) === String(g.p.num); }).sort(function(x, y){ return x.fecha < y.fecha ? 1 : -1; })[0];
+      var n = { id:nuevoId(), fecha:t.f, portico:Number(g.p.num), nombre:g.p.nombre, comuna:g.p.comuna, partida:g.partida, estado:t.e, autorizacion:(otra && otra.autorizacion) || "Sí", obs:eqi.obs || eqi.obsx || "", responsable:eqi.resp, avance:t.e === "Ejecutado" ? "100" : "", restriccion:"", causa:"", accion:"" };
       ops.push({ g: t.e === "Ejecutado" ? "ejec" : (t.e === "No ejecutado" ? "noej" : "prog"), tipo:"new", nota:n, texto:g.p.nombre + " · " + g.partida + ": nueva " + t.e.toLowerCase() + " " + dm(t.f) });
     });
     /* 4) sobrantes de la app: se borra solo lo "programado"; lo ejecutado o no ejecutado nunca se toca */
@@ -115,18 +152,24 @@ function comparar(pl, prog, avance, lista){
     if(e.e !== "Ejecutado") return; var k = e.p.num + "|" + e.partida; if(tieneAv[k] || vistos[k]) return; vistos[k] = 1;
     ops.push({ g:"avance", tipo:"reg", body:{ accion:"registrar", portico:Number(e.p.num), partida:e.partida, fecha:e.f, obs:"Importado de la Hoja Maestra", avance:"100" }, texto:e.p.nombre + " · " + e.partida + ": registro de avance 100 % (" + dm(e.f) + ")" });
   });
+  /* forma de excavar (a mano / con maquinaria) que trae el plan: queda como condición del pórtico */
+  var cv = {}; pl.ev.forEach(function(e){
+    if(e.partida !== "Excavación" || !e.eq) return; var x = equipoInfo(e.eq).exc; if(!x) return;
+    var k = e.p.num; if(cv[k] || (cond || {})[k + "|exc"] === x) return; cv[k] = 1;
+    ops.push({ g:"cond", tipo:"reg", body:{ accion:"registrar", portico:Number(e.p.num), partida:"Comentarios", fecha:e.f, obs:"[COND] exc=" + x, avance:"" }, texto:e.p.nombre + " · excavación " + x.toLowerCase() });
+  });
   ops.sort(function(a, b){ return a.texto < b.texto ? -1 : 1; });
   return { ops:ops, avisos:avisos };
 }
 
 /* ---------- interfaz ---------- */
-var GRUPOS = [ ["ejec", "Pasan a ejecutadas", true], ["fecha", "Cambian de fecha", true], ["prog", "Nuevas programadas", true], ["noej", "No ejecutadas", true], ["del", "Programadas que ya no están en la planilla (se borran)", true], ["avance", "Registros de avance 100 % (opcional, sin fotos)", false] ];
+var GRUPOS = [ ["ejec", "Pasan a ejecutadas", true], ["fecha", "Cambian de fecha", true], ["prog", "Nuevas programadas", true], ["noej", "No ejecutadas", true], ["cond", "Excavación: a mano o con maquinaria (condición del pórtico)", true], ["del", "Programadas que ya no están en la planilla (se borran)", true], ["avance", "Registros de avance 100 % (opcional, sin fotos)", false] ];
 function abrir(){
   var api = window.PORTICOS_API; if(!api){ alert("Sin conexión con la planilla compartida."); return; }
   var ov = document.createElement("div"); ov.className = "bg-ov"; ov.style.overflow = "auto";
   ov.innerHTML = '<div class="bg-card" role="dialog" aria-modal="true" aria-label="Importar planilla" style="max-width:620px;max-height:92vh;display:flex;flex-direction:column">'
     + '<div class="bg-h"><strong>📥 Importar planilla</strong><button type="button" class="bg-x" aria-label="Cerrar">✕</button></div>'
-    + '<div class="bg-b" style="overflow:auto"><p class="bg-t ip-t">Elige la Hoja Maestra (.xlsx). Se compara con lo que hay en la app y tú decides qué guardar. La planilla manda.</p>'
+    + '<div class="bg-b" style="overflow:auto"><p class="bg-t ip-t">Elige la Hoja Maestra o el Plan de trabajo por día (.xlsx). Se compara con lo que hay en la app y tú decides qué guardar. La planilla manda.</p>'
     + '<input type="file" class="ip-file" accept=".xlsx,.xlsm"><div class="ip-res"></div>'
     + '<label class="bg-pinl ip-pin" style="display:none">PIN de edición<input type="password" class="bg-pin" inputmode="numeric" autocomplete="off" maxlength="8"></label>'
     + '<div class="bg-msg ip-msg"></div></div>'
@@ -144,10 +187,10 @@ function abrir(){
     var D = window.PORTICOS_DATOS ? window.PORTICOS_DATOS() : null; if(!D || !D.lista || !D.lista.length){ msg.textContent = "La app aún no cargó los datos de la planilla compartida. Espera unos segundos y reintenta."; return; }
     var anio = (D.hoy || new Date().toISOString()).slice(0, 4);
     Promise.all([cargarExcelJS(), f.arrayBuffer()]).then(function(r){ return leerPlanilla(r[1], anio, D.lista); }).then(function(pl){
-      if(!pl.hojas.length) throw new Error("No encontré hojas «Programacion …» en este archivo.");
-      R = comparar(pl, D.prog || [], D.avance || [], D.lista); R.pl = pl;
+      if(!pl.hojas.length) throw new Error("No encontré hojas de programación en este archivo (Hoja Maestra «Programacion …» o una lista con columnas Fecha, Pórtico y Tarea).");
+      R = comparar(pl, D.prog || [], D.avance || [], D.lista, D.cond || {}); R.pl = pl;
       var por = {}; R.ops.forEach(function(o){ (por[o.g] = por[o.g] || []).push(o); });
-      var h = '<p class="ip-sub">Hojas leídas: ' + esc(pl.hojas.join(", ")) + ' · ' + pl.ev.length + ' marcas de actividad.</p>';
+      var h = '<p class="ip-sub">Hojas leídas: ' + esc(pl.hojas.join(", ")) + ' · ' + pl.ev.length + ' marcas de actividad' + (pl.rango ? ' entre el ' + dm(pl.rango.d) + ' y el ' + dm(pl.rango.h) : '') + (pl.ignoradas ? ' · ' + pl.ignoradas + ' tareas que no son partidas de pórtico se ignoran' : '') + '.</p>';
       if(!R.ops.length) h += '<p><b>La app ya coincide con la planilla.</b></p>';
       GRUPOS.forEach(function(g){
         var l = por[g[0]] || []; if(!l.length) return;

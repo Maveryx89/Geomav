@@ -1,0 +1,3 @@
+"use strict";
+/* Metadatos de la herramienta «Poligonal Cerrada» (grupo: Levantamiento y Coordenadas Planas). */
+const TOOLS = { "poligonal": {"name":"Poligonal Cerrada","desc":"Cierre, ajuste y área","icon":"<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M8 14 L20 7 L33 12 L30 30 L14 33 Z\"/><circle cx=\"8\" cy=\"14\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"7\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"33\" cy=\"12\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"30\" cy=\"30\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"14\" cy=\"33\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></svg>"} };

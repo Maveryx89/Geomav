@@ -1,7 +1,8 @@
 // Service Worker — Topo de Bolsillo (GeoMav)
 // v2: además de la app, guarda para uso SIN INTERNET las librerías externas (mapa, Excel, capturas), las tipografías
 //     y los mosaicos del mapa que ya se hayan visto (hasta MAX_TILES, para no llenar el teléfono).
-const CACHE_VERSION = 'topocalc-v7';
+importScripts('precache.js');   // PRECACHE_NUEVO: menú por grupos, _comun/ y las carpetas de herramientas (generado)
+const CACHE_VERSION = 'topocalc-v10';
 const SHARE_CACHE = 'topocalc-compartido';   // imágenes recibidas desde «Compartir» de la galería (se borran al abrirse en el visor 360°)
 const TILES_CACHE = 'topocalc-tiles-v1';
 const MAX_TILES = 300;
@@ -14,7 +15,8 @@ const APP_SHELL = [
   SCOPE + 'privacidad.html',
   SCOPE + 'icons/icon-192.png',
   SCOPE + 'icons/icon-512.png',
-  SCOPE + 'icons/icon-maskable-512.png'
+  SCOPE + 'icons/icon-maskable-512.png',
+  ...PRECACHE_NUEVO
 ];
 
 // Recursos de otros dominios que la app pide (misma URL exacta que usa index.html)
@@ -144,10 +146,12 @@ self.addEventListener('fetch', (event) => {
       fetch(request)
         .then((response) => {
           const copy = response.clone();
-          caches.open(CACHE_VERSION).then((cache) => cache.put(SCOPE, copy));
+          const ruta = new URL(request.url).pathname;
+          const esRaiz = ruta === SCOPE || ruta === SCOPE + 'index.html';
+          caches.open(CACHE_VERSION).then((cache) => cache.put(esRaiz ? SCOPE : request, copy));   // cada página con su propia URL
           return response;
         })
-        .catch(() => caches.match(SCOPE).then((cached) => cached || caches.match(request)))
+        .catch(() => caches.match(request, { ignoreSearch: true }).then((cached) => cached || caches.match(SCOPE)))
     );
     return;
   }
