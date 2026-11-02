@@ -1720,11 +1720,10 @@ window.PORTICOS_LISTA = (function(){
     "Inst. Malla":"amber", "Relleno":"success", "Inst. P\u00f3rtico":"violet", "Inst. Poste V":"violet", "Inst. Brazo H":"rose", "Inst. C\u00e1mara":"danger"
   };
   window.PARTIDA_TONE = PARTIDA_TONE;
-  /* "Inst. P\u00f3rtico" (7) qued\u00f3 como hist\u00f3rico: solo se muestra si la planilla a\u00fan tiene registros con ese nombre. Ahora la 7 se divide en 7.1 Poste V y 7.2 Brazo H */
+  /* "Inst. P\u00f3rtico" (7) qued\u00f3 como hist\u00f3rico: ya no se muestra como columna (ni en la app ni en el informe). Ahora la 7 se divide en 7.1 Poste V y 7.2 Brazo H */
   var PARTIDA_LEGACY = "Inst. P\u00f3rtico";
   window.PARTIDAS_ORDEN = function(){
-    var usa = false; try{ var D = window.PROGRAMACION || []; for(var i = 0; i < D.length && !usa; i++) if(D[i].partida === PARTIDA_LEGACY) usa = true; var R = (window.REMOTO_AVANCE && window.REMOTO_AVANCE()) || []; for(var k = 0; k < R.length && !usa; k++) if(R[k].partida === PARTIDA_LEGACY) usa = true; }catch(e){}
-    return Object.keys(PARTIDA_TONE).filter(function(n){ return n !== PARTIDA_LEGACY || usa; });
+    return Object.keys(PARTIDA_TONE).filter(function(n){ return n !== PARTIDA_LEGACY; });
   };
   setTimeout(function(){ try{ window.CAUSAS_LP = CAUSAS; }catch(e){} }, 0);
   var RESPONSABLES = [

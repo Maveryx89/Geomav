@@ -17,10 +17,10 @@ var NOTAS = ["Comentarios","Prevención"];
 var LABEL_REL = {"P147-a": [-2.74, 2.76, "start"], "P147-b": [-3.35, 3.18, "start"], "P147-c": [-3.26, -3.05, "start"], "P147-d": [-3.54, -2.75, "start"], "P144-a": [-3.33, -2.45, "start"], "P144-b": [-3.17, -2.64, "start"], "P163": [-2.3, 2.63, "start"], "P158-a": [-2.64, 2.89, "start"], "P158-b": [-3.28, -2.85, "start"], "P71": [-2.12, -2.75, "start"], "P84": [1.18, -2.21, "start"], "P85": [1.74, -0.25, "start"], "P86": [0.04, 2.92, "middle"], "P31": [-1.93, 2.7, "start"], "P143-a": [-4.22, -4.65, "start"], "P143-b": [2.49, 1.36, "start"], "P154-a": [-3.35, -3.32, "start"], "P154-b": [-3.47, 2.86, "start"], "P155-a": [-3.19, -2.66, "start"], "P157-a": [-3.24, 2.64, "start"], "P157-b": [-3.5, -2.93, "start"], "P164": [-2.17, -2.85, "start"], "P67": [-1.84, 2.82, "start"], "P82": [-1.85, 2.89, "start"], "P145-a": [2.45, 0.78, "start"], "P145-b": [1.63, -4.1, "start"], "P145-c": [1.4, -1.96, "start"], "P146": [-2.63, 2.86, "start"], "P153": [-2.68, -2.69, "start"], "P69": [-1.57, 2.78, "start"], "P70": [-1.5, 2.74, "start"], "P83": [-1.98, 2.99, "start"]};
 var CAUSAS0 = { A:"Mala planificación", B:"Trabajo anterior sin terminar", C:"Terminación de un trabajo anterior propio", D:"Falta de información", E:"Cambios en el diseño", F:"Ausencia no planificada", G:"Falta de personal", H:"Falta o falla de materiales / equipos", I:"Cambios del cliente", J:"Falta de supervisión", K:"Estimación incorrecta de tiempo", L:"Permisos o autorizaciones externas", M:"Clima", N:"Condiciones inseguras de trabajo", O:"Mala definición del proyecto", P:"Mala calidad o retrabajo / no conformidad", Q:"Rendimiento inferior al esperado", R:"Terreno o acceso", S:"Cierre por vacaciones / abandono de la obra", T:"Reorganización de tareas", U:"Avería de maquinaria", V:"Otras" };
 
-var ORDEN = Object.keys(TONE0), COL = {};
+var ORDEN = Object.keys(TONE0).filter(function(n){ return n !== "Inst. Pórtico"; }), COL = {};
 function initOrden(){
   var pt = window.PARTIDA_TONE;
-  if(pt && Object.keys(pt).length){ ORDEN = window.PARTIDAS_ORDEN ? window.PARTIDAS_ORDEN() : Object.keys(pt); }
+  if(pt && Object.keys(pt).length){ ORDEN = window.PARTIDAS_ORDEN ? window.PARTIDAS_ORDEN() : Object.keys(pt).filter(function(n){ return n !== "Inst. Pórtico"; }); }
   COL = {}; ORDEN.forEach(function(p){ COL[p] = TONOS[(pt && pt[p]) || TONE0[p]] || "#8C949E"; });
 }
 
