@@ -60,7 +60,7 @@ function leerPlanilla(buf, anio, lista){
   return wb.xlsx.load(buf).then(function(){
     var porNombre = {}; lista.forEach(function(p){ porNombre[sinTilde(p.nombre)] = p; });
     function buscar(n){
-      var k = sinTilde(n).replace(/\s+/g, ""); if(porNombre[k]) return porNombre[k]; if(porNombre[k + "-a"]) return porNombre[k + "-a"];
+      var k = sinTilde(n).replace(/\([^)]*\)/g, "").replace(/\s+/g, ""); if(porNombre[k]) return porNombre[k]; if(porNombre[k + "-a"]) return porNombre[k + "-a"];
       var k2 = k.replace(/^(p\d+)([a-z])$/, "$1-$2"); return porNombre[k2] || null;
     }
     var ev = [], auth = {}, noHallados = {}, hojas = [], esLista = false, matriz = false, ignoradas = 0;
@@ -91,6 +91,10 @@ function leerPlanilla(buf, anio, lista){
         }
       }
     });
+    /* la misma actividad puede venir de la hoja de lista y de la Hoja Maestra: se deja una sola, con el equipo si alguna lo trae */
+    var vis = {}, unico = [];
+    ev.forEach(function(e){ var k = e.p.num + "|" + e.partida + "|" + e.f + "|" + e.e, x = vis[k]; if(!x){ vis[k] = e; unico.push(e); } else if(!x.eq && e.eq) x.eq = e.eq; });
+    ev = unico;
     var rango = null, partL = {};
     if(esLista && !matriz && ev.length){ ev.forEach(function(e){ partL[e.partida] = 1; if(!rango) rango = { d:e.f, h:e.f }; if(e.f < rango.d) rango.d = e.f; if(e.f > rango.h) rango.h = e.f; }); }
     return { ev:ev, auth:auth, noHallados:Object.keys(noHallados), hojas:hojas, rango:rango, partL:partL, ignoradas:ignoradas };
