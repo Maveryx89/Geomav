@@ -166,15 +166,35 @@ function comparar(pl, prog, avance, lista, cond){
   return { ops:ops, avisos:avisos };
 }
 
+/* tareas repetidas el mismo día (mismo pórtico, partida y fecha, ambas programadas): se conserva la que trae más datos (responsable, observación); si empatan, la más nueva */
+function duplicadas(prog){
+  var g = {}, ops = [], avisos = [];
+  prog.forEach(function(r, i){ if(NOTAS.indexOf(r.partida) >= 0) return; var k = r.portico + "|" + r.partida + "|" + r.fecha; (g[k] = g[k] || []).push({ r:r, i:i }); });
+  Object.keys(g).forEach(function(k){
+    var l = g[k]; if(l.length < 2) return;
+    var est = l.map(function(x){ return /^ejecutado/i.test(x.r.estado) ? "E" : (/^no ejecutado/i.test(x.r.estado) ? "N" : "P"); });
+    if(est.some(function(e){ return e !== "P"; })){ avisos.push(l[0].r.nombre + " · " + l[0].r.partida + " " + dm(l[0].r.fecha) + ": figura repetida con estados distintos (" + l.map(function(x){ return x.r.estado; }).join(" / ") + "); revísala a mano."); return; }
+    var sc = function(x){ return (x.r.responsable ? 2 : 0) + (x.r.obs ? 1 : 0); };
+    var best = l.reduce(function(a, b){ return sc(b) >= sc(a) ? b : a; });
+    l.forEach(function(x){
+      if(x === best) return;
+      var perd = (x.r.obs && x.r.obs !== best.r.obs ? " · pierde obs. «" + x.r.obs + "»" : "") + (x.r.responsable && x.r.responsable !== best.r.responsable ? " · pierde resp. " + x.r.responsable : "");
+      ops.push({ g:"dup", tipo:"del", id:x.r.id, texto:x.r.nombre + " · " + x.r.partida + " " + dm(x.r.fecha) + ": se elimina la copia repetida" + perd });
+    });
+  });
+  ops.sort(function(a, b){ return a.texto < b.texto ? -1 : 1; });
+  return { ops:ops, avisos:avisos };
+}
+
 /* ---------- interfaz ---------- */
-var GRUPOS = [ ["ejec", "Pasan a ejecutadas", true], ["fecha", "Cambian de fecha", true], ["prog", "Nuevas programadas", true], ["noej", "No ejecutadas", true], ["cond", "Excavación: a mano o con maquinaria (condición del pórtico)", true], ["del", "Programadas que ya no están en la planilla (se borran)", true], ["avance", "Registros de avance 100 % (opcional, sin fotos)", false] ];
+var GRUPOS = [ ["ejec", "Pasan a ejecutadas", true], ["fecha", "Cambian de fecha", true], ["prog", "Nuevas programadas", true], ["noej", "No ejecutadas", true], ["cond", "Excavación: a mano o con maquinaria (condición del pórtico)", true], ["dup", "Tareas repetidas el mismo día (se elimina la copia sobrante)", true], ["del", "Programadas que ya no están en la planilla (se borran)", true], ["avance", "Registros de avance 100 % (opcional, sin fotos)", false] ];
 function abrir(){
   var api = window.PORTICOS_API; if(!api){ alert("Sin conexión con la planilla compartida."); return; }
   var ov = document.createElement("div"); ov.className = "bg-ov"; ov.style.overflow = "auto";
   ov.innerHTML = '<div class="bg-card" role="dialog" aria-modal="true" aria-label="Importar planilla" style="max-width:620px;max-height:92vh;display:flex;flex-direction:column">'
     + '<div class="bg-h"><strong>📥 Importar planilla</strong><button type="button" class="bg-x" aria-label="Cerrar">✕</button></div>'
     + '<div class="bg-b" style="overflow:auto"><p class="bg-t ip-t">Elige la Hoja Maestra o el Plan de trabajo por día (.xlsx). Se compara con lo que hay en la app y tú decides qué guardar. La planilla manda.</p>'
-    + '<input type="file" class="ip-file" accept=".xlsx,.xlsm"><div class="ip-res"></div>'
+    + '<input type="file" class="ip-file" accept=".xlsx,.xlsm"> <button type="button" class="btn-sm ip-dup">🧹 Buscar tareas repetidas</button><div class="ip-res"></div>'
     + '<label class="bg-pinl ip-pin" style="display:none">PIN de edición<input type="password" class="bg-pin" inputmode="numeric" autocomplete="off" maxlength="8"></label>'
     + '<div class="bg-msg ip-msg"></div></div>'
     + '<div class="bg-acc"><button type="button" class="bg-ok ip-ok" disabled>Guardar seleccionado</button><button type="button" class="btn-link bg-no">Cerrar</button></div></div>';
@@ -186,6 +206,25 @@ function abrir(){
     return new Promise(function(ok, no){ var sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"; sc.onload = function(){ typeof ExcelJS !== "undefined" ? ok() : no(new Error("ExcelJS")); }; sc.onerror = function(){ no(new Error("ExcelJS")); }; document.head.appendChild(sc); });
   }
   function contar(){ var n = 0; ov.querySelectorAll(".ip-g").forEach(function(cb){ if(cb.checked) n += +cb.dataset.n; }); $(".ip-ok").disabled = !n; $(".ip-ok").textContent = n ? "Guardar " + n + " cambio" + (n === 1 ? "" : "s") : "Guardar seleccionado"; }
+  function pintar(pl){
+      var por = {}; R.ops.forEach(function(o){ (por[o.g] = por[o.g] || []).push(o); });
+      var h = !pl ? '' : '<p class="ip-sub">Hojas leídas: ' + esc(pl.hojas.join(", ")) + ' · ' + pl.ev.length + ' marcas de actividad' + (pl.rango ? ' entre el ' + dm(pl.rango.d) + ' y el ' + dm(pl.rango.h) : '') + (pl.ignoradas ? ' · ' + pl.ignoradas + ' tareas que no son partidas de pórtico se ignoran' : '') + '.</p>';
+      if(!R.ops.length) h += '<p><b>' + (pl ? 'La app ya coincide con la planilla.' : 'No hay tareas repetidas.') + '</b></p>';
+      GRUPOS.forEach(function(g){
+        var l = por[g[0]] || []; if(!l.length) return;
+        h += '<details class="ip-d" style="margin:8px 0;border:1px solid var(--line);border-radius:8px;padding:6px 10px"><summary style="cursor:pointer"><label style="display:inline-flex;gap:8px;align-items:center"><input type="checkbox" class="ip-g" data-g="' + g[0] + '" data-n="' + l.length + '"' + (g[2] ? " checked" : "") + '> <b>' + esc(g[1]) + '</b> (' + l.length + ')</label></summary>'
+          + '<ul style="margin:6px 0 2px 18px;font-size:.82rem">' + l.map(function(o){ return "<li>" + esc(o.texto) + "</li>"; }).join("") + "</ul></details>";
+      });
+      if(R.avisos.length) h += '<details style="margin:8px 0"><summary><b>Avisos (' + R.avisos.length + ')</b> · no se modifican</summary><ul style="margin:6px 0 2px 18px;font-size:.82rem">' + R.avisos.map(function(a){ return "<li>" + esc(a) + "</li>"; }).join("") + "</ul></details>";
+      if(pl && pl.noHallados.length) h += '<p class="ip-sub">Pórticos de la planilla que no existen en la app (se ignoran): ' + esc(pl.noHallados.join(", ")) + '.</p>';
+    return h;
+  }
+  $(".ip-dup").onclick = function(){
+    var D = window.PORTICOS_DATOS ? window.PORTICOS_DATOS() : null; if(!D || !D.prog || !D.prog.length){ msg.textContent = "La app aún no cargó la programación. Espera unos segundos y reintenta."; return; }
+    R = duplicadas(D.prog); R.pl = null; $(".ip-file").value = "";
+    var h = pintar(null); $(".ip-res").innerHTML = h; msg.textContent = ""; $(".ip-pin").style.display = R.ops.length ? "" : "none";
+    ov.querySelectorAll(".ip-g").forEach(function(cb){ cb.onchange = contar; }); contar();
+  };
   $(".ip-file").onchange = function(){
     var f = this.files && this.files[0]; if(!f) return; msg.textContent = "Leyendo planilla…"; $(".ip-res").innerHTML = "";
     var D = window.PORTICOS_DATOS ? window.PORTICOS_DATOS() : null; if(!D || !D.lista || !D.lista.length){ msg.textContent = "La app aún no cargó los datos de la planilla compartida. Espera unos segundos y reintenta."; return; }
@@ -193,16 +232,7 @@ function abrir(){
     Promise.all([cargarExcelJS(), f.arrayBuffer()]).then(function(r){ return leerPlanilla(r[1], anio, D.lista); }).then(function(pl){
       if(!pl.hojas.length) throw new Error("No encontré hojas de programación en este archivo (Hoja Maestra «Programacion …» o una lista con columnas Fecha, Pórtico y Tarea).");
       R = comparar(pl, D.prog || [], D.avance || [], D.lista, D.cond || {}); R.pl = pl;
-      var por = {}; R.ops.forEach(function(o){ (por[o.g] = por[o.g] || []).push(o); });
-      var h = '<p class="ip-sub">Hojas leídas: ' + esc(pl.hojas.join(", ")) + ' · ' + pl.ev.length + ' marcas de actividad' + (pl.rango ? ' entre el ' + dm(pl.rango.d) + ' y el ' + dm(pl.rango.h) : '') + (pl.ignoradas ? ' · ' + pl.ignoradas + ' tareas que no son partidas de pórtico se ignoran' : '') + '.</p>';
-      if(!R.ops.length) h += '<p><b>La app ya coincide con la planilla.</b></p>';
-      GRUPOS.forEach(function(g){
-        var l = por[g[0]] || []; if(!l.length) return;
-        h += '<details class="ip-d" style="margin:8px 0;border:1px solid var(--line);border-radius:8px;padding:6px 10px"><summary style="cursor:pointer"><label style="display:inline-flex;gap:8px;align-items:center"><input type="checkbox" class="ip-g" data-g="' + g[0] + '" data-n="' + l.length + '"' + (g[2] ? " checked" : "") + '> <b>' + esc(g[1]) + '</b> (' + l.length + ')</label></summary>'
-          + '<ul style="margin:6px 0 2px 18px;font-size:.82rem">' + l.map(function(o){ return "<li>" + esc(o.texto) + "</li>"; }).join("") + "</ul></details>";
-      });
-      if(R.avisos.length) h += '<details style="margin:8px 0"><summary><b>Avisos (' + R.avisos.length + ')</b> · no se modifican</summary><ul style="margin:6px 0 2px 18px;font-size:.82rem">' + R.avisos.map(function(a){ return "<li>" + esc(a) + "</li>"; }).join("") + "</ul></details>";
-      if(pl.noHallados.length) h += '<p class="ip-sub">Pórticos de la planilla que no existen en la app (se ignoran): ' + esc(pl.noHallados.join(", ")) + '.</p>';
+      var h = pintar(pl);
       $(".ip-res").innerHTML = h; msg.textContent = ""; $(".ip-pin").style.display = R.ops.length ? "" : "none";
       ov.querySelectorAll(".ip-g").forEach(function(cb){ cb.onchange = contar; }); contar();
     }).catch(function(e){ msg.textContent = "No se pudo leer la planilla: " + (e && e.message ? e.message : e); });
@@ -234,5 +264,5 @@ function abrir(){
     });
   };
 }
-window.PORTICOS_IMPORTAR = { abrir:abrir, _t:{ leerPlanilla:leerPlanilla, comparar:comparar } };
+window.PORTICOS_IMPORTAR = { abrir:abrir, _t:{ leerPlanilla:leerPlanilla, comparar:comparar, duplicadas:duplicadas } };
 })();
