@@ -69,3 +69,6 @@ if(btnQuitarAnuncios){
   });
 }
 try{ document.getElementById('footYear').textContent = new Date().getFullYear(); }catch(e){}
+
+/* Botón «Acerca de» (módulo compartido GEOMAV: logo, versión, creador y contacto) */
+(function(){try{var s=document.createElement('script');s.src=(document.body.getAttribute('data-raiz')||'./')+'_comun/acerca-de.js';s.setAttribute('data-app','Topo de Bolsillo');s.setAttribute('data-desc','Calculadoras de topografía para terreno y oficina. Funciona sin conexión.');s.setAttribute('data-host','.topbar');s.setAttribute('data-clase','theme-toggle');document.head.appendChild(s);}catch(e){}})();
