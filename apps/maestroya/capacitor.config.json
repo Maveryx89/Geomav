@@ -1,0 +1,6 @@
+{
+  "appId": "cl.maestroya.app",
+  "appName": "Maestro Ya",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}
