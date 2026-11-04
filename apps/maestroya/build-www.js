@@ -2,5 +2,5 @@
 const fs = require('fs');
 fs.rmSync('www', { recursive: true, force: true });
 fs.mkdirSync('www');
-fs.copyFileSync('index.html', 'www/index.html');
+['index.html', 'firebase-config.js'].forEach(f => fs.copyFileSync(f, 'www/' + f));
 console.log('www/ listo');

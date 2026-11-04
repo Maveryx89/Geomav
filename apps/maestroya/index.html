@@ -9,7 +9,7 @@
 <title>Maestro Ya</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Inter:wght@400;500;600&display=swap">
 <style>
-:root{--g:#0F4C3A;--o:#C2410C;--bg:#F6F3EC;--ink:#1B1F1D;--mut:#4B5550;--line:#BDB6A5;--soft:#E3EEE8;--card:#fff}
+:root{--g:#0F4C3A;--o:#C2410C;--bg:#F6F3EC;--ink:#1B1F1D;--mut:#4B5550;--line:#BDB6A5;--soft:#E3EEE8}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 button,input,textarea{font-family:inherit}
@@ -23,17 +23,21 @@ h3{margin:0}
 .logo{font-family:Archivo,sans-serif;font-weight:800;font-size:24px;letter-spacing:-.5px;color:var(--g)}.logo span{color:var(--o)}
 .sub{font-size:15px;line-height:1.5;color:#3C4541;margin:8px 0 20px}
 .top{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+.head{display:flex;justify-content:space-between;align-items:center}
 .back{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;flex:none}
 .bar{flex:1}.bar small{display:block;font-size:13px;font-weight:600;color:var(--mut);margin-bottom:6px}
 .bar i{display:block;height:6px;border-radius:3px;background:#E1DCCF}.bar i b{display:block;height:6px;border-radius:3px;background:var(--g)}
 label{display:block;font-size:14px;font-weight:600;margin:0 0 6px}
-input[type=text],input[type=tel],textarea{width:100%;padding:14px;font-size:16px;line-height:1.5;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);margin-bottom:16px}
+input[type=text],input[type=tel],input[type=email],input[type=password],textarea{width:100%;padding:14px;font-size:16px;line-height:1.5;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);margin-bottom:16px}
 textarea{resize:none}
 .pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
 .pill{min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--ink);font-size:15px;font-weight:500;cursor:pointer}
 .pill.on{background:var(--g);border-color:var(--g);color:#fff;font-weight:600}
 .cta{width:100%;min-height:54px;border:0;border-radius:12px;background:var(--o);color:#fff;font-weight:600;font-size:17px;cursor:pointer;margin-top:auto;flex:none}
 .cta.ghost{background:#fff;color:var(--g);border:1.5px solid var(--g)}
+.cta.danger{background:#fff;color:#B42318;border:1.5px solid #B42318}
+.cta.sm{min-height:46px;font-size:15px;margin:0}
+.cta[disabled]{opacity:.6;cursor:wait}
 .spacer{height:16px;flex:none}
 .choice{display:flex;gap:16px;align-items:flex-start;text-align:left;width:100%;border-radius:16px;padding:22px 20px;cursor:pointer;margin-bottom:16px;border:1.5px solid var(--line);background:#fff;color:var(--ink)}
 .choice.dark{background:var(--g);border-color:var(--g);color:#fff}
@@ -45,6 +49,7 @@ textarea{resize:none}
 .tile{text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:16px;min-height:104px;cursor:pointer}
 .tile b{display:block;font-family:Archivo,sans-serif;font-weight:800;font-size:19px}.tile span{display:block;font-size:13px;color:var(--g);font-weight:600;margin-top:6px}
 .card{display:flex;gap:14px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;width:100%;margin-bottom:12px;cursor:pointer}
+.card.col{flex-direction:column;gap:6px;cursor:default}
 .av{flex:none;width:56px;height:56px;border-radius:50%;background:#CFE0D8;display:flex;align-items:center;justify-content:center;font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:var(--g)}
 .av.big{width:72px;height:72px;font-size:26px}
 .nm{font-size:16px;font-weight:600;display:flex;align-items:center;gap:6px}
@@ -59,10 +64,6 @@ textarea{resize:none}
 .photos img{width:100%;height:100%;object-fit:cover;display:block}
 .photos button{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;font-size:16px;line-height:1;cursor:pointer}
 .add{aspect-ratio:1/1;border-radius:10px;border:1.5px dashed #8E8878;background:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--mut);cursor:pointer}
-.row{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;cursor:pointer;width:100%;text-align:left}
-.row.done{cursor:default}
-.row .ic{flex:none;width:52px;height:52px;border-radius:10px;background:#CFE0D8;display:flex;align-items:center;justify-content:center}
-.row b{display:block;font-size:15px}.row small{display:block;font-size:13px;color:var(--mut);margin-top:2px}.row.done small{color:var(--g);font-weight:500}
 .note{display:flex;gap:12px;background:var(--soft);border-radius:12px;padding:14px;font-size:13.5px;line-height:1.5;color:var(--g);margin-top:6px}
 .note.w{background:#fff;border:1px solid #E1DCCF;color:#3C4541}
 .steps{background:#fff;border:1px solid #E1DCCF;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:18px;margin-top:28px}
@@ -73,7 +74,18 @@ textarea{resize:none}
 .empty{background:#fff;border:1px dashed var(--line);border-radius:14px;padding:22px;text-align:center;color:var(--mut);font-size:15px;line-height:1.5}
 .link{background:none;border:0;color:var(--g);font-weight:600;font-size:15px;cursor:pointer;padding:12px 0;text-decoration:underline}
 .demo{font-size:12px;color:var(--mut);text-align:center;margin-top:14px}
+.err{background:#FDECEA;border:1px solid #F5B5AE;color:#8A1C12;border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.4;margin:0 0 16px}
+.ok{background:var(--soft);border:1px solid #BCD6CB;color:var(--g);border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.4;margin:0 0 16px}
+.chk{display:flex;gap:12px;align-items:flex-start;font-size:14px;line-height:1.45;font-weight:500;margin:16px 0 0;cursor:pointer}
+.chk input{width:22px;height:22px;flex:none;margin:1px 0 0;accent-color:var(--g)}
+.seg{display:flex;background:#E8E3D6;border-radius:12px;padding:4px;margin-bottom:20px}
+.seg button{flex:1;min-height:42px;border:0;border-radius:9px;background:transparent;font-size:15px;font-weight:600;color:var(--mut);cursor:pointer}
+.seg button.on{background:#fff;color:var(--g);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 a.cta{display:block;text-align:center;text-decoration:none;line-height:54px}
+a.cta.sm{line-height:46px}
+.row2{display:flex;gap:10px;margin-top:10px}.row2>*{flex:1}
+.spin{width:36px;height:36px;border-radius:50%;border:4px solid #D9D3C2;border-top-color:var(--g);animation:sp .8s linear infinite;margin:60px auto 0}
+@keyframes sp{to{transform:rotate(360deg)}}
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#1B1F1D;color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;max-width:90%;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
 #toast.on{opacity:1}
 </style>
@@ -86,244 +98,552 @@ a.cta{display:block;text-align:center;text-decoration:none;line-height:54px}
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script>
-(function(){
-'use strict';
+<script type="module">
+import { firebaseConfig } from './firebase-config.js';
 
-/* ---------- Utilidades ---------- */
-var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
-var store={
-  get:function(k,d){try{var v=localStorage.getItem('my_'+k);return v?JSON.parse(v):d}catch(e){return d}},
-  set:function(k,v){try{localStorage.setItem('my_'+k,JSON.stringify(v));return true}catch(e){toast('No se pudo guardar: almacenamiento lleno');return false}},
-  clear:function(){try{Object.keys(localStorage).filter(function(k){return k.indexOf('my_')===0}).forEach(function(k){localStorage.removeItem(k)})}catch(e){}}
-};
-var tt;function toast(m){var t=document.getElementById('toast');t.textContent=m;t.className='on';clearTimeout(tt);tt=setTimeout(function(){t.className=''},2600)}
-function shrink(file,max){return new Promise(function(res,rej){var r=new FileReader();r.onerror=rej;r.onload=function(){var im=new Image();im.onerror=rej;im.onload=function(){var k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.7))};im.src=r.result};r.readAsDataURL(file)})}
-function ini(n){return String(n||'?').trim().split(/\s+/).slice(0,2).map(function(w){return w[0]}).join('').toUpperCase()}
-function digits(s){return String(s||'').replace(/\D/g,'')}
+/* ====================== Modo y utilidades ====================== */
+const SDK = 'https://www.gstatic.com/firebasejs/10.14.1/';
+const DEMO = new URLSearchParams(location.search).has('demo') || !firebaseConfig.apiKey;
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let tt; const toast = m => { const t = $('toast'); t.textContent = m; t.className = 'on'; clearTimeout(tt); tt = setTimeout(() => t.className = '', 3000); };
+const digits = s => String(s || '').replace(/\D/g, '');
+const telWa = t => { let d = digits(t); if (d.length === 9 && d[0] === '9') d = '56' + d; return d; };
+const ini = n => String(n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+const ms = x => x && x.toMillis ? x.toMillis() : (x || 0);
+const okImg = s => typeof s === 'string' && s.indexOf('data:image/jpeg;base64,') === 0;
+const fecha = x => { const t = ms(x); return t ? new Date(t).toLocaleDateString('es-CL') : ''; };
+function shrink(file, max) {
+  return new Promise((res, rej) => {
+    const r = new FileReader(); r.onerror = rej;
+    r.onload = () => {
+      const im = new Image(); im.onerror = rej;
+      im.onload = () => {
+        const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas');
+        c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+        res(c.toDataURL('image/jpeg', .6));
+      };
+      im.src = r.result;
+    };
+    r.readAsDataURL(file);
+  });
+}
 
-/* ---------- Datos ---------- */
-var BASE=['Gasfitería','Electricidad','Carpintería','Soldadura','Pintura','Aseo','Albañilería','Jardinería'];
-var ANIOS=['Menos de 1','1 a 3','3 a 5','5 a 10','Más de 10'];
-var URG=['Hoy','Esta semana','Sin apuro'];
-var SEED=[
- {id:'d1',nombre:'Maestro de ejemplo 1',comuna:'Talca centro',oficios:['Gasfitería','Electricidad'],anios:'5 a 10',desc:'Instalaciones de casas, filtraciones y calefones. Entrega presupuesto antes de empezar.',rating:4.9,trabajos:23,demo:true},
- {id:'d2',nombre:'Maestro de ejemplo 2',comuna:'Maule',oficios:['Gasfitería'],anios:'3 a 5',desc:'Destapes, llaves y artefactos sanitarios.',rating:4.7,trabajos:15,demo:true},
- {id:'d3',nombre:'Maestro de ejemplo 3',comuna:'Talca norte',oficios:['Carpintería'],anios:'Más de 10',desc:'Puertas, closets y muebles a medida.',rating:4.6,trabajos:31,demo:true},
- {id:'d4',nombre:'Maestro de ejemplo 4',comuna:'Talca sur',oficios:['Soldadura'],anios:'5 a 10',desc:'Rejas, portones y estructuras metálicas.',rating:4.8,trabajos:12,demo:true},
- {id:'d5',nombre:'Maestro de ejemplo 5',comuna:'San Clemente',oficios:['Pintura'],anios:'3 a 5',desc:'Interiores y exteriores, preparación de muros.',rating:4.5,trabajos:9,demo:true},
- {id:'d6',nombre:'Maestro de ejemplo 6',comuna:'Talca centro',oficios:['Aseo'],anios:'1 a 3',desc:'Limpieza de hogar y post obra, por horas.',rating:4.4,trabajos:18,demo:true}
+/* ====================== Datos de apoyo ====================== */
+const BASE = ['Gasfitería','Electricidad','Carpintería','Soldadura','Pintura','Aseo','Albañilería','Jardinería'];
+const ANIOS = ['Menos de 1','1 a 3','3 a 5','5 a 10','Más de 10'];
+const URG = ['Hoy','Esta semana','Sin apuro'];
+const SEED = [
+ {id:'d1',nombre:'Maestro de ejemplo 1',comuna:'Talca centro',oficios:['Gasfitería','Electricidad'],anios:'5 a 10',desc:'Instalaciones de casas, filtraciones y calefones. Entrega presupuesto antes de empezar.',rating:4.9,trabajos:23,estado:'aprobado',demo:true},
+ {id:'d2',nombre:'Maestro de ejemplo 2',comuna:'Maule',oficios:['Gasfitería'],anios:'3 a 5',desc:'Destapes, llaves y artefactos sanitarios.',rating:4.7,trabajos:15,estado:'aprobado',demo:true},
+ {id:'d3',nombre:'Maestro de ejemplo 3',comuna:'Talca norte',oficios:['Carpintería'],anios:'Más de 10',desc:'Puertas, closets y muebles a medida.',rating:4.6,trabajos:31,estado:'aprobado',demo:true},
+ {id:'d4',nombre:'Maestro de ejemplo 4',comuna:'Talca sur',oficios:['Soldadura'],anios:'5 a 10',desc:'Rejas, portones y estructuras metálicas.',rating:4.8,trabajos:12,estado:'aprobado',demo:true},
+ {id:'d5',nombre:'Maestro de ejemplo 5',comuna:'San Clemente',oficios:['Pintura'],anios:'3 a 5',desc:'Interiores y exteriores, preparación de muros.',rating:4.5,trabajos:9,estado:'aprobado',demo:true},
+ {id:'d6',nombre:'Maestro de ejemplo 6',comuna:'Talca centro',oficios:['Aseo'],anios:'1 a 3',desc:'Limpieza de hogar y post obra, por horas.',rating:4.4,trabajos:18,estado:'aprobado',demo:true}
 ];
-function emptyReg(){return {nombre:'',tel:'',comuna:'Talca',oficios:[],extra:'',anios:'',desc:'',fotos:[],cf:false,cb:false,selfie:false}}
-var S={screen:'welcome',hist:[],reg:emptyReg(),oficio:null,mid:null,sort:'rating',ped:{problema:'',urg:'Esta semana',nombre:''},lastPed:null};
+const emptyReg = () => ({nombre:'',tel:'',comuna:'Talca',oficios:[],extra:'',anios:'',desc:'',fotos:[],consent:false});
 
-function miMaestro(){return store.get('maestro',null)}
-function pedidos(){return store.get('pedidos',[])}
-function visibles(){var l=SEED.slice(),m=miMaestro();if(m&&m.estado==='aprobado')l.push(m);return l}
-function oficiosActivos(){var c={};visibles().forEach(function(m){m.oficios.forEach(function(o){c[o]=(c[o]||0)+1})});return Object.keys(c).sort().map(function(o){return {o:o,n:c[o]}})}
-function byId(id){return visibles().filter(function(m){return m.id===id})[0]}
+/* ====================== Capa de datos: DEMO (localStorage) ====================== */
+function localApi() {
+  const get = (k, d) => { try { const v = localStorage.getItem('my_' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+  const set = (k, v) => { try { localStorage.setItem('my_' + k, JSON.stringify(v)); return true; } catch (e) { throw new Error('storage'); } };
+  return {
+    mode: 'demo',
+    async listMaestros() { const l = SEED.slice(), m = get('maestro', null); if (m && m.estado === 'aprobado') l.push(m); return l; },
+    async fotos(id) { const m = get('maestro', null); return m && m.id === id ? (m.fotos || []) : []; },
+    async myMaestro() { return get('maestro', null); },
+    async saveMaestro(r) {
+      set('maestro', {id:'local',nombre:r.nombre,tel:r.tel,comuna:r.comuna,oficios:r.oficios,anios:r.anios,desc:r.desc,fotos:r.fotos,rating:null,trabajos:0,estado:'pendiente'});
+    },
+    async createPedido(p) {
+      const l = get('pedidos', []);
+      l.push({id:'p' + Date.now(),clienteUid:'local',clienteNombre:p.nombre,clienteTel:p.tel,maestroUid:p.mid,maestroNombre:p.mnombre,oficio:p.oficio,problema:p.problema,urg:p.urg,estado:'nuevo',createdAt:Date.now()});
+      set('pedidos', l);
+    },
+    async myPedidos() { return get('pedidos', []).slice().reverse(); },
+    async pedidosParaMi() { const m = get('maestro', null); return m ? get('pedidos', []).filter(p => p.maestroUid === m.id).reverse() : []; },
+    async isAdmin() { return false; },
+    async listPendientes() { return []; },
+    async userInfo() { return null; },
+    async setEstado() {},
+    async aprobarDemo() { const m = get('maestro', null); if (m) { m.estado = 'aprobado'; set('maestro', m); } },
+    async deleteAccount() { Object.keys(localStorage).filter(k => k.indexOf('my_') === 0).forEach(k => localStorage.removeItem(k)); }
+  };
+}
 
-/* ---------- Iconos ---------- */
-var I={
+/* ====================== Capa de datos: FIREBASE ====================== */
+let me = null;          // usuario actual {uid,email,nombre}
+let api, authApi = null;
+
+function fbApi(Au, F, auth, db) {
+  const col = (...p) => F.collection(db, ...p);
+  const dref = (...p) => F.doc(db, ...p);
+  const rows = s => s.docs.map(d => Object.assign({id: d.id}, d.data()));
+  const byDate = l => l.sort((a, b) => ms(b.createdAt) - ms(a.createdAt));
+  const a = {
+    mode: 'firebase',
+    async listMaestros() { return rows(await F.getDocs(F.query(col('maestros'), F.where('estado', '==', 'aprobado')))); },
+    async fotos(id) {
+      const l = rows(await F.getDocs(col('maestros', id, 'fotos')));
+      l.sort((x, y) => (x.orden || 0) - (y.orden || 0));
+      return l.map(x => x.data).filter(okImg);
+    },
+    async myMaestro() { const d = await F.getDoc(dref('maestros', me.uid)); return d.exists() ? Object.assign({id: d.id}, d.data()) : null; },
+    async saveMaestro(r) {
+      const uid = me.uid, prev = await a.myMaestro();
+      if (prev && prev.estado !== 'rechazado') throw new Error('ya-existe');
+      await F.setDoc(dref('users', uid), {nombre: r.nombre, tel: r.tel, email: me.email || '', createdAt: F.serverTimestamp()});
+      const base = {nombre: r.nombre, comuna: r.comuna, oficios: r.oficios, anios: r.anios, desc: r.desc, updatedAt: F.serverTimestamp()};
+      if (prev) await F.updateDoc(dref('maestros', uid), Object.assign({}, base, {estado: 'pendiente'}));
+      else await F.setDoc(dref('maestros', uid), Object.assign({}, base, {estado: 'pendiente', rating: null, trabajos: 0, createdAt: F.serverTimestamp()}));
+      const old = await F.getDocs(col('maestros', uid, 'fotos'));
+      await Promise.all(old.docs.map(d => F.deleteDoc(d.ref)));
+      await Promise.all(r.fotos.map((f, i) => F.addDoc(col('maestros', uid, 'fotos'), {data: f, orden: i})));
+    },
+    async createPedido(p) {
+      await F.addDoc(col('pedidos'), {clienteUid: me.uid, clienteNombre: p.nombre, clienteTel: p.tel, maestroUid: p.mid, maestroNombre: p.mnombre, oficio: p.oficio, problema: p.problema, urg: p.urg, estado: 'nuevo', createdAt: F.serverTimestamp()});
+    },
+    async myPedidos() { return byDate(rows(await F.getDocs(F.query(col('pedidos'), F.where('clienteUid', '==', me.uid))))); },
+    async pedidosParaMi() { return byDate(rows(await F.getDocs(F.query(col('pedidos'), F.where('maestroUid', '==', me.uid))))); },
+    async isAdmin() { try { return (await F.getDoc(dref('admins', me.uid))).exists(); } catch (e) { return false; } },
+    async listPendientes() { return rows(await F.getDocs(F.query(col('maestros'), F.where('estado', '==', 'pendiente')))); },
+    async userInfo(uid) { const d = await F.getDoc(dref('users', uid)); return d.exists() ? d.data() : null; },
+    async setEstado(uid, estado) { await F.updateDoc(dref('maestros', uid), {estado}); },
+    async deleteAccount(pw) {
+      const u = auth.currentUser;
+      await Au.reauthenticateWithCredential(u, Au.EmailAuthProvider.credential(u.email, pw));
+      const uid = u.uid;
+      for (const campo of ['clienteUid', 'maestroUid']) {
+        const s = await F.getDocs(F.query(col('pedidos'), F.where(campo, '==', uid)));
+        await Promise.all(s.docs.map(d => F.deleteDoc(d.ref)));
+      }
+      const fotos = await F.getDocs(col('maestros', uid, 'fotos'));
+      await Promise.all(fotos.docs.map(d => F.deleteDoc(d.ref)));
+      await F.deleteDoc(dref('maestros', uid));
+      await F.deleteDoc(dref('users', uid));
+      await Au.deleteUser(u);
+    }
+  };
+  authApi = {
+    async signUp(email, pw, nombre) {
+      const c = await Au.createUserWithEmailAndPassword(auth, email, pw);
+      try { await Au.updateProfile(c.user, {displayName: nombre}); } catch (e) {}
+      return {uid: c.user.uid, email: c.user.email, nombre};
+    },
+    async signIn(email, pw) { const c = await Au.signInWithEmailAndPassword(auth, email, pw); return {uid: c.user.uid, email: c.user.email, nombre: c.user.displayName || ''}; },
+    signOut: () => Au.signOut(auth),
+    reset: email => Au.sendPasswordResetEmail(auth, email),
+    onChange: cb => Au.onAuthStateChanged(auth, u => cb(u ? {uid: u.uid, email: u.email, nombre: u.displayName || ''} : null))
+  };
+  return a;
+}
+
+/* ====================== Arranque ====================== */
+let bootError = null;
+if (DEMO) {
+  api = localApi();
+  me = {uid: 'local', email: 'demo', nombre: ''};
+} else {
+  try {
+    const [A, Au, F] = await Promise.all([import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js'), import(SDK + 'firebase-firestore.js')]);
+    const app = A.initializeApp(firebaseConfig);
+    api = fbApi(Au, F, Au.getAuth(app), F.getFirestore(app));
+  } catch (e) {
+    bootError = e; console.error('boot', e);
+    api = localApi();
+  }
+}
+
+/* ====================== Estado ====================== */
+const S = {screen: 'welcome', hist: [], reg: emptyReg(), oficio: null, mid: null, sort: 'rating',
+  ped: {problema: '', urg: 'Esta semana', nombre: '', tel: ''}, lastPed: null, next: null, admin: false,
+  auth: {mode: 'login', nombre: '', email: '', pw: '', err: '', info: ''}, cuenta: {pw: '', err: ''}};
+let cache = null, cacheAt = 0;
+async function maestros(force) {
+  if (!force && cache && Date.now() - cacheAt < 20000) return cache;
+  cache = await api.listMaestros(); cacheAt = Date.now(); return cache;
+}
+const activos = l => { const c = {}; l.forEach(m => m.oficios.forEach(o => c[o] = (c[o] || 0) + 1)); return Object.keys(c).sort().map(o => ({o, n: c[o]})); };
+
+async function setMe(u) {
+  me = u; S.admin = false;
+  if (u && api.mode === 'firebase') S.admin = await api.isAdmin();
+}
+
+/* ====================== Iconos ====================== */
+const I = {
  search:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0F4C3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
  tool:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.4 2.4-2.6-.6-.6-2.6z"/></svg>',
  back:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B1F1D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
  shield:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0F4C3A" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-label="Verificado"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>',
  star:'<svg width="16" height="16" viewBox="0 0 24 24" fill="#C2410C" aria-hidden="true"><path d="M12 2l3 7 7 .6-5.3 4.7 1.7 7.2L12 17.8 5.6 21.5l1.7-7.2L2 9.6 9 9z"/></svg>',
- check:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>',
- checkg:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F4C3A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="Listo"><path d="M20 6L9 17l-5-5"/></svg>',
- cam:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0F4C3A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg>'
+ check:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>'
 };
 
-/* ---------- Vistas ---------- */
-function top(title,prog){
-  var p=prog?'<div class="bar"><small>Paso '+prog+' de 5</small><i><b style="width:'+(prog*20)+'%"></b></i></div>':'<div class="meta" style="font-size:15px;font-weight:600;margin:0">'+esc(title||'')+'</div>';
-  return '<div class="top"><button class="back" data-act="back" aria-label="Volver">'+I.back+'</button>'+p+'</div>';
-}
-function pill(label,on,act){return '<button type="button" class="pill'+(on?' on':'')+'" data-act="'+act+':'+esc(label)+'">'+esc(label)+'</button>'}
+/* ====================== Vistas ====================== */
+const top = (title, prog) => '<div class="top"><button class="back" data-act="back" aria-label="Volver">' + I.back + '</button>' +
+  (prog ? '<div class="bar"><small>Paso ' + prog + ' de 5</small><i><b style="width:' + (prog * 20) + '%"></b></i></div>'
+        : '<div class="meta" style="font-size:15px;font-weight:600;margin:0">' + esc(title || '') + '</div>') + '</div>';
+const pill = (label, on, act) => '<button type="button" class="pill' + (on ? ' on' : '') + '" data-act="' + act + ':' + esc(label) + '">' + esc(label) + '</button>';
+const logoRow = right => '<div class="head"><div class="logo">Maestro<span> Ya</span></div>' + (right || '') + '</div>';
+const linkBtn = (act, txt) => '<button class="link" data-act="' + act + '" style="font-size:14px;padding:0">' + txt + '</button>';
+const LOADER = '<div class="spin" role="status" aria-label="Cargando"></div>';
+const waBtn = (tel, texto, label) => '<a class="cta sm" target="_blank" rel="noopener" href="https://wa.me/' + telWa(tel) + '?text=' + encodeURIComponent(texto) + '">' + label + '</a>';
 
-var V={
-welcome:function(){return ''+
- '<div class="logo">Maestro<span> Ya</span></div>'+
- '<h1 style="margin-top:44px">¿Qué estás buscando hoy?</h1>'+
- '<p class="sub">Elige cómo quieres usar la app. Puedes cambiarlo después.</p>'+
- '<button class="choice" data-act="role:cliente"><span class="ic" style="margin:0">'+I.search+'</span><div><b>Busco un maestro</b><span>Encuentra gasfíteres, electricistas, carpinteros y más cerca de ti.</span></div></button>'+
- '<button class="choice dark" data-act="role:maestro"><span class="ic" style="margin:0">'+I.tool+'</span><div><b>Soy maestro</b><span>Recibe trabajos en tu zona. Crea tu perfil en pocos minutos.</span></div></button>'+
- '<p class="demo" style="margin-top:auto">Versión de prueba · los datos se guardan solo en este dispositivo.<br><button class="link" data-act="reset" style="font-size:13px;padding:8px 0">Borrar datos de prueba</button></p>'},
+const V = {
+welcome() {
+  const right = DEMO ? '' : (me ? linkBtn('go:cuenta', 'Mi cuenta') : linkBtn('login', 'Iniciar sesión'));
+  return logoRow(right) +
+   '<h1 style="margin-top:40px">¿Qué estás buscando hoy?</h1>' +
+   '<p class="sub">Elige cómo quieres usar la app.</p>' +
+   '<button class="choice" data-act="role:cliente"><span class="ic" style="margin:0">' + I.search + '</span><div><b>Busco un maestro</b><span>Encuentra gasfíteres, electricistas, carpinteros y más cerca de ti.</span></div></button>' +
+   '<button class="choice dark" data-act="role:maestro"><span class="ic" style="margin:0">' + I.tool + '</span><div><b>Soy maestro</b><span>Recibe trabajos en tu zona. Crea tu perfil en pocos minutos.</span></div></button>' +
+   (bootError ? '<div class="err">No se pudo conectar con el servidor. Estás viendo datos de prueba locales. Revisa tu conexión y recarga.</div>' : '') +
+   (DEMO || bootError ? '<p class="demo" style="margin-top:auto">Versión de prueba · los datos se guardan solo en este dispositivo.<br><button class="link" data-act="reset" style="font-size:13px;padding:8px 0">Borrar datos de prueba</button></p>' : '');
+},
+
+auth() {
+  const A = S.auth, reg = A.mode === 'registro';
+  return top('') .replace('<div class="meta" style="font-size:15px;font-weight:600;margin:0"></div>', '<div class="logo">Maestro<span> Ya</span></div>') +
+   '<h1>' + (reg ? 'Crea tu cuenta' : 'Inicia sesión') + '</h1>' +
+   '<p class="sub">' + (reg ? 'Necesitas una cuenta para pedir un presupuesto o ofrecer tus servicios.' : 'Entra con tu correo y contraseña.') + '</p>' +
+   '<div class="seg" role="tablist"><button class="' + (reg ? '' : 'on') + '" data-act="authmode:login">Ingresar</button><button class="' + (reg ? 'on' : '') + '" data-act="authmode:registro">Crear cuenta</button></div>' +
+   (A.err ? '<div class="err" role="alert">' + esc(A.err) + '</div>' : '') + (A.info ? '<div class="ok" role="status">' + esc(A.info) + '</div>' : '') +
+   (reg ? '<label for="u1">Tu nombre</label><input id="u1" type="text" data-bind="auth.nombre" value="' + esc(A.nombre) + '" autocomplete="name">' : '') +
+   '<label for="u2">Correo electrónico</label><input id="u2" type="email" data-bind="auth.email" value="' + esc(A.email) + '" autocomplete="email" inputmode="email">' +
+   '<label for="u3">Contraseña</label><input id="u3" type="password" data-bind="auth.pw" value="' + esc(A.pw) + '" autocomplete="' + (reg ? 'new-password' : 'current-password') + '" placeholder="' + (reg ? 'Mínimo 6 caracteres' : '') + '">' +
+   (reg ? '' : '<button class="link" data-act="resetpw" style="align-self:flex-start;padding:0 0 16px;font-size:14px">Olvidé mi contraseña</button>') +
+   '<div class="spacer"></div><button class="cta" id="authgo" data-act="authgo">' + (reg ? 'Crear cuenta' : 'Entrar') + '</button>';
+},
+
+cuenta() {
+  const C = S.cuenta;
+  if (DEMO) return top('Mi cuenta') + '<h1>Modo de prueba</h1><p class="sub">Los datos están solo en este dispositivo.</p><button class="cta danger sm" data-act="reset">Borrar datos de prueba</button>';
+  if (!me) return top('Mi cuenta') + '<div class="empty">No has iniciado sesión.</div><div class="spacer"></div><button class="cta" data-act="login">Iniciar sesión</button>';
+  return top('Mi cuenta') + '<h1 style="font-size:26px;word-break:break-all">' + esc(me.email) + '</h1>' +
+   (S.admin ? '<div style="margin:16px 0 0"><span class="badge">Administrador</span></div><button class="cta sm" style="margin-top:12px" data-act="go:admin">Revisar maestros pendientes</button>' : '') +
+   '<button class="cta ghost sm" style="margin-top:16px" data-act="logout">Cerrar sesión</button>' +
+   '<h3 style="font-size:17px;margin:32px 0 6px">Eliminar mi cuenta</h3>' +
+   '<p class="sub" style="margin:0 0 14px">Se borran tu perfil, tus fotos y tus pedidos. No se puede deshacer. Escribe tu contraseña para confirmar.</p>' +
+   (C.err ? '<div class="err" role="alert">' + esc(C.err) + '</div>' : '') +
+   '<label for="c1">Contraseña</label><input id="c1" type="password" data-bind="cuenta.pw" value="' + esc(C.pw) + '" autocomplete="current-password">' +
+   '<button class="cta danger sm" id="delgo" data-act="delacc">Eliminar definitivamente</button>';
+},
+
+/* --- Administrador --- */
+async admin() {
+  if (!S.admin) return top('Administración') + '<div class="empty">Sin acceso.</div>';
+  const l = await api.listPendientes();
+  const det = await Promise.all(l.map(async m => ({m, u: await api.userInfo(m.id).catch(() => null), f: await api.fotos(m.id).catch(() => [])})));
+  return top('Maestros pendientes') + '<h1 style="margin-bottom:16px">Pendientes (' + l.length + ')</h1>' +
+   (det.length ? det.map(({m, u, f}) => '<div class="card col"><div class="nm">' + esc(m.nombre) + '</div>' +
+     '<div class="meta">' + esc(m.comuna) + ' · ' + esc(m.anios) + ' años · ' + esc(m.oficios.join(', ')) + '</div>' +
+     '<div style="font-size:14px;line-height:1.45;margin-top:4px">' + esc(m.desc) + '</div>' +
+     '<div class="photos">' + f.map(x => '<div><img src="' + x + '" alt="Trabajo"></div>').join('') + '</div>' +
+     '<div class="meta">Correo: ' + esc(u && u.email) + ' · Tel: ' + esc(u && u.tel) + '</div>' +
+     (u && u.tel ? waBtn(u.tel, 'Hola ' + m.nombre + ', te escribo de Maestro Ya para verificar tu identidad.', 'Verificar por WhatsApp') : '') +
+     '<div class="row2"><button class="cta sm" data-act="adm:aprobado:' + esc(m.id) + '">Aprobar</button><button class="cta danger sm" data-act="adm:rechazado:' + esc(m.id) + '">Rechazar</button></div></div>').join('')
+   : '<div class="empty">No hay maestros pendientes.</div>');
+},
 
 /* --- Cliente --- */
-oficios:function(){
- var l=oficiosActivos();
- return '<div style="display:flex;justify-content:space-between;align-items:center"><div class="logo">Maestro<span> Ya</span></div><button class="link" data-act="go:welcome" style="font-size:14px;padding:0">Inicio</button></div>'+
- '<h1 style="margin-top:26px">¿Qué necesitas arreglar?</h1><p class="sub" style="margin-bottom:18px">Solo mostramos oficios con maestros activos.</p>'+
- (l.length?'<div class="grid2">'+l.map(function(x){return '<button class="tile" data-act="oficio:'+esc(x.o)+'"><b>'+esc(x.o)+'</b><span>'+x.n+(x.n===1?' maestro':' maestros')+'</span></button>'}).join('')+'</div>':'<div class="empty">Aún no hay maestros activos.</div>')+
- '<p class="demo">Los oficios nuevos aparecen cuando se suman maestros.</p>'+
- '<button class="link" data-act="go:mispedidos" style="margin-top:auto;align-self:center">Mis pedidos ('+pedidos().length+')</button>'},
+async oficios() {
+  const l = activos(await maestros(true));
+  return logoRow(linkBtn('go:welcome', 'Inicio')) +
+   '<h1 style="margin-top:26px">¿Qué necesitas arreglar?</h1><p class="sub" style="margin-bottom:18px">Solo mostramos oficios con maestros activos.</p>' +
+   (l.length ? '<div class="grid2">' + l.map(x => '<button class="tile" data-act="oficio:' + esc(x.o) + '"><b>' + esc(x.o) + '</b><span>' + x.n + (x.n === 1 ? ' maestro' : ' maestros') + '</span></button>').join('') + '</div>'
+             : '<div class="empty">Aún no hay maestros activos. Vuelve pronto.</div>') +
+   '<p class="demo">Los oficios nuevos aparecen cuando se suman maestros.</p>' +
+   (DEMO || me ? '<button class="link" data-act="go:mispedidos" style="margin-top:auto;align-self:center">Mis pedidos</button>' : '');
+},
 
-lista:function(){
- var l=visibles().filter(function(m){return m.oficios.indexOf(S.oficio)>-1});
- l.sort(function(a,b){return S.sort==='anios'?ANIOS.indexOf(b.anios)-ANIOS.indexOf(a.anios):(b.rating||0)-(a.rating||0)});
- return top(S.oficio)+'<h1 style="margin-bottom:4px">'+esc(S.oficio)+'</h1><div class="meta" style="margin:0 0 16px">'+l.length+(l.length===1?' maestro':' maestros')+' en Talca</div>'+
- '<div class="pills">'+['Mejor calificados:rating','Más experiencia:anios'].map(function(s){var p=s.split(':');return '<button class="pill'+(S.sort===p[1]?' on':'')+'" data-act="sort:'+p[1]+'" style="min-height:40px;font-size:14px">'+p[0]+'</button>'}).join('')+'</div>'+
- l.map(function(m){return '<button class="card" data-act="ver:'+esc(m.id)+'"><span class="av">'+esc(ini(m.nombre))+'</span><span style="flex:1;min-width:0"><span class="nm">'+esc(m.nombre)+I.shield+'</span><span class="meta" style="display:block">'+esc(m.anios)+' años · '+esc(m.comuna)+'</span><span class="rate">'+(m.rating?I.star+String(m.rating).replace('.',',')+'<em>('+m.trabajos+' trabajos)</em>':'<em>Maestro nuevo</em>')+'</span></span></button>'}).join('')},
+async lista() {
+  const l = (await maestros()).filter(m => m.oficios.indexOf(S.oficio) > -1);
+  l.sort((a, b) => S.sort === 'anios' ? ANIOS.indexOf(b.anios) - ANIOS.indexOf(a.anios) : (b.rating || 0) - (a.rating || 0));
+  return top(S.oficio) + '<h1 style="margin-bottom:4px">' + esc(S.oficio) + '</h1><div class="meta" style="margin:0 0 16px">' + l.length + (l.length === 1 ? ' maestro' : ' maestros') + '</div>' +
+   '<div class="pills">' + [['Mejor calificados','rating'],['Más experiencia','anios']].map(p => '<button class="pill' + (S.sort === p[1] ? ' on' : '') + '" data-act="sort:' + p[1] + '" style="min-height:40px;font-size:14px">' + p[0] + '</button>').join('') + '</div>' +
+   l.map(m => '<button class="card" data-act="ver:' + esc(m.id) + '"><span class="av">' + esc(ini(m.nombre)) + '</span><span style="flex:1;min-width:0"><span class="nm">' + esc(m.nombre) + I.shield + '</span><span class="meta" style="display:block">' + esc(m.anios) + ' años · ' + esc(m.comuna) + '</span><span class="rate">' + (m.rating ? I.star + String(m.rating).replace('.', ',') + '<em>(' + m.trabajos + ' trabajos)</em>' : '<em>Maestro nuevo</em>') + '</span></span></button>').join('');
+},
 
-perfil:function(){
- var m=byId(S.mid);if(!m)return top('Perfil')+'<div class="empty">Maestro no encontrado.</div>';
- var ph=(m.fotos||[]).map(function(f){return '<div><img src="'+f+'" alt="Trabajo anterior"></div>'}).join('');
- if(!ph)ph='<div></div><div></div><div></div>';
- return top('Perfil del maestro')+
- '<div style="display:flex;gap:16px;align-items:center"><span class="av big">'+esc(ini(m.nombre))+'</span><div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:22px;letter-spacing:-.4px">'+esc(m.nombre)+'</div><span class="badge" style="margin-top:6px">'+I.shield+'Identidad verificada</span></div></div>'+
- '<div class="stats"><div><b class="o">'+(m.rating?String(m.rating).replace('.',','):'Nuevo')+'</b>Calificación</div><div><b>'+(m.trabajos||0)+'</b>Trabajos</div><div><b>'+esc(m.anios.replace(' a ','-').replace('Más de ','+').replace('Menos de ','<'))+'</b>Años</div></div>'+
- '<h3 style="font-size:14px">Oficios</h3><div class="pills" style="margin-top:8px">'+m.oficios.map(function(o){return '<span class="pill on" style="min-height:0;padding:7px 12px;font-size:13px;cursor:default">'+esc(o)+'</span>'}).join('')+'</div>'+
- '<h3 style="font-size:14px">Sobre su trabajo</h3><p style="font-size:14px;line-height:1.5;color:#3C4541;margin:6px 0 16px">'+esc(m.desc)+'</p>'+
- '<h3 style="font-size:14px">Trabajos anteriores</h3><div class="photos">'+ph+'</div>'+
- '<button class="cta" data-act="go:pedido">Pedir presupuesto</button>'},
+async perfil() {
+  const m = (await maestros()).filter(x => x.id === S.mid)[0] || await (async () => { const x = await api.myMaestro(); return x && x.id === S.mid ? x : null; })();
+  if (!m) return top('Perfil') + '<div class="empty">Maestro no encontrado.</div>';
+  const fotos = await api.fotos(m.id).catch(() => []);
+  const ph = fotos.length ? fotos.map(f => '<div><img src="' + f + '" alt="Trabajo anterior"></div>').join('') : '<div></div><div></div><div></div>';
+  const propio = me && me.uid === m.id;
+  return top('Perfil del maestro') +
+   '<div style="display:flex;gap:16px;align-items:center"><span class="av big">' + esc(ini(m.nombre)) + '</span><div><div style="font-family:Archivo,sans-serif;font-weight:800;font-size:22px;letter-spacing:-.4px">' + esc(m.nombre) + '</div><span class="badge" style="margin-top:6px">' + I.shield + 'Identidad verificada</span></div></div>' +
+   '<div class="stats"><div><b class="o">' + (m.rating ? String(m.rating).replace('.', ',') : 'Nuevo') + '</b>Calificación</div><div><b>' + (m.trabajos || 0) + '</b>Trabajos</div><div><b>' + esc(m.anios.replace(' a ', '-').replace('Más de ', '+').replace('Menos de ', '<')) + '</b>Años</div></div>' +
+   '<h3 style="font-size:14px">Oficios</h3><div class="pills" style="margin-top:8px">' + m.oficios.map(o => '<span class="pill on" style="min-height:0;padding:7px 12px;font-size:13px;cursor:default">' + esc(o) + '</span>').join('') + '</div>' +
+   '<h3 style="font-size:14px">Sobre su trabajo</h3><p style="font-size:14px;line-height:1.5;color:#3C4541;margin:6px 0 16px">' + esc(m.desc) + '</p>' +
+   '<h3 style="font-size:14px">Trabajos anteriores</h3><div class="photos">' + ph + '</div>' +
+   (propio ? '<div class="note w"><span>Así te ve un cliente.</span></div>' : '<button class="cta" data-act="pedir">Pedir presupuesto</button>');
+},
 
-pedido:function(){
- var m=byId(S.mid)||{nombre:'',oficios:[S.oficio]};
- return top('Pedir presupuesto')+'<h1 style="font-size:28px">Cuéntale qué necesitas</h1><p class="sub">Para: <b>'+esc(m.nombre)+'</b> · '+esc(S.oficio||'')+'</p>'+
- '<label for="f1">Tu nombre</label><input id="f1" type="text" data-bind="ped.nombre" value="'+esc(S.ped.nombre)+'" placeholder="Ej: María">'+
- '<label for="f2">¿Qué problema tienes?</label><textarea id="f2" rows="4" data-bind="ped.problema" placeholder="Ej: Se filtra el lavaplatos y sale agua bajo el mueble">'+esc(S.ped.problema)+'</textarea>'+
- '<label>¿Qué tan urgente es?</label><div class="pills">'+URG.map(function(u){return pill(u,S.ped.urg===u,'urg')}).join('')+'</div>'+
- '<div class="note"><span>El maestro recibe tu pedido y te responde por WhatsApp. Tú acuerdas el precio directo con él.</span></div><div class="spacer"></div>'+
- '<button class="cta" data-act="enviar-pedido">Enviar pedido</button>'},
+pedido() {
+  const P = S.ped;
+  return top('Pedir presupuesto') + '<h1 style="font-size:28px">Cuéntale qué necesitas</h1><p class="sub">Para: <b>' + esc(S.mnombre || '') + '</b> · ' + esc(S.oficio || '') + '</p>' +
+   (S.pedErr ? '<div class="err" role="alert">' + esc(S.pedErr) + '</div>' : '') +
+   '<label for="f1">Tu nombre</label><input id="f1" type="text" data-bind="ped.nombre" value="' + esc(P.nombre) + '" placeholder="Ej: María" autocomplete="name">' +
+   '<label for="f3">Tu WhatsApp</label><input id="f3" type="tel" data-bind="ped.tel" value="' + esc(P.tel) + '" placeholder="+56 9 1234 5678" autocomplete="tel">' +
+   '<label for="f2">¿Qué problema tienes?</label><textarea id="f2" rows="4" maxlength="500" data-bind="ped.problema" placeholder="Ej: Se filtra el lavaplatos y sale agua bajo el mueble">' + esc(P.problema) + '</textarea>' +
+   '<label>¿Qué tan urgente es?</label><div class="pills">' + URG.map(u => pill(u, P.urg === u, 'urg')).join('') + '</div>' +
+   '<div class="note"><span>El maestro verá tu nombre y WhatsApp, y te escribirá para coordinar. El precio lo acuerdan directo.</span></div><div class="spacer"></div>' +
+   '<button class="cta" id="pedgo" data-act="enviar-pedido">Enviar pedido</button>';
+},
 
-enviado:function(){
- var p=S.lastPed,m=byId(p.mid),wa='';
- if(m&&!m.demo&&digits(m.tel)){var t='Hola '+m.nombre+', soy '+p.nombre+'. Necesito un maestro de '+p.oficio.toLowerCase()+': '+p.problema+' (Urgencia: '+p.urg.toLowerCase()+')';wa='<a class="cta" style="margin-top:16px" target="_blank" rel="noopener" href="https://wa.me/'+digits(m.tel)+'?text='+encodeURIComponent(t)+'">Abrir WhatsApp</a>'}
- return '<div class="top" style="margin-bottom:0"></div><div style="text-align:center;margin-top:40px"><div class="dot ok" style="width:80px;height:80px;margin:0 auto"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>'+
- '<h1 style="margin-top:24px">¡Pedido enviado!</h1><p class="sub">'+esc(m?m.nombre:'El maestro')+' recibió tu solicitud'+(wa?'.':'. <br><br><small style="color:#5A645F">Este es un maestro de ejemplo: en la versión de prueba no se envía mensaje real.</small>')+'</p></div>'+wa+
- '<button class="cta ghost" style="margin-top:16px" data-act="go:oficios">Volver al inicio</button>'},
+enviado() {
+  const p = S.lastPed;
+  return '<div style="text-align:center;margin-top:48px"><div class="dot ok" style="width:80px;height:80px;margin:0 auto"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>' +
+   '<h1 style="margin-top:24px">¡Pedido enviado!</h1><p class="sub">' + esc(p.mnombre) + ' recibió tu solicitud y te escribirá por WhatsApp al ' + esc(p.tel) + '.' +
+   (S.demoMaestro ? '<br><br><small style="color:#5A645F">Es un maestro de ejemplo: no se envía ningún mensaje real.</small>' : '') + '</p></div>' +
+   '<button class="cta ghost" style="margin-top:16px" data-act="go:oficios">Volver al inicio</button>';
+},
 
-mispedidos:function(){
- var l=pedidos().filter(function(p){return !p.paraMi}).slice().reverse();
- return top('Mis pedidos')+'<h1 style="margin-bottom:16px">Mis pedidos</h1>'+(l.length?l.map(function(p){return '<div class="card" style="cursor:default;flex-direction:column;gap:4px"><div class="nm">'+esc(p.oficio)+' · '+esc(p.urg)+'</div><div class="meta">Para '+esc(p.mnombre)+'</div><div style="font-size:14px;margin-top:4px">'+esc(p.problema)+'</div></div>'}).join(''):'<div class="empty">Todavía no has enviado pedidos.</div>')},
+async mispedidos() {
+  const l = await api.myPedidos();
+  return top('Mis pedidos') + '<h1 style="margin-bottom:16px">Mis pedidos</h1>' + (l.length ? l.map(p =>
+   '<div class="card col"><div class="nm">' + esc(p.oficio) + ' · ' + esc(p.urg) + '</div><div class="meta">Para ' + esc(p.maestroNombre) + ' · ' + fecha(p.createdAt) + '</div><div style="font-size:14px;margin-top:4px">' + esc(p.problema) + '</div></div>').join('')
+   : '<div class="empty">Todavía no has enviado pedidos.</div>');
+},
 
 /* --- Maestro: registro --- */
-r1:function(){var r=S.reg;return top('',1)+'<h1>Tus datos básicos</h1><p class="sub">Los clientes verán tu nombre y comuna.</p>'+
- '<label for="a1">Nombre completo</label><input id="a1" type="text" data-bind="reg.nombre" value="'+esc(r.nombre)+'" autocomplete="name">'+
- '<label for="a2">Teléfono (WhatsApp)</label><input id="a2" type="tel" data-bind="reg.tel" value="'+esc(r.tel)+'" placeholder="+56 9 1234 5678" autocomplete="tel">'+
- '<label for="a3">Comuna donde trabajas</label><input id="a3" type="text" data-bind="reg.comuna" value="'+esc(r.comuna)+'">'+
- '<p class="meta" style="margin:-6px 0 0">En esta versión de prueba no se envía código por SMS.</p><div class="spacer"></div><button class="cta" data-act="rnext:1">Continuar</button>'},
+r1() { const r = S.reg; return top('', 1) + '<h1>Tus datos básicos</h1><p class="sub">Los clientes verán tu nombre y comuna. Tu teléfono es privado.</p>' +
+ '<label for="a1">Nombre completo</label><input id="a1" type="text" data-bind="reg.nombre" value="' + esc(r.nombre) + '" autocomplete="name">' +
+ '<label for="a2">Teléfono (WhatsApp)</label><input id="a2" type="tel" data-bind="reg.tel" value="' + esc(r.tel) + '" placeholder="+56 9 1234 5678" autocomplete="tel">' +
+ '<label for="a3">Comuna donde trabajas</label><input id="a3" type="text" data-bind="reg.comuna" value="' + esc(r.comuna) + '">' +
+ '<div class="spacer"></div><button class="cta" data-act="rnext:1">Continuar</button>'; },
 
-r2:function(){var r=S.reg,all=BASE.concat(r.oficios.filter(function(o){return BASE.indexOf(o)<0}));
- return top('',2)+'<h1>¿Qué oficios haces?</h1><p class="sub">Elige todos los que domines.</p>'+
- '<div class="pills">'+all.map(function(o){return pill(o,r.oficios.indexOf(o)>-1,'toff')}).join('')+'</div>'+
- '<div class="note w" style="flex-direction:column;gap:8px"><b style="color:#1B1F1D;font-size:15px">¿No está tu oficio?</b><span>Propónlo y aparecerá a los clientes cuando se apruebe tu perfil.</span><div style="display:flex;gap:8px"><input type="text" data-bind="reg.extra" value="'+esc(r.extra)+'" placeholder="Ej: Cerrajería" style="margin:0" aria-label="Nuevo oficio"><button class="pill on" data-act="addoficio" style="flex:none">Agregar</button></div></div>'+
- '<p class="meta" style="text-align:center;margin:16px 0 12px">'+r.oficios.length+' seleccionados</p><button class="cta" data-act="rnext:2">Continuar</button>'},
+r2() { const r = S.reg, all = BASE.concat(r.oficios.filter(o => BASE.indexOf(o) < 0));
+ return top('', 2) + '<h1>¿Qué oficios haces?</h1><p class="sub">Elige todos los que domines.</p>' +
+ '<div class="pills">' + all.map(o => pill(o, r.oficios.indexOf(o) > -1, 'toff')).join('') + '</div>' +
+ '<div class="note w" style="flex-direction:column;gap:8px"><b style="color:#1B1F1D;font-size:15px">¿No está tu oficio?</b><span>Propónlo y aparecerá a los clientes cuando se apruebe tu perfil.</span><div style="display:flex;gap:8px"><input type="text" data-bind="reg.extra" value="' + esc(r.extra) + '" placeholder="Ej: Cerrajería" style="margin:0" aria-label="Nuevo oficio" maxlength="30"><button class="pill on" data-act="addoficio" style="flex:none">Agregar</button></div></div>' +
+ '<p class="meta" style="text-align:center;margin:16px 0 12px">' + r.oficios.length + ' seleccionados</p><button class="cta" data-act="rnext:2">Continuar</button>'; },
 
-r3:function(){var r=S.reg;return top('',3)+'<h1>Tu experiencia</h1><p class="sub">Los clientes confían más en quien cuenta su trayectoria.</p>'+
- '<label>Años trabajando en el oficio</label><div class="pills">'+ANIOS.map(function(a){return pill(a,r.anios===a,'anios')}).join('')+'</div>'+
- '<label for="e1">Cuéntanos qué haces mejor</label><textarea id="e1" rows="6" maxlength="300" data-bind="reg.desc" data-live="1" placeholder="Ej: Gasfiter con experiencia en instalaciones de casas, filtraciones y calefones.">'+esc(r.desc)+'</textarea>'+
- '<div class="cnt"><span>Mínimo 60 caracteres</span><span id="cnt">'+r.desc.length+' / 300</span></div><button class="cta" data-act="rnext:3">Continuar</button>'},
+r3() { const r = S.reg; return top('', 3) + '<h1>Tu experiencia</h1><p class="sub">Los clientes confían más en quien cuenta su trayectoria.</p>' +
+ '<label>Años trabajando en el oficio</label><div class="pills">' + ANIOS.map(a => pill(a, r.anios === a, 'anios')).join('') + '</div>' +
+ '<label for="e1">Cuéntanos qué haces mejor</label><textarea id="e1" rows="6" maxlength="300" data-bind="reg.desc" data-live="1" placeholder="Ej: Gasfiter con experiencia en instalaciones de casas, filtraciones y calefones.">' + esc(r.desc) + '</textarea>' +
+ '<div class="cnt"><span>Mínimo 60 caracteres</span><span id="cnt">' + r.desc.length + ' / 300</span></div><button class="cta" data-act="rnext:3">Continuar</button>'; },
 
-r4:function(){var r=S.reg,n=r.fotos.length;
- return top('',4)+'<h1>Fotos de tus trabajos</h1><p class="sub">Sube mínimo 3 fotos de trabajos terminados. Es lo que más mira un cliente.</p>'+
- '<div class="photos">'+r.fotos.map(function(f,i){return '<div><img src="'+f+'" alt="Foto '+(i+1)+'"><button data-act="rmfoto:'+i+'" aria-label="Quitar foto '+(i+1)+'">×</button></div>'}).join('')+
- (n<10?'<label class="add" style="margin:0" aria-label="Agregar fotos">+<input type="file" accept="image/*" multiple data-file="fotos" hidden></label>':'')+'</div>'+
- '<div class="note"><span>'+(n>=3?'✓ Ya cumples el mínimo ('+n+' fotos)':'Faltan '+(3-n)+' para el mínimo')+'. Usa fotos propias, con buena luz y del trabajo terminado.</span></div><div class="spacer"></div><button class="cta" data-act="rnext:4">Continuar</button>'},
+r4() { const r = S.reg, n = r.fotos.length;
+ return top('', 4) + '<h1>Fotos de tus trabajos</h1><p class="sub">Sube entre 3 y 6 fotos de trabajos terminados. Es lo que más mira un cliente.</p>' +
+ '<div class="photos">' + r.fotos.map((f, i) => '<div><img src="' + f + '" alt="Foto ' + (i + 1) + '"><button data-act="rmfoto:' + i + '" aria-label="Quitar foto ' + (i + 1) + '">×</button></div>').join('') +
+ (n < 6 ? '<label class="add" style="margin:0" aria-label="Agregar fotos">+<input type="file" accept="image/*" multiple data-file="fotos" hidden></label>' : '') + '</div>' +
+ '<div class="note"><span>' + (n >= 3 ? '✓ Ya cumples el mínimo (' + n + ' fotos)' : 'Faltan ' + (3 - n) + ' para el mínimo') + '. Usa fotos propias, con buena luz y del trabajo terminado.</span></div><div class="spacer"></div><button class="cta" data-act="rnext:4">Continuar</button>'; },
 
-r5:function(){var r=S.reg;
- function row(k,t,done){return done?'<div class="row done"><span class="ic">'+I.cam+'</span><span style="flex:1"><b>'+t+'</b><small>Lista</small></span>'+I.checkg+'</div>':'<label class="row" style="margin-bottom:12px"><span class="ic">'+I.cam+'</span><span style="flex:1"><b>'+t+'</b><small>Toca para tomar o elegir la foto</small></span><input type="file" accept="image/*" data-file="'+k+'" hidden></label>'}
- return top('',5)+'<h1>Verifica tu identidad</h1><p class="sub">Así los clientes saben que eres una persona real.</p>'+
- row('cf','Carnet, parte delantera',r.cf)+row('cb','Carnet, parte trasera',r.cb)+row('selfie','Selfie',r.selfie)+
- '<div class="note w"><span><b>Versión de prueba:</b> estas fotos no se guardan ni se envían a ningún lado. En la versión real se cifrarán y se borrarán al verificar tu identidad.</span></div><div class="spacer"></div><button class="cta" data-act="rnext:5">Enviar para revisión</button>'},
+r5() { const r = S.reg;
+ return top('', 5) + '<h1>Verifica tu identidad</h1><p class="sub">Para dar confianza a los clientes, verificamos a cada maestro antes de publicar su perfil.</p>' +
+ '<div class="note w" style="flex-direction:column;gap:6px"><b style="color:#1B1F1D;font-size:15px">Cómo funciona</b><span>Te escribimos por WhatsApp al número que indicaste y te pedimos una foto de tu carnet. La app <b>no guarda</b> fotos de tu carnet.</span></div>' +
+ '<label class="chk"><input type="checkbox" data-chk="consent"' + (r.consent ? ' checked' : '') + '><span>Acepto que me contacten por WhatsApp para verificar mi identidad y que mi perfil (nombre, comuna, oficios, descripción y fotos de trabajos) sea visible para los clientes una vez aprobado.</span></label>' +
+ '<div class="spacer"></div><button class="cta" id="regsend" data-act="rnext:5">Enviar para revisión</button>'; },
 
-revision:function(){return '<div style="margin-top:36px;text-align:center"><div class="dot" style="width:96px;height:96px;margin:0 auto;background:var(--soft);border:0"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0F4C3A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>'+
- '<h1 style="margin-top:28px;font-size:30px">Estamos revisando tu perfil</h1><p class="sub">Te avisamos en 1 a 2 días hábiles. Cuando quedes aprobado, aparecerás en la app y podrás recibir trabajos.</p></div>'+
- '<div class="steps" style="margin-top:12px"><div><span class="dot ok">'+I.check+'</span>Solicitud recibida</div><div><span class="dot now"></span><span>Revisión en curso</span></div><div style="color:var(--mut);font-weight:500"><span class="dot"></span>Perfil publicado</div></div>'+
- '<button class="link" data-act="aprobar" style="align-self:center;margin-top:14px">Simular aprobación (solo prueba)</button>'+
- '<button class="cta ghost" data-act="go:welcome">Volver al inicio</button>'},
+async revision() {
+  return '<div style="margin-top:36px;text-align:center"><div class="dot" style="width:96px;height:96px;margin:0 auto;background:var(--soft);border:0"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0F4C3A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>' +
+   '<h1 style="margin-top:28px;font-size:30px">Estamos revisando tu perfil</h1><p class="sub">Te contactaremos por WhatsApp para verificar tu identidad. Cuando quedes aprobado, aparecerás en la app y podrás recibir trabajos.</p></div>' +
+   '<div class="steps" style="margin-top:12px"><div><span class="dot ok">' + I.check + '</span>Solicitud recibida</div><div><span class="dot now"></span><span>Revisión en curso</span></div><div style="color:var(--mut);font-weight:500"><span class="dot"></span>Perfil publicado</div></div>' +
+   (DEMO ? '<button class="link" data-act="aprobar" style="align-self:center;margin-top:14px">Simular aprobación (solo prueba)</button>' : '<button class="link" data-act="refrescar" style="align-self:center;margin-top:14px">Ya me aprobaron, actualizar</button>') +
+   '<button class="cta ghost" data-act="go:welcome">Volver al inicio</button>';
+},
 
-panel:function(){var m=miMaestro(),l=pedidos().filter(function(p){return p.mid===(m&&m.id)}).slice().reverse();
- return '<div style="display:flex;justify-content:space-between;align-items:center"><div class="logo">Maestro<span> Ya</span></div><button class="link" data-act="go:welcome" style="font-size:14px;padding:0">Inicio</button></div>'+
- '<h1 style="margin-top:24px">Hola, '+esc((m.nombre||'').split(' ')[0])+'</h1><p class="sub" style="margin-bottom:12px"><span class="badge">'+I.shield+'Perfil publicado</span></p>'+
- '<button class="cta ghost" style="margin:0 0 18px" data-act="miperfil">Ver cómo me ve un cliente</button>'+
- '<h3 style="font-size:16px;margin-bottom:10px">Pedidos recibidos ('+l.length+')</h3>'+
- (l.length?l.map(function(p){return '<div class="card" style="cursor:default;flex-direction:column;gap:4px"><div class="nm">'+esc(p.nombre)+' · '+esc(p.urg)+'</div><div style="font-size:14px">'+esc(p.problema)+'</div></div>'}).join(''):'<div class="empty">Aún no tienes pedidos. Prueba pidiendo uno desde “Busco un maestro”.</div>')}
-};
+rechazado() {
+  return top('Tu solicitud') + '<h1>No pudimos aprobar tu perfil</h1><p class="sub">Revisa que tus datos y fotos estén correctos y vuelve a enviarlos. Si tienes dudas, te contactaremos por WhatsApp.</p><button class="cta" data-act="reenviar">Corregir y volver a enviar</button>';
+},
 
-/* ---------- Render y navegación ---------- */
-function render(){
- var s=document.getElementById('screen');s.innerHTML=V[S.screen]();s.scrollTop=0;
- document.getElementById('ad').className=/^r[1-5]$/.test(S.screen)?'off':'';
+async panel() {
+  const l = await api.pedidosParaMi();
+  return logoRow(linkBtn('go:cuenta', 'Mi cuenta')) + '<h1 style="margin-top:24px">Tu panel</h1><p class="sub" style="margin-bottom:12px"><span class="badge">' + I.shield + 'Perfil publicado</span></p>' +
+   '<button class="cta ghost sm" style="margin:0 0 18px" data-act="miperfil">Ver cómo me ve un cliente</button>' +
+   '<h3 style="font-size:16px;margin-bottom:10px">Pedidos recibidos (' + l.length + ')</h3>' +
+   (l.length ? l.map(p => '<div class="card col"><div class="nm">' + esc(p.clienteNombre) + ' · ' + esc(p.urg) + '</div><div class="meta">' + esc(p.oficio) + ' · ' + fecha(p.createdAt) + '</div><div style="font-size:14px;margin:2px 0 6px">' + esc(p.problema) + '</div>' +
+     waBtn(p.clienteTel, 'Hola ' + p.clienteNombre + ', soy ' + esc(me && me.nombre || 'tu maestro') + ' de Maestro Ya. Vi tu pedido: ' + p.problema, 'Responder por WhatsApp') + '</div>').join('')
+    : '<div class="empty">Aún no tienes pedidos. Cuando un cliente te escriba, aparecerá aquí.</div>');
 }
-function nav(n,noPush){if(!noPush)S.hist.push(S.screen);S.screen=n;render()}
-function back(){var p=S.hist.pop();if(p){S.screen=p;render()}else{S.screen='welcome';render()}}
-function setPath(p,v){var a=p.split('.');S[a[0]][a[1]]=v}
-
-/* ---------- Acciones ---------- */
-function need(c,m){if(!c)toast(m);return c}
-var A={
- go:function(p){if(p==='welcome')S.hist=[];nav(p)},
- back:back,
- role:function(p){
-  if(p==='cliente'){nav('oficios');return}
-  var m=miMaestro();
-  if(m){nav(m.estado==='aprobado'?'panel':'revision')}else{S.reg=emptyReg();nav('r1')}
- },
- oficio:function(p){S.oficio=p;nav('lista')},
- sort:function(p){S.sort=p;render()},
- ver:function(p){S.mid=p;nav('perfil')},
- urg:function(p){S.ped.urg=p;render()},
- 'enviar-pedido':function(){
-  var P=S.ped;
-  if(!need(P.nombre.trim().length>=2,'Escribe tu nombre'))return;
-  if(!need(P.problema.trim().length>=10,'Cuenta un poco más el problema'))return;
-  var m=byId(S.mid),p={id:'p'+Date.now(),mid:S.mid,mnombre:m.nombre,oficio:S.oficio,nombre:P.nombre.trim(),problema:P.problema.trim(),urg:P.urg,fecha:Date.now()};
-  var l=pedidos();l.push(p);if(!store.set('pedidos',l))return;
-  S.lastPed=p;S.ped.problema='';nav('enviado');
- },
- reset:function(){if(confirm('¿Borrar todos los datos de prueba de este dispositivo?')){store.clear();S.reg=emptyReg();S.hist=[];nav('welcome',true);toast('Datos borrados')}},
- /* registro */
- toff:function(p){var a=S.reg.oficios,i=a.indexOf(p);if(i>-1)a.splice(i,1);else a.push(p);render()},
- addoficio:function(){
-  var v=S.reg.extra.trim();if(!need(v.length>=3&&v.length<=30,'Escribe un oficio de 3 a 30 letras'))return;
-  v=v.charAt(0).toUpperCase()+v.slice(1);
-  var ex=BASE.concat(S.reg.oficios).some(function(o){return o.toLowerCase()===v.toLowerCase()});
-  if(!ex)S.reg.oficios.push(v);S.reg.extra='';render()
- },
- anios:function(p){S.reg.anios=p;render()},
- rmfoto:function(p){S.reg.fotos.splice(+p,1);render()},
- rnext:function(p){
-  var r=S.reg,n=+p;
-  if(n===1){if(!need(r.nombre.trim().length>=3,'Escribe tu nombre completo'))return;if(!need(digits(r.tel).length>=8,'Escribe un teléfono válido'))return;if(!need(r.comuna.trim().length>=3,'Indica tu comuna'))return;nav('r2')}
-  else if(n===2){if(!need(r.oficios.length>0,'Elige al menos un oficio'))return;nav('r3')}
-  else if(n===3){if(!need(!!r.anios,'Elige tus años de experiencia'))return;if(!need(r.desc.trim().length>=60,'La descripción necesita al menos 60 caracteres'))return;nav('r4')}
-  else if(n===4){if(!need(r.fotos.length>=3,'Sube al menos 3 fotos'))return;nav('r5')}
-  else if(n===5){
-   if(!need(r.cf&&r.cb&&r.selfie,'Faltan las fotos de verificación'))return;
-   var m={id:'m'+Date.now(),nombre:r.nombre.trim(),tel:r.tel.trim(),comuna:r.comuna.trim(),oficios:r.oficios.slice(),anios:r.anios,desc:r.desc.trim(),fotos:r.fotos.slice(),rating:null,trabajos:0,estado:'revision'};
-   if(!store.set('maestro',m))return;
-   S.hist=[];nav('revision',true);
-  }
- },
- aprobar:function(){var m=miMaestro();if(!m)return;m.estado='aprobado';store.set('maestro',m);S.hist=[];nav('panel',true);toast('Perfil aprobado (simulado)')},
- miperfil:function(){var m=miMaestro();S.mid=m.id;S.oficio=m.oficios[0];nav('perfil')}
 };
 
-/* ---------- Eventos ---------- */
-document.addEventListener('click',function(e){
- var t=e.target.closest('[data-act]');if(!t)return;
- var s=t.getAttribute('data-act'),i=s.indexOf(':'),a=i<0?s:s.slice(0,i),p=i<0?'':s.slice(i+1);
- if(A[a])A[a](p)
+/* ====================== Render y navegación ====================== */
+let tok = 0, lastScreen = '';
+async function render() {
+  const t = ++tok, el = $('screen'), same = lastScreen === S.screen, st = el.scrollTop;
+  let out;
+  try {
+    out = V[S.screen]();
+    if (out && out.then) { el.innerHTML = LOADER; out = await out; }
+  } catch (e) {
+    if (t !== tok) return;
+    el.innerHTML = '<div class="err" role="alert" style="margin-top:40px">' + esc(errMsg(e)) + '</div><button class="cta ghost sm" data-act="retry">Reintentar</button>';
+    return;
+  }
+  if (t !== tok) return;
+  el.innerHTML = out; lastScreen = S.screen; el.scrollTop = same ? st : 0;
+  $('ad').className = /^r[1-5]$|^auth$/.test(S.screen) ? 'off' : '';
+}
+const nav = (n, noPush) => { if (!noPush) S.hist.push(S.screen); S.screen = n; return render(); };
+const back = () => { S.screen = S.hist.pop() || 'welcome'; render(); };
+const setPath = (p, v) => { const a = p.split('.'); S[a[0]][a[1]] = v; };
+
+function errMsg(e) {
+  const c = e && e.code || '', m = e && e.message || '';
+  if (m === 'storage') return 'No se pudo guardar: almacenamiento lleno.';
+  if (m === 'ya-existe') return 'Ya tienes un perfil de maestro.';
+  return ({
+    'auth/invalid-credential': 'Correo o contraseña incorrectos.', 'auth/wrong-password': 'Correo o contraseña incorrectos.',
+    'auth/user-not-found': 'Correo o contraseña incorrectos.', 'auth/invalid-email': 'El correo no es válido.',
+    'auth/email-already-in-use': 'Ese correo ya tiene una cuenta. Prueba entrando.', 'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
+    'auth/too-many-requests': 'Demasiados intentos. Espera unos minutos.', 'auth/network-request-failed': 'Sin conexión. Revisa tu internet.',
+    'auth/requires-recent-login': 'Vuelve a iniciar sesión e inténtalo otra vez.', 'auth/missing-password': 'Escribe tu contraseña.',
+    'permission-denied': 'No tienes permiso para hacer esto.', 'unavailable': 'Sin conexión con el servidor. Inténtalo de nuevo.'
+  })[c] || 'Ocurrió un error. Inténtalo de nuevo.';
+}
+const need = (c, m) => { if (!c) toast(m); return c; };
+async function busy(btnId, fn) {
+  const b = $(btnId); if (b) b.disabled = true;
+  try { return await fn(); } finally { const b2 = $(btnId); if (b2) b2.disabled = false; }
+}
+
+function requireAuth(fn) {
+  if (DEMO || me) return fn();
+  S.next = fn; S.auth.err = ''; S.auth.info = ''; return nav('auth');
+}
+async function maestroHome() {
+  const m = await api.myMaestro();
+  if (!m) { S.reg = emptyReg(); S.reg.nombre = me && me.nombre || ''; return nav('r1'); }
+  S.hist = ['welcome'];
+  return nav(m.estado === 'aprobado' ? 'panel' : m.estado === 'rechazado' ? 'rechazado' : 'revision', false);
+}
+
+/* ====================== Acciones ====================== */
+const A = {
+ go(p) { if (p === 'welcome') S.hist = []; return nav(p); },
+ back, retry: () => render(),
+ login() { S.auth.mode = 'login'; return requireAuth(() => nav('cuenta')); },
+ role(p) { return p === 'cliente' ? nav('oficios') : requireAuth(maestroHome); },
+ oficio(p) { S.oficio = p; return nav('lista'); },
+ sort(p) { S.sort = p; return render(); },
+ ver(p) { S.mid = p; return nav('perfil'); },
+ urg(p) { S.ped.urg = p; return render(); },
+ async pedir() {
+   const m = (await maestros()).filter(x => x.id === S.mid)[0];
+   S.mnombre = m ? m.nombre : ''; S.demoMaestro = !!(m && m.demo); S.pedErr = '';
+   return requireAuth(() => { if (!S.ped.nombre && me && me.nombre) S.ped.nombre = me.nombre; return nav('pedido'); });
+ },
+ async 'enviar-pedido'() {
+   const P = S.ped; S.pedErr = '';
+   if (P.nombre.trim().length < 2) return toast('Escribe tu nombre');
+   if (digits(P.tel).length < 8) return toast('Escribe un WhatsApp válido');
+   if (P.problema.trim().length < 10) return toast('Cuenta un poco más el problema');
+   const m = (await maestros()).filter(x => x.id === S.mid)[0];
+   if (!m) return toast('Ese maestro ya no está disponible');
+   const p = {mid: m.id, mnombre: m.nombre, oficio: S.oficio, nombre: P.nombre.trim(), tel: P.tel.trim(), problema: P.problema.trim(), urg: P.urg};
+   try { await busy('pedgo', () => api.createPedido(p)); }
+   catch (e) { S.pedErr = errMsg(e); return render(); }
+   S.lastPed = p; S.ped.problema = ''; return nav('enviado');
+ },
+ /* cuenta */
+ authmode(p) { S.auth.mode = p; S.auth.err = ''; S.auth.info = ''; return render(); },
+ async authgo() {
+   const U = S.auth, reg = U.mode === 'registro'; U.err = ''; U.info = '';
+   if (reg && U.nombre.trim().length < 2) { U.err = 'Escribe tu nombre.'; return render(); }
+   if (!/^\S+@\S+\.\S+$/.test(U.email.trim())) { U.err = 'Escribe un correo válido.'; return render(); }
+   if (U.pw.length < 6) { U.err = 'La contraseña debe tener al menos 6 caracteres.'; return render(); }
+   try {
+     const u = await busy('authgo', () => reg ? authApi.signUp(U.email.trim(), U.pw, U.nombre.trim()) : authApi.signIn(U.email.trim(), U.pw));
+     await setMe(u); U.pw = '';
+   } catch (e) { console.error('auth', e); U.err = errMsg(e); return render(); }
+   const n = S.next; S.next = null; S.screen = S.hist.pop() || 'welcome';
+   return n ? n() : nav('welcome');
+ },
+ async resetpw() {
+   const U = S.auth; U.err = ''; U.info = '';
+   if (!/^\S+@\S+\.\S+$/.test(U.email.trim())) { U.err = 'Escribe tu correo arriba para enviarte el enlace.'; return render(); }
+   try { await authApi.reset(U.email.trim()); U.info = 'Si el correo tiene cuenta, te enviamos un enlace para cambiar la contraseña.'; }
+   catch (e) { U.err = errMsg(e); }
+   return render();
+ },
+ async logout() { await authApi.signOut(); await setMe(null); S.hist = []; return nav('welcome', true); },
+ async delacc() {
+   const C = S.cuenta; C.err = '';
+   if (!C.pw) { C.err = 'Escribe tu contraseña para confirmar.'; return render(); }
+   if (!confirm('¿Eliminar tu cuenta y todos tus datos? No se puede deshacer.')) return;
+   try { await busy('delgo', () => api.deleteAccount(C.pw)); }
+   catch (e) { C.err = errMsg(e); return render(); }
+   C.pw = ''; await setMe(null); cache = null; S.hist = []; await nav('welcome', true); toast('Cuenta eliminada');
+ },
+ async reset() { if (confirm('¿Borrar todos los datos de prueba de este dispositivo?')) { await api.deleteAccount(); S.reg = emptyReg(); S.hist = []; cache = null; await nav('welcome', true); toast('Datos borrados'); } },
+ /* administrador */
+ async adm(p) {
+   const i = p.indexOf(':'), estado = p.slice(0, i), uid = p.slice(i + 1);
+   try { await api.setEstado(uid, estado); cache = null; toast(estado === 'aprobado' ? 'Maestro aprobado' : 'Maestro rechazado'); }
+   catch (e) { toast(errMsg(e)); }
+   return render();
+ },
+ /* registro de maestro */
+ toff(p) { const a = S.reg.oficios, i = a.indexOf(p); if (i > -1) a.splice(i, 1); else a.push(p); return render(); },
+ addoficio() {
+   let v = S.reg.extra.trim(); if (!need(v.length >= 3 && v.length <= 30, 'Escribe un oficio de 3 a 30 letras')) return;
+   v = v.charAt(0).toUpperCase() + v.slice(1);
+   if (!BASE.concat(S.reg.oficios).some(o => o.toLowerCase() === v.toLowerCase())) S.reg.oficios.push(v);
+   S.reg.extra = ''; return render();
+ },
+ anios(p) { S.reg.anios = p; return render(); },
+ rmfoto(p) { S.reg.fotos.splice(+p, 1); return render(); },
+ async rnext(p) {
+   const r = S.reg, n = +p;
+   if (n === 1) { if (!need(r.nombre.trim().length >= 3, 'Escribe tu nombre completo')) return; if (!need(digits(r.tel).length >= 8, 'Escribe un teléfono válido')) return; if (!need(r.comuna.trim().length >= 2, 'Indica tu comuna')) return; return nav('r2'); }
+   if (n === 2) { if (!need(r.oficios.length > 0, 'Elige al menos un oficio')) return; return nav('r3'); }
+   if (n === 3) { if (!need(!!r.anios, 'Elige tus años de experiencia')) return; if (!need(r.desc.trim().length >= 60, 'La descripción necesita al menos 60 caracteres')) return; return nav('r4'); }
+   if (n === 4) { if (!need(r.fotos.length >= 3, 'Sube al menos 3 fotos')) return; return nav('r5'); }
+   if (!need(r.consent, 'Debes aceptar para continuar')) return;
+   try {
+     await busy('regsend', () => api.saveMaestro({nombre: r.nombre.trim(), tel: r.tel.trim(), comuna: r.comuna.trim(), oficios: r.oficios.slice(), anios: r.anios, desc: r.desc.trim(), fotos: r.fotos.slice()}));
+   } catch (e) { return toast(errMsg(e)); }
+   S.hist = []; cache = null; return nav('revision', true);
+ },
+ async aprobar() { await api.aprobarDemo(); cache = null; S.hist = []; await nav('panel', true); toast('Perfil aprobado (simulado)'); },
+ async refrescar() { return maestroHome(); },
+ async reenviar() {
+   const m = await api.myMaestro(), u = await api.userInfo(me.uid).catch(() => null);
+   S.reg = Object.assign(emptyReg(), {nombre: m.nombre, tel: u && u.tel || '', comuna: m.comuna, oficios: m.oficios.slice(), anios: m.anios, desc: m.desc, fotos: await api.fotos(m.id).catch(() => [])});
+   return nav('r1');
+ },
+ async miperfil() { const m = await api.myMaestro(); S.mid = m.id; S.oficio = m.oficios[0]; return nav('perfil'); }
+};
+
+/* ====================== Eventos ====================== */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act]'); if (!t) return;
+  const s = t.getAttribute('data-act'), i = s.indexOf(':'), a = i < 0 ? s : s.slice(0, i), p = i < 0 ? '' : s.slice(i + 1);
+  if (A[a]) Promise.resolve(A[a](p)).catch(err => toast(errMsg(err)));
 });
-document.addEventListener('input',function(e){
- var b=e.target.getAttribute&&e.target.getAttribute('data-bind');if(!b)return;
- setPath(b,e.target.value);
- if(e.target.getAttribute('data-live')){var c=document.getElementById('cnt');if(c)c.textContent=e.target.value.length+' / 300'}
+document.addEventListener('input', e => {
+  const b = e.target.getAttribute && e.target.getAttribute('data-bind'); if (!b) return;
+  setPath(b, e.target.value);
+  if (e.target.getAttribute('data-live')) { const c = $('cnt'); if (c) c.textContent = e.target.value.length + ' / 300'; }
 });
-document.addEventListener('change',function(e){
- var k=e.target.getAttribute&&e.target.getAttribute('data-file');if(!k)return;
- var files=Array.prototype.slice.call(e.target.files||[]);if(!files.length)return;
- if(k==='fotos'){
-  var room=10-S.reg.fotos.length;
-  Promise.all(files.slice(0,room).map(function(f){return shrink(f,480)})).then(function(r){S.reg.fotos=S.reg.fotos.concat(r);render()}).catch(function(){toast('No se pudo leer la foto')});
- }else{S.reg[k]=true;render()}  /* carnet y selfie: solo se marca como listo, no se guarda */
+document.addEventListener('change', e => {
+  const t = e.target, chk = t.getAttribute && t.getAttribute('data-chk');
+  if (chk) { S.reg[chk] = t.checked; return; }
+  const k = t.getAttribute && t.getAttribute('data-file'); if (!k) return;
+  const files = Array.prototype.slice.call(t.files || []); if (!files.length) return;
+  const room = 6 - S.reg.fotos.length;
+  Promise.all(files.slice(0, room).map(f => shrink(f, 400)))
+    .then(r => { S.reg.fotos = S.reg.fotos.concat(r); render(); })
+    .catch(() => toast('No se pudo leer la foto'));
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
+  if (S.screen === 'auth') { e.preventDefault(); A.authgo(); }
 });
 
-render();
-})();
+/* ====================== Inicio ====================== */
+if (authApi) {
+  await new Promise(res => {
+    let first = true;
+    authApi.onChange(async u => { if (first || !me || !u || me.uid !== u.uid) await setMe(u); if (first) { first = false; res(); } });
+  });
+}
+if (location.hash === '#cuenta') { S.screen = 'welcome'; render(); requireAuth(() => nav('cuenta')); }
+else render();
 </script>
 </body>
 </html>
