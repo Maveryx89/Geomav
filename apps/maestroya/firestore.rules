@@ -1,0 +1,125 @@
+rules_version = '2';
+
+// Reglas de Maestro Ya. Se publican en Firebase Console > Firestore > Reglas.
+// - Cualquiera puede ver maestros APROBADOS (sin teléfono: ese dato vive en users/).
+// - Cada usuario solo lee/escribe lo suyo. El administrador se define creando
+//   un documento admins/{uid} a mano desde la consola (nadie puede crearlo desde la app).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    function validMaestro(d) {
+      return d.nombre is string && d.nombre.size() >= 3 && d.nombre.size() <= 80
+        && d.comuna is string && d.comuna.size() >= 2 && d.comuna.size() <= 60
+        && d.oficios is list && d.oficios.size() >= 1 && d.oficios.size() <= 8
+        && d.anios is string && d.anios.size() <= 20
+        && d.desc is string && d.desc.size() >= 60 && d.desc.size() <= 300;
+    }
+
+    // Quién es administrador (solo lectura del propio documento).
+    match /admins/{uid} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+
+    // Datos privados de contacto: solo el dueño y el administrador.
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create, update: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['nombre', 'tel', 'email', 'createdAt'])
+        && request.resource.data.nombre is string
+        && request.resource.data.nombre.size() >= 2 && request.resource.data.nombre.size() <= 80
+        && request.resource.data.tel is string
+        && request.resource.data.tel.size() >= 8 && request.resource.data.tel.size() <= 20
+        && request.resource.data.email is string && request.resource.data.email.size() <= 120;
+      allow delete: if isOwner(uid);
+    }
+
+    // Perfiles de maestros. Públicos solo cuando están aprobados.
+    match /maestros/{uid} {
+      allow read: if isOwner(uid) || isAdmin() || resource.data.estado == 'aprobado';
+
+      // Al crear, siempre queda pendiente y sin calificación.
+      allow create: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(
+             ['nombre', 'comuna', 'oficios', 'anios', 'desc', 'estado', 'rating', 'trabajos', 'createdAt', 'updatedAt'])
+        && request.resource.data.estado == 'pendiente'
+        && request.resource.data.rating == null
+        && request.resource.data.trabajos == 0
+        && validMaestro(request.resource.data);
+
+      // El dueño edita solo su información, nunca estado/rating/trabajos.
+      // Si fue rechazado, puede volver a enviarlo (rechazado -> pendiente).
+      allow update: if isAdmin()
+        || (isOwner(uid)
+            && validMaestro(request.resource.data)
+            && (
+              request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['nombre', 'comuna', 'oficios', 'anios', 'desc', 'updatedAt'])
+              || (resource.data.estado == 'rechazado'
+                  && request.resource.data.estado == 'pendiente'
+                  && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['nombre', 'comuna', 'oficios', 'anios', 'desc', 'estado', 'updatedAt']))
+            ));
+
+      allow delete: if isOwner(uid) || isAdmin();
+
+      // Fotos de trabajos (imágenes JPEG pequeñas en base64).
+      match /fotos/{fid} {
+        allow read: if isOwner(uid) || isAdmin()
+          || get(/databases/$(database)/documents/maestros/$(uid)).data.estado == 'aprobado';
+        allow create, update: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(['data', 'orden'])
+          && request.resource.data.data is string
+          && request.resource.data.data.size() < 150000
+          && request.resource.data.data.matches('data:image/jpeg;base64,.*');
+        allow delete: if isOwner(uid) || isAdmin();
+      }
+    }
+
+    // Pedidos: los ven solo el cliente y el maestro involucrados.
+    match /pedidos/{pid} {
+      allow read: if signedIn() && resource.data.clienteUid == request.auth.uid;
+      allow read: if signedIn() && resource.data.maestroUid == request.auth.uid;
+      allow read: if isAdmin();
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(
+             ['clienteUid', 'clienteNombre', 'clienteTel', 'maestroUid', 'maestroNombre',
+              'oficio', 'problema', 'urg', 'estado', 'createdAt'])
+        && request.resource.data.clienteUid == request.auth.uid
+        && request.resource.data.maestroUid != request.auth.uid
+        && request.resource.data.estado == 'nuevo'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.clienteNombre is string
+        && request.resource.data.clienteNombre.size() >= 2 && request.resource.data.clienteNombre.size() <= 80
+        && request.resource.data.clienteTel is string
+        && request.resource.data.clienteTel.size() >= 8 && request.resource.data.clienteTel.size() <= 20
+        && request.resource.data.problema is string
+        && request.resource.data.problema.size() >= 10 && request.resource.data.problema.size() <= 500
+        && request.resource.data.urg in ['Hoy', 'Esta semana', 'Sin apuro']
+        && request.resource.data.oficio is string && request.resource.data.oficio.size() <= 30
+        && request.resource.data.maestroNombre is string && request.resource.data.maestroNombre.size() <= 80
+        && get(/databases/$(database)/documents/maestros/$(request.resource.data.maestroUid)).data.estado == 'aprobado';
+
+      allow update: if false;
+
+      // Cualquiera de las dos partes puede borrar el pedido (por ejemplo al eliminar su cuenta).
+      allow delete: if signedIn()
+        && (resource.data.clienteUid == request.auth.uid || resource.data.maestroUid == request.auth.uid);
+    }
+
+    // Todo lo demás, denegado.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
