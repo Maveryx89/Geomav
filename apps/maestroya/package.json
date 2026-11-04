@@ -1,0 +1,11 @@
+{
+  "name": "maestroya",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Maestro Ya - prototipo de app que conecta clientes con maestros de oficios",
+  "scripts": {
+    "www": "node build-www.js",
+    "sync": "node build-www.js && npx cap sync android",
+    "open": "npx cap open android"
+  }
+}
