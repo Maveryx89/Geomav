@@ -52,7 +52,8 @@
 .mapa-carga{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1050;background:var(--color-primario);color:#fff;padding:8px 16px;border-radius:20px;font-size:.82rem;font-weight:600;box-shadow:0 4px 14px rgba(10,34,64,.25);display:none}
 .mapa-carga.on{display:block}
 .mapa-toggle{display:none;position:absolute;z-index:1060;left:12px;top:12px;font:inherit;font-weight:700;font-size:.85rem;padding:10px 14px;border-radius:10px;border:0;background:var(--color-primario);color:#fff;box-shadow:0 4px 14px rgba(10,34,64,.3);cursor:pointer}
-.mapa-leyenda-vial{position:absolute;left:10px;bottom:26px;z-index:900;background:rgba(255,255,255,.94);border-radius:8px;padding:8px 10px;font-size:.72rem;box-shadow:0 2px 8px rgba(10,34,64,.15);display:none}
+.mapa-leyendas{position:absolute;left:10px;bottom:26px;z-index:900;display:flex;flex-direction:column;gap:6px;max-width:230px}
+.mapa-leyenda-vial{background:rgba(255,255,255,.94);border-radius:8px;padding:8px 10px;font-size:.72rem;box-shadow:0 2px 8px rgba(10,34,64,.15);display:none}
 .mapa-leyenda-vial.on{display:block}
 .mapa-leyenda-vial div{display:flex;align-items:center;gap:6px;margin:2px 0}
 .mapa-leyenda-vial span{display:inline-block;width:22px;border-top:3px solid}
@@ -75,3 +76,7 @@
 /* Modo incrustado (iframe en otras páginas): sin cabecera, pie ni botones flotantes */
 .embed .cabecera,.embed .overlay-menu,.embed .pie-pagina,.embed .wa-flotante{display:none!important}
 .embed .mapa-app{margin-top:0;height:100vh;border-top:0}
+
+.mapa-leyenda-vial i{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:2px}
+.usos{margin-top:8px;border-top:1px solid rgba(10,34,64,.12);padding-top:6px;font-size:.78rem}
+.usos p{margin:2px 0 8px;line-height:1.4}

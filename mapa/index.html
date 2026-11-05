@@ -122,15 +122,16 @@
           <div class="mapa-base"><button type="button" data-b="osm" class="on">Calles</button><button type="button" data-b="sat">Satélite</button><button type="button" data-b="claro">Claro</button></div>
         </div>
         <div class="mapa-sec"><div class="mapa-sec-t">Regiones y comunas</div><div id="listaRegiones"></div></div>
-        <p class="mapa-aviso">Información espacial solo referencial, sin validez legal. Fuente: <a href="https://www.bcn.cl/siit/mapas_vectoriales" target="_blank" rel="noopener">Biblioteca del Congreso Nacional (BCN)</a>, simplificada para visualización web. ¿Necesitas límites o mediciones exactas de un terreno? <a href="../index.html#contacto">Contáctanos</a>.</p>
+        <p class="mapa-aviso">Información espacial solo referencial, sin validez legal. Fuentes: <a href="https://www.bcn.cl/siit/mapas_vectoriales" target="_blank" rel="noopener">Biblioteca del Congreso Nacional (BCN)</a>, simplificada para visualización web; y planes reguladores (IPT) del Centro de Estudios de Ciudad y Territorio, MINVU (O'Higgins y Maule; la fecha de cada instrumento varía). La norma vigente es la que publica la municipalidad o la SEREMI MINVU. ¿Necesitas límites o mediciones exactas de un terreno? <a href="../index.html#contacto">Contáctanos</a>.</p>
       </div>
     </aside>
     <div class="mapa-lienzo">
       <button class="mapa-toggle" id="btnPanel" type="button">☰ Regiones y capas</button>
       <div class="mapa-carga" id="mapaCarga">Cargando capas…</div>
       <div id="mapaLeaflet" role="application" aria-label="Mapa interactivo de Chile"></div>
-      <div class="mapa-leyenda-vial" id="leyVial"><b>Red vial</b>
-        <div><span style="border-color:#c0392b"></span>Clase 1</div><div><span style="border-color:#e67e22"></span>Clase 2</div><div><span style="border-color:#7f7f7f"></span>Clase 3</div><div><span style="border-color:#a05a2c"></span>Otras</div></div>
+      <div class="mapa-leyendas"><div class="mapa-leyenda-vial" id="leyVial"><b>Red vial</b>
+        <div><span style="border-color:#b00020;border-top-width:5px"></span>Clase 1</div><div><span style="border-color:#e65100;border-top-width:4px"></span>Clase 2</div><div><span style="border-color:#3d3d3d"></span>Clase 3</div><div><span style="border-color:#7a3b00"></span>Otras</div></div>
+      <div class="mapa-leyenda-vial" id="leyZonas"></div></div>
     </div>
   </main>
 
