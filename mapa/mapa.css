@@ -1,0 +1,77 @@
+/* Mapa GEOMAV — capas oficiales BCN. Usa la paleta de estilo.css */
+.mapa-app{display:flex;height:calc(100vh - var(--cab-h,76px));min-height:520px;margin-top:var(--cab-h,76px);background:var(--color-fondo);position:relative;border-top:1px solid var(--color-borde)}
+.mapa-panel{width:360px;flex:0 0 360px;display:flex;flex-direction:column;background:var(--color-blanco);border-right:1px solid var(--color-borde);z-index:1100;min-height:0}
+.mapa-panel-cab{padding:16px 18px 12px;border-bottom:1px solid var(--color-borde)}
+.mapa-panel-cab h1{font-size:1.15rem;font-weight:800;letter-spacing:-.01em;color:var(--color-primario);margin:0 0 4px}
+.mapa-panel-cab p{font-size:.78rem;color:var(--color-muted);margin:0;line-height:1.4}
+.mapa-buscar{margin-top:10px;position:relative}
+.mapa-buscar input{width:100%;padding:9px 12px 9px 34px;border:1px solid var(--color-borde);border-radius:8px;font:inherit;font-size:.88rem;background:var(--color-fondo);color:var(--color-primario)}
+.mapa-buscar input:focus{outline:2px solid var(--color-acento);background:#fff}
+.mapa-buscar svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--color-dim);fill:none;stroke-width:2}
+.mapa-scroll{flex:1;overflow-y:auto;min-height:0;padding-bottom:12px}
+.mapa-sec{padding:12px 18px 4px}
+.mapa-sec-t{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--color-acento);margin:0 0 6px;display:flex;justify-content:space-between;align-items:center}
+.mapa-estado{margin:10px 18px 0;padding:9px 12px;border-radius:8px;background:var(--color-acento-tenue);border:1px solid rgba(212,154,106,.35);font-size:.8rem;line-height:1.4;color:var(--color-primario)}
+.mapa-estado b{font-weight:800}
+.mapa-estado button{margin-top:6px;margin-right:8px;font:inherit;font-size:.76rem;font-weight:700;color:var(--color-secundario);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.mapa-capa{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:.88rem;cursor:pointer;user-select:none}
+.mapa-capa input{accent-color:var(--color-secundario);width:16px;height:16px;flex:none}
+.mapa-capa .sw{width:18px;height:12px;border-radius:3px;flex:none;border:2px solid}
+.mapa-capa .sw.ln{height:0;border-width:0 0 3px;border-radius:0;align-self:center}
+.mapa-capa .sw.pt{width:10px;height:10px;border-radius:50%;margin:0 4px}
+.mapa-capa .nm{flex:1;color:var(--color-primario)}
+.mapa-capa .pe{font-size:.7rem;color:var(--color-dim);white-space:nowrap}
+.mapa-capa .pe.alto{color:#b3541e;font-weight:700}
+.mapa-capa.off .nm{color:var(--color-dim)}
+.mapa-solo{display:flex;gap:8px;align-items:flex-start;padding:8px 0 4px;font-size:.8rem;color:var(--color-muted);cursor:pointer}
+.mapa-solo input{accent-color:var(--color-acento);margin-top:2px}
+.mapa-base{display:flex;gap:6px;margin-top:2px}
+.mapa-base button{flex:1;font:inherit;font-size:.78rem;font-weight:600;padding:6px 4px;border:1px solid var(--color-borde);background:var(--color-fondo);border-radius:7px;color:var(--color-primario);cursor:pointer}
+.mapa-base button.on{background:var(--color-primario);color:#fff;border-color:var(--color-primario)}
+/* acordeón de regiones */
+.reg{border-top:1px solid var(--color-borde)}
+.reg:first-child{border-top:0}
+.reg-cab{display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer}
+.reg-cab input{accent-color:var(--color-secundario);width:16px;height:16px;flex:none}
+.reg-rom{flex:none;min-width:30px;height:22px;padding:0 6px;border-radius:11px;background:var(--color-primario);color:#fff;font-size:.66rem;font-weight:800;display:flex;align-items:center;justify-content:center}
+.reg-nom{flex:1;font-size:.9rem;font-weight:600;color:var(--color-primario);background:none;border:0;text-align:left;font-family:inherit;cursor:pointer;padding:2px 0}
+.reg-cab.sel .reg-nom{color:var(--color-secundario);font-weight:800}
+.reg-flecha{width:18px;height:18px;stroke:var(--color-acento);fill:none;stroke-width:3;transition:transform .2s;flex:none;cursor:pointer}
+.reg.abierta .reg-flecha{transform:rotate(180deg)}
+.reg-coms{display:none;padding:0 0 8px 6px}
+.reg.abierta .reg-coms{display:block}
+.com{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:7px;font-size:.84rem;color:var(--color-primario);cursor:pointer;width:100%;background:none;border:0;font-family:inherit;text-align:left}
+.com:hover{background:var(--color-fondo)}
+.com.sel{background:var(--color-acento-tenue);font-weight:800;color:var(--color-primario)}
+.com i{flex:none;font-style:normal;min-width:32px;text-align:center;font-size:.62rem;font-weight:800;background:var(--color-secundario);color:#fff;border-radius:10px;padding:2px 4px}
+.mapa-aviso{margin:14px 18px 0;font-size:.72rem;line-height:1.45;color:var(--color-dim)}
+.mapa-aviso a{color:var(--color-secundario);font-weight:600}
+/* mapa */
+.mapa-lienzo{flex:1;position:relative;min-width:0}
+#mapaLeaflet{position:absolute;inset:0;background:#dfe7ea}
+.mapa-carga{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1050;background:var(--color-primario);color:#fff;padding:8px 16px;border-radius:20px;font-size:.82rem;font-weight:600;box-shadow:0 4px 14px rgba(10,34,64,.25);display:none}
+.mapa-carga.on{display:block}
+.mapa-toggle{display:none;position:absolute;z-index:1060;left:12px;top:12px;font:inherit;font-weight:700;font-size:.85rem;padding:10px 14px;border-radius:10px;border:0;background:var(--color-primario);color:#fff;box-shadow:0 4px 14px rgba(10,34,64,.3);cursor:pointer}
+.mapa-leyenda-vial{position:absolute;left:10px;bottom:26px;z-index:900;background:rgba(255,255,255,.94);border-radius:8px;padding:8px 10px;font-size:.72rem;box-shadow:0 2px 8px rgba(10,34,64,.15);display:none}
+.mapa-leyenda-vial.on{display:block}
+.mapa-leyenda-vial div{display:flex;align-items:center;gap:6px;margin:2px 0}
+.mapa-leyenda-vial span{display:inline-block;width:22px;border-top:3px solid}
+.leaflet-popup-content{font-family:Inter,system-ui,sans-serif;font-size:.84rem;color:#0A2240;margin:12px 14px}
+.leaflet-popup-content h4{margin:0 0 6px;font-size:.95rem;font-weight:800}
+.leaflet-popup-content table{border-collapse:collapse}
+.leaflet-popup-content td{padding:2px 8px 2px 0;vertical-align:top}
+.leaflet-popup-content td:first-child{color:rgba(10,34,64,.6);white-space:nowrap}
+.leaflet-tooltip{font-family:Inter,system-ui,sans-serif;font-size:.78rem;font-weight:600;color:#0A2240;border:0;box-shadow:0 2px 8px rgba(10,34,64,.2)}
+@media (max-width:860px){
+  .mapa-panel{position:absolute;left:0;top:0;bottom:0;width:min(88vw,360px);transform:translateX(-102%);transition:transform .25s;box-shadow:6px 0 24px rgba(10,34,64,.25)}
+  .mapa-app.panel-abierto .mapa-panel{transform:none}
+  .mapa-toggle{display:block}
+  .mapa-app.panel-abierto .mapa-toggle{display:none}
+  .mapa-cerrar{display:block!important}
+  .mapa-lienzo .leaflet-top.leaflet-left{top:48px}
+}
+.mapa-cerrar{display:none;position:absolute;right:12px;top:12px;border:0;background:var(--color-fondo);border-radius:50%;width:30px;height:30px;font-size:1rem;cursor:pointer;color:var(--color-primario)}
+
+/* Modo incrustado (iframe en otras páginas): sin cabecera, pie ni botones flotantes */
+.embed .cabecera,.embed .overlay-menu,.embed .pie-pagina,.embed .wa-flotante{display:none!important}
+.embed .mapa-app{margin-top:0;height:100vh;border-top:0}
