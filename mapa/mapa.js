@@ -10,6 +10,7 @@
     { id: 'snaspe', n: 'Áreas protegidas (SNASPE)', reg: true, sw: { c: '#3f7d3b', f: 'rgba(63,125,59,.3)', t: 'pol' } },
     { id: 'lagos', n: 'Lagos, embalses y salares', reg: true, sw: { c: '#2a86ad', f: 'rgba(74,163,199,.6)', t: 'pol' } },
     { id: 'areas_pobladas', n: 'Áreas pobladas', reg: true, sw: { c: '#b57640', f: 'rgba(212,154,106,.55)', t: 'pol' } },
+    { id: 'prop_rurales', n: 'Propiedades rurales (CIREN, en línea)', online: true, sw: { c: '#7a4a00', f: 'rgba(242,193,78,.35)', t: 'pol' } },
     { id: 'ipt_pri', n: 'Plan intercomunal / metropolitano', reg: true, sw: { c: '#fff', f: '#8fb3d9', t: 'pol' } },
     { id: 'ipt_zonas', n: 'Zonificación (plan regulador)', reg: true, sw: { c: '#fff', f: '#e6b84a', t: 'pol' } },
     { id: 'ipt_riesgo', n: 'Áreas de riesgo / restricción', reg: true, sw: { c: '#8b0000', f: 'rgba(214,40,40,.45)', t: 'pol' } },
@@ -26,6 +27,7 @@
   var GRUPOS = [
     ['Límites administrativos', ['regiones', 'provincias', 'comunas']],
     ['Planificación territorial (IPT)', ['ipt_zonas', 'ipt_pri', 'ipt_prdu', 'ipt_lu', 'ipt_riesgo', 'ipt_patrimonio']],
+    ['Propiedades', ['prop_rurales']],
     ['Territorio', ['areas_pobladas', 'snaspe', 'lagos', 'hidrografia']],
     ['Infraestructura', ['red_vial', 'ferrocarril', 'aerodromos']],
     ['Nombres', ['toponimos']]
@@ -182,6 +184,7 @@
     var out = [];
     state.layers.forEach(function (id) {
       var d = DEF[id];
+      if (d.online) return;
       if (d.nac) out.push({ key: 'nac|' + id, id: id, path: id + '.json', filtered: false });
       else state.regions.forEach(function (cod) {
         var f = !!state.comuna && state.onlyComuna && id !== 'comunas';
@@ -308,6 +311,7 @@
     // pesos por capa
     document.querySelectorAll('.mapa-capa').forEach(function (l) {
       var id = l.getAttribute('data-capa'), d = DEF[id], pe = l.querySelector('.pe'); pe.className = 'pe'; pe.textContent = ''; l.classList.remove('off');
+      if (d.online) { pe.textContent = 'en línea'; return; }
       if (d.nac) { pe.textContent = 'todo Chile'; return; }
       if (!state.regions.length) { pe.textContent = 'elige región'; l.classList.add('off'); return; }
       if (state.comuna && state.onlyComuna && id !== 'comunas') { pe.textContent = 'solo comuna'; return; }
@@ -328,6 +332,7 @@
     var s = document.getElementById('chkSolo'); if (s) s.onchange = function () { state.onlyComuna = s.checked; update(); };
     var b1 = document.getElementById('btnReg'); if (b1) b1.onclick = function () { selectRegion(state.regions[0], true); };
     var b2 = document.getElementById('btnTodo'); if (b2) b2.onclick = clearAll;
+    propUI();
   }
 
   // ---------- Búsqueda ----------
@@ -360,7 +365,172 @@
     document.querySelectorAll('.mapa-base button').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-b') === b); });
   }
   function closeDrawer() { document.querySelector('.mapa-app').classList.remove('panel-abierto'); }
-  function update() { syncUI(); refresh(); writeHash(); }
+  function update() { syncUI(); refresh(); propSync(); writeHash(); }
+
+  // ---------- Propiedades rurales (CIREN, servicio en línea) + descarga SHP ----------
+  var PROP_URL = 'https://esri.ciren.cl/server/rest/services/IDEMINAGRI/PROPIEDADES_RURALES/MapServer/';
+  // código de región -> [capa del servicio, año de la información]
+  var PROP_REG = { 15: [0, 2018], 1: [1, 2017], 3: [2, 2013], 4: [3, 2014], 5: [4, 2022], 13: [5, 2023], 6: [6, 2013], 7: [7, 2021], 16: [8, 2016], 8: [9, 2016], 9: [10, 2023], 14: [11, 2018], 10: [12, 2016], 11: [13, 2004] };
+  var PROP_ZOOM = 14, PROP_MAX = 40000;
+  var propGroup = L.geoJSON(null, {
+    renderer: rend,
+    style: function () { return { renderer: rend, color: '#7a4a00', weight: 1.4, opacity: 1, fill: true, fillColor: '#f2c14e', fillOpacity: .16 }; }
+  });
+  var propSeen = {}, propN = 0, propAbort = null, propTimer = null, propMsg = '', propBusy = false;
+  propGroup.on('click', function (e) {
+    var p = e.propagatedFrom && e.propagatedFrom.feature && e.propagatedFrom.feature.properties; if (!p) return;
+    L.popup({ maxWidth: 320 }).setLatLng(e.latlng).setContent('<h4>Rol ' + esc(p.rol || 's/i') + '</h4><div style="font-size:.72rem;color:rgba(10,34,64,.55);margin-bottom:4px">Propiedad rural (catastro CIREN)</div><table><tr><td>Comuna</td><td><b>' + esc(p.comuna || '') + '</b></td></tr><tr><td>Región</td><td><b>' + esc(p.region || '') + '</b></td></tr><tr><td>Año de la información</td><td><b>' + esc(p.anio || '') + '</b></td></tr></table><p style="font-size:.7rem;margin:6px 0 0;color:rgba(10,34,64,.6)">Catastro gráfico referencial: no reemplaza el título ni el CBR.</p>').openOn(map);
+  });
+  propGroup.on('mouseover', function (e) { var p = e.propagatedFrom.feature.properties; if (p.rol) { tip.setContent('Rol ' + esc(p.rol)).setLatLng(e.latlng); map.openTooltip(tip); } });
+  propGroup.on('mouseout', function () { map.closeTooltip(tip); });
+  function propOn() { return has(state.layers, 'prop_rurales'); }
+  function propRegion(ll) {
+    var cands = state.regions.length ? state.regions : IDX.regiones.map(function (r) { return r.cod; });
+    for (var i = 0; i < cands.length; i++) { var b = REGBY[cands[i]].bbox; if (ll.lat >= b[0] && ll.lat <= b[2] && ll.lng >= b[1] && ll.lng <= b[3] && PROP_REG[cands[i]]) return cands[i]; }
+    return null;
+  }
+  function propAdd(gj, cod) {
+    var fresh = [], reg = REGBY[cod].nombre, an = PROP_REG[cod][1];
+    (gj.features || []).forEach(function (f) {
+      var p = f.properties || {}, k = cod + '|' + (p.desccomu || '') + '|' + (p.rol || f.id);
+      if (propSeen[k] || !f.geometry) return;
+      propSeen[k] = 1; propN++;
+      fresh.push({ type: 'Feature', geometry: f.geometry, properties: { rol: p.rol, comuna: p.desccomu, region: reg, anio: an, cod: cod } });
+    });
+    if (fresh.length) { propGroup.addData(fresh); propGroup.bringToFront(); }
+    return fresh.length;
+  }
+  function propQuery(cod, params, signal) {
+    var u = PROP_URL + PROP_REG[cod][0] + '/query?f=geojson&outFields=rol,desccomu&outSR=4326&inSR=4326&geometryPrecision=6&maxAllowableOffset=0.000012' + params;
+    return fetch(u, { signal: signal }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+  function propLoadView() {
+    clearTimeout(propTimer);
+    if (!propOn() || !IDX) { propMsg = ''; propUI(); return; }
+    if (map.getZoom() < PROP_ZOOM) { propMsg = 'Acerca el mapa (zoom ' + PROP_ZOOM + ' o más) para ver los predios de la vista.'; propUI(); return; }
+    var cod = propRegion(map.getCenter());
+    if (!cod) { propMsg = 'No hay catastro rural CIREN para esta zona (cubre 14 regiones; no Antofagasta ni Magallanes).'; propUI(); return; }
+    if (propN > PROP_MAX) { propMsg = 'Hay muchos predios cargados; descarga el SHP o recarga la página para empezar de nuevo.'; propUI(); return; }
+    propTimer = setTimeout(function () {
+      if (propAbort) propAbort.abort(); var ac = propAbort = new AbortController();
+      var b = map.getBounds(), env = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].join(',');
+      propMsg = 'Consultando CIREN…'; propBusy = true; propUI();
+      propQuery(cod, '&where=1%3D1&geometry=' + env + '&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&resultRecordCount=3000', ac.signal).then(function (gj) {
+        var n = propAdd(gj, cod);
+        propMsg = (gj.exceededTransferLimit ? 'Se muestran los primeros 3.000 predios de la vista; acerca más para ver el resto.' : (n ? 'Predios de la vista cargados.' : 'Sin predios rurales nuevos en esta vista.'));
+        propBusy = false; propUI();
+      }).catch(function (e) { if (e.name === 'AbortError') return; propMsg = 'No se pudo consultar CIREN (' + e.message + '). Reintenta.'; propBusy = false; propUI(); });
+    }, 600);
+  }
+  function propSync() {
+    if (propOn()) { if (!map.hasLayer(propGroup)) propGroup.addTo(map); propLoadView(); }
+    else { if (map.hasLayer(propGroup)) map.removeLayer(propGroup); if (propAbort) propAbort.abort(); propMsg = ''; propBusy = false; propUI(); }
+  }
+  map.on('moveend', function () { if (propOn()) propLoadView(); });
+  // carga completa de una comuna (por páginas)
+  function propLoadComuna() {
+    var c = COMBY[state.comuna]; if (!c || !PROP_REG[c.reg] || propBusy) return;
+    var cod = c.reg, nm = norm(c.n), bb = c.bbox, env = [bb[1], bb[0], bb[3], bb[2]].join(','), off = 0, got = 0;
+    propBusy = true; propMsg = 'Cargando predios de ' + c.n + '…'; propUI();
+    (function page() {
+      propQuery(cod, '&where=1%3D1&geometry=' + env + '&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&resultRecordCount=2000&resultOffset=' + off + '&orderByFields=objectid').then(function (gj) {
+        var fs = (gj.features || []).filter(function (f) { return norm((f.properties && f.properties.desccomu) || '') === nm; });
+        got += propAdd({ features: fs }, cod); off += (gj.features || []).length;
+        propMsg = 'Cargando predios de ' + c.n + '… ' + got.toLocaleString('es-CL');
+        if (gj.exceededTransferLimit && off < 60000) { propUI(); page(); }
+        else { propBusy = false; propMsg = got.toLocaleString('es-CL') + ' predios rurales de ' + c.n + ' cargados.'; propUI(); }
+      }).catch(function (e) { propBusy = false; propMsg = 'Se interrumpió la carga (' + e.message + '). Lo cargado se puede descargar.'; propUI(); });
+    })();
+  }
+  function propFeatures() {
+    var out = [], nm = state.comuna ? norm(COMBY[state.comuna].n) : null;
+    propGroup.eachLayer(function (l) { var f = l.feature; if (!nm || norm(f.properties.comuna || '') === nm) out.push(f); });
+    return out;
+  }
+  function propUI() {
+    var el = document.getElementById('propEstado'); if (!el) return;
+    if (!propOn()) { el.style.display = 'none'; return; }
+    el.style.display = '';
+    var n = propFeatures().length, h = '<b>Propiedades rurales (CIREN)</b><br>' + esc(propMsg || 'Acerca el mapa (zoom ' + PROP_ZOOM + ' o más) para ver los predios.');
+    h += '<div class="prop-acc">';
+    if (state.comuna && COMBY[state.comuna] && PROP_REG[COMBY[state.comuna].reg]) h += '<button type="button" id="btnPropCom"' + (propBusy ? ' disabled' : '') + '>Cargar toda la comuna</button>';
+    h += '<button type="button" id="btnPropShp"' + (n ? '' : ' disabled') + '>Descargar SHP (' + n.toLocaleString('es-CL') + ')</button></div>';
+    h += '<div class="prop-nota">Catastro CIREN (año según región). Cita: CIREN. Referencial.</div>';
+    el.innerHTML = h;
+    var a = document.getElementById('btnPropCom'); if (a) a.onclick = propLoadComuna;
+    var b = document.getElementById('btnPropShp'); if (b) b.onclick = propDownload;
+  }
+  // --- escritor mínimo de Shapefile + zip (sin dependencias) ---
+  function crc32(u8) { var t = crc32.t; if (!t) { t = crc32.t = []; for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } } var r = -1; for (var i = 0; i < u8.length; i++) r = t[(r ^ u8[i]) & 255] ^ (r >>> 8); return (r ^ -1) >>> 0; }
+  function ringArea(r) { var a = 0; for (var i = 0, n = r.length - 1; i < n; i++) a += r[i][0] * r[i + 1][1] - r[i + 1][0] * r[i][1]; return a / 2; }
+  function polysOf(g) { return g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : []; }
+  function buildShp(feats) {
+    var recs = [], xmin = 1e9, ymin = 1e9, xmax = -1e9, ymax = -1e9, total = 100;
+    feats.forEach(function (f) {
+      var rings = [];
+      polysOf(f.geometry).forEach(function (poly) {
+        poly.forEach(function (r, i) { var c = r.slice(); var cw = ringArea(c) < 0; if (i === 0 ? !cw : cw) c.reverse(); rings.push(c); });
+      });
+      if (!rings.length) { recs.push(null); return; }
+      var np = 0; rings.forEach(function (r) { np += r.length; });
+      var len = 44 + 4 * rings.length + 16 * np, b = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9, rings: rings, np: np, len: len };
+      rings.forEach(function (r) { r.forEach(function (p) { if (p[0] < b.x0) b.x0 = p[0]; if (p[0] > b.x1) b.x1 = p[0]; if (p[1] < b.y0) b.y0 = p[1]; if (p[1] > b.y1) b.y1 = p[1]; }); });
+      xmin = Math.min(xmin, b.x0); ymin = Math.min(ymin, b.y0); xmax = Math.max(xmax, b.x1); ymax = Math.max(ymax, b.y1);
+      recs.push(b); total += 8 + len;
+    });
+    var shp = new DataView(new ArrayBuffer(total)), shx = new DataView(new ArrayBuffer(100 + 8 * recs.filter(Boolean).length));
+    function head(v, bytes) { v.setInt32(0, 9994); v.setInt32(24, bytes / 2); v.setInt32(28, 1000, true); v.setInt32(32, 5, true); v.setFloat64(36, xmin, true); v.setFloat64(44, ymin, true); v.setFloat64(52, xmax, true); v.setFloat64(60, ymax, true); }
+    head(shp, total); head(shx, shx.byteLength);
+    var o = 100, k = 0, idx = [];
+    recs.forEach(function (b) {
+      if (!b) { idx.push(false); return; } idx.push(true);
+      shx.setInt32(100 + 8 * k, o / 2); shx.setInt32(104 + 8 * k, (b.len) / 2); k++;
+      shp.setInt32(o, k); shp.setInt32(o + 4, b.len / 2); var p = o + 8;
+      shp.setInt32(p, 5, true); shp.setFloat64(p + 4, b.x0, true); shp.setFloat64(p + 12, b.y0, true); shp.setFloat64(p + 20, b.x1, true); shp.setFloat64(p + 28, b.y1, true);
+      shp.setInt32(p + 36, b.rings.length, true); shp.setInt32(p + 40, b.np, true); p += 44; var st = 0;
+      b.rings.forEach(function (r) { shp.setInt32(p, st, true); p += 4; st += r.length; });
+      b.rings.forEach(function (r) { r.forEach(function (c) { shp.setFloat64(p, c[0], true); shp.setFloat64(p + 8, c[1], true); p += 16; }); });
+      o += 8 + b.len;
+    });
+    // DBF
+    var cols = [['ROL', 20, 'rol'], ['COMUNA', 40, 'comuna'], ['REGION', 40, 'region'], ['ANIO', 4, 'anio']], enc = new TextEncoder();
+    var rl = 1 + cols.reduce(function (a, c) { return a + c[1]; }, 0), nrec = feats.filter(function (f, i) { return idx[i]; }).length;
+    var dbf = new Uint8Array(32 + 32 * cols.length + 1 + rl * nrec + 1), dv = new DataView(dbf.buffer), d = new Date();
+    dbf[0] = 3; dbf[1] = d.getFullYear() - 1900; dbf[2] = d.getMonth() + 1; dbf[3] = d.getDate(); dv.setUint32(4, nrec, true); dv.setUint16(8, 33 + 32 * cols.length, true); dv.setUint16(10, rl, true); dbf[29] = 0x57;
+    cols.forEach(function (c, i) { var q = 32 + 32 * i; enc.encode(c[0]).forEach(function (x, j) { dbf[q + j] = x; }); dbf[q + 11] = 67; dbf[q + 16] = c[1]; });
+    var w = 32 + 32 * cols.length; dbf[w++] = 13;
+    feats.forEach(function (f, i) {
+      if (!idx[i]) return; dbf[w] = 32;
+      var q = w + 1; cols.forEach(function (c) { var v = f.properties[c[2]]; v = v == null ? '' : String(v); var bytes = enc.encode(v).slice(0, c[1]); dbf.fill(32, q, q + c[1]); dbf.set(bytes, q); q += c[1]; });
+      w += rl;
+    });
+    dbf[w] = 26;
+    return { shp: new Uint8Array(shp.buffer), shx: new Uint8Array(shx.buffer), dbf: dbf };
+  }
+  function zipStore(files) {
+    var enc = new TextEncoder(), parts = [], cen = [], off = 0;
+    files.forEach(function (f) {
+      var nm = enc.encode(f.name), crc = crc32(f.data), h = new DataView(new ArrayBuffer(30));
+      h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint32(14, crc, true); h.setUint32(18, f.data.length, true); h.setUint32(22, f.data.length, true); h.setUint16(26, nm.length, true);
+      parts.push(new Uint8Array(h.buffer), nm, f.data);
+      var c = new DataView(new ArrayBuffer(46));
+      c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint32(16, crc, true); c.setUint32(20, f.data.length, true); c.setUint32(24, f.data.length, true); c.setUint16(28, nm.length, true); c.setUint32(42, off, true);
+      cen.push(new Uint8Array(c.buffer), nm); off += 30 + nm.length + f.data.length;
+    });
+    var cl = 0; cen.forEach(function (x) { cl += x.length; });
+    var e = new DataView(new ArrayBuffer(22)); e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true); e.setUint32(12, cl, true); e.setUint32(16, off, true);
+    return new Blob(parts.concat(cen, [new Uint8Array(e.buffer)]), { type: 'application/zip' });
+  }
+  var PRJ = 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]';
+  function propDownload() {
+    var feats = propFeatures(); if (!feats.length) return;
+    var s = buildShp(feats), enc = new TextEncoder();
+    var base = 'propiedades_rurales_' + (state.comuna ? norm(COMBY[state.comuna].n).replace(/[^a-z0-9]+/g, '_') : 'vista');
+    var blob = zipStore([{ name: base + '.shp', data: s.shp }, { name: base + '.shx', data: s.shx }, { name: base + '.dbf', data: s.dbf }, { name: base + '.prj', data: enc.encode(PRJ) }, { name: base + '.cpg', data: enc.encode('UTF-8') }]);
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = base + '.zip'; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  }
+  window.__mapaProp = { buildShp: buildShp, zipStore: zipStore };
 
   // ---------- Inicio ----------
   function setHeaderVar() {
