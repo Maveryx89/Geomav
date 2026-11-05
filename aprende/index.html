@@ -355,6 +355,37 @@
     </div>
   </section>
 
+  <!-- MAPA DE CHILE (desplegable) -->
+  <style>
+    .aprende-mapa{padding:0 0 90px}
+    .aprende-mapa-btn{display:flex;align-items:center;gap:10px;width:100%;padding:16px 20px;background:var(--color-blanco);border:1px solid var(--color-borde);border-radius:12px;font:inherit;font-size:1rem;font-weight:700;color:var(--color-primario);cursor:pointer;text-align:left;box-shadow:0 2px 10px var(--color-sombra)}
+    .aprende-mapa-btn:hover{border-color:var(--color-acento)}
+    .aprende-mapa-btn small{font-weight:500;color:var(--color-muted);margin-left:4px}
+    .aprende-mapa-btn svg{margin-left:auto;width:20px;height:20px;stroke:var(--color-acento);fill:none;stroke-width:3;transition:transform .2s;flex:none}
+    .aprende-mapa-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
+    .aprende-mapa-cuerpo{margin-top:14px}
+    .aprende-mapa-cuerpo iframe{width:100%;height:78vh;min-height:520px;border:1px solid var(--color-borde);border-radius:12px;background:#dfe7ea;display:block}
+    .aprende-mapa-cuerpo p{font-size:.85rem;color:var(--color-muted);margin:0 0 10px}
+    .aprende-mapa-cuerpo a{color:var(--color-secundario);font-weight:600}
+  </style>
+  <section class="aprende-mapa">
+    <div class="contenedor">
+      <button type="button" class="aprende-mapa-btn" id="btnMapaChile" aria-expanded="false" aria-controls="cuerpoMapaChile">
+        🗺️ Mapa de Chile con información oficial <small>regiones, comunas, caminos, ríos y más</small>
+        <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="aprende-mapa-cuerpo" id="cuerpoMapaChile" hidden>
+        <p>Elige una región o comuna en el menú de la izquierda y marca las capas que quieras ver. Información referencial (fuente: BCN). <a href="../mapa/">Abrir en pantalla completa ↗</a></p>
+        <iframe title="Mapa de Chile con información oficial" data-src="../mapa/?embed=1" loading="lazy"></iframe>
+      </div>
+    </div>
+  </section>
+  <script>
+    (function(){var b=document.getElementById('btnMapaChile'),c=document.getElementById('cuerpoMapaChile');
+      b.addEventListener('click',function(){var open=c.hidden;c.hidden=!open;b.setAttribute('aria-expanded',open);
+        var f=c.querySelector('iframe');if(open&&!f.src)f.src=f.getAttribute('data-src');});})();
+  </script>
+
   <!-- PIE DE PÁGINA -->
   <footer class="pie-pagina">
     <div class="contenedor">

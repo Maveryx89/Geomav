@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GEOMAV — Mapa de Chile: regiones, comunas y capas oficiales</title>
+  <meta name="description" content="Mapa interactivo de Chile con límites administrativos, red vial, hidrografía, áreas protegidas y más, cargable por región y por comuna. Datos oficiales de la BCN." />
+  <link rel="canonical" href="https://geomav.me/mapa/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="GEOMAV — Mapa de Chile: regiones, comunas y capas oficiales" />
+  <meta property="og:description" content="Mapa interactivo de Chile con límites administrativos, red vial, hidrografía, áreas protegidas y más, cargable por región y por comuna. Datos oficiales de la BCN." />
+  <meta property="og:url" content="https://geomav.me/mapa/" />
+  <meta property="og:locale" content="es_CL" />
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+  <link rel="stylesheet" href="mapa.css">
+  <script>if(location.search.indexOf("embed")!==-1)document.documentElement.className+=" embed";</script>
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="index.html" class="menu-enlace">Aprende</a></li>
+          <li><a href="../alianzas/" class="menu-enlace">Alianzas</a></li>
+          <li><a href="../topocalc/" class="menu-enlace">Topo de Bolsillo</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="../portafolio/topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="../portafolio/drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="../portafolio/recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="../portafolio/timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="index.html" class="overlay-enlace">Aprende</a>
+    <a href="../alianzas/" class="overlay-enlace">Alianzas</a>
+
+    <a href="../topocalc/" class="overlay-enlace">Topo de Bolsillo</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="../portafolio/topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="../portafolio/drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="../portafolio/recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="../portafolio/timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+
+  <!-- MAPA -->
+  <main class="mapa-app" id="mapaApp">
+    <aside class="mapa-panel" aria-label="Regiones y capas">
+      <button class="mapa-cerrar" id="btnCerrarPanel" aria-label="Cerrar panel">✕</button>
+      <div class="mapa-panel-cab">
+        <h1>Mapa de Chile</h1>
+        <p>Cartografía oficial por región y comuna. Marca las capas que quieras ver.</p>
+        <div class="mapa-buscar">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="mapaBuscar" type="search" placeholder="Buscar comuna o región…" autocomplete="off" aria-label="Buscar comuna o región">
+        </div>
+      </div>
+      <div class="mapa-scroll">
+        <div class="mapa-estado" id="mapaEstado">Cargando…</div>
+        <div id="listaCapas"></div>
+        <div class="mapa-sec">
+          <div class="mapa-sec-t">Mapa base</div>
+          <div class="mapa-base"><button type="button" data-b="osm" class="on">Calles</button><button type="button" data-b="sat">Satélite</button><button type="button" data-b="claro">Claro</button></div>
+        </div>
+        <div class="mapa-sec"><div class="mapa-sec-t">Regiones y comunas</div><div id="listaRegiones"></div></div>
+        <p class="mapa-aviso">Información espacial solo referencial, sin validez legal. Fuente: <a href="https://www.bcn.cl/siit/mapas_vectoriales" target="_blank" rel="noopener">Biblioteca del Congreso Nacional (BCN)</a>, simplificada para visualización web. ¿Necesitas límites o mediciones exactas de un terreno? <a href="../index.html#contacto">Contáctanos</a>.</p>
+      </div>
+    </aside>
+    <div class="mapa-lienzo">
+      <button class="mapa-toggle" id="btnPanel" type="button">☰ Regiones y capas</button>
+      <div class="mapa-carga" id="mapaCarga">Cargando capas…</div>
+      <div id="mapaLeaflet" role="application" aria-label="Mapa interactivo de Chile"></div>
+      <div class="mapa-leyenda-vial" id="leyVial"><b>Red vial</b>
+        <div><span style="border-color:#c0392b"></span>Clase 1</div><div><span style="border-color:#e67e22"></span>Clase 2</div><div><span style="border-color:#7f7f7f"></span>Clase 3</div><div><span style="border-color:#a05a2c"></span>Otras</div></div>
+    </div>
+  </main>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+          <p style="margin-top:10px; color:var(--color-primario); font-size:0.85rem; font-weight:700; max-width:280px;">Perito Judicial habilitado — Cortes de Apelaciones de Rancagua, Talca y Chillán</p>
+          <p style="margin-top:10px; max-width:280px;"><a href="https://maps.google.com/?cid=16890480175112336440" target="_blank" rel="noopener" class="pie-enlace" style="color:var(--color-secundario); font-size:0.85rem; font-weight:600;">📍 Ver GEOMAV en Google Maps</a></p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="index.html" class="pie-enlace">Aprende</a></li>
+            <li><a href="../alianzas/" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2026 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="mapa.js"></script>
+  <script>if(location.search.indexOf("embed")===-1){["../assets/js/site.js","../assets/js/chatbot.js"].forEach(function(u){document.write('<script src="'+u+'"><\/script>');});}</script>
+</body>
+</html>
