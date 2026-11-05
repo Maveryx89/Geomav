@@ -80,3 +80,9 @@
 .mapa-leyenda-vial i{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:2px}
 .usos{margin-top:8px;border-top:1px solid rgba(10,34,64,.12);padding-top:6px;font-size:.78rem}
 .usos p{margin:2px 0 8px;line-height:1.4}
+
+.prop-estado .prop-acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.prop-estado button{font:inherit;font-size:.78rem;font-weight:700;padding:6px 10px;border-radius:7px;border:1px solid var(--color-secundario);background:#fff;color:var(--color-secundario);cursor:pointer;text-decoration:none;margin:0}
+.prop-estado button:hover:not(:disabled){background:var(--color-secundario);color:#fff}
+.prop-estado button:disabled{opacity:.45;cursor:default}
+.prop-estado .prop-nota{margin-top:6px;font-size:.7rem;color:var(--color-dim)}
