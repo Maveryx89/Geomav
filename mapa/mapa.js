@@ -10,7 +10,7 @@
     { id: 'snaspe', n: 'Áreas protegidas (SNASPE)', reg: true, sw: { c: '#3f7d3b', f: 'rgba(63,125,59,.3)', t: 'pol' } },
     { id: 'lagos', n: 'Lagos, embalses y salares', reg: true, sw: { c: '#2a86ad', f: 'rgba(74,163,199,.6)', t: 'pol' } },
     { id: 'areas_pobladas', n: 'Áreas pobladas', reg: true, sw: { c: '#b57640', f: 'rgba(212,154,106,.55)', t: 'pol' } },
-    { id: 'prop_rurales', n: 'Propiedades rurales (CIREN, en línea)', online: true, sw: { c: '#7a4a00', f: 'rgba(242,193,78,.35)', t: 'pol' } },
+    { id: 'prop_rurales', n: 'Propiedades rurales (catastro CIREN)', online: true, sw: { c: '#7a4a00', f: 'rgba(242,193,78,.35)', t: 'pol' } },
     { id: 'ipt_pri', n: 'Plan intercomunal / metropolitano', reg: true, sw: { c: '#fff', f: '#8fb3d9', t: 'pol' } },
     { id: 'ipt_zonas', n: 'Zonificación (plan regulador)', reg: true, sw: { c: '#fff', f: '#e6b84a', t: 'pol' } },
     { id: 'ipt_riesgo', n: 'Áreas de riesgo / restricción', reg: true, sw: { c: '#8b0000', f: 'rgba(214,40,40,.45)', t: 'pol' } },
@@ -311,7 +311,7 @@
     // pesos por capa
     document.querySelectorAll('.mapa-capa').forEach(function (l) {
       var id = l.getAttribute('data-capa'), d = DEF[id], pe = l.querySelector('.pe'); pe.className = 'pe'; pe.textContent = ''; l.classList.remove('off');
-      if (d.online) { pe.textContent = 'en línea'; return; }
+      if (d.online) { pe.textContent = 'por comuna'; return; }
       if (d.nac) { pe.textContent = 'todo Chile'; return; }
       if (!state.regions.length) { pe.textContent = 'elige región'; l.classList.add('off'); return; }
       if (state.comuna && state.onlyComuna && id !== 'comunas') { pe.textContent = 'solo comuna'; return; }
@@ -367,97 +367,90 @@
   function closeDrawer() { document.querySelector('.mapa-app').classList.remove('panel-abierto'); }
   function update() { syncUI(); refresh(); propSync(); writeHash(); }
 
-  // ---------- Propiedades rurales (CIREN, servicio en línea) + descarga SHP ----------
-  var PROP_URL = 'https://esri.ciren.cl/server/rest/services/IDEMINAGRI/PROPIEDADES_RURALES/MapServer/';
-  // código de región -> [capa del servicio, año de la información]
-  var PROP_REG = { 15: [0, 2018], 1: [1, 2017], 3: [2, 2013], 4: [3, 2014], 5: [4, 2022], 13: [5, 2023], 6: [6, 2013], 7: [7, 2021], 16: [8, 2016], 8: [9, 2016], 9: [10, 2023], 14: [11, 2018], 10: [12, 2016], 11: [13, 2004] };
-  var PROP_ZOOM = 14, PROP_MAX = 40000;
-  var propGroup = L.geoJSON(null, {
-    renderer: rend,
-    style: function () { return { renderer: rend, color: '#7a4a00', weight: 1.4, opacity: 1, fill: true, fillColor: '#f2c14e', fillOpacity: .16 }; }
-  });
-  var propSeen = {}, propN = 0, propAbort = null, propTimer = null, propMsg = '', propBusy = false;
-  propGroup.on('click', function (e) {
-    var p = e.propagatedFrom && e.propagatedFrom.feature && e.propagatedFrom.feature.properties; if (!p) return;
-    L.popup({ maxWidth: 320 }).setLatLng(e.latlng).setContent('<h4>Rol ' + esc(p.rol || 's/i') + '</h4><div style="font-size:.72rem;color:rgba(10,34,64,.55);margin-bottom:4px">Propiedad rural (catastro CIREN)</div><table><tr><td>Comuna</td><td><b>' + esc(p.comuna || '') + '</b></td></tr><tr><td>Región</td><td><b>' + esc(p.region || '') + '</b></td></tr><tr><td>Año de la información</td><td><b>' + esc(p.anio || '') + '</b></td></tr></table><p style="font-size:.7rem;margin:6px 0 0;color:rgba(10,34,64,.6)">Catastro gráfico referencial: no reemplaza el título ni el CBR.</p>').openOn(map);
-  });
-  propGroup.on('mouseover', function (e) { var p = e.propagatedFrom.feature.properties; if (p.rol) { tip.setContent('Rol ' + esc(p.rol)).setLatLng(e.latlng); map.openTooltip(tip); } });
-  propGroup.on('mouseout', function () { map.closeTooltip(tip); });
-  function propOn() { return has(state.layers, 'prop_rurales'); }
-  function propRegion(ll) {
-    var cands = state.regions.length ? state.regions : IDX.regiones.map(function (r) { return r.cod; });
-    for (var i = 0; i < cands.length; i++) { var b = REGBY[cands[i]].bbox; if (ll.lat >= b[0] && ll.lat <= b[2] && ll.lng >= b[1] && ll.lng <= b[3] && PROP_REG[cands[i]]) return cands[i]; }
-    return null;
-  }
-  function propAdd(gj, cod) {
-    var fresh = [], reg = REGBY[cod].nombre, an = PROP_REG[cod][1];
-    (gj.features || []).forEach(function (f) {
-      var p = f.properties || {}, k = cod + '|' + (p.desccomu || '') + '|' + (p.rol || f.id);
-      if (propSeen[k] || !f.geometry) return;
-      propSeen[k] = 1; propN++;
-      fresh.push({ type: 'Feature', geometry: f.geometry, properties: { rol: p.rol, comuna: p.desccomu, region: reg, anio: an, cod: cod } });
+  // ---------- Propiedades rurales (catastro CIREN, respaldo propio por comuna) + descarga SHP ----------
+  var PROP_ZOOM = 12, PROP_MAXCOM = 8, PROP_MAX = 150000;
+  var PROP_REGNOM = { 1: 'Tarapacá', 3: 'Atacama', 4: 'Coquimbo', 5: 'Valparaíso', 6: "O'Higgins", 7: 'Maule', 8: 'Biobío', 9: 'La Araucanía', 10: 'Los Lagos', 11: 'Aysén', 13: 'Metropolitana', 14: 'Los Ríos', 15: 'Arica y Parinacota', 16: 'Ñuble' };
+  var propIdx = null, propIdxP = null, propLoaded = {}, propGroup = null, propN = 0, propMsg = '', propBusy = 0, propTimer = null;
+  function propEnsureGroup() {
+    if (propGroup) return propGroup;
+    propGroup = L.geoJSON(null, { renderer: rend, style: function () { return { renderer: rend, color: '#7a4a00', weight: 1.4, opacity: 1, fill: true, fillColor: '#f2c14e', fillOpacity: .16 }; } });
+    propGroup.on('click', function (e) {
+      var p = e.propagatedFrom && e.propagatedFrom.feature && e.propagatedFrom.feature.properties; if (!p) return;
+      L.popup({ maxWidth: 320 }).setLatLng(e.latlng).setContent('<h4>Rol ' + esc(p.rol || 's/i') + '</h4><div style="font-size:.72rem;color:rgba(10,34,64,.55);margin-bottom:4px">Propiedad rural (catastro CIREN)</div><table><tr><td>Comuna</td><td><b>' + esc(p.comuna || '') + '</b></td></tr><tr><td>Región</td><td><b>' + esc(p.region || '') + '</b></td></tr><tr><td>Año de la información</td><td><b>' + esc(p.anio || '') + '</b></td></tr></table><p style="font-size:.7rem;margin:6px 0 0;color:rgba(10,34,64,.6)">Catastro gráfico referencial: no reemplaza el título ni el CBR.</p>').openOn(map);
     });
-    if (fresh.length) { propGroup.addData(fresh); propGroup.bringToFront(); }
-    return fresh.length;
+    propGroup.on('mouseover', function (e) { var p = e.propagatedFrom.feature.properties; if (p.rol) { tip.setContent('Rol ' + esc(p.rol)).setLatLng(e.latlng); map.openTooltip(tip); } });
+    propGroup.on('mouseout', function () { map.closeTooltip(tip); });
+    return propGroup;
   }
-  function propQuery(cod, params, signal) {
-    var u = PROP_URL + PROP_REG[cod][0] + '/query?f=geojson&outFields=rol,desccomu&outSR=4326&inSR=4326&geometryPrecision=6&maxAllowableOffset=0.000012' + params;
-    return fetch(u, { signal: signal }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  function propOn() { return has(state.layers, 'prop_rurales'); }
+  function propIndex() {
+    if (propIdx) return Promise.resolve(propIdx);
+    if (!propIdxP) propIdxP = fetch(BASE + 'prop/index.json').then(function (r) { return r.json(); }).then(function (j) { propIdx = j; return j; });
+    return propIdxP;
+  }
+  function propFetch(cc) {
+    return fetch(BASE + 'prop/' + cc + '.json.gz').then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      if (typeof DecompressionStream === 'undefined') throw new Error('navegador sin soporte');
+      return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).json();
+    });
+  }
+  function propLoad(cc) {
+    if (propLoaded[cc] || !propIdx[cc]) return;
+    propLoaded[cc] = 1; propBusy++; propUI();
+    propFetch(cc).then(function (gj) {
+      var m = propIdx[cc], reg = PROP_REGNOM[m.r] || '', fs = gj.features.map(function (f) {
+        return { type: 'Feature', geometry: f.geometry, properties: { rol: f.properties.r, comuna: f.properties.n, region: reg, anio: m.a, cc: cc } };
+      });
+      propEnsureGroup().addData(fs); propN += fs.length;
+      if (propOn()) { propGroup.addTo(map); propGroup.bringToFront(); }
+    }).catch(function (e) { delete propLoaded[cc]; propMsg = 'No se pudo cargar una comuna (' + e.message + '). Reintenta.'; })
+      .then(function () { propBusy--; propUI(); });
   }
   function propLoadView() {
     clearTimeout(propTimer);
-    if (!propOn() || !IDX) { propMsg = ''; propUI(); return; }
-    if (map.getZoom() < PROP_ZOOM) { propMsg = 'Acerca el mapa (zoom ' + PROP_ZOOM + ' o más) para ver los predios de la vista.'; propUI(); return; }
-    var cod = propRegion(map.getCenter());
-    if (!cod) { propMsg = 'No hay catastro rural CIREN para esta zona (cubre 14 regiones; no Antofagasta ni Magallanes).'; propUI(); return; }
-    if (propN > PROP_MAX) { propMsg = 'Hay muchos predios cargados; descarga el SHP o recarga la página para empezar de nuevo.'; propUI(); return; }
+    if (!propOn() || !IDX) { propUI(); return; }
     propTimer = setTimeout(function () {
-      if (propAbort) propAbort.abort(); var ac = propAbort = new AbortController();
-      var b = map.getBounds(), env = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].join(',');
-      propMsg = 'Consultando CIREN…'; propBusy = true; propUI();
-      propQuery(cod, '&where=1%3D1&geometry=' + env + '&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&resultRecordCount=3000', ac.signal).then(function (gj) {
-        var n = propAdd(gj, cod);
-        propMsg = (gj.exceededTransferLimit ? 'Se muestran los primeros 3.000 predios de la vista; acerca más para ver el resto.' : (n ? 'Predios de la vista cargados.' : 'Sin predios rurales nuevos en esta vista.'));
-        propBusy = false; propUI();
-      }).catch(function (e) { if (e.name === 'AbortError') return; propMsg = 'No se pudo consultar CIREN (' + e.message + '). Reintenta.'; propBusy = false; propUI(); });
-    }, 600);
+      propIndex().then(function () {
+        var want = [], b = map.getBounds();
+        if (state.comuna && propIdx[state.comuna]) want.push(state.comuna);
+        propMsg = '';
+        if (map.getZoom() >= PROP_ZOOM) {
+          var near = [];
+          Object.keys(COMBY).forEach(function (cc) {
+            var c = COMBY[cc]; if (!propIdx[cc] || has(want, cc)) return;
+            if (bboxOf(c.bbox).intersects(b)) near.push(cc);
+          });
+          if (near.length > PROP_MAXCOM) propMsg = 'Hay demasiadas comunas en la vista: acerca más o elige una comuna.';
+          else want = want.concat(near);
+        } else if (!state.comuna) propMsg = 'Acerca el mapa (zoom ' + PROP_ZOOM + ' o más) o elige una comuna para ver los predios.';
+        else if (!propIdx[state.comuna]) propMsg = 'Esta comuna no tiene catastro rural CIREN (no cubre Antofagasta ni Magallanes).';
+        if (propN > PROP_MAX) { propMsg = 'Hay muchos predios cargados; recarga la página para empezar de nuevo.'; want = []; }
+        want.forEach(propLoad); propUI();
+      }).catch(function () { propMsg = 'No se pudo leer el índice de propiedades.'; propUI(); });
+    }, 350);
   }
   function propSync() {
-    if (propOn()) { if (!map.hasLayer(propGroup)) propGroup.addTo(map); propLoadView(); }
-    else { if (map.hasLayer(propGroup)) map.removeLayer(propGroup); if (propAbort) propAbort.abort(); propMsg = ''; propBusy = false; propUI(); }
+    if (propOn()) { propEnsureGroup().addTo(map); propLoadView(); }
+    else { if (propGroup && map.hasLayer(propGroup)) map.removeLayer(propGroup); propUI(); }
   }
   map.on('moveend', function () { if (propOn()) propLoadView(); });
-  // carga completa de una comuna (por páginas)
-  function propLoadComuna() {
-    var c = COMBY[state.comuna]; if (!c || !PROP_REG[c.reg] || propBusy) return;
-    var cod = c.reg, nm = norm(c.n), bb = c.bbox, env = [bb[1], bb[0], bb[3], bb[2]].join(','), off = 0, got = 0;
-    propBusy = true; propMsg = 'Cargando predios de ' + c.n + '…'; propUI();
-    (function page() {
-      propQuery(cod, '&where=1%3D1&geometry=' + env + '&geometryType=esriGeometryEnvelope&spatialRel=esriSpatialRelIntersects&resultRecordCount=2000&resultOffset=' + off + '&orderByFields=objectid').then(function (gj) {
-        var fs = (gj.features || []).filter(function (f) { return norm((f.properties && f.properties.desccomu) || '') === nm; });
-        got += propAdd({ features: fs }, cod); off += (gj.features || []).length;
-        propMsg = 'Cargando predios de ' + c.n + '… ' + got.toLocaleString('es-CL');
-        if (gj.exceededTransferLimit && off < 60000) { propUI(); page(); }
-        else { propBusy = false; propMsg = got.toLocaleString('es-CL') + ' predios rurales de ' + c.n + ' cargados.'; propUI(); }
-      }).catch(function (e) { propBusy = false; propMsg = 'Se interrumpió la carga (' + e.message + '). Lo cargado se puede descargar.'; propUI(); });
-    })();
-  }
   function propFeatures() {
-    var out = [], nm = state.comuna ? norm(COMBY[state.comuna].n) : null;
-    propGroup.eachLayer(function (l) { var f = l.feature; if (!nm || norm(f.properties.comuna || '') === nm) out.push(f); });
+    var out = []; if (!propGroup) return out;
+    propGroup.eachLayer(function (l) { var f = l.feature; if (!state.comuna || f.properties.cc === state.comuna) out.push(f); });
     return out;
   }
   function propUI() {
     var el = document.getElementById('propEstado'); if (!el) return;
     if (!propOn()) { el.style.display = 'none'; return; }
     el.style.display = '';
-    var n = propFeatures().length, h = '<b>Propiedades rurales (CIREN)</b><br>' + esc(propMsg || 'Acerca el mapa (zoom ' + PROP_ZOOM + ' o más) para ver los predios.');
-    h += '<div class="prop-acc">';
-    if (state.comuna && COMBY[state.comuna] && PROP_REG[COMBY[state.comuna].reg]) h += '<button type="button" id="btnPropCom"' + (propBusy ? ' disabled' : '') + '>Cargar toda la comuna</button>';
-    h += '<button type="button" id="btnPropShp"' + (n ? '' : ' disabled') + '>Descargar SHP (' + n.toLocaleString('es-CL') + ')</button></div>';
-    h += '<div class="prop-nota">Catastro CIREN (año según región). Cita: CIREN. Referencial.</div>';
+    var n = propFeatures().length, h = '<b>Propiedades rurales (CIREN)</b><br>';
+    if (propBusy) h += 'Cargando predios… ';
+    else if (propMsg) h += esc(propMsg);
+    else h += n.toLocaleString('es-CL') + ' predios ' + (state.comuna ? 'de la comuna' : 'cargados') + '. Se cargan por comuna al acercar el mapa (zoom ' + PROP_ZOOM + '+).';
+    h += '<div class="prop-acc"><button type="button" id="btnPropShp"' + (n ? '' : ' disabled') + '>Descargar SHP (' + n.toLocaleString('es-CL') + ')</button></div>';
+    h += '<div class="prop-nota">Catastro CIREN (año según región; trazado ≈100 %). Cita: CIREN. Referencial.</div>';
     el.innerHTML = h;
-    var a = document.getElementById('btnPropCom'); if (a) a.onclick = propLoadComuna;
     var b = document.getElementById('btnPropShp'); if (b) b.onclick = propDownload;
   }
   // --- escritor mínimo de Shapefile + zip (sin dependencias) ---
