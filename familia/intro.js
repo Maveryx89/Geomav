@@ -1,5 +1,5 @@
 /* Recorrido guiado. Se muestra al entrar y cuando hay novedades (sube INTRO_VER y marca los pasos nuevos con since). */
-const INTRO_VER=1;
+const INTRO_VER=2;
 function tourSteps(){
   const adm=isAdmin(), ed=isEditor(), yo=!!miPersonaId(), L=[];
   const add=o=>L.push(Object.assign({since:1},o));
@@ -16,6 +16,7 @@ function tourSteps(){
   add({tab:'mas',sel:'#app [data-tab="escolar"]',t:'Escolar',d:'Horario semanal, pruebas y reuniones con fecha, y la lista de útiles con casillas para ir marcando.'});
   add({tab:'mas',sel:'#app [data-tab="notas"]',t:'Info útil',d:'Teléfonos de emergencia, seguros, datos del colegio y todo lo que conviene tener a mano, ordenado por categorías.'});
   if(adm) add({tab:'mas',sel:'#app [data-tab="salud"]',t:'Salud e historial',d:'Solo para administradores. Toca una persona para ver su ficha y su historial: exámenes con resultados fuera de rango marcados, diagnósticos, consultas, vacunas y PDFs adjuntos.'});
+  add({since:2,tab:'mas',sel:'#app [data-tab="informe"]',t:'Informes',d:'Nuevo: resumen semanal, mensual o general de toda la familia (o de una persona). Incluye citas, tareas, eventos y más. Puedes imprimirlo como PDF, copiarlo o compartirlo.'});
   add({tab:'mas',sel:'#app [data-tab="ajustes"]',t:'Ajustes',d:(adm?'Invita familiares, cambia su rol y vincula cada cuenta con su persona. ':'Aquí ves tu rol y los miembros. ')+'También puedes exportar un respaldo y repetir este recorrido.'});
   add({tab:'mas',sel:'.hq',t:'Manual de uso',d:'El botón ? de arriba (en todas las pantallas, y también en Más) abre el manual con la explicación detallada de cada sección y las soluciones a los problemas más comunes.'});
   add({tab:yo?'mi':'familia',t:'¡Listo!',d:'Ya conoces la app. Puedes repetir este recorrido cuando quieras desde Ajustes.'});

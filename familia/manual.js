@@ -1,6 +1,7 @@
 /* Manual de uso. Para actualizarlo: editar MANUAL (secciones) y agregar una línea arriba en MANUAL_LOG. */
-const MANUAL_VER='19 oct 2026';
+const MANUAL_VER='5 nov 2026';
 const MANUAL_LOG=[
+  ['5 nov 2026','Nuevo: Más → Informes. Resumen semanal, mensual o general de la familia o de una persona, con opción de imprimir/PDF, copiar y compartir.'],
   ['19 oct 2026','Las listas muestran el nombre corto (primer nombre y primer apellido) y se quitaron datos repetidos en citas, tareas y calendario. El nombre completo sigue en la ficha.'],
   ['19 oct 2026','Primera versión del manual y recorrido guiado. Incluye el historial de salud con adjuntos y el botón + del calendario.']
 ];
@@ -62,6 +63,9 @@ const MANUAL=[
   <p><b>Adjuntos:</b> en el mismo formulario puedes subir PDF o fotos (hasta 15 MB cada uno). Se guardan en un espacio privado; al tocar «📎» se abre con un enlace temporal de 5 minutos. Al eliminar un registro se borran sus adjuntos.</p>
   <p><b>Buscar y filtrar:</b> chips por tipo arriba y buscador por texto (examen, médico, parámetro…).</p>
   <p>Cada persona vinculada puede leer el suyo a nivel de base de datos; hoy la pantalla de lectura solo está disponible para administradores.</p>`},
+ {id:'informe',ic:'📊',t:'Informes',h:`
+  <p>En <b>Más → Informes</b> eliges el período: <b>Semanal</b> (lunes a domingo), <b>Mensual</b> o <b>General</b> (todo). Con las flechas ves semanas o meses anteriores, y el selector permite ver <b>toda la familia</b> o una sola persona.</p>
+  <ul><li>Incluye citas médicas, tareas (hechas, pendientes y vencidas), eventos familiares, escolar y cumpleaños.</li><li>El informe semanal agrega el cumplimiento de medicamentos; los administradores también ven el historial de salud.</li><li><b>Imprimir / PDF</b>, <b>Copiar texto</b> y <b>Compartir</b> (por WhatsApp, correo, etc.).</li></ul>`},
  {id:'ajustes',ic:'⚙️',t:'Ajustes y administración',h:`
   <ul><li><b>Invitar familiar</b> (admin): correo + rol + persona a la que corresponde. El familiar debe ingresar con ese mismo correo.</li>
   <li><b>Rol:</b> cambia el rol de un miembro (administrador, editor o miembro).</li>
