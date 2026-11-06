@@ -51,6 +51,7 @@ function recTxt(ms){ const m=Math.round(Math.abs(ms)/6e4); if(m<60) return m+' m
 function recCita(c){
   if(c.estado==='realizada') return ['ok','✔ Realizada'];
   if(c.estado==='cancelada') return ['no','✖ Cancelada'];
+  if(c.estado==='reagendada') return ['gr','↪ Reagendada'];
   const f=new Date(c.fecha), ms=f-Date.now(), hh=f.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',hour12:false});
   const dia=Math.round((new Date(f.getFullYear(),f.getMonth(),f.getDate())-today0())/864e5);
   if(ms<-36e5) return ['no','⚠ Pasó hace '+recTxt(ms)+' · márcala como realizada'];

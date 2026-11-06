@@ -28,7 +28,7 @@ header.top small{opacity:.75}
 .pill.hoy{background:var(--accent);color:#fff}.pill.ok{background:#e3f1e4;color:var(--ok)}.pill.no{background:#f6dcda;color:var(--danger)}
 h2{font-size:.95rem;text-transform:uppercase;letter-spacing:.04em;color:var(--blueprint);margin:18px 0 8px}
 .cc{display:flex;gap:12px;align-items:flex-start}.cc .dt{flex:none;width:58px;text-align:center;border-radius:12px;background:#e8eef3;color:var(--blueprint);padding:6px 2px}.dt .d1{font-size:.66rem;font-weight:700;text-transform:uppercase;line-height:1.2}.dt .d2{font-size:1.45rem;font-weight:800;line-height:1.1}.dt .d3{font-size:.82rem;font-weight:800;margin-top:2px;color:var(--ink)}
-.cl{margin-top:3px;font-size:.88rem}.rec{display:flex;align-items:center;gap:6px;margin-top:10px;padding:7px 10px;border-radius:10px;font-size:.82rem;font-weight:700;background:#e8eef3;color:var(--blueprint)}.rec.hoy{background:var(--accent);color:#fff}.rec.warn{background:#fff3cd;color:#7a5b00}.rec.no{background:#f6dcda;color:var(--danger)}.rec.ok{background:#e3f1e4;color:var(--ok)}
+.cl{margin-top:3px;font-size:.88rem}.rec{display:flex;align-items:center;gap:6px;margin-top:10px;padding:7px 10px;border-radius:10px;font-size:.82rem;font-weight:700;background:#e8eef3;color:var(--blueprint)}.rec.hoy{background:var(--accent);color:#fff}.rec.warn{background:#fff3cd;color:#7a5b00}.rec.no{background:#f6dcda;color:var(--danger)}.rec.ok{background:#e3f1e4;color:var(--ok)}.rec.gr{background:#ececec;color:#666}.reag{margin-top:8px;width:100%}
 button{font:inherit;border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:700}
 .primary{background:var(--ink);color:#fff}.ghost{background:#e8e6df;color:var(--ink)}.danger{background:#f6dcda;color:var(--danger)}
 .cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
@@ -255,8 +255,23 @@ function formCita(c,pre){
     {k:'persona_id',l:'Paciente',t:'select',o:S.personas.map(p=>[p.id,p.nombre])},
     {k:'fecha',l:'Fecha y hora',t:'datetime-local',req:1},{k:'doctor',l:'Doctor / especialidad'},
     {k:'lugar',l:'Lugar'},{k:'motivo',l:'Motivo',t:'area'},
-    {k:'estado',l:'Estado',t:'select',o:['pendiente','realizada','cancelada']}
+    {k:'estado',l:'Estado',t:'select',o:['pendiente','realizada','cancelada','reagendada']}
   ],c?{...c,fecha:toLocalInput(c.fecha)}:pre,row=>{ row.fecha=new Date(row.fecha).toISOString(); return save('citas',row,c&&c.id); },c&&(()=>del('citas',c.id)));
+}
+async function reagendarCita(c){
+  if(!c||!isEditor()||S.offline) return;
+  form('Reagendar · '+(c.doctor||'Cita médica'),[
+    {k:'fecha',l:'Nueva fecha y hora',t:'datetime-local',req:1},
+    {k:'hist',l:'La cita anterior',t:'select',o:[['si','Dejarla en el historial como «reagendada»'],['no','Solo cambiar la fecha (sin historial)']]}
+  ],{fecha:toLocalInput(c.fecha),hist:'si'},async row=>{
+    const nf=new Date(row.fecha);
+    if(isNaN(nf)||Math.abs(nf-new Date(c.fecha))<6e4){ toast('Elige una fecha u hora distinta'); return false; }
+    const iso=nf.toISOString();
+    if(row.hist==='no') return save('citas',{fecha:iso},c.id);
+    const {error}=await sb.from('citas').insert({persona_id:c.persona_id,fecha:iso,doctor:c.doctor,lugar:c.lugar,motivo:c.motivo,estado:'pendiente',family_id:S.fam});
+    if(error){ toast('Error: '+error.message); return false; }
+    return save('citas',{estado:'reagendada'},c.id);
+  });
 }
 function formNota(n){
   form(n?'Editar nota':'Nueva nota',[
@@ -337,7 +352,7 @@ function citaCard(c,propia){
   const f=new Date(c.fecha), r=recCita(c);
   const sem=f.toLocaleDateString('es-CL',{weekday:'short'}).replace('.',''), mes=f.toLocaleDateString('es-CL',{month:'short'}).replace('.','');
   const hh=f.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',hour12:false});
-  return `<div class="card ${isEditor()?'tap':''}" data-cita="${c.id}"><div class="cc"><div class="dt"><div class="d1">${esc(sem)}</div><div class="d2">${f.getDate()}</div><div class="d1">${esc(mes)}</div><div class="d3">${hh}</div></div><div class="grow"><div class="t">${esc(c.doctor||'Cita médica')}</div>${propia?'':`<div class="cl">👤 ${esc(pShort(c.persona_id))}</div>`}${c.lugar?`<div class="cl">📍 ${esc(c.lugar)}</div>`:''}${c.motivo?`<div class="cl clamp">🩺 ${esc(c.motivo)}</div>`:''}</div></div><div class="rec ${r[0]}">${r[1]}</div></div>`;
+  return `<div class="card ${isEditor()?'tap':''}" data-cita="${c.id}"><div class="cc"><div class="dt"><div class="d1">${esc(sem)}</div><div class="d2">${f.getDate()}</div><div class="d1">${esc(mes)}</div><div class="d3">${hh}</div></div><div class="grow"><div class="t">${esc(c.doctor||'Cita médica')}</div>${propia?'':`<div class="cl">👤 ${esc(pShort(c.persona_id))}</div>`}${c.lugar?`<div class="cl">📍 ${esc(c.lugar)}</div>`:''}${c.motivo?`<div class="cl clamp">🩺 ${esc(c.motivo)}</div>`:''}</div></div><div class="rec ${r[0]}">${r[1]}</div>${isEditor()&&!S.offline&&c.estado==='pendiente'?`<button class="ghost sm reag" data-reag="${c.id}">🔄 Reagendar</button>`:''}</div>`;
 }
 function vCitas(){
   const now=Date.now();
@@ -389,7 +404,7 @@ function render(){
 
 /* ---------- eventos ---------- */
 document.addEventListener('click',async e=>{
-  const t=e.target.closest('[data-tab],[data-evento],[data-toma],[data-tareaok],[data-utilok],[data-tarea],[data-med],[data-esc],[data-tf],[data-misdatos],[data-vinc],[data-rol],[data-day],[data-calnav],[data-ficha],[data-cita],[data-nota],[data-intro],[data-salud],[data-hback],[data-hf],[data-hent],[data-hficha],[data-arch],[data-add],[data-inv],[data-quitar],[data-delinv],[data-export],[data-logout],[data-stop]');
+  const t=e.target.closest('[data-reag],[data-tab],[data-evento],[data-toma],[data-tareaok],[data-utilok],[data-tarea],[data-med],[data-esc],[data-tf],[data-misdatos],[data-vinc],[data-rol],[data-day],[data-calnav],[data-ficha],[data-cita],[data-nota],[data-intro],[data-salud],[data-hback],[data-hf],[data-hent],[data-hficha],[data-arch],[data-add],[data-inv],[data-quitar],[data-delinv],[data-export],[data-logout],[data-stop]');
   if(!t) return;
   const d=t.dataset;
   if('stop' in d) return;
@@ -408,6 +423,7 @@ document.addEventListener('click',async e=>{
   else if(d.vinc){ const m=S.miembros.find(x=>x.user_id===d.vinc); if(m) formVincular(m); }
   else if(d.rol){ const m=S.miembros.find(x=>x.user_id===d.rol); if(m) form('Rol de '+(m.email||''),[{k:'role',l:'Rol',t:'select',o:[['miembro','Miembro (solo lectura)'],['editor','Editor (edita, sin ver Salud)'],['admin','Administrador (todo, incluye Salud)']]}],{role:m.role},async row=>{ const {error}=await sb.from('miembros').update({role:row.role}).eq('family_id',S.fam).eq('user_id',d.rol); if(error){ toast('Error: '+error.message); return false; } await load(); return true; }); }
   else if(d.ficha) ficha(d.ficha);
+  else if(d.reag) reagendarCita(S.citas.find(c=>c.id===d.reag));
   else if(d.cita&&isEditor()) formCita(S.citas.find(c=>c.id===d.cita));
   else if(d.nota&&isEditor()) formNota(S.notas.find(n=>n.id===d.nota));
   else if('intro' in d) introShow(true);

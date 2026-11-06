@@ -1,6 +1,7 @@
 /* Manual de uso. Para actualizarlo: editar MANUAL (secciones) y agregar una línea arriba en MANUAL_LOG. */
 const MANUAL_VER='5 nov 2026';
 const MANUAL_LOG=[
+  ['6 nov 2026','Nuevo botón «🔄 Reagendar» en las citas pendientes: eliges la nueva fecha y hora, y la cita anterior queda en el historial como «reagendada».'],
   ['6 nov 2026','Citas y tareas con nuevo formato: cada dato en su propia línea y un recordatorio dentro del recuadro (por ejemplo «Hoy a las 15:00 · en 3 h», «Mañana», «Vencida hace 2 días»). También en los informes.'],
   ['5 nov 2026','Informes con nuevo diseño: portada con cifras, recuadro «Lo importante», calendario con puntos de colores (toca un día para ver su detalle) y barras de progreso.'],
   ['5 nov 2026','Nuevo: Más → Informes. Resumen semanal, mensual o general de la familia o de una persona, con opción de imprimir/PDF, copiar y compartir.'],
@@ -39,7 +40,8 @@ const MANUAL=[
   <p>Los feriados se cargan año a año; los de 2028 se agregarán antes de que termine 2027.</p>`},
  {id:'citas',ic:'🩺',t:'Citas médicas',h:`
   <ul><li>Horas de doctor de toda la familia, ordenadas por fecha.</li>
-  <li>Campos: paciente, fecha y hora, doctor o especialidad, lugar, motivo y estado (pendiente, realizada o cancelada).</li>
+  <li>Campos: paciente, fecha y hora, doctor o especialidad, lugar, motivo y estado (pendiente, realizada, cancelada o reagendada).</li>
+  <li><b>Reagendar:</b> si no puedes ir, toca «🔄 Reagendar» en la cita, elige la nueva fecha y hora y guarda. Se crea la cita nueva con los mismos datos y la anterior queda en el historial como «reagendada». Si solo quieres corregir la fecha sin historial, elige esa opción en el mismo formulario.</li>
   <li>Admin y editor las crean y editan; todos las ven. También salen en el calendario y en «Mi ficha».</li></ul>`},
  {id:'tareas',ic:'✅',t:'Tareas del hogar',h:`
   <ul><li>Cada tarea tiene título, descripción, persona asignada, fecha y repetición (ninguna, diaria, semanal o mensual).</li>

@@ -26,7 +26,7 @@ function infDatos(){
   // Citas
   const ci=S.citas.filter(c=>ok(c)&&enR(infLoc(c.fecha))).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
   const cc=e=>ci.filter(c=>c.estado===e).length;
-  S_.push({c:'#2C6B7E',ic:'🩺',t:'Citas médicas',it:ci,k:'cita',res:`${ci.length} en total · ${cc('realizada')} realizadas · ${cc('pendiente')} pendientes · ${cc('cancelada')} canceladas`,
+  S_.push({c:'#2C6B7E',ic:'🩺',t:'Citas médicas',it:ci,k:'cita',res:`${ci.length} en total · ${cc('realizada')} realizadas · ${cc('pendiente')} pendientes · ${cc('cancelada')} canceladas${cc('reagendada')?' · '+cc('reagendada')+' reagendadas':''}`,
     l:ci.map(c=>`${infFh(c.fecha)} · ${pShort(c.persona_id)} · ${[c.doctor,c.motivo].filter(Boolean).join(' – ')||'Cita'}${c.lugar?' ('+c.lugar+')':''} [${c.estado}]`)});
   // Tareas
   const ta=S.tareas.filter(t=>(!pid||t.asignada_a===pid)&&(enR(t.fecha)||(t.hecha&&enR(t.hecha_at))));
