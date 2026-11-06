@@ -1,5 +1,5 @@
 // Service worker: cachea solo el cascarón de la app. Los datos (Supabase) nunca pasan por el caché del SW.
-const V = 'familia-v13';
+const V = 'familia-v14';
 const SHELL = ['./', '/assets/js/acerca-de.js', 'index.html', 'config.js', 'calendario-cl.js', 'modulos.js', 'salud.js', 'informe.js', 'intro.js', 'manual.js', 'manifest.json', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {

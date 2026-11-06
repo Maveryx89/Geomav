@@ -1,6 +1,7 @@
 /* Manual de uso. Para actualizarlo: editar MANUAL (secciones) y agregar una línea arriba en MANUAL_LOG. */
 const MANUAL_VER='5 nov 2026';
 const MANUAL_LOG=[
+  ['6 nov 2026','Citas y tareas con nuevo formato: cada dato en su propia línea y un recordatorio dentro del recuadro (por ejemplo «Hoy a las 15:00 · en 3 h», «Mañana», «Vencida hace 2 días»). También en los informes.'],
   ['5 nov 2026','Informes con nuevo diseño: portada con cifras, recuadro «Lo importante», calendario con puntos de colores (toca un día para ver su detalle) y barras de progreso.'],
   ['5 nov 2026','Nuevo: Más → Informes. Resumen semanal, mensual o general de la familia o de una persona, con opción de imprimir/PDF, copiar y compartir.'],
   ['19 oct 2026','Las listas muestran el nombre corto (primer nombre y primer apellido) y se quitaron datos repetidos en citas, tareas y calendario. El nombre completo sigue en la ficha.'],

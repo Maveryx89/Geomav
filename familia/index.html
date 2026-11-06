@@ -27,6 +27,8 @@ header.top small{opacity:.75}
 .pill{display:inline-block;border-radius:99px;padding:2px 10px;font-size:.78rem;font-weight:700;background:#e8eef3;color:var(--blueprint)}
 .pill.hoy{background:var(--accent);color:#fff}.pill.ok{background:#e3f1e4;color:var(--ok)}.pill.no{background:#f6dcda;color:var(--danger)}
 h2{font-size:.95rem;text-transform:uppercase;letter-spacing:.04em;color:var(--blueprint);margin:18px 0 8px}
+.cc{display:flex;gap:12px;align-items:flex-start}.cc .dt{flex:none;width:58px;text-align:center;border-radius:12px;background:#e8eef3;color:var(--blueprint);padding:6px 2px}.dt .d1{font-size:.66rem;font-weight:700;text-transform:uppercase;line-height:1.2}.dt .d2{font-size:1.45rem;font-weight:800;line-height:1.1}.dt .d3{font-size:.82rem;font-weight:800;margin-top:2px;color:var(--ink)}
+.cl{margin-top:3px;font-size:.88rem}.rec{display:flex;align-items:center;gap:6px;margin-top:10px;padding:7px 10px;border-radius:10px;font-size:.82rem;font-weight:700;background:#e8eef3;color:var(--blueprint)}.rec.hoy{background:var(--accent);color:#fff}.rec.warn{background:#fff3cd;color:#7a5b00}.rec.no{background:#f6dcda;color:var(--danger)}.rec.ok{background:#e3f1e4;color:var(--ok)}
 button{font:inherit;border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:700}
 .primary{background:var(--ink);color:#fff}.ghost{background:#e8e6df;color:var(--ink)}.danger{background:#f6dcda;color:var(--danger)}
 .cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
@@ -332,15 +334,17 @@ function vCalendario(){
   return `<div class="cal-h"><button class="ghost" data-calnav="-1">‹</button><b>${esc(mes)}</b><button class="ghost" data-calnav="1">›</button></div>${aviso}<div class="cal-g">${g}</div><button class="ghost" data-calnav="0" style="width:100%;margin:8px 0">Hoy</button>${det}${lista}${proxEv}<h2>Próximos cumpleaños</h2>${vCumples()}`;
 }
 function citaCard(c,propia){
-  const cls=c.estado==='realizada'?'ok':c.estado==='cancelada'?'no':'';
-  return `<div class="card ${isEditor()?'tap':''}" data-cita="${c.id}"><div class="row"><div class="grow"><div class="t">${esc(fmtDT(c.fecha))}</div><div class="m">${[propia?'':pShort(c.persona_id),c.doctor].filter(Boolean).map(esc).join(' · ')}</div>${c.lugar?`<div class="m">📍 ${esc(c.lugar)}</div>`:''}${c.motivo?`<div class="m clamp">${esc(c.motivo)}</div>`:''}</div><span class="pill ${cls}">${esc(c.estado)}</span></div></div>`;
+  const f=new Date(c.fecha), r=recCita(c);
+  const sem=f.toLocaleDateString('es-CL',{weekday:'short'}).replace('.',''), mes=f.toLocaleDateString('es-CL',{month:'short'}).replace('.','');
+  const hh=f.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',hour12:false});
+  return `<div class="card ${isEditor()?'tap':''}" data-cita="${c.id}"><div class="cc"><div class="dt"><div class="d1">${esc(sem)}</div><div class="d2">${f.getDate()}</div><div class="d1">${esc(mes)}</div><div class="d3">${hh}</div></div><div class="grow"><div class="t">${esc(c.doctor||'Cita médica')}</div>${propia?'':`<div class="cl">👤 ${esc(pShort(c.persona_id))}</div>`}${c.lugar?`<div class="cl">📍 ${esc(c.lugar)}</div>`:''}${c.motivo?`<div class="cl clamp">🩺 ${esc(c.motivo)}</div>`:''}</div></div><div class="rec ${r[0]}">${r[1]}</div></div>`;
 }
 function vCitas(){
   const now=Date.now();
   const prox=S.citas.filter(c=>c.estado==='pendiente'&&new Date(c.fecha)>=now-36e5);
   const hist=S.citas.filter(c=>!prox.includes(c)).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
   if(!S.citas.length) return `<div class="empty">Sin citas registradas.</div>`;
-  return `<h2>Próximas</h2>${prox.map(citaCard).join('')||'<div class="empty">Ninguna pendiente</div>'}${hist.length?`<h2>Historial</h2>${hist.map(citaCard).join('')}`:''}`;
+  return `<h2>Próximas</h2>${prox.map(c=>citaCard(c)).join('')||'<div class="empty">Ninguna pendiente</div>'}${hist.length?`<h2>Historial</h2>${hist.map(c=>citaCard(c)).join('')}`:''}`;
 }
 function vNotas(){
   if(!S.notas.length) return `<div class="empty">Guarda aquí teléfonos de emergencia, colegio, seguros, patentes y otros datos útiles.</div>`;

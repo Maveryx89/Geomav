@@ -26,13 +26,13 @@ function infDatos(){
   // Citas
   const ci=S.citas.filter(c=>ok(c)&&enR(infLoc(c.fecha))).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
   const cc=e=>ci.filter(c=>c.estado===e).length;
-  S_.push({c:'#2C6B7E',ic:'🩺',t:'Citas médicas',res:`${ci.length} en total · ${cc('realizada')} realizadas · ${cc('pendiente')} pendientes · ${cc('cancelada')} canceladas`,
+  S_.push({c:'#2C6B7E',ic:'🩺',t:'Citas médicas',it:ci,k:'cita',res:`${ci.length} en total · ${cc('realizada')} realizadas · ${cc('pendiente')} pendientes · ${cc('cancelada')} canceladas`,
     l:ci.map(c=>`${infFh(c.fecha)} · ${pShort(c.persona_id)} · ${[c.doctor,c.motivo].filter(Boolean).join(' – ')||'Cita'}${c.lugar?' ('+c.lugar+')':''} [${c.estado}]`)});
   // Tareas
   const ta=S.tareas.filter(t=>(!pid||t.asignada_a===pid)&&(enR(t.fecha)||(t.hecha&&enR(t.hecha_at))));
   const hechas=ta.filter(t=>t.hecha), venc=ta.filter(t=>!t.hecha&&t.fecha&&t.fecha<hoy), pend=ta.filter(t=>!t.hecha&&!(t.fecha&&t.fecha<hoy));
   const lt=(arr,pre)=>arr.sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha))).map(t=>`${pre} ${t.titulo}${t.asignada_a?' · '+pShort(t.asignada_a):''}${t.fecha?' · '+fmtDia(String(t.fecha).slice(0,10)):''}`);
-  S_.push({c:'#2e7d32',ic:'✅',t:'Tareas',res:`${ta.length} en total · ${hechas.length} hechas · ${pend.length} pendientes · ${venc.length} vencidas`,l:[...lt(venc,'⚠️ Vencida:'),...lt(pend,'⬜'),...lt(hechas,'✅')]});
+  S_.push({c:'#2e7d32',ic:'✅',t:'Tareas',it:[venc,pend,hechas].flatMap(a=>a.slice().sort((x,y)=>String(x.fecha).localeCompare(String(y.fecha)))),k:'tarea',res:`${ta.length} en total · ${hechas.length} hechas · ${pend.length} pendientes · ${venc.length} vencidas`,l:[...lt(venc,'⚠️ Vencida:'),...lt(pend,'⬜'),...lt(hechas,'✅')]});
   // Eventos familiares
   if(!pid){
     const ev=S.eventos.filter(e=>enR(e.fecha)).sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha)));
@@ -79,7 +79,7 @@ const INF_CSS=`.inf-hero{background:linear-gradient(135deg,var(--ink),var(--blue
 .inf-cal .cal-d{min-height:50px}.inf-cal .cal-d i{display:flex;gap:2px;justify-content:center;flex-wrap:wrap}.inf-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
 .inf-leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.72rem;color:var(--mut);margin-top:8px}.inf-leg span:before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c);margin-right:4px}
 .inf-sec{border-left:5px solid var(--c)}.inf-bar{height:8px;border-radius:99px;background:#e8e6df;margin:6px 0 4px;overflow:hidden}.inf-bar>div{height:100%;border-radius:99px}
-.inf-sec ul{margin:6px 0 0;padding-left:18px}.inf-sec li{margin:2px 0}`;
+.inf-it .card{background:#faf9f6;border-radius:12px;margin:8px 0 0}.inf-ln{border-top:1px solid var(--line);padding:6px 0;font-size:.9rem}.inf-ln:first-of-type{margin-top:6px}`;
 if(!document.getElementById('inf-css')){ const st=document.createElement('style'); st.id='inf-css'; st.textContent=INF_CSS; document.head.appendChild(st); }
 const INF_COL={cita:'#2C6B7E',tarea:'#2e7d32',evento:'#D49A6A',esc:'#7b5ea7',cumple:'#c2527a'};
 /* Puntos del calendario: {fecha:{cita:n,tarea:n,...}} y detalle del día */
@@ -126,7 +126,7 @@ function vInforme(){
     let bar='';
     if(x.t==='Tareas'&&X.tot) bar=`<div class="inf-bar"><div style="width:${Math.round(X.h*100/X.tot)}%;background:var(--ok)"></div></div>`;
     if(x.t.startsWith('Medic')&&X.med!=null) bar=`<div class="inf-bar"><div style="width:${X.med}%;background:${X.med>=80?'var(--ok)':X.med>=50?'#e0a100':'var(--danger)'}"></div></div>`;
-    h+=`<div class="card inf-sec" style="--c:${x.c}"><div class="t">${x.ic} ${esc(x.t)}</div><div class="m">${esc(x.res)}</div>${bar}${x.l.length?'<ul>'+x.l.map(l=>`<li>${esc(l)}</li>`).join('')+'</ul>':''}</div>`;
+    h+=`<div class="card inf-sec" style="--c:${x.c}"><div class="t">${x.ic} ${esc(x.t)}</div><div class="m">${esc(x.res)}</div>${bar}${x.it?(x.it.length?'<div class="inf-it">'+x.it.map(i=>x.k==='cita'?citaCard(i):tareaCard(i)).join('')+'</div>':''):x.l.map(l=>{ const p=l.split(' · '); return `<div class="inf-ln"><span class="m">${esc(p[0])}</span>${p.slice(1).map(q=>`<div>${esc(q)}</div>`).join('')}</div>`; }).join('')}</div>`;
   });
   if(D.porP&&D.porP.length) h+=`<div class="card inf-sec" style="--c:var(--ink)"><div class="t">👪 Por persona</div><table style="width:100%;font-size:.88rem;margin-top:6px"><tr><th align="left">Persona</th><th>Citas</th><th>Tareas pend.</th></tr>`+D.porP.map(x=>`<tr><td>${esc(x.n)}</td><td align="center">${x.c}</td><td align="center">${x.tp}</td></tr>`).join('')+`</table></div>`;
   return h;

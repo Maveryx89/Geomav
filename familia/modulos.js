@@ -47,9 +47,31 @@ function formVincular(m){
 
 /* ---------- Tareas ---------- */
 function cmpTarea(a,b){ return (a.fecha||'9999').localeCompare(b.fecha||'9999')||a.titulo.localeCompare(b.titulo); }
+function recTxt(ms){ const m=Math.round(Math.abs(ms)/6e4); if(m<60) return m+' min'; const h=Math.floor(m/60), r=m%60; if(h<24) return h+' h'+(r?' '+r+' min':''); const d=Math.round(m/1440); return d+(d===1?' día':' días'); }
+function recCita(c){
+  if(c.estado==='realizada') return ['ok','✔ Realizada'];
+  if(c.estado==='cancelada') return ['no','✖ Cancelada'];
+  const f=new Date(c.fecha), ms=f-Date.now(), hh=f.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',hour12:false});
+  const dia=Math.round((new Date(f.getFullYear(),f.getMonth(),f.getDate())-today0())/864e5);
+  if(ms<-36e5) return ['no','⚠ Pasó hace '+recTxt(ms)+' · márcala como realizada'];
+  if(ms<0) return ['hoy','⏰ Ahora · '+hh];
+  if(ms<36e5) return ['hoy','⏰ En '+recTxt(ms)+' · '+hh];
+  if(dia===0) return ['hoy','⏰ Hoy a las '+hh+' · en '+recTxt(ms)];
+  if(dia===1) return ['warn','🔔 Mañana a las '+hh];
+  return ['','📅 En '+dia+' días · '+hh];
+}
+function recTarea(t){
+  if(t.hecha) return ['ok','✔ Hecha'];
+  if(!t.fecha) return null;
+  const d=Math.round((parseDate(t.fecha)-today0())/864e5);
+  if(d<0) return ['no','⚠ Vencida hace '+(-d)+(d===-1?' día':' días')];
+  if(d===0) return ['hoy','⏰ Vence hoy'];
+  if(d===1) return ['warn','🔔 Vence mañana'];
+  return ['','📅 Vence en '+d+' días'];
+}
 function tareaCard(t,propia){
-  const k=hoyKey(), venc=t.fecha&&t.fecha<k&&!t.hecha;
-  return `<div class="card ${isEditor()?'tap':''}" data-tarea="${t.id}"><div class="row"><button class="chkb" data-tareaok="${t.id}" aria-label="Marcar">${t.hecha?'✅':'⬜'}</button><div class="grow ${t.hecha?'done':''}"><div class="t">${esc(t.titulo)}</div><div class="m">${propia?'':(t.asignada_a?'👤 '+esc(pShort(t.asignada_a)):'👥 Cualquiera')+(t.fecha?' · ':'')}${t.fecha?esc(fmtDia(t.fecha)):''}${t.repite?' · 🔁 '+esc(t.repite):''}</div>${t.descripcion?`<div class="m">${esc(t.descripcion)}</div>`:''}</div>${venc?'<span class="pill no">Vencida</span>':(t.fecha===k&&!t.hecha?'<span class="pill hoy">Hoy</span>':'')}</div></div>`;
+  const r=recTarea(t);
+  return `<div class="card ${isEditor()?'tap':''}" data-tarea="${t.id}"><div class="cc"><button class="chkb" data-tareaok="${t.id}" aria-label="Marcar">${t.hecha?'✅':'⬜'}</button><div class="grow ${t.hecha?'done':''}"><div class="t">${esc(t.titulo)}</div>${propia?'':`<div class="cl">${t.asignada_a?'👤 '+esc(pShort(t.asignada_a)):'👥 Cualquiera'}</div>`}${t.fecha?`<div class="cl">📅 ${esc(fmtDia(t.fecha))}</div>`:''}${t.repite?`<div class="cl">🔁 Se repite: ${esc(t.repite)}</div>`:''}${t.descripcion?`<div class="m">${esc(t.descripcion)}</div>`:''}</div></div>${r?`<div class="rec ${r[0]}">${r[1]}</div>`:''}</div>`;
 }
 function vTareas(){
   const mi=miPersonaId(), f=S.tf||'todas';
