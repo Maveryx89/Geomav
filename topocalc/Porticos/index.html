@@ -4665,7 +4665,7 @@ window.PORTICOS_LISTA = (function(){
   }
   function abrirInformeViaje(){
     var d = datosViaje(); if(!d){ alert("Calcula primero la ruta en veh\u00edculo."); return; }
-    var V = "20261106a";
+    var V = "20261106b";
     function cargar(src, ok){ var sc = document.createElement("script"); sc.src = src; sc.onload = ok; sc.onerror = function(){ alert("No se pudo cargar el informe de viaje. Revisa tu conexi\u00f3n e int\u00e9ntalo de nuevo."); }; document.head.appendChild(sc); }
     function ir(){ if(window.PORTICOS_VIAJE) window.PORTICOS_VIAJE.abrir(d); else cargar("informe-viaje.js?v=" + V, function(){ window.PORTICOS_VIAJE.abrir(d); }); }
     if(window.PORTICOS_INFORME && window.PORTICOS_INFORME._h) ir(); else cargar("informe.js?v=" + V, ir);

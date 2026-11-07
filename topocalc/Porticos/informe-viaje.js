@@ -30,7 +30,7 @@ function vista(box, filas, geom){
 }
 
 /* ---------- teselas OpenStreetMap (mismo mapa base que la app) ---------- */
-var TCACHE = {}, TAU2 = 2 * Math.PI;
+var TCACHE = {}, TAU2 = 2 * Math.PI, SIN_TS = false;
 function dataUrl(blob){ return new Promise(function(ok, no){ var fr = new FileReader(); fr.onload = function(){ ok(fr.result); }; fr.onerror = no; fr.readAsDataURL(blob); }); }
 function cargarTeselas(filas, geom){
   if(!window.fetch) return Promise.resolve(null);
@@ -240,7 +240,7 @@ function hojas(d, o, G, logo){
   var ty = 156; p.push(T(14, ty, "Jornada · conducción y tiempo en cada punto", 3.6, 700, NAVY)); p.push(L(14, ty + 2.6, 196, ty + 2.6, NAVY, .35));
   var t0 = M.inicio, t1 = M.fin, X = function(t){ return 14 + (t - t0) / Math.max(1, t1 - t0) * 182; }, by = ty + 6;
   M.filas.forEach(function(r, i){
-    if(i === 0 && r.llega == null) { if(r.est) p.push(R(X(r.sale - r.est * 60000), by, X(r.sale) - X(r.sale - r.est * 60000), 7, COP)); return; }
+    if(i === 0 && r.llega == null) { if(r.est) p.push(R(X(r.sale - r.est * 60000), by, X(r.sale) - X(r.sale - r.est * 60000), 7, COP)); if(r.alm) p.push(R(X(r.alm.a), by, X(r.alm.b) - X(r.alm.a), 7, ALM)); return; }
     var a = r.llega;
     if(i > 0 && r.min) p.push(R(X(a - r.min * 60000), by, X(a) - X(a - r.min * 60000), 7, ACC));
     var fe = a + r.est * 60000; if(r.est) p.push(R(X(a), by, X(fe) - X(a), 7, COP));
@@ -295,7 +295,7 @@ function guardar(k, v){ try{ if(v) localStorage.setItem(k, v); }catch(e){} }
 function generar(d, o){
   var M0 = armar(d, o);
   return Promise.all([H.cargarGeo(), H.cargarFuentes(), H.fuenteEmbebida(), cargarTeselas(M0.filas, M0.geom)]).then(function(r){
-    r[0].teselas = r[3];
+    r[0].teselas = r[3]; SIN_TS = !r[3]; if(!r[3]) TCACHE = {};
     var pags = hojas(d, o, r[0], logoSrc());
     return pags.map(function(b){ return H.conFuente(svgDe(b, "Informe de viaje " + o.fecha), r[2]); });
   });
@@ -324,7 +324,7 @@ function abrir(d){
       generar(d, opts()).then(function(s){
         SV = s;
         $(".iv-prev").innerHTML = s.map(function(x){ return '<div style="margin:0 auto 10px;max-width:520px;border:1px solid var(--line);box-shadow:0 1px 6px rgba(0,0,0,.12)">' + x.replace(/width="210mm" height="297mm"/, 'width="100%" style="display:block"') + '</div>'; }).join("");
-        msg.textContent = s.length > 1 ? "El informe tiene " + s.length + " hojas (la tabla continúa en la siguiente)." : "";
+        msg.textContent = (s.length > 1 ? "El informe tiene " + s.length + " hojas (la tabla continúa en la siguiente). " : "") + (SIN_TS ? "No se pudo cargar el mapa base de OpenStreetMap: se usó un mapa simplificado. Revisa la conexión y reabre el informe." : "");
       }).catch(function(e){ $(".iv-prev").textContent = ""; msg.textContent = "No se pudo armar el informe: " + (e && e.message ? e.message : e); });
     }, 250);
   }
