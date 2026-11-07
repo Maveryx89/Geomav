@@ -1,0 +1,19 @@
+{
+  "id": "/topocalc/Porticos/",
+  "name": "Pórticos · Programación de vigilancia",
+  "short_name": "Pórticos",
+  "description": "Programación y seguimiento de la instalación de pórticos de vigilancia, Región de O'Higgins. Por GeoMav.",
+  "start_url": "/topocalc/Porticos/?source=pwa",
+  "scope": "/topocalc/Porticos/",
+  "display": "standalone",
+  "orientation": "any",
+  "lang": "es-CL",
+  "background_color": "#F4F3EF",
+  "theme_color": "#F4F3EF",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
