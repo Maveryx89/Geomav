@@ -41,7 +41,7 @@ function cargarTeselas(filas, geom){
     x0 = Math.floor((xa + Math.PI) / t); var x1 = Math.floor((xb + Math.PI) / t);
     y0 = Math.floor((Math.PI - yb) / t); var y1 = Math.floor((Math.PI - ya) / t);
     nx = x1 - x0 + 1; ny = y1 - y0 + 1;
-    if(nx * ny <= 36) break;
+    if(nx * ny <= 64) break;
   }
   var n2 = Math.pow(2, z), key = z + "/" + x0 + "/" + y0 + "/" + nx + "x" + ny;
   if(TCACHE[key]) return TCACHE[key];
@@ -85,7 +85,7 @@ function mapa(o, G, box, filas, geom, TS){
   G.comunas.features.forEach(function(ft){
     var pr = ft.properties, ds = [];
     polys(ft.geometry).forEach(function(poly){ poly.forEach(function(r){ var d = ring(r); if(d) ds.push(d); }); });
-    if(ds.length) g.push('<path d="' + ds.join(" ") + '" fill="' + (TS ? "none" : (pr.r6 === 1 ? "#FBFAF6" : "#E9E7E0")) + '" stroke="' + (TS ? "#7A6F9B" : "#BDB8A9") + '" stroke-width="' + (TS ? ".25" : ".3") + '"' + (TS ? ' stroke-opacity=".75"' : "") + ' fill-rule="evenodd"/>');
+    if(ds.length) g.push('<path d="' + ds.join(" ") + '" fill="' + (TS ? "none" : (pr.r6 === 1 ? "#FBFAF6" : "#E9E7E0")) + '" stroke="' + (TS ? "#1B2A4A" : "#BDB8A9") + '" stroke-width="' + (TS ? ".4" : ".3") + '"'  + ' fill-rule="evenodd"/>');
     var big = null; polys(ft.geometry).forEach(function(poly){ if(!big || poly[0].length > big.length) big = poly[0]; });
     var A = 0, Cx = 0, Cy = 0;
     for(var i = 0; i < big.length - 1; i++){ var xa = big[i][0], ya = big[i][1], xb = big[i + 1][0], yb = big[i + 1][1], cr = xa * yb - xb * ya; A += cr; Cx += (xa + xb) * cr; Cy += (ya + yb) * cr; }
@@ -99,7 +99,7 @@ function mapa(o, G, box, filas, geom, TS){
   });
   G.provincias.features.forEach(function(ft){
     var ds = []; polys(ft.geometry).forEach(function(poly){ poly.forEach(function(r){ var d = ring(r); if(d) ds.push(d); }); });
-    if(ds.length) g.push('<path d="' + ds.join(" ") + '" fill="none" stroke="#000" stroke-width=".4" stroke-dasharray="1.6 .9"/>');
+    if(ds.length) g.push('<path d="' + ds.join(" ") + '" fill="none" stroke="' + (TS ? "#6B4FA0" : "#000") + '" stroke-width="' + (TS ? ".7" : ".4") + '"' + (TS ? "" : ' stroke-dasharray="1.6 .9"') + '/>');
   });
   var comRuta = {}; filas.forEach(function(r){ if(r.comuna) comRuta[r.comuna] = 1; });
   var occ = [];
