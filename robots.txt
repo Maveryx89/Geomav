@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /360/
+Disallow: /compras/
 
 Sitemap: https://geomav.me/sitemap.xml
