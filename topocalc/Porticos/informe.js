@@ -827,21 +827,21 @@ function fuenteEmbebida(){
 }
 function conFuente(svg, css){ return css ? svg.replace(/(<title>[\s\S]*?<\/title>)/, "$1\n<style>" + css.replace(/<\/style/g, "") + "</style>") : svg; }
 
-function rasterizar(svg, pw, ph){
+function rasterizar(svg, pw, ph, tipo){
   return new Promise(function(res, rej){
-    var s = svg.replace('width="297mm" height="420mm"', 'width="' + pw + '" height="' + ph + '"');
+    var s = svg.replace(/width="[\d.]+mm" height="[\d.]+mm"/, 'width="' + pw + '" height="' + ph + '"');
     var url = URL.createObjectURL(new Blob([s], { type:"image/svg+xml;charset=utf-8" })), im = new Image();
     im.onload = function(){ var c = document.createElement("canvas"); c.width = pw; c.height = ph; var x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, pw, ph); x.drawImage(im, 0, 0, pw, ph); URL.revokeObjectURL(url);
-      c.toBlob(function(b){ c.width = c.height = 1; if(!b) return rej(new Error("jpeg")); b.arrayBuffer().then(function(ab){ res(new Uint8Array(ab)); }); }, "image/jpeg", .92); };
+      c.toBlob(function(b){ c.width = c.height = 1; if(!b) return rej(new Error("jpeg")); b.arrayBuffer().then(function(ab){ res(new Uint8Array(ab)); }); }, tipo || "image/jpeg", .92); };
     im.onerror = function(){ URL.revokeObjectURL(url); rej(new Error("No se pudo dibujar la hoja")); };
     im.src = url;
   });
 }
-function pdfDesde(imgs, pw, ph){
+function pdfDesde(imgs, pw, ph, pgW, pgH, titulo){
   var enc = new TextEncoder(), parts = [], len = 0, offs = [];
   function put(x){ var b = typeof x === "string" ? enc.encode(x) : x; parts.push(b); len += b.length; }
   function obj(n, body){ offs[n] = len; put(n + " 0 obj\n"); put(body); put("\nendobj\n"); }
-  var W = 841.89, H = 1190.55, n = imgs.length; put("%PDF-1.4\n%âãÏÓ\n");
+  var W = pgW || 841.89, H = pgH || 1190.55, n = imgs.length; put("%PDF-1.4\n%âãÏÓ\n");
   var kids = []; for(var i = 0; i < n; i++) kids.push((3 + i * 3) + " 0 R");
   obj(1, "<< /Type /Catalog /Pages 2 0 R >>"); obj(2, "<< /Type /Pages /Kids [" + kids.join(" ") + "] /Count " + n + " >>");
   imgs.forEach(function(jpg, i){
@@ -852,7 +852,7 @@ function pdfDesde(imgs, pw, ph){
   });
   var total = 3 + n * 3, xref = len; put("xref\n0 " + total + "\n0000000000 65535 f \n");
   for(var k = 1; k < total; k++) put(String(offs[k]).padStart(10, "0") + " 00000 n \n");
-  put("trailer\n<< /Size " + total + " /Root 1 0 R /Info << /Title (Informe de avance Porticos) /Producer (GeoMAV) >> >>\nstartxref\n" + xref + "\n%%EOF");
+  put("trailer\n<< /Size " + total + " /Root 1 0 R /Info << /Title (" + (titulo || "Informe de avance Porticos") + ") /Producer (GeoMAV) >> >>\nstartxref\n" + xref + "\n%%EOF");
   return new Blob(parts, { type:"application/pdf" });
 }
 var _crc = null;
@@ -911,5 +911,5 @@ function pdfDirecto(btn){
     return seq.then(function(){ bajar(pdfDesde(imgs, pw, ph), "Porticos_Informe_Avance_" + R_.M.hoy + ".pdf"); });
   }).then(fin, function(e){ fin(); alert("No se pudo generar el informe: " + (e && e.message ? e.message : e)); });
 }
-window.PORTICOS_INFORME = { pdf:pdfDirecto, generar:generar, _t:{ parseFuentes:parseFuentes, cssFuentes:cssFuentes, modelo:modelo, hoja1:hoja1, hoja2:hoja2, hoja3:hoja3, hoja4:hoja4, hoja5:hoja5, hoja6:hoja6, hoja7:hoja7, hoja8:hoja8, initOrden:initOrden } };
+window.PORTICOS_INFORME = { pdf:pdfDirecto, generar:generar, _h:{ T:T, R:R, L:L, f:f, esc:esc, tw:tw, wrap:wrap, fit:fit, circ:circ, merc:merc, NAVY:NAVY, MUTE:MUTE, CHIP:CHIP, LINE:LINE, FUENTE:FUENTE, MESES:MESES, DIAS:DIAS, pd:pd, cargarGeo:cargarGeo, cargarFuentes:cargarFuentes, fuenteEmbebida:fuenteEmbebida, conFuente:conFuente, rasterizar:rasterizar, pdfDesde:pdfDesde, bajar:bajar }, _t:{ parseFuentes:parseFuentes, cssFuentes:cssFuentes, modelo:modelo, hoja1:hoja1, hoja2:hoja2, hoja3:hoja3, hoja4:hoja4, hoja5:hoja5, hoja6:hoja6, hoja7:hoja7, hoja8:hoja8, initOrden:initOrden } };
 })();

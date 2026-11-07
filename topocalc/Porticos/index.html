@@ -1221,6 +1221,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .ruta-bs{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:8px 0 0; font-size:.72rem; color:var(--ink-soft); } .ruta-acc .r-b.r-base, .ruta-bs .r-b{ all:unset; cursor:pointer; box-sizing:border-box; padding:4px 10px; border-radius:999px; font-size:.72rem; font-weight:700; border:1px solid var(--line-strong); background:var(--paper); color:var(--ink); }
 .base-pin{ background:var(--ink); color:#fff; border:2px solid #fff; border-radius:6px; font:700 11px/18px var(--font-body); text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.4); }
 .ruta-l li em{ font-style:normal; font-size:.68rem; color:var(--blueprint); font-weight:700; white-space:nowrap; }
+.ruta-l li em.r-alm{ display:block; color:var(--ink-soft); font-weight:600; }
 </style>
 <style id="partida-trazado">
 /* partida "Trazado": 8º color fijo (celeste) */
@@ -3349,7 +3350,7 @@ window.PORTICOS_LISTA = (function(){
   function abrirInformeEjecutivo(){
     function ir(){ if(window.PORTICOS_INFORME) window.PORTICOS_INFORME.pdf(resumenBtn); }
     if(window.PORTICOS_INFORME){ ir(); return; }
-    var sc = document.createElement("script"); sc.src = "informe.js?v=20261020b"; sc.onload = ir;
+    var sc = document.createElement("script"); sc.src = "informe.js?v=20261106a"; sc.onload = ir;
     sc.onerror = function(){ alert("No se pudo cargar el generador del informe. Revisa tu conexi\u00f3n e int\u00e9ntalo de nuevo."); };
     document.head.appendChild(sc);
   }
@@ -4512,7 +4513,7 @@ window.PORTICOS_LISTA = (function(){
   var OHIGGINS = [[-35.02,-72.06],[-33.83,-69.98]];
   var mapa = null, capa = null, capaRuta = null, capaGps = null, capaMedir = null, capaBases = null, rutaPts = [], reabrirPopup = false;
   var gpsPos = null, gpsWatch = null, gpsAcc = null, rutaDesdeMi = false, medir = false, medPts = [];
-  var rutaVia = null, rutaViaEstado = "", rutaSalida = "", rutaReq = 0;
+  var rutaVia = null, rutaViaEstado = "", rutaSalida = "", rutaReq = 0, rutaAlmOn = false, rutaAlmMin = 60, rutaAlmDesde = "13:00";
   function tieneCoords(p){ return typeof p.lat === "number" && typeof p.lng === "number" && isFinite(p.lat) && isFinite(p.lng); }
   /* ---------- GPS en el mapa y medición de distancia ---------- */
   function fmtDist(m){ return m < 1000 ? Math.round(m) + " m" : (m / 1000).toLocaleString("es-CL", { maximumFractionDigits: 2 }) + " km"; }
@@ -4633,16 +4634,41 @@ window.PORTICOS_LISTA = (function(){
     });
   }
   function horasRuta(rc, conMi){
-    var H = []; if(!rutaVia) return H; var t = salidaDate().getTime();
-    rc.forEach(function(x, i){ var lg = rutaVia.legs[conMi ? i : i - 1]; if(lg) t += lg.t * 1000; var d = t + (x.it.est || 0) * 60000; H.push({ a:t, d:d }); t = d; });
+    var H = []; if(!rutaVia) return H; var t = salidaDate().getTime(), almT = 0, pendiente = !!(rutaAlmOn && rutaAlmMin > 0 && /^\d{2}:\d{2}$/.test(rutaAlmDesde));
+    if(pendiente){ var pp = rutaAlmDesde.split(":"), dA = new Date(t); dA.setHours(+pp[0], +pp[1], 0, 0); almT = dA.getTime(); }
+    rc.forEach(function(x, i){
+      var lg = rutaVia.legs[conMi ? i : i - 1]; if(lg) t += lg.t * 1000;
+      var a = t, d = t + (x.it.est || 0) * 60000, al = null;
+      /* almuerzo: se toma al terminar el primer punto que cierra a la hora indicada o despu\u00e9s (nunca despu\u00e9s del \u00faltimo punto) */
+      if(pendiente && i < rc.length - 1 && d >= almT){ al = { a:d, b:d + rutaAlmMin * 60000 }; d = al.b; pendiente = false; }
+      H.push({ a:a, d:d, alm:al }); t = d;
+    });
     return H;
   }
+  function almTxt(h){ return h && h.alm ? "\ud83c\udf7d " + hhmm(new Date(h.alm.a)) + "\u2013" + hhmm(new Date(h.alm.b)) : ""; }
   function fmtHora(t, t0){ var d = new Date(t), dd = Math.floor((new Date(t).setHours(0,0,0,0) - new Date(t0).setHours(0,0,0,0)) / 864e5); return hhmm(d) + (dd > 0 ? " +" + dd + "d" : ""); }
   function actualizarHoras(){
     var rc = rutaCoords(), conMi = !!(rutaDesdeMi && gpsPos), HH = horasRuta(rc, conMi), t0 = salidaDate().getTime(), panel = document.getElementById("rutaPanel"); if(!panel || !HH.length) return;
-    HH.forEach(function(h, i){ var a = panel.querySelector('[data-ll="' + i + '"]'), b = panel.querySelector('[data-sa="' + i + '"]'); if(a) a.textContent = fmtHora(h.a, t0); if(b) b.textContent = fmtHora(h.d, t0); });
+    HH.forEach(function(h, i){ var a = panel.querySelector('[data-ll="' + i + '"]'), b = panel.querySelector('[data-sa="' + i + '"]'); if(a) a.textContent = fmtHora(h.a, t0); if(b) b.textContent = fmtHora(h.d, t0); var c = panel.querySelector('[data-al="' + i + '"]'); if(c) c.textContent = almTxt(h); });
     var e = document.getElementById("rutaEstT"); if(e) e.textContent = fmtDur(rc.reduce(function(a, x){ return a + (x.it.est || 0); }, 0) * 60);
     var f = document.getElementById("rutaFin"); if(f) f.textContent = fmtHora(HH[HH.length - 1].a, t0);
+  }
+  function datosViaje(){
+    var rc = rutaCoords(), conMi = !!(rutaDesdeMi && gpsPos); if(!rutaVia || !rc.length) return null;
+    var HH = horasRuta(rc, conMi), sal = salidaDate().getTime(), filas = [];
+    if(conMi) filas.push({ nombre:"Mi ubicaci\u00f3n", comuna:"", gps:true, lat:gpsPos[0], lng:gpsPos[1], est:0, llega:null, sale:sal, tramoKm:0, tramoMin:0 });
+    rc.forEach(function(x, i){
+      var lg = rutaVia.legs[conMi ? i : i - 1], h = HH[i], prim = (i === 0 && !conMi);
+      filas.push({ num:x.n, nombre:x.p.nombre, comuna:x.p.comuna || "", base:!!x.p.base, lat:x.ll[0], lng:x.ll[1], est:x.it.est || 0, llega:prim ? null : h.a, sale:h.d, tramoKm:lg ? lg.d / 1000 : 0, tramoMin:lg ? lg.t / 60 : 0, alm:h.alm || null });
+    });
+    return { filas:filas, geom:rutaVia.geom, salida:sal };
+  }
+  function abrirInformeViaje(){
+    var d = datosViaje(); if(!d){ alert("Calcula primero la ruta en veh\u00edculo."); return; }
+    var V = "20261106a";
+    function cargar(src, ok){ var sc = document.createElement("script"); sc.src = src; sc.onload = ok; sc.onerror = function(){ alert("No se pudo cargar el informe de viaje. Revisa tu conexi\u00f3n e int\u00e9ntalo de nuevo."); }; document.head.appendChild(sc); }
+    function ir(){ if(window.PORTICOS_VIAJE) window.PORTICOS_VIAJE.abrir(d); else cargar("informe-viaje.js?v=" + V, function(){ window.PORTICOS_VIAJE.abrir(d); }); }
+    if(window.PORTICOS_INFORME && window.PORTICOS_INFORME._h) ir(); else cargar("informe.js?v=" + V, ir);
   }
   function basesHtml(){ return '<div class="ruta-bs"><span>Inicio / t\u00e9rmino:</span>' + Object.keys(BASES).map(function(k){ return '<button type="button" class="r-b r-base" data-r="base" data-b="' + k + '" title="Agregar ' + esc(BASES[k].largo) + '">\u2795 ' + esc(BASES[k].nombre) + '</button>'; }).join("") + '</div>'; }
   function pintarRuta(){
@@ -4686,7 +4712,7 @@ window.PORTICOS_LISTA = (function(){
     panel.innerHTML = '<div class="ruta-h"><strong>Ruta (' + rc.length + ' punto' + (rc.length > 1 ? 's' : '') + ')</strong><span>' + (rutaVia ? '' : rc.length > 1 || conMi ? '\u2248 ' + km.toFixed(0) + ' km en l\u00ednea recta (referencial)' : 'agrega otro punto para trazar la ruta') + '</span></div>'
       + '<div class="ruta-sc"><ol class="ruta-l"><li class="r-hd"><i></i><span>Punto</span><span class="r-c">Estancia</span><span class="r-c">Tramo</span><span class="r-c">Llega</span><span class="r-c">Sale</span><i></i><i></i><i></i></li>' + rc.map(function(x, i){
         var lg = rutaVia ? rutaVia.legs[conMi ? i : i - 1] : null, h = HH[i];
-        return '<li data-i="' + i + '"><b' + (x.p.base ? ' class="r-bs"' : '') + '>' + (i + 1) + '</b><span class="r-nm" title="' + esc(x.p.largo || x.p.nombre) + '">' + esc(x.p.nombre) + (x.p.comuna ? ' <small>' + esc(x.p.comuna) + '</small>' : '') + '</span>'
+        return '<li data-i="' + i + '"><b' + (x.p.base ? ' class="r-bs"' : '') + '>' + (i + 1) + '</b><span class="r-nm" title="' + esc(x.p.largo || x.p.nombre) + '">' + esc(x.p.nombre) + (x.p.comuna ? ' <small>' + esc(x.p.comuna) + '</small>' : '') + ' <em class="r-alm" data-al="' + i + '">' + almTxt(h) + '</em></span>'
           + '<label class="r-est"><input type="number" min="0" max="999" step="5" inputmode="numeric" data-est="' + i + '" value="' + (x.it.est || '') + '" placeholder="0" aria-label="Estancia en minutos en ' + esc(x.p.nombre) + '"><small>min</small></label>'
           + '<em class="r-tr">' + (lg ? (lg.d / 1000).toFixed(1) + ' km \u00b7 ' + fmtDur(lg.t) : '') + '</em>'
           + '<span class="r-h" data-ll="' + i + '">' + (h ? fh(h.a) : '\u2014') + '</span><span class="r-h" data-sa="' + i + '">' + (h ? fh(h.d) : '\u2014') + '</span>'
@@ -4704,9 +4730,11 @@ window.PORTICOS_LISTA = (function(){
           h = '<div class="ruta-via"><div class="rv-t"><span><b>' + (rutaVia.dist / 1000).toFixed(1) + ' km</b> por carretera</span><span><b>' + fmtDur(rutaVia.dur) + '</b> en veh\u00edculo</span><span>Estancias <b id="rutaEstT">' + fmtDur(estT * 60) + '</b></span><span>Llegada al \u00faltimo punto <b id="rutaFin">' + (ult ? fh(ult.a) : '\u2014') + '</b></span></div>'
             + '<small>Inicio ' + (rutaSalida ? hhmm(sal) : 'ahora (' + hhmm(sal) + ')') + '. Tiempos de viaje sin tr\u00e1fico; la estancia de cada punto se suma antes de salir al siguiente. Puede diferir de Google Maps.</small></div>';
         }
-        return h + '<label class="ruta-sal">Hora de inicio <input type="time" id="rutaSalida" value="' + esc(rutaSalida) + '"> <span style="color:var(--ink-soft)">(vac\u00edo = ahora)</span></label>';
+        return h + '<label class="ruta-sal">Hora de inicio <input type="time" id="rutaSalida" value="' + esc(rutaSalida) + '"> <span style="color:var(--ink-soft)">(vac\u00edo = ahora)</span></label>'
+          + '<label class="ruta-desde"><input type="checkbox" id="rutaAlmOn"' + (rutaAlmOn ? ' checked' : '') + '> \ud83c\udf7d Incluir almuerzo</label>'
+          + (rutaAlmOn ? '<label class="ruta-sal">Almuerzo de <input type="number" id="rutaAlmMin" min="10" max="180" step="5" inputmode="numeric" value="' + rutaAlmMin + '" style="width:64px"> min, al terminar el primer punto que cierre desde las <input type="time" id="rutaAlmDesde" value="' + esc(rutaAlmDesde) + '"></label>' : '');
       })()
-      + '<div class="ruta-acc">' + (rp.length > 1 ? '<button type="button" class="r-b r-go" data-r="via"' + (rutaViaEstado === "cargando" ? ' disabled' : '') + '>\ud83d\ude97 ' + (rutaVia ? 'Recalcular ruta' : 'Calcular ruta (veh\u00edculo)') + '</button>' + enlaces : '<a class="r-b r-go" href="https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=' + encodeURIComponent(ll(rc[0])) + '" target="_blank" rel="noopener">\ud83e\udded Ir al punto</a>')
+      + '<div class="ruta-acc">' + (rp.length > 1 ? '<button type="button" class="r-b r-go" data-r="via"' + (rutaViaEstado === "cargando" ? ' disabled' : '') + '>\ud83d\ude97 ' + (rutaVia ? 'Recalcular ruta' : 'Calcular ruta (veh\u00edculo)') + '</button>' + (rutaVia ? '<button type="button" class="r-b r-go r-inf" data-r="inf" title="Informe A4 del viaje (PDF y PNG)">\ud83d\udcc4 Informe de viaje</button>' : '') + enlaces : '<a class="r-b r-go" href="https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=' + encodeURIComponent(ll(rc[0])) + '" target="_blank" rel="noopener">\ud83e\udded Ir al punto</a>')
       + (rc.length > 2 ? '<button type="button" class="r-b" data-r="opt">Ordenar por cercan\u00eda</button>' : '') + '<button type="button" class="r-b" data-r="clr">Limpiar ruta</button></div>'
       + (rp.length > 1 ? '<p class="ruta-nota">\u25b6 <b>Navegar</b> abre Maps desde tu ubicaci\u00f3n y pasa por los puntos en orden y deja la ruta completa lista: toca \u00abIniciar\u00bb. <b>Vista previa</b> muestra la ruta desde el primer punto: Maps no deja iniciar si no est\u00e1s ah\u00ed.' + (navT.length > 1 ? ' Maps admite 9 paradas por enlace: al terminar un tramo, abre el siguiente.' : '') + '</p>' : '');
     panel.hidden = false;
@@ -4721,6 +4749,9 @@ window.PORTICOS_LISTA = (function(){
     panel.addEventListener("change", function(e){
       if(e.target && e.target.id === "rutaDesdeMi"){ rutaDesdeMi = e.target.checked; pintarRuta(); }
       else if(e.target && e.target.id === "rutaSalida"){ rutaSalida = e.target.value || ""; pintarRuta(); }
+      else if(e.target && e.target.id === "rutaAlmOn"){ rutaAlmOn = e.target.checked; pintarRuta(); }
+      else if(e.target && e.target.id === "rutaAlmMin"){ rutaAlmMin = Math.max(10, Math.min(180, parseInt(e.target.value, 10) || 60)); pintarRuta(); }
+      else if(e.target && e.target.id === "rutaAlmDesde"){ rutaAlmDesde = e.target.value || "13:00"; pintarRuta(); }
     });
     panel.addEventListener("input", function(e){
       var t = e.target; if(!(t && t.hasAttribute && t.hasAttribute("data-est"))) return;
@@ -4730,6 +4761,7 @@ window.PORTICOS_LISTA = (function(){
       var b = e.target.closest("button[data-r]"); if(!b) return;
       var acc = b.getAttribute("data-r"), i = +b.getAttribute("data-i"); if(isNaN(i)) i = -1;
       if(acc === "via"){ calcularViaje(); return; }
+      if(acc === "inf"){ abrirInformeViaje(); return; }
       if(rutaViaEstado !== "cargando") rutaViaEstado = "";
       if(acc === "base"){ rutaPts.push({ n:b.getAttribute("data-b"), est:0 }); }
       else if(acc === "rm" && i >= 0) rutaPts.splice(i, 1);
