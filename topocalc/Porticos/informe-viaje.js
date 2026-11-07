@@ -18,14 +18,49 @@ function fechaCorta(iso){ var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ""); r
 function isoDe(t){ var d = new Date(t); return d.getFullYear() + "-" + dd(d.getMonth() + 1) + "-" + dd(d.getDate()); }
 
 /* ---------- mapa vectorial con la ruta ---------- */
-function mapa(o, G, box, filas, geom){
-  var MX = box[0], MY = box[1], MW = box[2], MH = box[3];
-  var lats = [], lngs = [];
+var BOX_MAPA = [14, 51, 182, 98];
+function vista(box, filas, geom){
+  var MW = box[2], MH = box[3], lats = [], lngs = [];
   filas.forEach(function(r){ lats.push(r.lat); lngs.push(r.lng); });
   (geom || []).forEach(function(c){ lats.push(c[0]); lngs.push(c[1]); });
   var la0 = Math.min.apply(0, lats), la1 = Math.max.apply(0, lats), lo0 = Math.min.apply(0, lngs), lo1 = Math.max.apply(0, lngs);
   var a0 = merc(la0, lo0), a1 = merc(la1, lo1), cx = (a0[0] + a1[0]) / 2, cy = (a0[1] + a1[1]) / 2, spanx = a1[0] - a0[0], spany = a1[1] - a0[1];
-  var k = Math.max(spanx / (MW * .8), spany / (MH * .8), 4e-7), wx0 = cx - k * MW / 2, wy1 = cy + k * MH / 2;
+  var k = Math.max(spanx / (MW * .86), spany / (MH * .86), 4e-7);
+  return { k:k, wx0:cx - k * MW / 2, wy1:cy + k * MH / 2 };
+}
+
+/* ---------- teselas OpenStreetMap (mismo mapa base que la app) ---------- */
+var TCACHE = {}, TAU2 = 2 * Math.PI;
+function dataUrl(blob){ return new Promise(function(ok, no){ var fr = new FileReader(); fr.onload = function(){ ok(fr.result); }; fr.onerror = no; fr.readAsDataURL(blob); }); }
+function cargarTeselas(filas, geom){
+  if(!window.fetch) return Promise.resolve(null);
+  var V = vista(BOX_MAPA, filas, geom), MW = BOX_MAPA[2], MH = BOX_MAPA[3], TAU = 2 * Math.PI;
+  var xa = V.wx0, xb = V.wx0 + V.k * MW, yb = V.wy1, ya = V.wy1 - V.k * MH, z = 16, nx, ny, x0, y0;
+  for(; z >= 5; z--){
+    var n = Math.pow(2, z), t = TAU / n;
+    x0 = Math.floor((xa + Math.PI) / t); var x1 = Math.floor((xb + Math.PI) / t);
+    y0 = Math.floor((Math.PI - yb) / t); var y1 = Math.floor((Math.PI - ya) / t);
+    nx = x1 - x0 + 1; ny = y1 - y0 + 1;
+    if(nx * ny <= 36) break;
+  }
+  var n2 = Math.pow(2, z), key = z + "/" + x0 + "/" + y0 + "/" + nx + "x" + ny;
+  if(TCACHE[key]) return TCACHE[key];
+  var ps = [];
+  for(var i = 0; i < nx; i++) for(var j = 0; j < ny; j++) (function(tx, ty){
+    ps.push(fetch("https://tile.openstreetmap.org/" + z + "/" + tx + "/" + ty + ".png", { mode:"cors" })
+      .then(function(r){ if(!r.ok) throw new Error("tile"); return r.blob(); }).then(dataUrl)
+      .then(function(d){ return { x:tx, y:ty, d:d }; }, function(){ return null; }));
+  })(((x0 + i) % n2 + n2) % n2, y0 + j);
+  var pr = Promise.all(ps).then(function(a){
+    var ok = a.filter(Boolean);
+    return ok.length >= a.length * .6 ? { z:z, x0:x0, y0:y0, items:ok } : null;
+  }, function(){ return null; });
+  TCACHE[key] = pr; return pr;
+}
+
+function mapa(o, G, box, filas, geom, TS){
+  var MX = box[0], MY = box[1], MW = box[2], MH = box[3];
+  var V = vista(box, filas, geom), k = V.k, wx0 = V.wx0, wy1 = V.wy1;
   function P(lat, lng){ var m = merc(lat, lng); return [MX + (m[0] - wx0) / k, MY + (wy1 - m[1]) / k]; }
   function inv(px, py){ var x = wx0 + (px - MX) * k, y = wy1 - (py - MY) * k; return [(2 * Math.atan(Math.exp(y)) - Math.PI / 2) * 180 / Math.PI, x * 180 / Math.PI]; }
   var laC = inv(MX + MW / 2, MY + MH / 2)[0] * Math.PI / 180, mmPerM = 1 / (k * 6378137 * Math.cos(laC));
@@ -40,16 +75,23 @@ function mapa(o, G, box, filas, geom){
   }
   function polys(geo){ return geo.type === "Polygon" ? [geo.coordinates] : geo.coordinates; }
   var cent = {};
+  if(TS){
+    var tl = TAU2 / Math.pow(2, TS.z), ts = tl / k;
+    TS.items.forEach(function(t){
+      var tx0 = -Math.PI + t.x * tl, tyT = Math.PI - t.y * tl;
+      g.push('<image x="' + f(MX + (tx0 - wx0) / k) + '" y="' + f(MY + (wy1 - tyT) / k) + '" width="' + f(ts + .15) + '" height="' + f(ts + .15) + '" preserveAspectRatio="none" href="' + t.d + '"/>');
+    });
+  }
   G.comunas.features.forEach(function(ft){
     var pr = ft.properties, ds = [];
     polys(ft.geometry).forEach(function(poly){ poly.forEach(function(r){ var d = ring(r); if(d) ds.push(d); }); });
-    if(ds.length) g.push('<path d="' + ds.join(" ") + '" fill="' + (pr.r6 === 1 ? "#FBFAF6" : "#E9E7E0") + '" stroke="#BDB8A9" stroke-width=".3" fill-rule="evenodd"/>');
+    if(ds.length) g.push('<path d="' + ds.join(" ") + '" fill="' + (TS ? "none" : (pr.r6 === 1 ? "#FBFAF6" : "#E9E7E0")) + '" stroke="' + (TS ? "#7A6F9B" : "#BDB8A9") + '" stroke-width="' + (TS ? ".25" : ".3") + '"' + (TS ? ' stroke-opacity=".75"' : "") + ' fill-rule="evenodd"/>');
     var big = null; polys(ft.geometry).forEach(function(poly){ if(!big || poly[0].length > big.length) big = poly[0]; });
     var A = 0, Cx = 0, Cy = 0;
     for(var i = 0; i < big.length - 1; i++){ var xa = big[i][0], ya = big[i][1], xb = big[i + 1][0], yb = big[i + 1][1], cr = xa * yb - xb * ya; A += cr; Cx += (xa + xb) * cr; Cy += (ya + yb) * cr; }
     if(A) cent[pr.comuna] = [Cy / (3 * A), Cx / (3 * A), pr.r6 === 1];
   });
-  G.vial.features.forEach(function(ft){
+  if(!TS) G.vial.features.forEach(function(ft){
     var geo = ft.geometry, lines = geo.type === "MultiLineString" ? geo.coordinates : [geo.coordinates];
     var ds = lines.map(function(l){ return ring(l, false); }).filter(Boolean); if(!ds.length) return;
     var mayor = String((ft.properties || {}).rol || "").toLowerCase().indexOf("ruta") === 0;
@@ -65,7 +107,7 @@ function mapa(o, G, box, filas, geom){
     var c = cent[name], p = P(c[0], c[1]), nm = name.toUpperCase(), sz = c[2] ? 3 : 2.4, wl = tw(nm, sz, 700) + 2;
     if(p[0] > MX + MW - 52 && p[1] > MY + MH - 19) return;
     if(!(MX + wl / 2 + 1 < p[0] && p[0] < MX + MW - wl / 2 - 1 && MY + 6 < p[1] && p[1] < MY + MH - 10)) return;
-    g.push(T(p[0], p[1], nm, sz, comRuta[name] ? 700 : 600, comRuta[name] ? NAVY : "#6B7380", { anchor:"middle", ls:.5, italic:!c[2] }));
+    g.push(T(p[0], p[1], nm, sz, comRuta[name] ? 700 : 600, comRuta[name] ? NAVY : "#6B7380", { anchor:"middle", ls:.5, italic:!c[2], halo:TS ? ["#ffffff", .85] : null }));
   });
   /* ruta */
   var ln = (geom && geom.length > 1) ? geom : filas.map(function(r){ return [r.lat, r.lng]; });
@@ -107,6 +149,7 @@ function mapa(o, G, box, filas, geom){
   o.push(R(sx - 4, sy - 5, bw + 8, 10.5, "rgba(255,255,255,.88)", { rx:1 }));
   for(var i = 0; i < 4; i++) o.push(R(sx + i * bw / 4, sy, bw / 4, 1.4, i % 2 === 0 ? NAVY : "#fff", { stroke:NAVY, sw:.2 }));
   o.push(T(sx, sy - 2, "0", 2, 500, NAVY, { anchor:"middle" })); o.push(T(sx + bw, sy - 2, km + " km", 2, 500, NAVY, { anchor:"middle" }));
+  if(TS) o.push(T(MX + 2, MY + MH - 1.6, "© colaboradores de OpenStreetMap", 1.9, 400, "#3a3f4a", { halo:["#ffffff", .85] }));
   var esc1 = Math.round(1000 / mmPerM / 1000) * 1000; o.push(T(sx + bw / 2, sy + 3.7, "Escala aprox. 1 : " + String(esc1).replace(/\B(?=(\d{3})+(?!\d))/g, "."), 1.9, 400, MUTE, { anchor:"middle" }));
   return o;
 }
@@ -192,7 +235,7 @@ function hojas(d, o, G, logo){
     var sz = 5.4; while(tw(it[0], sz, 700) > bw - 5 && sz > 3) sz -= .2;
     p.push(T(bx + 2.8, 38.6, it[0], sz, 700, NAVY)); p.push(T(bx + 2.8, 43.6, it[1], 2.4, 400, MUTE));
   });
-  p = mapa(p, G, [14, 51, 182, 98], M.filas, M.geom);
+  p = mapa(p, G, BOX_MAPA, M.filas, M.geom, G.teselas);
   /* línea de jornada */
   var ty = 156; p.push(T(14, ty, "Jornada · conducción y tiempo en cada punto", 3.6, 700, NAVY)); p.push(L(14, ty + 2.6, 196, ty + 2.6, NAVY, .35));
   var t0 = M.inicio, t1 = M.fin, X = function(t){ return 14 + (t - t0) / Math.max(1, t1 - t0) * 182; }, by = ty + 6;
@@ -250,7 +293,9 @@ function guardado(k){ try{ return localStorage.getItem(k) || ""; }catch(e){ retu
 function guardar(k, v){ try{ if(v) localStorage.setItem(k, v); }catch(e){} }
 
 function generar(d, o){
-  return Promise.all([H.cargarGeo(), H.cargarFuentes(), H.fuenteEmbebida()]).then(function(r){
+  var M0 = armar(d, o);
+  return Promise.all([H.cargarGeo(), H.cargarFuentes(), H.fuenteEmbebida(), cargarTeselas(M0.filas, M0.geom)]).then(function(r){
+    r[0].teselas = r[3];
     var pags = hojas(d, o, r[0], logoSrc());
     return pags.map(function(b){ return H.conFuente(svgDe(b, "Informe de viaje " + o.fecha), r[2]); });
   });
