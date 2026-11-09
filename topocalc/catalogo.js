@@ -137,7 +137,8 @@ const GRUPOS = [
    "curvaProgresiva",
    "clotoideProgresiva",
    "ejeProyecto",
-   "progresivaOffset"
+   "progresivaOffset",
+   "ejePI"
   ]
  },
  {
@@ -508,6 +509,14 @@ const CATALOGO = {
   "desc": "Lecturas ↔ cotas, replanteo y lecturas en pendiente",
   "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M4 12 L36 12\" stroke-dasharray=\"2 2.2\"/><path d=\"M10 12 L10 32\"/><path d=\"M20 12 L20 26\"/><path d=\"M30 12 L30 20\"/><path d=\"M4 32 L14 32 L22 26 L36 20\"/></svg>",
   "grupo": "altimetria",
+  "oculta": false,
+  "migrada": true
+ },
+ "ejePI": {
+  "name": "Alineamiento por PI (Roadvias)",
+  "desc": "Eje con curvas y espirales, progresivas y replanteo",
+  "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\"><path d=\"M3 34 L14 34 C 20 34, 22 30, 24 24 C 26 18, 29 14, 36 14\"/><path d=\"M3 34 L22 34 L36 14\" stroke-dasharray=\"2 2.2\" stroke-width=\"1\"/><circle cx=\"22\" cy=\"34\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/></svg>",
+  "grupo": "vias",
   "oculta": false,
   "migrada": true
  },

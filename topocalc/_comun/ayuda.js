@@ -77,6 +77,7 @@ const SIGLAS_HERR = {
   taludCoordenadas: [['A, B', 'Puntos del eje con coordenadas, cota y kilómetro'], ['H/V', 'Talud: metros horizontales por cada metro de altura'], ['Chaflán', 'Pie del talud, donde el talud corta el terreno']],
   chaflanArmada: [['Armada', 'Posición del instrumento o de la cuadrilla desde la que se replantea el chaflán'], ['Chaflán', 'Pie del talud, donde el talud corta el terreno'], ['H/V', 'Talud: metros horizontales por cada metro de altura']],
   lecturasCotas: [['PR', 'Punto de referencia de cota conocida'], ['Alt. instrumental', 'Cota del plano de colimación del nivel (cota del PR + lectura atrás)']],
+  ejePI: [['PI','Punto de intersección de las dos tangentes de una curva'], ['TE / ET','Tangente-espiral: donde empieza / termina la espiral de transición'], ['EC / CE','Espiral-curva: donde la espiral se une al arco circular central y donde éste se une a la espiral de salida'], ['PC / PT','Principio / fin de la curva circular'], ['F','Factor de corrección: la distancia a replantear es la distancia de coordenadas dividida por F']],
   bombeoSeccion: [['BM', 'Marca de nivelación (Bench Mark) de cota conocida'], ['Bombeo', 'Pendiente transversal de la calzada hacia ambos lados del eje']],
   instalarTuberia: [['PR', 'Punto de referencia de cota conocida'], ['Clave', 'Parte superior exterior del tubo'], ['Pelo de agua', 'Fondo interior del tubo, por donde corre el agua']],
   cotizacion: ['IVA'],
