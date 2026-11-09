@@ -18,6 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="clima.js?v=20261020a"></script>
+<script src="estado-porticos.js?v=20261109a"></script>
 <script>
 /* Reintenta cargar ExcelJS bajo demanda (si falló al abrir la app sin conexión) */
 window.LP_cargarExcel = function(){
@@ -3358,7 +3359,7 @@ window.PORTICOS_LISTA = (function(){
   function abrirInformeEjecutivo(){
     function ir(){ if(window.PORTICOS_INFORME) window.PORTICOS_INFORME.pdf(resumenBtn); }
     if(window.PORTICOS_INFORME){ ir(); return; }
-    var sc = document.createElement("script"); sc.src = "informe.js?v=20261106a"; sc.onload = ir;
+    var sc = document.createElement("script"); sc.src = "informe.js?v=20261109a"; sc.onload = ir;
     sc.onerror = function(){ alert("No se pudo cargar el generador del informe. Revisa tu conexi\u00f3n e int\u00e9ntalo de nuevo."); };
     document.head.appendChild(sc);
   }
@@ -4481,8 +4482,6 @@ window.PORTICOS_LISTA = (function(){
   function pintarAvance(){
     var wrap = document.getElementById("avanceWrap"); if(!wrap || wrap.hidden) return;
     var d = ultimoData || calcular();
-    var dist = d.orden.map(function(){ return 0; }), sin = 0;
-    lista().forEach(function(p,k){ var st = estadoDe(numDe(p,k), d); if(st) dist[st.idx]++; else sin++; });
     var resumen = '';   /* el estado actual de los pórticos se muestra en Indicadores */
     var sem = {};
     REMOTO.avance.forEach(function(a){ (sem[a.semana] = sem[a.semana] || []).push(a); });
@@ -5187,8 +5186,7 @@ window.PORTICOS_LISTA = (function(){
   var EP_ORDENES = [["lista","Orden del listado"],["nombre","Nombre (A \u2192 Z)"],["comuna","Comuna"],["mas","M\u00e1s avanzados primero"],["menos","Menos avanzados primero"],["reciente","Actividad m\u00e1s reciente"],["registros","M\u00e1s registros"]];
   function estadoPorticosHtml(){
     var d = ultimoData || calcular();
-    var dist = d.orden.map(function(){ return 0; }), sin = 0;
-    lista().forEach(function(p,k){ var st = estadoDe(numDe(p,k), d); if(st){ for(var x = 0; x <= st.idx; x++) dist[x]++; } else sin++; });
+    var cnt = window.PORTICOS_ESTADO.conteo(lista().map(function(p,k){ return numDe(p,k); }), d.orden, window.PORTICOS_ESTADO.ejecutadas(d.orden, window.PROGRAMACION, REMOTO.avance)), dist = cnt.dist, sin = cnt.sin;
     var items = lista().map(function(p,k){
       var num = numDe(p,k), regs = REMOTO.avance.filter(function(a){ return String(a.portico) === num; });
       var ult = regs.reduce(function(m, a){ var x = (a.fecha || "") + (a.registrado || ""); return x > m ? x : m; }, "");

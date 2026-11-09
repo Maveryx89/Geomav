@@ -120,7 +120,8 @@ function modelo(D){
     if(!M.ejecAv[k] || a.fecha < M.ejecAv[k]) M.ejecAv[k] = a.fecha;
     if(!M.ejec[k] || a.fecha < M.ejec[k]) M.ejec[k] = a.fecha;
   });
-  M.NIV = {}; M.PORT.forEach(function(p){ var n = -1; ORDEN.forEach(function(q, i){ if(M.ejec[p.num + "|" + q]) n = i; }); M.NIV[p.num] = n; });
+  var ES0 = window.PORTICOS_ESTADO.conteo(M.PORT.map(function(p){ return p.num; }), ORDEN, M.ejec);
+  M.NIV = ES0.nivel;
   M.TRAZ = M.PORT.filter(function(p){ return M.NIV[p.num] >= 0; }).map(function(p){ return p.num; }).sort(function(a, b){ return a - b; });
   M.CAUSAS = {}; (D.causas || []).forEach(function(c){ M.CAUSAS[c[0]] = c[1]; }); if(!Object.keys(M.CAUSAS).length) M.CAUSAS = CAUSAS0;
   M.corte = fdmy(D.hoy);
@@ -560,15 +561,10 @@ function hoja6(M){
 
 /* ====================== estado actual de cada pórtico ====================== */
 function estadoPortico(M){
-  var est = {};
-  M.AV.forEach(function(a){
-    if(NOTAS.indexOf(a.partida) >= 0 || ORDEN.indexOf(a.partida) < 0) return;
-    var i = ORDEN.indexOf(a.partida), cur = est[a.portico];
-    if(!cur || i > cur[0] || (i === cur[0] && (a.fecha + a.reg) > (cur[1] + cur[3]))) est[a.portico] = [i, a.fecha, a.avance, a.reg];
-  });
-  var dist = ORDEN.map(function(){ return 0; }), sin = 0;
-  M.PORT.forEach(function(p){ var e = est[p.num]; if(e){ for(var k = 0; k <= e[0]; k++) dist[k]++; } else sin++; });
-  return { est:est, dist:dist, sin:sin };
+  /* misma definición que la app: window.PORTICOS_ESTADO (partida ejecutada = Programación "Ejecutado" o Avance al 100 %) */
+  var c = window.PORTICOS_ESTADO.conteo(M.PORT.map(function(p){ return p.num; }), ORDEN, M.ejec), est = {};
+  M.PORT.forEach(function(p){ var i = c.nivel[p.num]; if(i >= 0){ var best = null; M.AV.forEach(function(a){ if(a.portico === p.num && a.partida === ORDEN[i] && (!best || (a.fecha + a.reg) > (best[1] + best[3]))) best = [i, a.fecha, a.avance, a.reg]; }); est[p.num] = best || [i, M.ejec[p.num + "|" + ORDEN[i]] || "", "", ""]; } });
+  return { est:est, dist:c.dist, sin:c.sin };
 }
 
 /* ====================== HOJA 7 · INDICADORES ====================== */
@@ -580,7 +576,6 @@ function hoja7(M){
   function fS(s, size, w, maxw){ return fit(s, size * S, w, maxw); }
   var hoy = M.hoy, lh = iso(lunes(hoy)), PORT = M.PORT, PN = M.PN, ES = estadoPortico(M);
   var total = PORT.length * ORDEN.length, nreal = Object.keys(M.ejecAv).length;
-  var inic = {}; M.AV.forEach(function(a){ if(NOTAS.indexOf(a.partida) < 0) inic[a.portico] = 1; });
   var pend = {}; M.PR.forEach(function(r){ if(r.aut.toLowerCase().indexOf("pendiente") === 0) pend[r.portico] = 1; });
   var sem = {};
   M.PR.forEach(function(r){ var l = iso(lunes(r.fecha)); if(l > lh) return; var s = sem[l] = sem[l] || [0, 0, 0];
@@ -591,7 +586,7 @@ function hoja7(M){
   var prom = con.length ? Math.round(con.reduce(function(a, p){ return a + p[1]; }, 0) / con.length) : null;
   var o = frame(7, "INFORME DE AVANCE · PÓRTICOS DE VIGILANCIA · INDICADORES", "Indicadores del proyecto", "corte al " + M.corte);
   var tend = (ult && prev) ? " · " + (ult[1] - prev[1] >= 0 ? "▲ +" : "▼ ") + (ult[1] - prev[1]) + " pts" : "";
-  o = o.concat(kpis([[Math.round(100 * nreal / Math.max(1, total)) + " %", "avance global · " + nreal + " de " + total + " partidas"], [Object.keys(inic).length, "de " + PORT.length + " pórticos iniciados"],
+  o = o.concat(kpis([[Math.round(100 * nreal / Math.max(1, total)) + " %", "avance global · " + nreal + " de " + total + " partidas"], [PORT.length - ES.sin, "de " + PORT.length + " pórticos iniciados"],
     [ult ? ult[1] + " %" : "–", "PPC sem. " + (ult ? etqs(ult[0]) : "") + tend], [Object.keys(pend).length, "autorizaciones pendientes"]]));
   var y0 = 52, bh = 96, bw1 = 128;
   box(o, 16, y0, bw1, bh, "Cumplimiento del plan semanal (PPC)");
@@ -673,7 +668,7 @@ function icono(x, y, sz, col, tipo){
 function hoja8(M){
   var PORT = M.PORT, ES = estadoPortico(M), est = ES.est, dist = ES.dist, sin = ES.sin;
   var o = frame(8, "INFORME DE AVANCE · PÓRTICOS DE VIGILANCIA · ESTADO", "Estado actual de los " + PORT.length + " pórticos", "corte al " + M.corte);
-  o = o.concat(kpis([[PORT.length, "pórticos en total"], [PORT.length - sin, "con avance registrado"], [sin, "sin iniciar"], [dist[0] || 0, "con trazado ejecutado"]]));
+  o = o.concat(kpis([[PORT.length, "pórticos en total"], [PORT.length - sin, "con partidas ejecutadas"], [sin, "sin iniciar"], [dist[0] || 0, "con trazado ejecutado"]]));
   var y = 53, xx = 16;
   var itL = [["Sin iniciar", sin, "#C9C5B7"]].concat(ORDEN.map(function(nm, i){ return [nm, dist[i], COL[nm]]; }));
   var needL = itL.reduce(function(s_, it){ return s_ + 3.8 + tw(it[0] + " " + it[1], 3, 600) + 6; }, 0), szL = needL > 265 ? Math.max(2.2, 3 * 265 / needL * .96) : 3, gapL = needL > 265 ? 4 : 6;   /* con 9-10 partidas la leyenda se achica para caber en la hoja */
