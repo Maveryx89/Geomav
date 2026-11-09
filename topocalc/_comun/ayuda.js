@@ -69,6 +69,16 @@ const SIGLAS_HERR = {
   gsd: ['GSD'],
   declinacionSolar: ['UT'],
   chequeoNivel: [['A, B','Puntos donde se colocan las miras'],['D','Distancia total A–B (m)'],['d','Distancia del nivel a A en la posición 2 (m)'],['a1, b1','Lecturas en las miras A y B con el nivel centrado'],['a2, b2','Lecturas en las miras A y B con el nivel cerca de A'],['OK','Conforme — el ítem cumple']],
+  teodolitoCoord: [['P1…', 'Visuales medidas desde la estación'], ['Cenital', 'Ángulo vertical medido desde el zenit (90° = visual horizontal)']],
+  interseccion4P: [['1, 2', 'Puntos de la recta 1'], ['1′, 2′', 'Puntos de la recta 2'], ['I', 'Punto de intersección']],
+  estacionLibre: [['1, 2', 'Puntos de coordenadas conocidas'], ['E', 'Estación libre (el punto cuyas coordenadas se calculan)'], ['D', 'Distancia entre los puntos 1 y 2'], ['F', 'Distancia de la estación al punto 1'], ['G', 'Distancia de la estación al punto 2']],
+  resolverTriangulo: [['A, B, C', 'Ángulos del triángulo'], ['a, b, c', 'Lados opuestos a los ángulos A, B y C']],
+  offsetLinea: [['Km', 'Distancia medida desde el punto 1 a lo largo de la línea base'], ['Offset', 'Distancia perpendicular a la línea: izquierda (−) o derecha (+)'], ['Est.', 'Estación desde la que se replantea']],
+  taludCoordenadas: [['A, B', 'Puntos del eje con coordenadas, cota y kilómetro'], ['H/V', 'Talud: metros horizontales por cada metro de altura'], ['Chaflán', 'Pie del talud, donde el talud corta el terreno']],
+  chaflanArmada: [['Armada', 'Posición del instrumento o de la cuadrilla desde la que se replantea el chaflán'], ['Chaflán', 'Pie del talud, donde el talud corta el terreno'], ['H/V', 'Talud: metros horizontales por cada metro de altura']],
+  lecturasCotas: [['PR', 'Punto de referencia de cota conocida'], ['Alt. instrumental', 'Cota del plano de colimación del nivel (cota del PR + lectura atrás)']],
+  bombeoSeccion: [['BM', 'Marca de nivelación (Bench Mark) de cota conocida'], ['Bombeo', 'Pendiente transversal de la calzada hacia ambos lados del eje']],
+  instalarTuberia: [['PR', 'Punto de referencia de cota conocida'], ['Clave', 'Parte superior exterior del tubo'], ['Pelo de agua', 'Fondo interior del tubo, por donde corre el agua']],
   cotizacion: ['IVA'],
   boletaHonorarios: ['IVA']
 };

@@ -1,0 +1,3 @@
+"use strict";
+/* Metadatos de la herramienta «Chaflán desde Armada» (grupo: Superficies y Volúmenes). */
+const TOOLS = { "chaflanArmada": {"name":"Chaflán desde Armada","desc":"Pie de talud (chaflán) y su azimut/distancia desde la armada","icon":"<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M4 28 L12 28 L30 12 L36 12\"/><path d=\"M12 28 L12 34\" stroke-dasharray=\"2 2.2\"/><circle cx=\"30\" cy=\"12\" r=\"2.4\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"6\" cy=\"8\" r=\"2.2\"/><path d=\"M6 8 L30 12\" stroke-dasharray=\"2 2.2\"/></svg>"} };

@@ -1,0 +1,3 @@
+"use strict";
+/* Metadatos de la herramienta «Coordenadas con Teodolito» (grupo: Levantamiento y Coordenadas Planas). */
+const TOOLS = { "teodolitoCoord": {"name":"Coordenadas con Teodolito","desc":"Este, Norte y Cota con azimut, ángulo vertical y distancia","icon":"<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><circle cx=\"9\" cy=\"31\" r=\"2.2\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M9 31 L31 11\"/><path d=\"M31 11 L31 31 L9 31\" stroke-dasharray=\"2 2.2\"/><path d=\"M16 31 A7 7 0 0 0 14 26\"/><circle cx=\"31\" cy=\"11\" r=\"2.4\"/></svg>"} };

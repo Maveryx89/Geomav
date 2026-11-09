@@ -1,0 +1,3 @@
+"use strict";
+/* Metadatos de la herramienta «Offset de una Línea Base» (grupo: Levantamiento y Coordenadas Planas). */
+const TOOLS = { "offsetLinea": {"name":"Offset de una Línea Base","desc":"Coordenadas por kilómetro y distancia al eje","icon":"<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M5 30 L35 14\"/><circle cx=\"5\" cy=\"30\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M20 22 L24 31\" stroke-dasharray=\"2 2.2\"/><circle cx=\"24\" cy=\"31\" r=\"2.4\"/><path d=\"M28 17 L24 8\" stroke-dasharray=\"2 2.2\"/><circle cx=\"24\" cy=\"8\" r=\"2.4\"/></svg>"} };

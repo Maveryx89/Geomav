@@ -1,0 +1,3 @@
+"use strict";
+/* Metadatos de la herramienta «Intersección por 4 Puntos» (grupo: Levantamiento y Coordenadas Planas). */
+const TOOLS = { "interseccion4P": {"name":"Intersección por 4 Puntos","desc":"Cruce de dos rectas, cada una por 2 puntos","icon":"<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M5 31 L35 9\"/><path d=\"M7 8 L33 34\"/><circle cx=\"5\" cy=\"31\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"7\" cy=\"8\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"20\" r=\"2.8\" fill=\"currentColor\" stroke=\"none\"/></svg>"} };

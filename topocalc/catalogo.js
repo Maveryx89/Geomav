@@ -69,9 +69,14 @@ const GRUPOS = [
    "poligonal",
    "poligAbierta",
    "radiacion",
+   "teodolitoCoord",
    "interseccion",
+   "interseccion4P",
+   "estacionLibre",
    "triangulacion",
+   "resolverTriangulo",
    "replanteoPunto",
+   "offsetLinea",
    "rumbo",
    "distPuntoLinea",
    "inversaMultiple",
@@ -89,7 +94,9 @@ const GRUPOS = [
    "area",
    "areaIrregular",
    "sector",
-   "volumen"
+   "volumen",
+   "taludCoordenadas",
+   "chaflanArmada"
   ]
  },
  {
@@ -100,6 +107,7 @@ const GRUPOS = [
   "tools": [
    "nivel",
    "nivelDif",
+   "lecturasCotas",
    "nivelBaro",
    "nivelTrigNMM",
    "curvasNivel",
@@ -125,6 +133,7 @@ const GRUPOS = [
    "curvaReversa",
    "curvaV",
    "peralte",
+   "bombeoSeccion",
    "curvaProgresiva",
    "clotoideProgresiva",
    "ejeProyecto",
@@ -139,6 +148,7 @@ const GRUPOS = [
   "tools": [
    "taludBancos",
    "plantillaZanja",
+   "instalarTuberia",
    "capasPavimento",
    "disenoEscalera"
   ]
@@ -434,6 +444,86 @@ const CATALOGO = {
   "desc": "Desde estación, azimut y distancia",
   "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><circle cx=\"10\" cy=\"30\" r=\"2.2\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M10 30 L30 12\"/><path d=\"M10 30 A14 14 0 0 1 22 17\" stroke-dasharray=\"2 2.2\"/><circle cx=\"30\" cy=\"12\" r=\"2.4\"/></svg>",
   "grupo": "levantamiento",
+  "oculta": false,
+  "migrada": true
+ },
+ "teodolitoCoord": {
+  "name": "Coordenadas con Teodolito",
+  "desc": "Este, Norte y Cota con azimut, ángulo vertical y distancia",
+  "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><circle cx=\"9\" cy=\"31\" r=\"2.2\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M9 31 L31 11\"/><path d=\"M31 11 L31 31 L9 31\" stroke-dasharray=\"2 2.2\"/><path d=\"M16 31 A7 7 0 0 0 14 26\"/><circle cx=\"31\" cy=\"11\" r=\"2.4\"/></svg>",
+  "grupo": "levantamiento",
+  "oculta": false,
+  "migrada": true
+ },
+ "interseccion4P": {
+  "name": "Intersección por 4 Puntos",
+  "desc": "Cruce de dos rectas, cada una por 2 puntos",
+  "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M5 31 L35 9\"/><path d=\"M7 8 L33 34\"/><circle cx=\"5\" cy=\"31\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"7\" cy=\"8\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"20\" r=\"2.8\" fill=\"currentColor\" stroke=\"none\"/></svg>",
+  "grupo": "levantamiento",
+  "oculta": false,
+  "migrada": true
+ },
+ "estacionLibre": {
+  "name": "Estación Libre",
+  "desc": "Coordenadas de la estación desde 2 puntos conocidos",
+  "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M8 10 L32 10\" stroke-dasharray=\"2 2.2\"/><path d=\"M8 10 L20 32 L32 10\"/><circle cx=\"8\" cy=\"10\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"32\" cy=\"10\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"32\" r=\"2.6\"/><path d=\"M16 26 A5 5 0 0 0 24 26\"/></svg>",
+  "grupo": "levantamiento",
+  "oculta": false,
+  "migrada": true
+ },
+ "resolverTriangulo": {
+  "name": "Resolver Triángulo",
+  "desc": "Cualquier triángulo con 3 datos (SSS, SAS, ASA, AAS, SSA)",
+  "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M6 32 L30 32 L22 8 Z\"/><path d=\"M12 32 A6 6 0 0 0 10.5 27.5\"/><path d=\"M25 32 A5 5 0 0 1 26.5 28\"/></svg>",
+  "grupo": "levantamiento",
+  "oculta": false,
+  "migrada": true
+ },
+ "offsetLinea": {
+  "name": "Offset de una Línea Base",
+  "desc": "Coordenadas por kilómetro y distancia al eje",
+  "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M5 30 L35 14\"/><circle cx=\"5\" cy=\"30\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M20 22 L24 31\" stroke-dasharray=\"2 2.2\"/><circle cx=\"24\" cy=\"31\" r=\"2.4\"/><path d=\"M28 17 L24 8\" stroke-dasharray=\"2 2.2\"/><circle cx=\"24\" cy=\"8\" r=\"2.4\"/></svg>",
+  "grupo": "levantamiento",
+  "oculta": false,
+  "migrada": true
+ },
+ "taludCoordenadas": {
+  "name": "Taluceras por Coordenadas",
+  "desc": "Chaflán en corte o terraplén: acérquese / aléjese",
+  "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M4 22 L14 22 L24 12 L28 12 L34 6\"/><path d=\"M4 22 L14 22 L26 32 L36 32\" stroke-dasharray=\"2 2.2\"/><circle cx=\"24\" cy=\"12\" r=\"2.2\" fill=\"currentColor\" stroke=\"none\"/></svg>",
+  "grupo": "superficies",
+  "oculta": false,
+  "migrada": true
+ },
+ "chaflanArmada": {
+  "name": "Chaflán desde Armada",
+  "desc": "Pie de talud (chaflán) y su azimut/distancia desde la armada",
+  "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M4 28 L12 28 L30 12 L36 12\"/><path d=\"M12 28 L12 34\" stroke-dasharray=\"2 2.2\"/><circle cx=\"30\" cy=\"12\" r=\"2.4\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"6\" cy=\"8\" r=\"2.2\"/><path d=\"M6 8 L30 12\" stroke-dasharray=\"2 2.2\"/></svg>",
+  "grupo": "superficies",
+  "oculta": false,
+  "migrada": true
+ },
+ "lecturasCotas": {
+  "name": "Libreta de Nivel: Lecturas y Cotas",
+  "desc": "Lecturas ↔ cotas, replanteo y lecturas en pendiente",
+  "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M4 12 L36 12\" stroke-dasharray=\"2 2.2\"/><path d=\"M10 12 L10 32\"/><path d=\"M20 12 L20 26\"/><path d=\"M30 12 L30 20\"/><path d=\"M4 32 L14 32 L22 26 L36 20\"/></svg>",
+  "grupo": "altimetria",
+  "oculta": false,
+  "migrada": true
+ },
+ "bombeoSeccion": {
+  "name": "Bombeo de Calzada",
+  "desc": "Cotas y lecturas de eje y bordes por progresiva",
+  "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M4 26 L20 18 L36 26\"/><path d=\"M4 26 L4 33 M20 18 L20 33 M36 26 L36 33\" stroke-dasharray=\"2 2.2\"/><path d=\"M4 33 L36 33\"/></svg>",
+  "grupo": "vias",
+  "oculta": false,
+  "migrada": true
+ },
+ "instalarTuberia": {
+  "name": "Instalar Tuberías (Nivel)",
+  "desc": "Cota y lectura sobre la clave; bajar o subir el tubo",
+  "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M3 20 L37 28 L37 34 L3 26 Z\"/><path d=\"M18 8 L18 23.6\" stroke-dasharray=\"2 2.2\"/><path d=\"M14 8 L22 8\"/></svg>",
+  "grupo": "obras",
   "oculta": false,
   "migrada": true
  },

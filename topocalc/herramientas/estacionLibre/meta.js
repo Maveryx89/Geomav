@@ -1,0 +1,3 @@
+"use strict";
+/* Metadatos de la herramienta «Estación Libre» (grupo: Levantamiento y Coordenadas Planas). */
+const TOOLS = { "estacionLibre": {"name":"Estación Libre","desc":"Coordenadas de la estación desde 2 puntos conocidos","icon":"<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><path d=\"M8 10 L32 10\" stroke-dasharray=\"2 2.2\"/><path d=\"M8 10 L20 32 L32 10\"/><circle cx=\"8\" cy=\"10\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"32\" cy=\"10\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"20\" cy=\"32\" r=\"2.6\"/><path d=\"M16 26 A5 5 0 0 0 24 26\"/></svg>"} };
