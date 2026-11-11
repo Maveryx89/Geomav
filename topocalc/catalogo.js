@@ -189,6 +189,15 @@ const GRUPOS = [
    "boletaHonorarios",
    "rendimientoBrigada"
   ]
+ },
+ {
+  "id": "herramientas",
+  "nombre": "Herramientas",
+  "desc": "Utilidades de apoyo: visor de videos y más",
+  "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><rect x=\"5\" y=\"14\" width=\"30\" height=\"20\" rx=\"2\"/><path d=\"M15 14v-4h10v4M5 23h30\"/><rect x=\"17\" y=\"20\" width=\"6\" height=\"6\" rx=\"1\" fill=\"currentColor\" fill-opacity=\".15\"/></svg>",
+  "tools": [
+   "visorVideo"
+  ]
  }
 ];
 const CATALOGO = {
@@ -926,6 +935,14 @@ const CATALOGO = {
   "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><circle cx=\"14\" cy=\"10\" r=\"4\"/><path d=\"M6 26c0-5 4-8 8-8s8 3 8 8\"/><path d=\"M26 16h9M26 22h9M26 28h6\"/></svg>",
   "grupo": "gestion",
   "oculta": true,
+  "migrada": true
+ },
+ "visorVideo": {
+  "name": "Visor de Video",
+  "desc": "Reproduce videos de Dailymotion, YouTube, Vimeo, Drive o de tu equipo",
+  "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"8\" width=\"32\" height=\"21\" rx=\"3\"/><path d=\"M17 14.5v8l7-4z\" fill=\"currentColor\" fill-opacity=\".2\"/><path d=\"M13 34h14M20 29v5\"/></svg>",
+  "grupo": "herramientas",
+  "oculta": false,
   "migrada": true
  }
 };
