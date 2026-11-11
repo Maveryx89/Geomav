@@ -3,6 +3,9 @@
    archivos directos (.mp4/.webm) y videos del propio equipo. Usa los reproductores oficiales de cada plataforma (iframe)
    y no extrae ni descarga contenido de terceros. */
 const VV_HIST_KEY = 'topocalc_visorvideo_hist';
+/* Dailymotion ya no deja incrustar con la dirección genérica (player.html?video=ID responde «Forbidden»): exige el identificador de un reproductor.
+   xjnde es el reproductor por defecto público de Dailymotion; si se crea uno propio en Dailymotion Studio, basta cambiar este valor. */
+const VV_DM_PLAYER = 'xjnde';
 const VV_PLAT = { dailymotion:'Dailymotion', youtube:'YouTube', vimeo:'Vimeo', drive:'Google Drive', archivo:'archivo de video' };
 
 /* Interpreta un enlace (o un código <iframe> pegado) y devuelve cómo reproducirlo; null si no se reconoce. */
@@ -23,7 +26,7 @@ function vvParse(raw){
     else if(h === 'dai.ly') id = seg[0];
     else { const i = seg.indexOf('video'); if(i >= 0 && seg[i+1]) id = seg[i+1].split('_')[0]; }
     if(id && /^[a-z0-9]{5,12}$/i.test(id))
-      return { plat:'dailymotion', id, embed:'https://www.dailymotion.com/embed/video/' + id, orig:'https://www.dailymotion.com/video/' + id };
+      return { plat:'dailymotion', id, embed:'https://geo.dailymotion.com/player/' + VV_DM_PLAYER + '.html?video=' + id, orig:'https://www.dailymotion.com/video/' + id };
     return null;
   }
   if(h === 'youtube.com' || h === 'youtube-nocookie.com' || h === 'music.youtube.com' || h === 'youtu.be'){
