@@ -93,7 +93,7 @@ function renderVisorVideo(){
       <input type="file" id="vv_file" accept="video/*" hidden>
     </div>
     <div class="field-row"><label for="vv_fmt">Formato en pantalla</label>
-      <select id="vv_fmt"><option value="h">Horizontal 16:9</option><option value="v">Vertical 9:16</option></select></div>
+      <select id="vv_fmt"><option value="v" selected>Vertical 9:16</option><option value="h">Horizontal 16:9</option></select></div>
     <div id="vv_msg"></div>
   </div>
   <div id="vv_player"></div>
