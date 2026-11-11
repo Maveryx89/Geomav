@@ -72,7 +72,7 @@ function renderVisorVideo(){
     .vv-btns{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0;}
     .vv-btns .btn{flex:1 1 100%;}
     .vv-btns .btn-sm{flex:1 1 auto; text-align:center; cursor:pointer;}
-    .vv-wrap{position:relative; width:100%; margin:14px auto 0; background:#000; border-radius:10px; overflow:hidden;}
+    .vv-wrap{position:relative; width:100%; margin:14px auto 0; background:#000;}   /* sin border-radius/overflow: recortar un video en reproducción con esquinas redondeadas causa fallas de dibujo en Chrome de Android */
     .vv-h{aspect-ratio:16/9;}
     .vv-v{aspect-ratio:9/16; max-width:360px;}
     .vv-wrap iframe,.vv-wrap video{position:absolute; inset:0; width:100%; height:100%; border:0; background:#000;}
