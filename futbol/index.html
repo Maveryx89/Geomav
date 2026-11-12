@@ -181,7 +181,7 @@
       </table>
     </div>
 
-    <footer>Datos históricos openfootball.org · Fase 1 — ligas top europeas + Sudamérica/Copa América</footer>
+    <footer>Datos históricos openfootball.org · Demo — España 1ª división (5.296 partidos). Más ligas próximamente.</footer>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
@@ -198,22 +198,33 @@
       if (texto) $("texto-carga").textContent = texto;
     }
 
+    // La base se sirve partida en varios archivos (límite de tamaño por archivo
+    // en el repo). Se descargan en orden y se concatenan antes de descomprimir.
+    const PARTES_DB = [
+      "data/liga_demo.db.gz.part00",
+      "data/liga_demo.db.gz.part01",
+      "data/liga_demo.db.gz.part02",
+      "data/liga_demo.db.gz.part03",
+      "data/liga_demo.db.gz.part04",
+      "data/liga_demo.db.gz.part05",
+      "data/liga_demo.db.gz.part06",
+      "data/liga_demo.db.gz.part07",
+    ];
+
     async function cargarBase() {
-      const resp = await fetch("data/partidos.db.gz");
-      const total = Number(resp.headers.get("content-length")) || 0;
-      const reader = resp.body.getReader();
-      const chunks = [];
+      const buffers = [];
       let recibido = 0;
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-        recibido += value.length;
-        if (total) setProgreso(Math.min(95, (recibido / total) * 90), "Descargando base de datos…");
+      for (let i = 0; i < PARTES_DB.length; i++) {
+        setProgreso(Math.min(90, (i / PARTES_DB.length) * 90), `Descargando datos… (${i + 1}/${PARTES_DB.length})`);
+        const resp = await fetch(PARTES_DB[i]);
+        if (!resp.ok) throw new Error("No se pudo descargar " + PARTES_DB[i]);
+        const buf = new Uint8Array(await resp.arrayBuffer());
+        buffers.push(buf);
+        recibido += buf.length;
       }
       const comprimido = new Uint8Array(recibido);
       let offset = 0;
-      for (const c of chunks) { comprimido.set(c, offset); offset += c.length; }
+      for (const c of buffers) { comprimido.set(c, offset); offset += c.length; }
 
       setProgreso(95, "Descomprimiendo…");
       const bytes = pako.inflate(comprimido);
