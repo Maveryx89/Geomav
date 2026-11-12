@@ -7,6 +7,10 @@
  * 2) Ligas y copas se calculan SEPARADAS (las copas se excluyen del cálculo).
  * 3) Peso temporal: partidos más recientes pesan más (decaimiento exponencial).
  *
+ * Esquema de la base (normalizado para reducir tamaño de descarga):
+ *   paises(id, nombre), competiciones(id, nombre), temporadas(id, nombre), equipos(id, nombre)
+ *   partidos(pais_id, competicion_id, temporada_id, fecha, local_id, visita_id, goles_local, goles_visita)
+ *
  * Requiere una instancia de base de datos sql.js (objeto `db` con .prepare()).
  */
 (function (global) {
@@ -46,14 +50,21 @@
     return filas;
   }
 
-  function calcularEloLiga(db, pais, competicion, fechaReferencia) {
+  function idDe(db, tabla, nombre) {
+    const filas = consultar(db, `SELECT id FROM ${tabla} WHERE nombre = ?`, [nombre]);
+    return filas.length ? filas[0][0] : null;
+  }
+
+  function calcularEloLiga(db, paisId, compId, fechaReferencia) {
     const filas = consultar(
       db,
-      `SELECT fecha, equipo_local, equipo_visita, goles_local, goles_visita
-       FROM partidos
-       WHERE pais = ? AND competicion = ? AND fecha IS NOT NULL AND fecha <= ?
-       ORDER BY fecha`,
-      [pais, competicion, fechaReferencia.toISOString().slice(0, 10)]
+      `SELECT p.fecha, el.nombre, ev.nombre, p.goles_local, p.goles_visita
+       FROM partidos p
+       JOIN equipos el ON el.id = p.local_id
+       JOIN equipos ev ON ev.id = p.visita_id
+       WHERE p.pais_id = ? AND p.competicion_id = ? AND p.fecha IS NOT NULL AND p.fecha <= ?
+       ORDER BY p.fecha`,
+      [paisId, compId, fechaReferencia.toISOString().slice(0, 10)]
     );
     const elo = {};
     for (const [, local, visita, gl, gv] of filas) {
@@ -68,23 +79,23 @@
     return elo;
   }
 
-  function estadisticasEquipo(db, equipo, pais, competicion, fechaReferencia) {
+  function estadisticasEquipo(db, equipoId, equipoNombre, paisId, compId, fechaReferencia) {
     const filas = consultar(
       db,
-      `SELECT fecha, equipo_local, equipo_visita, goles_local, goles_visita
-       FROM partidos
-       WHERE pais = ? AND competicion = ? AND (equipo_local = ? OR equipo_visita = ?)`,
-      [pais, competicion, equipo, equipo]
+      `SELECT p.fecha, p.local_id, p.goles_local, p.goles_visita
+       FROM partidos p
+       WHERE p.pais_id = ? AND p.competicion_id = ? AND (p.local_id = ? OR p.visita_id = ?)`,
+      [paisId, compId, equipoId, equipoId]
     );
 
     let gfLocal = 0, gcLocal = 0, pesoLocal = 0;
     let gfVisita = 0, gcVisita = 0, pesoVisita = 0;
     let g = 0, e = 0, p = 0;
 
-    for (const [fecha, local, visita, gl, gv] of filas) {
+    for (const [fecha, localId, gl, gv] of filas) {
       const w = pesoTemporal(fecha, fechaReferencia);
       let resultado;
-      if (local === equipo) {
+      if (localId === equipoId) {
         gfLocal += gl * w; gcLocal += gv * w; pesoLocal += w;
         resultado = gl > gv ? "G" : gl === gv ? "E" : "P";
       } else {
@@ -103,11 +114,11 @@
     };
   }
 
-  function promedioLiga(db, pais, competicion) {
+  function promedioLiga(db, paisId, compId) {
     const filas = consultar(
       db,
-      `SELECT AVG(goles_local), AVG(goles_visita) FROM partidos WHERE pais = ? AND competicion = ?`,
-      [pais, competicion]
+      `SELECT AVG(goles_local), AVG(goles_visita) FROM partidos WHERE pais_id = ? AND competicion_id = ?`,
+      [paisId, compId]
     );
     return filas[0];
   }
@@ -128,9 +139,16 @@
     }
     fechaReferencia = fechaReferencia || new Date();
 
-    const [mediaGl, mediaGv] = promedioLiga(db, pais, competicion);
-    const eqL = estadisticasEquipo(db, local, pais, competicion, fechaReferencia);
-    const eqV = estadisticasEquipo(db, visita, pais, competicion, fechaReferencia);
+    const paisId = idDe(db, "paises", pais);
+    const compId = idDe(db, "competiciones", competicion);
+    const localId = idDe(db, "equipos", local);
+    const visitaId = idDe(db, "equipos", visita);
+    if (paisId === null || compId === null) throw new Error("País o competición no encontrados.");
+    if (localId === null || visitaId === null) throw new Error("Equipo no encontrado.");
+
+    const [mediaGl, mediaGv] = promedioLiga(db, paisId, compId);
+    const eqL = estadisticasEquipo(db, localId, local, paisId, compId, fechaReferencia);
+    const eqV = estadisticasEquipo(db, visitaId, visita, paisId, compId, fechaReferencia);
 
     const fzaAtaqueLocal = eqL.gfLocal ? eqL.gfLocal / mediaGl : 1.0;
     const fzaDefensaVisita = eqV.gcVisita ? eqV.gcVisita / mediaGl : 1.0;
@@ -155,7 +173,7 @@
     }
 
     const top5 = [...matriz].sort((a, b) => b.p - a.p).slice(0, 5);
-    const elo = calcularEloLiga(db, pais, competicion, fechaReferencia);
+    const elo = calcularEloLiga(db, paisId, compId, fechaReferencia);
 
     return {
       lamLocal, lamVisita, pLocal, pEmpate, pVisita, top5,
@@ -166,13 +184,17 @@
   }
 
   function listarPaises(db) {
-    return consultar(db, `SELECT DISTINCT pais FROM partidos ORDER BY pais`).map((f) => f[0]);
+    return consultar(db, `SELECT nombre FROM paises ORDER BY nombre`).map((f) => f[0]);
   }
 
   function listarCompeticiones(db, pais) {
     const filas = consultar(
       db,
-      `SELECT DISTINCT competicion FROM partidos WHERE pais = ? ORDER BY competicion`,
+      `SELECT DISTINCT c.nombre
+       FROM partidos p
+       JOIN paises pa ON pa.id = p.pais_id
+       JOIN competiciones c ON c.id = p.competicion_id
+       WHERE pa.nombre = ? ORDER BY c.nombre`,
       [pais]
     );
     return filas.map((f) => f[0]).filter((c) => !esCopa(c));
@@ -181,9 +203,19 @@
   function listarEquipos(db, pais, competicion) {
     const filas = consultar(
       db,
-      `SELECT equipo_local AS e FROM partidos WHERE pais = ? AND competicion = ?
+      `SELECT el.nombre AS e
+       FROM partidos p
+       JOIN paises pa ON pa.id = p.pais_id
+       JOIN competiciones c ON c.id = p.competicion_id
+       JOIN equipos el ON el.id = p.local_id
+       WHERE pa.nombre = ? AND c.nombre = ?
        UNION
-       SELECT equipo_visita AS e FROM partidos WHERE pais = ? AND competicion = ?
+       SELECT ev.nombre AS e
+       FROM partidos p
+       JOIN paises pa ON pa.id = p.pais_id
+       JOIN competiciones c ON c.id = p.competicion_id
+       JOIN equipos ev ON ev.id = p.visita_id
+       WHERE pa.nombre = ? AND c.nombre = ?
        ORDER BY e`,
       [pais, competicion, pais, competicion]
     );
