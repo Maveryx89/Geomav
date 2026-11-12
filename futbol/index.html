@@ -1,1 +1,345 @@
-__INDEX_HTML__
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Predictor GeoMav · Fútbol</title>
+<meta name="description" content="Predicción de resultados de fútbol a partir de historial (Elo + Poisson)." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>" />
+<style>
+  :root {
+    --bg: #0f172a;
+    --bg-panel: #16213e;
+    --bg-panel-2: #1c2a4a;
+    --border: #2a3a5c;
+    --text: #e7ecf7;
+    --text-dim: #9aa6c3;
+    --accent: #3dd68c;
+    --accent-2: #4f8cff;
+    --danger: #ff6b6b;
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f4f6fb;
+      --bg-panel: #ffffff;
+      --bg-panel-2: #eef1f8;
+      --border: #dde3f0;
+      --text: #10172a;
+      --text-dim: #5b6680;
+      --accent: #0ea86c;
+      --accent-2: #2f6fed;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    padding: 20px 16px 60px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  header p { color: var(--text-dim); margin: 0; font-size: 0.92rem; }
+
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 18px;
+  }
+
+  .estado {
+    display: flex; align-items: center; gap: 10px;
+    color: var(--text-dim); font-size: 0.9rem;
+  }
+  .spinner {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid var(--border); border-top-color: var(--accent-2);
+    animation: spin 0.8s linear infinite; flex: 0 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .barra-progreso {
+    width: 100%; height: 6px; border-radius: 4px; background: var(--bg-panel-2);
+    overflow: hidden; margin-top: 10px;
+  }
+  .barra-progreso > div {
+    height: 100%; background: var(--accent-2); width: 0%;
+    transition: width 0.2s ease;
+  }
+
+  label { display: block; font-size: 0.82rem; color: var(--text-dim); margin: 14px 0 6px; }
+  label:first-of-type { margin-top: 0; }
+  select {
+    width: 100%; padding: 11px 12px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg-panel-2); color: var(--text);
+    font-size: 0.98rem; appearance: none;
+  }
+  select:disabled { opacity: 0.5; }
+
+  .fila-vs { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: end; }
+  .vs-sep { color: var(--text-dim); font-size: 0.85rem; padding-bottom: 11px; text-align: center; }
+
+  button.principal {
+    width: 100%; margin-top: 18px; padding: 13px;
+    border: none; border-radius: 10px; cursor: pointer;
+    background: var(--accent); color: #06230f; font-weight: 600; font-size: 1rem;
+  }
+  button.principal:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .error { color: var(--danger); font-size: 0.88rem; margin-top: 10px; }
+
+  #resultado { display: none; }
+  .matchup { text-align: center; font-size: 1.05rem; font-weight: 600; margin-bottom: 4px; }
+  .liga-tag { text-align: center; color: var(--text-dim); font-size: 0.82rem; margin-bottom: 18px; }
+
+  .elo-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 16px; }
+  .elo-row b { color: var(--text); }
+
+  .gep { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+  .gep > div {
+    background: var(--bg-panel-2); border-radius: 10px; padding: 12px 8px; text-align: center;
+  }
+  .gep .pct { font-size: 1.3rem; font-weight: 700; }
+  .gep .lbl { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
+  .gep .max .pct { color: var(--accent); }
+
+  .goles-esperados { text-align: center; font-size: 0.88rem; color: var(--text-dim); margin-bottom: 18px; }
+
+  table.marcadores { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  table.marcadores th { text-align: left; color: var(--text-dim); font-weight: 500; font-size: 0.78rem; padding-bottom: 6px; }
+  table.marcadores td { padding: 8px 4px; border-top: 1px solid var(--border); }
+  table.marcadores td.marcador { font-weight: 600; }
+  table.marcadores td.prob { text-align: right; color: var(--accent-2); font-weight: 600; }
+
+  footer { text-align: center; color: var(--text-dim); font-size: 0.76rem; margin-top: 10px; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>⚽ Predictor GeoMav</h1>
+      <p>Probabilidad de resultado y marcador, calculado desde el historial (Elo + Poisson)</p>
+    </header>
+
+    <div class="panel" id="panel-carga">
+      <div class="estado" id="estado-carga">
+        <div class="spinner"></div>
+        <span id="texto-carga">Descargando base de datos…</span>
+      </div>
+      <div class="barra-progreso"><div id="barra"></div></div>
+    </div>
+
+    <div class="panel" id="panel-form" style="display:none">
+      <label for="sel-pais">País / región</label>
+      <select id="sel-pais"></select>
+
+      <label for="sel-competicion">Competición (solo liga — las copas se calculan aparte)</label>
+      <select id="sel-competicion"></select>
+
+      <div class="fila-vs">
+        <div>
+          <label for="sel-local">Equipo local</label>
+          <select id="sel-local"></select>
+        </div>
+        <div class="vs-sep">vs</div>
+        <div>
+          <label for="sel-visita">Equipo visita</label>
+          <select id="sel-visita"></select>
+        </div>
+      </div>
+
+      <button class="principal" id="btn-calcular" disabled>Calcular predicción</button>
+      <div class="error" id="error-msg" style="display:none"></div>
+    </div>
+
+    <div class="panel" id="resultado">
+      <div class="matchup" id="r-matchup"></div>
+      <div class="liga-tag" id="r-liga"></div>
+
+      <div class="elo-row">
+        <span>Elo <b id="r-elo-local"></b></span>
+        <span>Elo <b id="r-elo-visita"></b></span>
+      </div>
+
+      <div class="gep">
+        <div id="gep-local"><div class="pct"></div><div class="lbl">Gana local</div></div>
+        <div id="gep-empate"><div class="pct"></div><div class="lbl">Empate</div></div>
+        <div id="gep-visita"><div class="pct"></div><div class="lbl">Gana visita</div></div>
+      </div>
+
+      <div class="goles-esperados" id="r-goles"></div>
+
+      <table class="marcadores">
+        <thead><tr><th>Marcador más probable</th><th style="text-align:right">Prob.</th></tr></thead>
+        <tbody id="r-top5"></tbody>
+      </table>
+    </div>
+
+    <footer>Datos históricos openfootball.org · Fase 1 — ligas top europeas + Sudamérica/Copa América</footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+  <script src="engine.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    const $ = (id) => document.getElementById(id);
+    let db = null;
+
+    function setProgreso(pct, texto) {
+      $("barra").style.width = pct + "%";
+      if (texto) $("texto-carga").textContent = texto;
+    }
+
+    async function cargarBase() {
+      const resp = await fetch("data/partidos.db.gz");
+      const total = Number(resp.headers.get("content-length")) || 0;
+      const reader = resp.body.getReader();
+      const chunks = [];
+      let recibido = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        recibido += value.length;
+        if (total) setProgreso(Math.min(95, (recibido / total) * 90), "Descargando base de datos…");
+      }
+      const comprimido = new Uint8Array(recibido);
+      let offset = 0;
+      for (const c of chunks) { comprimido.set(c, offset); offset += c.length; }
+
+      setProgreso(95, "Descomprimiendo…");
+      const bytes = pako.inflate(comprimido);
+
+      setProgreso(98, "Iniciando motor SQL…");
+      const SQL = await initSqlJs({
+        locateFile: (f) => "https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/" + f,
+      });
+      db = new SQL.Database(bytes);
+      setProgreso(100, "Listo");
+    }
+
+    function poblarSelect(select, opciones, placeholder) {
+      select.innerHTML = "";
+      if (placeholder) {
+        const op = document.createElement("option");
+        op.value = ""; op.textContent = placeholder; op.disabled = true; op.selected = true;
+        select.appendChild(op);
+      }
+      for (const o of opciones) {
+        const op = document.createElement("option");
+        op.value = o; op.textContent = o;
+        select.appendChild(op);
+      }
+    }
+
+    function actualizarCompeticiones() {
+      const pais = $("sel-pais").value;
+      const comps = MotorPrediccion.listarCompeticiones(db, pais);
+      poblarSelect($("sel-competicion"), comps, "Elige competición");
+      $("sel-competicion").disabled = comps.length === 0;
+      actualizarEquipos();
+    }
+
+    function actualizarEquipos() {
+      const pais = $("sel-pais").value;
+      const competicion = $("sel-competicion").value;
+      if (!competicion) {
+        poblarSelect($("sel-local"), [], "—");
+        poblarSelect($("sel-visita"), [], "—");
+        $("sel-local").disabled = true; $("sel-visita").disabled = true;
+        $("btn-calcular").disabled = true;
+        return;
+      }
+      const equipos = MotorPrediccion.listarEquipos(db, pais, competicion);
+      poblarSelect($("sel-local"), equipos, "Elige equipo local");
+      poblarSelect($("sel-visita"), equipos, "Elige equipo visita");
+      $("sel-local").disabled = false; $("sel-visita").disabled = false;
+      $("btn-calcular").disabled = false;
+    }
+
+    function fmtPct(x) { return (x * 100).toFixed(1) + "%"; }
+
+    function mostrarResultado(local, visita, pais, competicion, r) {
+      $("r-matchup").textContent = `${local} vs ${visita}`;
+      $("r-liga").textContent = `${competicion} · ${pais}`;
+      $("r-elo-local").textContent = Math.round(r.eloLocal) + ` (${local})`;
+      $("r-elo-visita").textContent = Math.round(r.eloVisita) + ` (${visita})`;
+
+      const bloques = [
+        { el: $("gep-local"), v: r.pLocal },
+        { el: $("gep-empate"), v: r.pEmpate },
+        { el: $("gep-visita"), v: r.pVisita },
+      ];
+      const max = Math.max(r.pLocal, r.pEmpate, r.pVisita);
+      for (const b of bloques) {
+        b.el.querySelector(".pct").textContent = fmtPct(b.v);
+        b.el.classList.toggle("max", b.v === max);
+      }
+
+      $("r-goles").textContent =
+        `Goles esperados: ${local} ${r.lamLocal.toFixed(2)} — ${r.lamVisita.toFixed(2)} ${visita}`;
+
+      const tbody = $("r-top5");
+      tbody.innerHTML = "";
+      for (const { gl, gv, p } of r.top5) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td class="marcador">${local} ${gl} - ${gv} ${visita}</td><td class="prob">${fmtPct(p)}</td>`;
+        tbody.appendChild(tr);
+      }
+
+      $("resultado").style.display = "block";
+      $("resultado").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function calcular() {
+      const pais = $("sel-pais").value;
+      const competicion = $("sel-competicion").value;
+      const local = $("sel-local").value;
+      const visita = $("sel-visita").value;
+      const errEl = $("error-msg");
+      errEl.style.display = "none";
+
+      if (!local || !visita) { errEl.textContent = "Elige ambos equipos."; errEl.style.display = "block"; return; }
+      if (local === visita) { errEl.textContent = "El equipo local y visita no pueden ser el mismo."; errEl.style.display = "block"; return; }
+
+      try {
+        const r = MotorPrediccion.predecir(db, local, visita, pais, competicion);
+        mostrarResultado(local, visita, pais, competicion, r);
+      } catch (e) {
+        errEl.textContent = e.message;
+        errEl.style.display = "block";
+      }
+    }
+
+    async function iniciar() {
+      try {
+        await cargarBase();
+      } catch (e) {
+        $("texto-carga").textContent = "Error al cargar la base: " + e.message;
+        return;
+      }
+      $("panel-carga").style.display = "none";
+      $("panel-form").style.display = "block";
+
+      const paises = MotorPrediccion.listarPaises(db);
+      poblarSelect($("sel-pais"), paises, null);
+      actualizarCompeticiones();
+
+      $("sel-pais").addEventListener("change", actualizarCompeticiones);
+      $("sel-competicion").addEventListener("change", actualizarEquipos);
+      $("btn-calcular").addEventListener("click", calcular);
+    }
+
+    iniciar();
+  })();
+  </script>
+</body>
+</html>
