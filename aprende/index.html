@@ -111,13 +111,21 @@
     <div class="contenedor">
       <span class="etiqueta-seccion">Aprende</span>
       <h1 class="titulo-seccion">Guías sobre <span class="texto-destacado">topografía y normativa</span>.</h1>
-      <p class="pagina-hero-descripcion">Explicaciones claras sobre las leyes, trámites y conceptos técnicos que más preguntan nuestros clientes en O'Higgins, Maule y Biobío.</p>
+      <p class="pagina-hero-descripcion">Explicaciones claras sobre las leyes, trámites y conceptos técnicos que más preguntan nuestros clientes en O'Higgins, Maule y Ñuble.</p>
     </div>
   </section>
 
   <!-- LISTADO DE ARTÍCULOS -->
   <section class="pagina-galeria">
     <div class="contenedor">
+
+      <!-- BUSCADOR DE GUÍAS -->
+      <div class="aprende-buscador" style="margin-bottom:36px;">
+        <input type="search" id="buscadorAprende" placeholder="Buscar guía: subdivisión, deslindes, drones…" aria-label="Buscar en las guías" autocomplete="off"
+               style="width:100%; max-width:560px; padding:14px 18px; border:1px solid rgba(10,34,64,0.25); border-radius:8px; background:var(--color-blanco); font-family:inherit; font-size:1rem; color:var(--color-primario);">
+        <p id="buscadorAprendeEstado" role="status" aria-live="polite" style="margin-top:10px; min-height:1.3em; font-size:0.9rem; color:var(--color-muted);"></p>
+      </div>
+
 
       <!-- TOPOGRAFÍA -->
       <h2 style="font-size:1.4rem; font-weight:800; margin-bottom:4px;">📐 Topografía</h2>
@@ -431,6 +439,36 @@
     </div>
   </footer>
 
+  <script>
+  // Buscador de guías: filtra las tarjetas por texto (sin distinguir tildes ni mayúsculas)
+  (function () {
+    var entrada = document.getElementById('buscadorAprende');
+    var estado = document.getElementById('buscadorAprendeEstado');
+    if (!entrada) return;
+    var norm = function (s) { return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); };
+    var grupos = [].map.call(document.querySelectorAll('.pagina-galeria .articulos-grid'), function (grid) {
+      var cab = [], el = grid.previousElementSibling;
+      while (el && !el.classList.contains('articulos-grid') && !el.classList.contains('aprende-buscador')) { cab.push(el); if (el.tagName === 'H2') break; el = el.previousElementSibling; }
+      var tarjetas = [].map.call(grid.querySelectorAll('.articulo-card'), function (c) { return { el: c, texto: norm(c.textContent) }; });
+      return { grid: grid, cab: cab, tarjetas: tarjetas };
+    });
+    var filtrar = function () {
+      var palabras = norm(entrada.value).split(/\s+/).filter(Boolean), total = 0;
+      grupos.forEach(function (g) {
+        var n = 0;
+        g.tarjetas.forEach(function (t) {
+          var ok = palabras.every(function (p) { return t.texto.indexOf(p) !== -1; });
+          t.el.style.display = ok ? '' : 'none'; if (ok) n++;
+        });
+        g.grid.style.display = n ? '' : 'none';
+        g.cab.forEach(function (c) { c.style.display = n ? '' : 'none'; });
+        total += n;
+      });
+      estado.textContent = !palabras.length ? '' : (total ? total + (total === 1 ? ' guía encontrada' : ' guías encontradas') : 'No hay guías con ese término. Prueba con otra palabra.');
+    };
+    entrada.addEventListener('input', filtrar);
+  })();
+  </script>
   <script src="../assets/js/site.js"></script>
   <script src="../assets/js/chatbot.js"></script>
 </body>
