@@ -3064,7 +3064,7 @@ window.PORTICOS_LISTA = (function(){
       else if(action === "importar-planilla"){
         var go = function(){ if(window.PORTICOS_IMPORTAR) window.PORTICOS_IMPORTAR.abrir(); };
         if(window.PORTICOS_IMPORTAR){ go(); }
-        else { var sc = document.createElement("script"); sc.src = "importar-planilla.js?v=20261103a"; sc.onload = go; sc.onerror = function(){ alert("No se pudo cargar el importador. Revisa tu conexi\u00f3n."); }; document.head.appendChild(sc); }
+        else { var sc = document.createElement("script"); sc.src = "importar-planilla.js?v=20261109a"; sc.onload = go; sc.onerror = function(){ alert("No se pudo cargar el importador. Revisa tu conexi\u00f3n."); }; document.head.appendChild(sc); }
       }
       else if(action === "ruta"){ abrirRuta(); }
       else if(action === "guardar-todo"){ guardarTodo(el); }

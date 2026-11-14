@@ -48,8 +48,10 @@ function leerLista(ws, buscar){
     if(!f || port == null || port === "" || tar == null || tar === "") continue;
     var part = PM[sinTilde(tar)]; if(!part){ ign++; continue; }
     var nom = String(port).replace(/\([^)]*\)/g, "").trim(), p = buscar(nom); if(!p){ nh[nom] = 1; continue; }
-    var eq = col.equipo ? cel(r2, col.equipo) : null;
-    ev.push({ p:p, partida:part, f:f, e:"Programado", eq:eq == null ? "" : String(eq).trim() });
+    var eq = col.equipo ? cel(r2, col.equipo) : null, hc = col.hecho ? sinTilde(cel(r2, col.hecho)) : "", ob = col.observacion ? cel(r2, col.observacion) : null;
+    /* columna «Hecho»: Listo -> ejecutada; No / A medias -> no ejecutada (el motivo va en Observación); vacío o «En proceso» -> sigue programada */
+    var est = hc === "listo" ? "Ejecutado" : (hc === "no" || hc === "a medias" ? "No ejecutado" : "Programado");
+    ev.push({ p:p, partida:part, f:f, e:est, eq:eq == null ? "" : String(eq).trim(), obs:ob == null ? "" : String(ob).replace(/\s+/g, " ").trim() });
   }
   return { ev:ev, nh:Object.keys(nh), ign:ign };
 }
@@ -93,7 +95,7 @@ function leerPlanilla(buf, anio, lista){
     });
     /* la misma actividad puede venir de la hoja de lista y de la Hoja Maestra: se deja una sola, con el equipo si alguna lo trae */
     var vis = {}, unico = [];
-    ev.forEach(function(e){ var k = e.p.num + "|" + e.partida + "|" + e.f + "|" + e.e, x = vis[k]; if(!x){ vis[k] = e; unico.push(e); } else if(!x.eq && e.eq) x.eq = e.eq; });
+    ev.forEach(function(e){ var k = e.p.num + "|" + e.partida + "|" + e.f + "|" + e.e, x = vis[k]; if(!x){ vis[k] = e; unico.push(e); } else { if(!x.eq && e.eq) x.eq = e.eq; if(!x.obs && e.obs) x.obs = e.obs; } });
     ev = unico;
     var rango = null, partL = {};
     if(esLista && !matriz && ev.length){ ev.forEach(function(e){ partL[e.partida] = 1; if(!rango) rango = { d:e.f, h:e.f }; if(e.f < rango.d) rango.d = e.f; if(e.f > rango.h) rango.h = e.f; }); }
@@ -105,12 +107,13 @@ function leerPlanilla(buf, anio, lista){
 function comparar(pl, prog, avance, lista, cond){
   var porNum = {}; lista.forEach(function(p){ porNum[String(p.num)] = p; });
   var cubiertos = {}; pl.ev.forEach(function(e){ cubiertos[e.p.num] = 1; });
+  var execK = {}; pl.ev.forEach(function(e){ if(e.e !== "Programado") execK[e.p.num + "|" + e.partida] = 1; });
   var keys = {};   /* clave pórtico|partida -> {p, partida, T:[objetivos], A:[filas app]} */
   function K(p, partida){ var k = p.num + "|" + partida; return keys[k] = keys[k] || { p:p, partida:partida, T:[], A:[] }; }
-  pl.ev.forEach(function(e){ K(e.p, e.partida).T.push({ f:e.f, e:e.e, eq:e.eq || "" }); });
+  pl.ev.forEach(function(e){ K(e.p, e.partida).T.push({ f:e.f, e:e.e, eq:e.eq || "", obs:e.obs || "" }); });
   prog.forEach(function(r){
     if(NOTAS.indexOf(r.partida) >= 0) return; if(!cubiertos[String(r.portico)]) return;
-    if(pl.rango && (r.fecha < pl.rango.d || r.fecha > pl.rango.h || !pl.partL[r.partida])) return;   /* plan de trabajo: solo se compara el período y las partidas que trae */ if(!PM[sinTilde(r.partida)] && !/^inst\./i.test(r.partida) && !/^(trazado|excavaci|emplantillado|relleno)/i.test(r.partida)) return;
+    if(pl.rango && (r.fecha < pl.rango.d || r.fecha > pl.rango.h || !pl.partL[r.partida]) && !(pl.partL[r.partida] && execK[r.portico + "|" + r.partida] && /^programado/i.test(r.estado))) return;   /* fuera del período solo entra lo programado de una tarea que la planilla da por ejecutada o no ejecutada: se reutiliza en vez de duplicarla */   /* plan de trabajo: solo se compara el período y las partidas que trae */ if(!PM[sinTilde(r.partida)] && !/^inst\./i.test(r.partida) && !/^(trazado|excavaci|emplantillado|relleno)/i.test(r.partida)) return;
     var p = porNum[String(r.portico)]; if(!p) return; K(p, r.partida).A.push(r);
   });
   /* si una partida ejecutada también trae "X" antes, el ✓ es lo definitivo; si hay ✓ no se agrega "programado" */
@@ -132,7 +135,7 @@ function comparar(pl, prog, avance, lista, cond){
         orden.forEach(function(oc){ if(j < 0) A.forEach(function(a, x){ if(j < 0 && clase(a.estado) === oc) j = x; }); });
         if(j >= 0){
           var a = A.splice(j, 1)[0], t = T.splice(i, 1)[0], antes = clase(a.estado) + " " + dm(a.fecha);
-          var n = {}; for(var f in a) n[f] = a[f]; n.fecha = t.f; n.estado = t.e; if(t.e === "Ejecutado" && !/^\d/.test(String(n.avance || ""))) n.avance = "100"; if(t.e === "Ejecutado" && String(n.avance || "") === "") n.avance = "100";
+          var n = {}; for(var f in a) n[f] = a[f]; n.fecha = t.f; n.estado = t.e; if(t.obs && String(n.obs || "").indexOf(t.obs) < 0) n.obs = (n.obs ? n.obs + " \u00b7 " : "") + t.obs; if(t.e === "Ejecutado" && !/^\d/.test(String(n.avance || ""))) n.avance = "100"; if(t.e === "Ejecutado" && String(n.avance || "") === "") n.avance = "100";
           ops.push({ g: t.e === "Ejecutado" && clase(a.estado) !== "Ejecutado" ? "ejec" : (t.e === "No ejecutado" ? "noej" : "fecha"), tipo:"upd", nota:n, texto:g.p.nombre + " · " + g.partida + ": " + antes + " → " + t.e + " " + dm(t.f) });
         }
       }
@@ -140,7 +143,7 @@ function comparar(pl, prog, avance, lista, cond){
     /* 3) lo que falta: crear */
     T.forEach(function(t){
       var eqi = equipoInfo(t.eq), otra = prog.filter(function(r){ return String(r.portico) === String(g.p.num); }).sort(function(x, y){ return x.fecha < y.fecha ? 1 : -1; })[0];
-      var n = { id:nuevoId(), fecha:t.f, portico:Number(g.p.num), nombre:g.p.nombre, comuna:g.p.comuna, partida:g.partida, estado:t.e, autorizacion:(otra && otra.autorizacion) || "Sí", obs:eqi.obs || eqi.obsx || "", responsable:eqi.resp, avance:t.e === "Ejecutado" ? "100" : "", restriccion:"", causa:"", accion:"" };
+      var n = { id:nuevoId(), fecha:t.f, portico:Number(g.p.num), nombre:g.p.nombre, comuna:g.p.comuna, partida:g.partida, estado:t.e, autorizacion:(otra && otra.autorizacion) || "Sí", obs:[eqi.obs || eqi.obsx || "", t.obs || ""].filter(Boolean).join(" \u00b7 "), responsable:eqi.resp, avance:t.e === "Ejecutado" ? "100" : "", restriccion:"", causa:"", accion:"" };
       ops.push({ g: t.e === "Ejecutado" ? "ejec" : (t.e === "No ejecutado" ? "noej" : "prog"), tipo:"new", nota:n, texto:g.p.nombre + " · " + g.partida + ": nueva " + t.e.toLowerCase() + " " + dm(t.f) });
     });
     /* 4) sobrantes de la app: se borra solo lo "programado"; lo ejecutado o no ejecutado nunca se toca */
@@ -154,7 +157,7 @@ function comparar(pl, prog, avance, lista, cond){
   var vistos = {};
   pl.ev.forEach(function(e){
     if(e.e !== "Ejecutado") return; var k = e.p.num + "|" + e.partida; if(tieneAv[k] || vistos[k]) return; vistos[k] = 1;
-    ops.push({ g:"avance", tipo:"reg", body:{ accion:"registrar", portico:Number(e.p.num), partida:e.partida, fecha:e.f, obs:"Importado de la Hoja Maestra", avance:"100" }, texto:e.p.nombre + " · " + e.partida + ": registro de avance 100 % (" + dm(e.f) + ")" });
+    ops.push({ g:"avance", tipo:"reg", body:{ accion:"registrar", portico:Number(e.p.num), partida:e.partida, fecha:e.f, obs:e.obs || "Importado de la Hoja Maestra", avance:"100" }, texto:e.p.nombre + " · " + e.partida + ": registro de avance 100 % (" + dm(e.f) + ")" });
   });
   /* forma de excavar (a mano / con maquinaria) que trae el plan: queda como condición del pórtico */
   var cv = {}; pl.ev.forEach(function(e){
