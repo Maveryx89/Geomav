@@ -122,14 +122,6 @@ const proyectosPortafolio = {
       real: true,
       icono: '🌳',
       vertical: true
-    },
-    {
-      id: 'ejemplo-comercial',
-      titulo: 'Edificio Comercial (ejemplo)',
-      ubicacion: 'Demo Matterport',
-      url: 'https://my.matterport.com/show/?m=SX97bx7Y663',
-      real: false,
-      icono: '🏢'
     }
   ],
   // ⚠️ RECOMENDACIÓN: sube los videos a YouTube como "No listado" (no
