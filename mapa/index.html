@@ -117,22 +117,36 @@
       <div class="mapa-scroll">
         <div class="mapa-estado" id="mapaEstado">Cargando…</div>
         <div class="mapa-estado prop-estado" id="propEstado" style="display:none"></div>
+        <details class="plg" id="secRegiones" open>
+          <summary><span class="plg-t">📍 Región y comuna</span><span class="plg-n" id="regResumen"></span></summary>
+          <div class="plg-c" id="listaRegiones"></div>
+        </details>
         <div id="listaCapas"></div>
-        <div class="mapa-sec">
-          <div class="mapa-sec-t">Mapa base</div>
-          <div class="mapa-base"><button type="button" data-b="osm" class="on">Calles</button><button type="button" data-b="sat">Satélite</button><button type="button" data-b="claro">Claro</button></div>
-        </div>
-        <div class="mapa-sec"><div class="mapa-sec-t">Regiones y comunas</div><div id="listaRegiones"></div></div>
-        <p class="mapa-aviso">Información espacial solo referencial, sin validez legal. Fuentes: <a href="https://www.bcn.cl/siit/mapas_vectoriales" target="_blank" rel="noopener">Biblioteca del Congreso Nacional (BCN)</a>, simplificada para visualización web; y planes reguladores (IPT) del Centro de Estudios de Ciudad y Territorio, MINVU (la fecha de cada instrumento varía); y propiedades rurales del Centro de Información de Recursos Naturales (CIREN) vía IDE MINAGRI (respaldo propio por comuna; año según región). La norma vigente es la que publica la municipalidad o la SEREMI MINVU. ¿Necesitas límites o mediciones exactas de un terreno? <a href="../index.html#contacto">Contáctanos</a>.</p>
+        <details class="plg" id="secBase">
+          <summary><span class="plg-t">🗺️ Mapa base</span><span class="plg-n" id="baseResumen">Calles</span></summary>
+          <div class="plg-c"><div class="mapa-base"><button type="button" data-b="osm" class="on">Calles</button><button type="button" data-b="sat">Satélite</button><button type="button" data-b="claro">Claro</button></div></div>
+        </details>
+        <p class="mapa-aviso">Información referencial, sin validez legal. <button type="button" class="aviso-btn" id="btnFuentes">ⓘ Fuentes y avisos</button></p>
       </div>
     </aside>
     <div class="mapa-lienzo">
       <button class="mapa-toggle" id="btnPanel" type="button">☰ Regiones y capas</button>
       <div class="mapa-carga" id="mapaCarga">Cargando capas…</div>
       <div id="mapaLeaflet" role="application" aria-label="Mapa interactivo de Chile"></div>
-      <div class="mapa-leyendas"><div class="mapa-leyenda-vial" id="leyVial"><b>Red vial</b>
-        <div><span style="border-color:#b00020;border-top-width:5px"></span>Clase 1</div><div><span style="border-color:#e65100;border-top-width:4px"></span>Clase 2</div><div><span style="border-color:#3d3d3d"></span>Clase 3</div><div><span style="border-color:#7a3b00"></span>Otras</div></div>
-      <div class="mapa-leyenda-vial" id="leyZonas"></div></div>
+      <div class="mapa-leyendas"><div class="ley-panel" id="leyPanel" hidden></div><button type="button" class="ley-btn" id="btnLeyenda" aria-expanded="false" aria-controls="leyPanel">Leyenda</button></div>
+    </div>
+    <div class="mapa-modal" id="modalFuentes" hidden>
+      <div class="mapa-modal-caja" role="dialog" aria-modal="true" aria-labelledby="mfTitulo">
+        <button type="button" class="mapa-modal-x" aria-label="Cerrar">✕</button>
+        <h2 id="mfTitulo">Fuentes y avisos</h2>
+        <p><b>Información espacial solo referencial, sin validez legal.</b> La norma vigente es la que publica la municipalidad o la SEREMI MINVU; el catastro gráfico no reemplaza el título ni la inscripción en el Conservador de Bienes Raíces.</p>
+        <ul>
+          <li><b>Biblioteca del Congreso Nacional (BCN)</b>, <a href="https://www.bcn.cl/siit/mapas_vectoriales" target="_blank" rel="noopener">Mapas vectoriales</a>: límites administrativos, red vial, hidrografía, áreas pobladas, áreas protegidas, aeródromos y topónimos. Simplificados para visualización web.</li>
+          <li><b>MINVU, Centro de Estudios de Ciudad y Territorio</b>: planes reguladores comunales, intercomunales y metropolitanos, plan regional (PRDU), límites urbanos, áreas de riesgo y patrimonio. La fecha de cada instrumento varía.</li>
+          <li><b>CIREN</b>, vía <a href="https://ide.minagri.gob.cl/" target="_blank" rel="noopener">IDE MINAGRI</a>: catastro de propiedades rurales. El año varía según la región; no cubre Antofagasta ni Magallanes.</li>
+        </ul>
+        <p>¿Necesitas límites o mediciones exactas de un terreno? <a href="../index.html#contacto">Contáctanos</a>.</p>
+      </div>
     </div>
   </main>
 
