@@ -58,7 +58,31 @@
   var HOVER = { comunas: 1, regiones: 1, provincias: 0, areas_pobladas: 1, snaspe: 1, lagos: 1, aerodromos: 1, toponimos: 1, ipt_zonas: 1, ipt_lu: 1, ipt_prdu: 1, ipt_pri: 1, ipt_riesgo: 1, ipt_patrimonio: 1 };
 
   // ---------- Estado ----------
-  var state = { regions: [], comuna: null, onlyComuna: true, layers: ['regiones', 'comunas'], base: 'osm' };
+  var state = { regions: [], comuna: null, onlyComuna: true, layers: ['regiones', 'comunas'], base: 'osm', filt: {}, opac: {} };
+
+  // ---------- Filtros por capa (el último valor de cada lista recoge lo no clasificado) ----------
+  function riesgoTipos(p) {
+    var t = norm(p.cat || ''), o = [];
+    if (t.indexOf('tsunami') !== -1) o.push('Tsunami'); else if (t.indexOf('inund') !== -1) o.push('Inundación');
+    if (t.indexOf('remoci') !== -1) o.push('Remoción en masa');
+    if (t.indexOf('incendio') !== -1) o.push('Incendio forestal');
+    return o.length ? o : ['Otros'];
+  }
+  var FILTROS = {
+    ipt_zonas: { t: 'Categoría', campo: 'cat', vals: Object.keys(CATCOL) },
+    ipt_pri: { t: 'Categoría', campo: 'cat', vals: Object.keys(CATCOL) },
+    ipt_riesgo: { t: 'Tipo de riesgo', fn: riesgoTipos, vals: ['Inundación', 'Tsunami', 'Remoción en masa', 'Incendio forestal', 'Otros'] },
+    ipt_patrimonio: { t: 'Tipo', campo: 'tipo', vals: ['Zona de conservación histórica', 'Inmueble de conservación histórica'] },
+    red_vial: { t: 'Clase de ruta', fn: function (p) { return p.clase === 1 ? 'Clase 1' : p.clase === 2 ? 'Clase 2' : p.clase === 3 ? 'Clase 3' : 'Otras'; }, vals: ['Clase 1', 'Clase 2', 'Clase 3', 'Otras'] },
+    hidrografia: { t: 'Tipo', campo: 'tipo', vals: ['Río', 'Estero', 'Canal', 'Arroyo'] }
+  };
+  function pasa(id, p) {
+    var ex = state.filt[id]; if (!ex || !ex.length) return true;
+    var F = FILTROS[id], v = F.fn ? F.fn(p) : p[F.campo]; if (!Array.isArray(v)) v = [v];
+    for (var i = 0; i < v.length; i++) { var k = F.vals.indexOf(v[i]); if (k === -1) k = F.vals.length - 1; if (!has(ex, k)) return true; }
+    return false;
+  }
+  function firma(id) { var ex = state.filt[id]; return ex && ex.length ? ex.slice().sort().join('.') : ''; }
   var IDX = null, REGBY = {}, COMBY = {};
   var active = {};            // key -> L.GeoJSON agregado al mapa
   var built = {};             // key -> L.GeoJSON construido (no necesariamente en el mapa)
@@ -85,7 +109,7 @@
   // ---------- Estilos ----------
   // grosor según zoom: más gruesas al acercarse
   function zf() { var z = map.getZoom(); return z >= 14 ? 1.7 : z >= 12 ? 1.4 : z >= 10 ? 1.15 : z >= 8 ? 1 : .85; }
-  function styleFor(id) {
+  function baseStyle(id) {
     switch (id) {
       case 'regiones': return function (f) {
         var sel = has(state.regions, f.properties.cod);
@@ -124,13 +148,25 @@
       };
     }
   }
-  function pointFor(id) {
-    return function (f, ll) {
-      var big = id === 'aerodromos' && f.properties.categoria === 'Aeropuerto';
-      return L.circleMarker(ll, id === 'aerodromos'
-        ? { renderer: rend, radius: big ? 7 : 4.5, color: '#0A2240', weight: 1.6, fillColor: '#fff', fillOpacity: 1 }
-        : { renderer: rend, radius: 2.8, color: '#7a4a8a', weight: .8, fillColor: '#7a4a8a', fillOpacity: .85 });
+  function ptStyle(id, f) {
+    var big = id === 'aerodromos' && f.properties.categoria === 'Aeropuerto';
+    return id === 'aerodromos'
+      ? { renderer: rend, radius: big ? 7 : 4.5, color: '#0A2240', weight: 1.6, opacity: 1, fillColor: '#fff', fillOpacity: 1 }
+      : { renderer: rend, radius: 2.8, color: '#7a4a8a', weight: .8, opacity: 1, fillColor: '#7a4a8a', fillOpacity: .85 };
+  }
+  function opa(id) { var m = state.opac[id]; return m == null ? 1 : m; }
+  function styleFor(id) {
+    var fn = baseStyle(id) || function (f) { return ptStyle(id, f); };
+    return function (f) {
+      var st = fn(f), m = opa(id);
+      if (m < 1) { st.opacity = (st.opacity == null ? 1 : st.opacity) * m; if (st.fillOpacity != null) st.fillOpacity *= m; }
+      return st;
     };
+  }
+  function pointFor(id) { var fn = styleFor(id); return function (f, ll) { return L.circleMarker(ll, fn(f)); }; }
+  function applyOpacity(id) {
+    if (id === 'prop_rurales') { if (propGroup) propGroup.setStyle(propGroup.options.style); return; }
+    Object.keys(active).forEach(function (k) { if (idOf(k) === id) active[k].setStyle(styleFor(id)); });
   }
 
   // ---------- Datos ----------
@@ -155,20 +191,30 @@
       interactive: id !== 'provincias',
       style: styleFor(id),
       pointToLayer: pointFor(id),
-      filter: filtered ? function (f) { var c = f.properties.c; return c === state.comuna || c == null; } : null
+      filter: function (f) { var p = f.properties; if (filtered && !(p.c === state.comuna || p.c == null)) return false; return pasa(id, p); }
     });
     g.on('click', function (e) {
       var p = e.propagatedFrom && e.propagatedFrom.feature && e.propagatedFrom.feature.properties; if (!p) return;
       if (id === 'regiones' && !state.regions.length) { selectRegion(p.cod, true); return; }
       if (id === 'comunas') { selectComuna(p.cod_comuna); }
-      var html = popupHTML(id, p);
-      var pop = L.popup({ maxWidth: 340, maxHeight: 380 }).setLatLng(e.latlng).setContent(html).openOn(map);
+      var cont = document.createElement('div'); cont.innerHTML = popupHTML(id, p);
+      var pop = L.popup({ maxWidth: 340, maxHeight: 380 }).setLatLng(e.latlng).setContent(cont).openOn(map);
       if (USOS[id] && p.k) {
-        var cod = +g._key.split('|')[1];
-        getJSON('r' + (cod < 10 ? '0' : '') + cod + '/ipt_usos.json').then(function (u) {
-          var x = u[p.k]; if (!x) return;
-          pop.setContent(html + '<div class="usos">' + (x.p ? '<b>Usos permitidos</b><p>' + esc(x.p) + '</p>' : '') + (x.r ? '<b>Usos prohibidos</b><p>' + esc(x.r) + '</p>' : '') + '</div>');
-        }).catch(function () { });
+        var det = document.createElement('details'), cargado = false; det.className = 'usos';
+        det.innerHTML = '<summary>Ver usos permitidos / prohibidos</summary><div class="usos-c">Cargando…</div>';
+        det.addEventListener('toggle', function () {
+          if (det.open && !cargado) {
+            cargado = true;
+            var cod = +g._key.split('|')[1], caja = det.querySelector('.usos-c');
+            getJSON('r' + (cod < 10 ? '0' : '') + cod + '/ipt_usos.json').then(function (u) {
+              var x = u[p.k];
+              caja.innerHTML = x && (x.p || x.r) ? (x.p ? '<b>Usos permitidos</b><p>' + esc(x.p) + '</p>' : '') + (x.r ? '<b>Usos prohibidos</b><p>' + esc(x.r) + '</p>' : '') : 'Este instrumento no detalla usos para esta zona.';
+              pop.update();
+            }).catch(function () { cargado = false; caja.textContent = 'No se pudieron cargar los usos. Cierra y vuelve a abrir para reintentar.'; pop.update(); });
+          }
+          pop.update();
+        });
+        cont.appendChild(det); pop.update();
       }
     });
     if (HOVER[id]) {
@@ -190,7 +236,7 @@
         var f = !!state.comuna && state.onlyComuna && id !== 'comunas';
         var rc = REGBY[cod] && REGBY[cod].capas[id]; if (!rc) return;
         var pad = (cod < 10 ? '0' : '') + cod;
-        out.push({ key: id + '|' + cod + '|' + (f ? state.comuna : ''), id: id, path: 'r' + pad + '/' + id + '.json', filtered: f });
+        out.push({ key: id + '|' + cod + '|' + (f ? state.comuna : '') + '|' + firma(id), id: id, path: 'r' + pad + '/' + id + '.json', filtered: f });
       });
     });
     return out;
@@ -216,7 +262,7 @@
         reorder(); applyInteractive();
       }).catch(function () { pending--; setLoading(); });
     });
-    restyle(); reorder(); applyInteractive(); legendVial();
+    restyle(); reorder(); applyInteractive(); leyenda();
   }
   function reorder() {
     Object.keys(active).sort(function (a, b) { return DEF[a.split('|')[0] === 'nac' ? a.split('|')[1] : a.split('|')[0]].z - DEF[b.split('|')[0] === 'nac' ? b.split('|')[1] : b.split('|')[0]].z; })
@@ -235,23 +281,43 @@
       if (id === 'ipt_lu') active[k].eachLayer(function (l) { l.options.interactive = !(has(state.layers, 'ipt_zonas') || has(state.layers, 'ipt_pri')); });
     });
   }
-  function legendVial() {
-    document.getElementById('leyVial').classList.toggle('on', has(state.layers, 'red_vial') && state.regions.length > 0);
-    var z = (has(state.layers, 'ipt_zonas') || has(state.layers, 'ipt_pri')) && state.regions.some(function (c) { return REGBY[c] && (REGBY[c].capas.ipt_zonas || REGBY[c].capas.ipt_pri); });
-    var lz = document.getElementById('leyZonas');
-    if (!lz.firstChild) lz.innerHTML = '<b>Zonificación (categoría aprox.)</b>' + Object.keys(CATCOL).map(function (k) { return '<div><i style="background:' + CATCOL[k] + '"></i>' + esc(k) + '</div>'; }).join('');
-    lz.classList.toggle('on', z);
+  var leyOpen = false;
+  function swHTML(sw) {
+    return sw.t === 'ln' ? '<span class="ln" style="border-color:' + sw.c + '"></span>'
+      : '<i style="background:' + (sw.f || 'transparent') + ';border:1.5px solid ' + sw.c + (sw.t === 'pt' ? ';border-radius:50%;width:10px' : '') + '"></i>';
+  }
+  function leyenda() {
+    var it = [], zon = false;
+    GRUPOS.forEach(function (g) {
+      g[1].forEach(function (id) {
+        if (!has(state.layers, id)) return;
+        var d = DEF[id];
+        if (!d.nac && !d.online && !state.regions.some(function (c) { return REGBY[c] && REGBY[c].capas[id]; })) return;
+        if (id === 'ipt_zonas' || id === 'ipt_pri') {
+          if (zon) return; zon = true;
+          it.push('<b>Zonificación (categoría aprox.)</b>' + Object.keys(CATCOL).map(function (k) { return '<div><i style="background:' + CATCOL[k] + '"></i>' + esc(k) + '</div>'; }).join(''));
+        } else if (id === 'red_vial') {
+          it.push('<b>Red vial</b><div><span class="ln" style="border-color:#b00020;border-top-width:5px"></span>Clase 1</div><div><span class="ln" style="border-color:#e65100;border-top-width:4px"></span>Clase 2</div><div><span class="ln" style="border-color:#3d3d3d"></span>Clase 3</div><div><span class="ln" style="border-color:#7a3b00"></span>Otras</div>');
+        } else if (id === 'hidrografia') {
+          it.push('<b>Hidrografía</b><div><span class="ln" style="border-color:#0a62c4"></span>Río, estero o arroyo</div><div><span class="ln" style="border-color:#0a8f8f"></span>Canal</div>');
+        } else it.push('<div>' + swHTML(d.sw) + esc(d.n) + '</div>');
+      });
+    });
+    var el = document.getElementById('leyPanel'), bt = document.getElementById('btnLeyenda');
+    el.innerHTML = it.length ? it.join('') : '<div>Activa una capa y elige una región para ver su leyenda.</div>';
+    el.hidden = !leyOpen; bt.setAttribute('aria-expanded', leyOpen ? 'true' : 'false');
   }
 
   // ---------- Selección ----------
   function bboxOf(b) { return L.latLngBounds([b[0], b[1]], [b[2], b[3]]); }
+  function setReg(o) { var d = document.getElementById('secRegiones'); if (d) d.open = o; }
   function selectRegion(cod, exclusive, noFit) {
     if (exclusive) state.regions = [cod];
     else if (has(state.regions, cod)) state.regions = state.regions.filter(function (x) { return x !== cod; });
     else state.regions = state.regions.concat([cod]);
     state.comuna = null;
     if (has(state.regions, cod) && !noFit) map.fitBounds(bboxOf(REGBY[cod].bbox), { padding: [20, 20] });
-    var el = document.querySelector('.reg[data-cod="' + cod + '"]'); if (el && exclusive) el.classList.add('abierta');
+    var el = document.querySelector('.reg[data-cod="' + cod + '"]'); if (el && exclusive) { el.classList.add('abierta'); setReg(true); }
     update();
   }
   function selectComuna(cc) {
@@ -260,27 +326,77 @@
     if (!has(state.layers, 'comunas')) state.layers.push('comunas');
     map.fitBounds(bboxOf(c.bbox), { padding: [30, 30] });
     var el = document.querySelector('.reg[data-cod="' + c.reg + '"]'); if (el) el.classList.add('abierta');
+    setReg(false);
     update();
   }
-  function clearAll() { state.regions = []; state.comuna = null; map.fitBounds([[-56, -76], [-17.5, -66.5]]); update(); }
+  function clearAll() { setReg(true); state.regions = []; state.comuna = null; map.fitBounds([[-56, -76], [-17.5, -66.5]]); update(); }
 
   // ---------- Panel ----------
+  function chipCol(id, i) {
+    if (id === 'ipt_zonas' || id === 'ipt_pri') return CATCOL[FILTROS[id].vals[i]];
+    if (id === 'red_vial') return ['#b00020', '#e65100', '#3d3d3d', '#7a3b00'][i];
+    if (id === 'hidrografia') return i === 2 ? '#0a8f8f' : '#0a62c4';
+    return null;
+  }
+  function opcHTML(id) {
+    var F = FILTROS[id], h = '<div class="capa-opc" data-opc="' + id + '" hidden>';
+    h += '<label class="opc-l"><span>Opacidad</span><input type="range" min="20" max="100" step="5" value="100" data-op="' + id + '"><output>100 %</output></label>';
+    if (F) {
+      h += '<div class="opc-l"><span>' + esc(F.t) + '</span><button type="button" class="opc-todas" data-ft="' + id + '">Marcar todas</button></div><div class="opc-chips">';
+      F.vals.forEach(function (v, i) { var c = chipCol(id, i); h += '<label><input type="checkbox" checked data-f="' + id + '" data-i="' + i + '">' + (c ? '<i style="background:' + c + '"></i>' : '') + esc(v) + '</label>'; });
+      h += '</div>';
+    }
+    return h + '</div>';
+  }
+  function marcaOpc() {
+    document.querySelectorAll('.capa-fila').forEach(function (f) {
+      var id = f.getAttribute('data-fila'), on = has(state.layers, id), b = f.querySelector('.capa-op');
+      f.classList.toggle('on', on);
+      b.classList.toggle('mod', opa(id) < 1 || !!firma(id));
+      if (!on) { var box = f.nextElementSibling; if (box && !box.hidden) { box.hidden = true; b.setAttribute('aria-expanded', 'false'); } }
+    });
+  }
   function buildPanel() {
-    var cont = document.getElementById('listaCapas'), h = '';
-    GRUPOS.forEach(function (g) {
-      h += '<div class="mapa-sec"><div class="mapa-sec-t">' + esc(g[0]) + '</div>';
+    var cont = document.getElementById('listaCapas'), h = '', abiertos = null;
+    try { abiertos = JSON.parse(localStorage.getItem('geomav-mapa-grupos')); } catch (e) { }
+    GRUPOS.forEach(function (g, gi) {
+      var open = Array.isArray(abiertos) ? has(abiertos, gi) : (gi === 0 || g[1].some(function (id) { return has(state.layers, id); }));
+      h += '<details class="plg grp" data-g="' + gi + '"' + (open ? ' open' : '') + '><summary><span class="plg-t">' + esc(g[0]) + '</span><span class="plg-n" data-gn="' + gi + '"></span></summary><div class="plg-c">';
       g[1].forEach(function (id) {
         var d = DEF[id], sw = d.sw, cls = sw.t === 'pt' ? 'pt' : sw.t === 'ln' ? 'ln' : '';
         var style = sw.t === 'ln' ? 'border-color:' + sw.c : 'border-color:' + sw.c + ';background:' + (sw.f || 'transparent');
-        h += '<label class="mapa-capa" data-capa="' + id + '"><input type="checkbox" data-capa="' + id + '"><span class="sw ' + cls + '" style="' + style + '"></span><span class="nm">' + esc(d.n) + '</span><span class="pe"></span></label>';
+        h += '<div class="capa-fila" data-fila="' + id + '"><label class="mapa-capa" data-capa="' + id + '"><input type="checkbox" data-capa="' + id + '"><span class="sw ' + cls + '" style="' + style + '"></span><span class="nm">' + esc(d.n) + '</span><span class="pe"></span></label>' +
+          '<button type="button" class="capa-op" data-opbtn="' + id + '" aria-expanded="false" aria-label="Opciones de ' + esc(d.n) + '" title="Opciones y filtros"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button></div>' + opcHTML(id);
       });
-      h += '</div>';
+      h += '</div></details>';
     });
     cont.innerHTML = h;
+    cont.querySelectorAll('details.grp').forEach(function (d) {
+      d.addEventListener('toggle', function () {
+        var l = []; cont.querySelectorAll('details.grp').forEach(function (x) { if (x.open) l.push(+x.getAttribute('data-g')); });
+        try { localStorage.setItem('geomav-mapa-grupos', JSON.stringify(l)); } catch (e) { }
+      });
+    });
+    var opT = {};
     cont.addEventListener('change', function (e) {
-      var id = e.target.getAttribute('data-capa'); if (!id) return;
-      if (e.target.checked) { if (!has(state.layers, id)) state.layers.push(id); } else state.layers = state.layers.filter(function (x) { return x !== id; });
+      var t = e.target, id = t.getAttribute('data-capa'), fid = t.getAttribute('data-f');
+      if (fid) {
+        var ex = []; cont.querySelectorAll('input[data-f="' + fid + '"]').forEach(function (i) { if (!i.checked) ex.push(+i.getAttribute('data-i')); });
+        state.filt[fid] = ex; update(); return;
+      }
+      if (!id) return;
+      if (t.checked) { if (!has(state.layers, id)) state.layers.push(id); } else state.layers = state.layers.filter(function (x) { return x !== id; });
       update();
+    });
+    cont.addEventListener('input', function (e) {
+      var id = e.target.getAttribute('data-op'); if (!id) return;
+      var v = +e.target.value; e.target.parentNode.querySelector('output').textContent = v + ' %';
+      state.opac[id] = v / 100; clearTimeout(opT[id]); opT[id] = setTimeout(function () { applyOpacity(id); marcaOpc(); }, 60);
+    });
+    cont.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-opbtn]'), td = e.target.closest('[data-ft]');
+      if (b) { var box = cont.querySelector('[data-opc="' + b.getAttribute('data-opbtn') + '"]'); box.hidden = !box.hidden; b.setAttribute('aria-expanded', box.hidden ? 'false' : 'true'); return; }
+      if (td) { var fid = td.getAttribute('data-ft'); cont.querySelectorAll('input[data-f="' + fid + '"]').forEach(function (i) { i.checked = true; }); state.filt[fid] = []; update(); }
     });
 
     var lr = '';
@@ -302,7 +418,13 @@
     });
   }
   function syncUI() {
-    document.querySelectorAll('#listaCapas input').forEach(function (i) { i.checked = has(state.layers, i.getAttribute('data-capa')); });
+    document.querySelectorAll('#listaCapas .mapa-capa input').forEach(function (i) { i.checked = has(state.layers, i.getAttribute('data-capa')); });
+    marcaOpc();
+    GRUPOS.forEach(function (g, gi) {
+      var n = g[1].filter(function (id) { return has(state.layers, id); }).length, el = document.querySelector('[data-gn="' + gi + '"]');
+      el.textContent = n ? n + (n === 1 ? ' activa' : ' activas') : ''; el.classList.toggle('act', n > 0);
+    });
+    document.getElementById('regResumen').textContent = state.comuna ? COMBY[state.comuna].n : state.regions.length === 1 ? REGBY[state.regions[0]].nombre : state.regions.length ? state.regions.length + ' regiones' : '';
     document.querySelectorAll('.reg').forEach(function (r) {
       var cod = +r.getAttribute('data-cod'), sel = has(state.regions, cod);
       r.querySelector('input').checked = sel; r.querySelector('.reg-cab').classList.toggle('sel', sel);
@@ -337,7 +459,7 @@
 
   // ---------- Búsqueda ----------
   function buscar(q) {
-    q = norm(q.trim());
+    q = norm(q.trim()); if (q) setReg(true);
     document.querySelectorAll('.reg').forEach(function (r) {
       var rn = norm(r.querySelector('.reg-nom').textContent), any = false;
       r.querySelectorAll('.com').forEach(function (b) { var m = !q || norm(b.textContent).indexOf(q) !== -1 || rn.indexOf(q) !== -1; b.style.display = m ? '' : 'none'; any = any || m; });
@@ -362,7 +484,7 @@
   function setBase(b) {
     Object.keys(BASES).forEach(function (k) { if (map.hasLayer(BASES[k])) map.removeLayer(BASES[k]); });
     BASES[b].addTo(map); BASES[b].bringToBack(); state.base = b;
-    document.querySelectorAll('.mapa-base button').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-b') === b); });
+    document.querySelectorAll('.mapa-base button').forEach(function (x) { var on = x.getAttribute('data-b') === b; x.classList.toggle('on', on); if (on) document.getElementById('baseResumen').textContent = x.textContent; });
   }
   function closeDrawer() { document.querySelector('.mapa-app').classList.remove('panel-abierto'); }
   function update() { syncUI(); refresh(); propSync(); writeHash(); }
@@ -370,10 +492,10 @@
   // ---------- Propiedades rurales (catastro CIREN, respaldo propio por comuna) + descarga SHP ----------
   var PROP_ZOOM = 12, PROP_MAXCOM = 8, PROP_MAX = 150000;
   var PROP_REGNOM = { 1: 'Tarapacá', 3: 'Atacama', 4: 'Coquimbo', 5: 'Valparaíso', 6: "O'Higgins", 7: 'Maule', 8: 'Biobío', 9: 'La Araucanía', 10: 'Los Lagos', 11: 'Aysén', 13: 'Metropolitana', 14: 'Los Ríos', 15: 'Arica y Parinacota', 16: 'Ñuble' };
-  var propIdx = null, propIdxP = null, propLoaded = {}, propGroup = null, propN = 0, propMsg = '', propBusy = 0, propTimer = null;
+  var propIdx = null, propIdxP = null, propLoaded = {}, propGroup = null, propN = 0, propMsg = '', propBusy = 0, propTimer = null, propInfo = false;
   function propEnsureGroup() {
     if (propGroup) return propGroup;
-    propGroup = L.geoJSON(null, { renderer: rend, style: function () { return { renderer: rend, color: '#7a4a00', weight: 1.4, opacity: 1, fill: true, fillColor: '#f2c14e', fillOpacity: .16 }; } });
+    propGroup = L.geoJSON(null, { renderer: rend, style: function () { var m = opa('prop_rurales'); return { renderer: rend, color: '#7a4a00', weight: 1.4, opacity: m, fill: true, fillColor: '#f2c14e', fillOpacity: .16 * m }; } });
     propGroup.on('click', function (e) {
       var p = e.propagatedFrom && e.propagatedFrom.feature && e.propagatedFrom.feature.properties; if (!p) return;
       L.popup({ maxWidth: 320 }).setLatLng(e.latlng).setContent('<h4>Rol ' + esc(p.rol || 's/i') + '</h4><div style="font-size:.72rem;color:rgba(10,34,64,.55);margin-bottom:4px">Propiedad rural (catastro CIREN)</div><table><tr><td>Comuna</td><td><b>' + esc(p.comuna || '') + '</b></td></tr><tr><td>Región</td><td><b>' + esc(p.region || '') + '</b></td></tr><tr><td>Año de la información</td><td><b>' + esc(p.anio || '') + '</b></td></tr></table><p style="font-size:.7rem;margin:6px 0 0;color:rgba(10,34,64,.6)">Catastro gráfico referencial: no reemplaza el título ni el CBR.</p>').openOn(map);
@@ -421,7 +543,7 @@
             var c = COMBY[cc]; if (!propIdx[cc] || has(want, cc)) return;
             if (bboxOf(c.bbox).intersects(b)) near.push(cc);
           });
-          if (near.length > PROP_MAXCOM) propMsg = 'Hay demasiadas comunas en la vista: acerca más o elige una comuna.';
+          if (near.length > PROP_MAXCOM) { if (!state.comuna) propMsg = 'Hay demasiadas comunas en la vista: acerca más o elige una comuna.'; }
           else want = want.concat(near);
         } else if (!state.comuna) propMsg = 'Acerca el mapa (zoom ' + PROP_ZOOM + ' o más) o elige una comuna para ver los predios.';
         else if (!propIdx[state.comuna]) propMsg = 'Esta comuna no tiene catastro rural CIREN (no cubre Antofagasta ni Magallanes).';
@@ -447,11 +569,13 @@
     var n = propFeatures().length, h = '<b>Propiedades rurales (CIREN)</b><br>';
     if (propBusy) h += 'Cargando predios… ';
     else if (propMsg) h += esc(propMsg);
-    else h += n.toLocaleString('es-CL') + ' predios ' + (state.comuna ? 'de la comuna' : 'cargados') + '. Se cargan por comuna al acercar el mapa (zoom ' + PROP_ZOOM + '+).';
-    h += '<div class="prop-acc"><button type="button" id="btnPropShp"' + (n ? '' : ' disabled') + '>Descargar SHP (' + n.toLocaleString('es-CL') + ')</button></div>';
-    h += '<div class="prop-nota">Catastro CIREN (año según región; trazado ≈100 %). Cita: CIREN. Referencial.</div>';
+    else h += n.toLocaleString('es-CL') + ' predios ' + (state.comuna ? 'de la comuna' : 'cargados') + '.';
+    h += '<div class="prop-acc"><button type="button" id="btnPropShp"' + (n ? '' : ' disabled') + '>Descargar SHP (' + n.toLocaleString('es-CL') + ')</button>' +
+      '<button type="button" id="btnPropInfo" class="prop-i" aria-expanded="' + (propInfo ? 'true' : 'false') + '" aria-label="Sobre estos datos" title="Sobre estos datos">i</button></div>';
+    h += '<div class="prop-nota"' + (propInfo ? '' : ' hidden') + '>Los predios se cargan por comuna: al elegir una, o al acercar el mapa (zoom ' + PROP_ZOOM + ' o más). Catastro CIREN, año según región, trazado original. Referencial: no reemplaza el título ni el CBR. Cita: CIREN.</div>';
     el.innerHTML = h;
     var b = document.getElementById('btnPropShp'); if (b) b.onclick = propDownload;
+    var bi = document.getElementById('btnPropInfo'); if (bi) bi.onclick = function () { propInfo = !propInfo; propUI(); };
   }
   // --- escritor mínimo de Shapefile + zip (sin dependencias) ---
   function crc32(u8) { var t = crc32.t; if (!t) { t = crc32.t = []; for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } } var r = -1; for (var i = 0; i < u8.length; i++) r = t[(r ^ u8[i]) & 255] ^ (r >>> 8); return (r ^ -1) >>> 0; }
@@ -523,7 +647,7 @@
     var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = base + '.zip'; document.body.appendChild(a); a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
   }
-  window.__mapaProp = { buildShp: buildShp, zipStore: zipStore };
+  window.__mapaProp = { buildShp: buildShp, zipStore: zipStore, capas: function () { var o = {}; Object.keys(active).forEach(function (k) { o[k] = active[k].getLayers().length; }); return o; } };
 
   // ---------- Inicio ----------
   function setHeaderVar() {
@@ -534,6 +658,14 @@
   window.addEventListener('resize', setHeaderVar);
   document.getElementById('btnPanel').onclick = function () { document.querySelector('.mapa-app').classList.add('panel-abierto'); };
   document.getElementById('btnCerrarPanel').onclick = closeDrawer;
+  document.getElementById('btnLeyenda').onclick = function () { leyOpen = !leyOpen; leyenda(); };
+  (function () {
+    var m = document.getElementById('modalFuentes'), ab = document.getElementById('btnFuentes');
+    function cerrar() { if (m.hidden) return; m.hidden = true; ab.focus(); }
+    ab.onclick = function () { m.hidden = false; m.querySelector('.mapa-modal-x').focus(); };
+    m.addEventListener('click', function (e) { if (e.target === m || e.target.closest('.mapa-modal-x')) cerrar(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') cerrar(); });
+  })();
   document.querySelectorAll('.mapa-base button').forEach(function (b) { b.onclick = function () { setBase(b.getAttribute('data-b')); writeHash(); }; });
   document.getElementById('mapaBuscar').addEventListener('input', function (e) { buscar(e.target.value); });
   document.getElementById('mapaBuscar').addEventListener('keydown', function (e) {
@@ -548,9 +680,9 @@
   fetch(BASE + 'indice.json').then(function (r) { return r.json(); }).then(function (j) {
     IDX = j;
     j.regiones.forEach(function (r) { REGBY[r.cod] = r; r.comunas.forEach(function (c) { COMBY[c.c] = { n: c.n, bbox: c.bbox, reg: r.cod }; }); });
-    buildPanel(); setHeaderVar(); setBase('osm');
     var h = readHash();
     if (h.l) state.layers = h.l.split(',').filter(function (x) { return DEF[x]; });
+    buildPanel(); setHeaderVar(); setBase('osm');
     if (h.b && BASES[h.b]) setBase(h.b);
     if (h.c && COMBY[h.c]) { selectComuna(h.c); return; }
     if (h.r) { var cods = h.r.split(',').map(Number).filter(function (c) { return REGBY[c]; }); if (cods.length) { state.regions = cods; map.fitBounds(bboxOf(REGBY[cods[0]].bbox)); } }

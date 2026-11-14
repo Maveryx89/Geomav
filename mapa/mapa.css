@@ -16,9 +16,9 @@
 .mapa-estado button{margin-top:6px;margin-right:8px;font:inherit;font-size:.76rem;font-weight:700;color:var(--color-secundario);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
 .mapa-capa{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:.88rem;cursor:pointer;user-select:none}
 .mapa-capa input{accent-color:var(--color-secundario);width:16px;height:16px;flex:none}
-.mapa-capa .sw{width:18px;height:12px;border-radius:3px;flex:none;border:2px solid}
-.mapa-capa .sw.ln{height:0;border-width:0 0 3px;border-radius:0;align-self:center}
-.mapa-capa .sw.pt{width:10px;height:10px;border-radius:50%;margin:0 4px}
+.mapa-app .sw{width:18px;height:12px;border-radius:3px;flex:none;border:2px solid}
+.mapa-app .sw.ln{height:0;border-width:0 0 3px;border-radius:0;align-self:center}
+.mapa-app .sw.pt{width:10px;height:10px;border-radius:50%;margin:0 4px}
 .mapa-capa .nm{flex:1;color:var(--color-primario)}
 .mapa-capa .pe{font-size:.7rem;color:var(--color-dim);white-space:nowrap}
 .mapa-capa .pe.alto{color:#b3541e;font-weight:700}
@@ -52,11 +52,7 @@
 .mapa-carga{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1050;background:var(--color-primario);color:#fff;padding:8px 16px;border-radius:20px;font-size:.82rem;font-weight:600;box-shadow:0 4px 14px rgba(10,34,64,.25);display:none}
 .mapa-carga.on{display:block}
 .mapa-toggle{display:none;position:absolute;z-index:1060;left:12px;top:12px;font:inherit;font-weight:700;font-size:.85rem;padding:10px 14px;border-radius:10px;border:0;background:var(--color-primario);color:#fff;box-shadow:0 4px 14px rgba(10,34,64,.3);cursor:pointer}
-.mapa-leyendas{position:absolute;left:10px;bottom:26px;z-index:900;display:flex;flex-direction:column;gap:6px;max-width:230px}
-.mapa-leyenda-vial{background:rgba(255,255,255,.94);border-radius:8px;padding:8px 10px;font-size:.72rem;box-shadow:0 2px 8px rgba(10,34,64,.15);display:none}
-.mapa-leyenda-vial.on{display:block}
-.mapa-leyenda-vial div{display:flex;align-items:center;gap:6px;margin:2px 0}
-.mapa-leyenda-vial span{display:inline-block;width:22px;border-top:3px solid}
+.mapa-leyendas{position:absolute;left:10px;bottom:26px;z-index:900;display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:250px}
 .leaflet-popup-content{font-family:Inter,system-ui,sans-serif;font-size:.84rem;color:#0A2240;margin:12px 14px}
 .leaflet-popup-content h4{margin:0 0 6px;font-size:.95rem;font-weight:800}
 .leaflet-popup-content table{border-collapse:collapse}
@@ -77,7 +73,6 @@
 .embed .cabecera,.embed .overlay-menu,.embed .pie-pagina,.embed .wa-flotante{display:none!important}
 .embed .mapa-app{margin-top:0;height:100vh;border-top:0}
 
-.mapa-leyenda-vial i{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:2px}
 .usos{margin-top:8px;border-top:1px solid rgba(10,34,64,.12);padding-top:6px;font-size:.78rem}
 .usos p{margin:2px 0 8px;line-height:1.4}
 
@@ -86,3 +81,72 @@
 .prop-estado button:hover:not(:disabled){background:var(--color-secundario);color:#fff}
 .prop-estado button:disabled{opacity:.45;cursor:default}
 .prop-estado .prop-nota{margin-top:6px;font-size:.7rem;color:var(--color-dim)}
+
+/* --- Secciones plegables del panel --- */
+.plg{border-top:1px solid var(--color-borde);padding:0 18px}
+.mapa-estado+.plg{margin-top:12px}
+.plg>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px 0;cursor:pointer;user-select:none}
+.plg>summary::-webkit-details-marker{display:none}
+.plg>summary::after{content:"";flex:none;width:7px;height:7px;margin:0 4px 3px 2px;border-right:2.5px solid var(--color-acento);border-bottom:2.5px solid var(--color-acento);transform:rotate(45deg);transition:transform .2s}
+.plg[open]>summary::after{transform:rotate(-135deg);margin-bottom:-3px}
+.plg>summary:focus-visible,.capa-op:focus-visible,.ley-btn:focus-visible,.aviso-btn:focus-visible{outline:2px solid var(--color-secundario);outline-offset:2px;border-radius:5px}
+.plg-t{margin-right:auto;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--color-acento)}
+.plg-n{flex:none;font-size:.7rem;font-weight:600;color:var(--color-dim);white-space:nowrap}
+#regResumen{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.plg-n.act{background:var(--color-secundario);color:#fff;border-radius:10px;padding:1px 8px}
+.plg-c{padding-bottom:10px}
+/* --- Opciones por capa --- */
+.capa-fila{display:flex;align-items:center;gap:2px}
+.capa-fila .mapa-capa{flex:1;min-width:0}
+.capa-op{flex:none;width:30px;height:30px;border:0;background:none;border-radius:7px;color:var(--color-dim);cursor:pointer;display:grid;place-items:center;visibility:hidden;position:relative}
+.capa-fila.on .capa-op{visibility:visible}
+.capa-op:hover,.capa-op[aria-expanded=true]{background:var(--color-fondo);color:var(--color-primario)}
+.capa-op.mod{color:var(--color-secundario)}
+.capa-op.mod::after{content:"";position:absolute;right:4px;top:4px;width:7px;height:7px;border-radius:50%;background:var(--color-acento)}
+.capa-op svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.capa-op svg circle{fill:var(--color-blanco)}
+.capa-opc{margin:2px 0 8px 25px;padding:10px 12px;background:var(--color-fondo);border-radius:8px;font-size:.78rem}
+.capa-opc[hidden]{display:none}
+.opc-l{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--color-muted)}
+.opc-l+.opc-l{margin-top:10px}
+.opc-l input[type=range]{flex:1;min-width:0;accent-color:var(--color-secundario)}
+.opc-l output{min-width:44px;text-align:right;font-variant-numeric:tabular-nums}
+.opc-todas{margin-left:auto;font:inherit;font-size:.74rem;font-weight:700;color:var(--color-secundario);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.opc-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.opc-chips label{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border:1px solid var(--color-borde);border-radius:13px;background:var(--color-blanco);color:var(--color-primario);cursor:pointer}
+.opc-chips input{accent-color:var(--color-secundario);margin:0;width:13px;height:13px}
+.opc-chips i{width:10px;height:10px;border-radius:2px;flex:none}
+/* --- Leyenda en botón --- */
+.ley-btn{font:inherit;font-size:.8rem;font-weight:700;padding:8px 14px;border-radius:9px;border:0;background:var(--color-blanco);color:var(--color-primario);box-shadow:0 2px 8px rgba(10,34,64,.25);cursor:pointer}
+.ley-btn[aria-expanded=true]{background:var(--color-primario);color:#fff}
+.ley-panel{background:rgba(255,255,255,.97);border-radius:9px;padding:10px 12px;font-size:.74rem;color:var(--color-primario);box-shadow:0 2px 10px rgba(10,34,64,.22);max-height:min(52vh,420px);overflow-y:auto;min-width:190px}
+.ley-panel[hidden]{display:none}
+.ley-panel b{display:block;margin:9px 0 3px}
+.ley-panel b:first-child{margin-top:0}
+.ley-panel div{display:flex;align-items:center;gap:7px;margin:3px 0}
+.ley-panel i{width:14px;height:10px;border-radius:2px;flex:none;box-sizing:border-box}
+.ley-panel .ln{width:22px;border-top:3px solid;flex:none}
+/* --- Aviso corto + ventana de fuentes --- */
+.aviso-btn{font:inherit;font-weight:700;color:var(--color-secundario);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.mapa-modal{position:absolute;inset:0;z-index:2000;background:rgba(10,34,64,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.mapa-modal[hidden]{display:none}
+.mapa-modal-caja{position:relative;background:var(--color-blanco);border-radius:14px;max-width:520px;width:100%;max-height:100%;overflow-y:auto;padding:22px 24px;box-shadow:0 18px 50px rgba(10,34,64,.35);font-size:.86rem;line-height:1.5;color:var(--color-primario)}
+.mapa-modal-caja h2{font-size:1.1rem;font-weight:800;margin:0 34px 10px 0}
+.mapa-modal-caja p{margin:0 0 10px}
+.mapa-modal-caja ul{margin:0 0 12px;padding-left:18px}
+.mapa-modal-caja li{margin-bottom:8px}
+.mapa-modal-caja a{color:var(--color-secundario);font-weight:600}
+.mapa-modal-x{position:absolute;right:12px;top:12px;width:32px;height:32px;border:0;border-radius:50%;background:var(--color-fondo);color:var(--color-primario);font-size:1rem;cursor:pointer}
+/* --- Propiedades: botón de información y usos en popup --- */
+.prop-estado .prop-i{width:28px;height:28px;padding:0;border-radius:50%;font-style:italic;font-family:Georgia,serif;font-weight:700}
+.prop-estado .prop-i[aria-expanded=true]{background:var(--color-secundario);color:#fff}
+.prop-estado .prop-nota[hidden]{display:none}
+.usos summary{cursor:pointer;font-weight:700;color:#2C6B7E}
+.usos[open] summary{margin-bottom:6px}
+@media (max-width:860px){
+  .capa-op{width:36px;height:36px}
+  .plg>summary{padding:14px 0}
+  .ley-panel{max-height:44vh}
+  .mapa-leyendas{bottom:46px}
+  body:has(.mapa-app.panel-abierto) .wa-flotante,body:has(.mapa-app.panel-abierto) #gbot-lanzador{display:none}
+}
