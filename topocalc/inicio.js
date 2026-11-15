@@ -2,6 +2,9 @@
 /* Menú de Topo de Bolsillo: 12 botones de grupo -> herramientas del grupo (+ «Próximamente» del grupo).
    Ruta por hash: ''  = botones de grupo;  '#g-<id>' = herramientas de ese grupo. */
 let homeScrollY = 0;
+/* La introducción del menú se muestra solo hasta la primera vez que se entra a un grupo o herramienta */
+const introVista = () => { try { return localStorage.getItem('topo_intro_vista') === '1'; } catch(e){ return false; } };
+const marcarIntroVista = () => { try { localStorage.setItem('topo_intro_vista', '1'); } catch(e){} };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 const grupoRuta = () => { const m = location.hash.match(/^#g-(\w+)$/); return m ? GRUPOS.find(g => g.id === m[1]) : null; };
@@ -27,16 +30,16 @@ function tarjetaGrupo(g){
     </button>`;
 }
 function conectar(raiz){
-  raiz.querySelectorAll('.tool-card[data-tool]').forEach(b => b.addEventListener('click', () => { homeScrollY = window.scrollY; go(b.dataset.tool); }));
-  raiz.querySelectorAll('.tool-card[data-grupo]').forEach(b => b.addEventListener('click', () => { homeScrollY = window.scrollY; location.hash = 'g-' + b.dataset.grupo; }));
+  raiz.querySelectorAll('.tool-card[data-tool]').forEach(b => b.addEventListener('click', () => { homeScrollY = window.scrollY; marcarIntroVista(); go(b.dataset.tool); }));
+  raiz.querySelectorAll('.tool-card[data-grupo]').forEach(b => b.addEventListener('click', () => { homeScrollY = window.scrollY; marcarIntroVista(); location.hash = 'g-' + b.dataset.grupo; }));
 }
 function renderGrupos(){
   document.body.classList.add('home'); document.body.classList.remove('in-tool');
   document.getElementById('toolTitleTop').textContent = '';
   const main = document.getElementById('main');
   main.innerHTML = `<div class="buscador"><input type="search" id="buscarHerr" placeholder="Buscar: curva, UTM, nivel…" aria-label="Buscar herramienta" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"></div><div id="resBusqueda" style="display:none;"></div>
-  <div class="intro"><p>Calculadoras de topografía para el terreno o el gabinete, agrupadas por función. Sin conexión, sin instalación.</p>
-  <p style="margin-top:8px;">El botón <strong style="color:var(--blueprint);">${angleSystem==='cent'?'CEN':'SEX'}</strong> arriba a la derecha cambia todos los ángulos entre sexagesimal (° ' ") y centesimal (gon).</p></div>
+  ${introVista() ? '' : `<div class="intro"><p>Calculadoras de topografía para el terreno o el gabinete, agrupadas por función. Sin conexión, sin instalación.</p>
+  <p style="margin-top:8px;">El botón <strong style="color:var(--blueprint);">${angleSystem==='cent'?'CEN':'SEX'}</strong> arriba a la derecha cambia todos los ángulos entre sexagesimal (° ' ") y centesimal (gon).</p></div>`}
   <div class="card-grid" id="gridGrupos">${GRUPOS.map(tarjetaGrupo).join('')}</div>`;
   conectar(main);
   const inp = document.getElementById('buscarHerr'), resBox = document.getElementById('resBusqueda');
