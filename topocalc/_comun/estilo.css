@@ -696,9 +696,12 @@ footer.app-foot .foot-copy{font-size:10px; line-height:1.4; opacity:.75;}
 .field-row input, .field-row select{padding:7px 10px;}
 /* Fila simple (un rótulo + un campo numérico): rótulo a la izquierda, campo a la derecha */
 .tool-view .field-row:has(> label:first-child + input:last-child){
-  display:grid; grid-template-columns:minmax(0, 44%) minmax(0, 1fr); align-items:center; column-gap:10px;
+  display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); align-items:center; column-gap:8px;   /* mismas columnas que .field-inline2: el campo queda alineado con la columna derecha de los pares */
 }
-.tool-view :is(.field-inline, .field-inline2, .station-block) .field-row:has(> label:first-child + input:last-child){display:flex; align-items:stretch;}
+.tool-view :is(.field-inline, .field-inline2) .field-row:has(> label:first-child + input:last-child){display:flex; align-items:stretch;}
+/* Pares y tríos: los campos se alinean abajo aunque un rótulo ocupe más líneas que el otro */
+.field-inline, .field-inline2{align-items:end;}
+.field-row select{height:35px; padding-top:4px; padding-bottom:4px;}
 /* Bloques repetidos (vértices, estaciones) con un par de campos: la letra del bloque va al costado */
 .station-block{padding:8px; margin-bottom:6px;}
 .station-block:has(> .st-label:first-child + .field-inline2:last-child){
@@ -711,6 +714,7 @@ footer.app-foot .foot-copy{font-size:10px; line-height:1.4; opacity:.75;}
 }
 .station-block:has(> .st-label:first-child + .field-row + .field-row:last-child) > .st-label{margin:0 0 6px; font-size:12.5px; line-height:1.25;}
 .station-block:has(> .st-label:first-child + .field-row + .field-row:last-child) > .field-row + .field-row{margin-top:0;}
+.tool-view .station-block:has(> .st-label:first-child + .field-row + .field-row:last-child) > .field-row{display:flex; align-items:stretch;}
 .station-block .field-row{margin-bottom:0;}
 .station-block .field-row input{padding-left:8px; padding-right:8px;}
 .station-block .field-inline2 + .field-inline2, .station-block > .field-row + .field-row{margin-top:6px;}
