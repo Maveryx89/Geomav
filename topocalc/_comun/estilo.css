@@ -147,7 +147,7 @@ input, select{font-family:var(--font-mono); font-size:16px;}
 }
 .topbar .brand .mark em{font-style:normal; color:var(--accent-text);}
 .topbar .brand .tag{font-size:9.5px; color:var(--ink-soft); font-family:var(--font-mono); letter-spacing:.03em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.topbar .tool-title{font-family:var(--font-display); font-weight:700; font-size:21px; letter-spacing:.01em;}
+.topbar .tool-title{font-family:var(--font-display); font-weight:700; font-size:16.5px; line-height:1.12; letter-spacing:.01em; flex:1; min-width:0; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden;}
 body.in-tool .topbar .back-btn{display:inline-flex;}
 body.in-tool .topbar .brand{display:none;}
 body.home .topbar .tool-title{display:none;}
@@ -180,7 +180,7 @@ main{flex:1; padding:18px 16px 64px;}
 
 .card-grid{
   display:grid;
-  grid-template-columns:repeat(2, 1fr);
+  grid-template-columns:repeat(2, minmax(0, 1fr));
   gap:10px;
 }
 .tool-card{
@@ -243,6 +243,11 @@ main{flex:1; padding:18px 16px 64px;}
 /* ===================== TOOL VIEW ===================== */
 .tool-view{display:flex; flex-direction:column; gap:18px;}
 .tool-blurb{font-size:13.5px; color:var(--ink-soft); max-width:52ch;}
+.tool-blurb.plegado{display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden;}
+.blurb-links{display:flex; flex-wrap:wrap; column-gap:16px; margin-top:-14px;}
+.blurb-links .blurb-mas{margin-top:0;}
+.blurb-mas{align-self:flex-start; margin-top:-14px; padding:4px 0; background:none; border:0; font:inherit; font-size:12.5px; font-weight:600; color:var(--blueprint); cursor:pointer;}
+.tool-view > .action-bar{margin:4px 0 0;}
 
 .field-card{
   background:var(--paper-raised);
