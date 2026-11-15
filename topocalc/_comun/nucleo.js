@@ -629,7 +629,7 @@ function sheetConstruir(box){
   if(res.length) tablas.push({cap:'Resultados', kv: res});
   if(!tablas.length) return null;
   const e = escHTML;
-  let html = `<h3>Datos y resultados</h3>`;
+  let html = `<summary>Datos y resultados</summary>`;
   tablas.forEach(t=>{
     html += `<div class="ds-cap">${e(t.cap)}</div><div class="table-wrap">`;
     if(t.kv){
@@ -642,8 +642,18 @@ function sheetConstruir(box){
     }
     html += `</div>`;
   });
-  const d = document.createElement('div'); d.className = 'data-sheet'; d.innerHTML = html;
+  /* Plegado por defecto: repite los resultados que ya se ven arriba. Si el usuario lo abre, se mantiene abierto al recalcular. */
+  const d = document.createElement('details'); d.className = 'data-sheet'; d.innerHTML = html;
+  d.open = sheetAbierta;
+  d.addEventListener('toggle', ()=>{ if(!sheetForzando) sheetAbierta = d.open; });
   return d;
+}
+let sheetAbierta = false, sheetForzando = false;
+/* Abre todas las tablas (para exportar o capturar) y devuelve una función que las deja como estaban */
+function sheetAbrirTodas(){
+  const hs = [...document.querySelectorAll('details.data-sheet')].filter(h=>!h.open);
+  sheetForzando = true; hs.forEach(h=>h.open = true);
+  return ()=>{ hs.forEach(h=>h.open = false); setTimeout(()=>{ sheetForzando = false; }, 0); };
 }
 function sheetCaja(pw){ return pw.closest('[id^="res"]') || pw.closest('.results') || pw.parentElement; }
 function sheetActualizar(){
@@ -720,7 +730,7 @@ function collectToolReportData(){
   container.querySelectorAll('.plot-wrap svg').forEach(svg=>diagrams.push(svg.outerHTML));
 
   const sheets = [];
-  container.querySelectorAll('.data-sheet').forEach(s=>sheets.push(s.outerHTML));
+  container.querySelectorAll('.data-sheet').forEach(s=>{ const c = s.cloneNode(true); c.setAttribute('open', ''); sheets.push(c.outerHTML); });   // en el informe va siempre desplegada
 
   return {groups, resultBlocks, tables, diagrams, sheets};
 }
@@ -793,9 +803,10 @@ function wireToolActions(toolId){
       const container = document.querySelector('.tool-view');
       const actionBar = container.querySelector('.action-bar');
       actionBar.style.visibility = 'hidden';
+      const restaurarHojas = sheetAbrirTodas();   // la captura incluye la tabla de datos y resultados aunque esté plegada
       window.html2canvas(container, {backgroundColor: getComputedStyle(document.body).getPropertyValue('--paper') || '#ffffff', scale: 2})
         .then(canvas=>{
-          actionBar.style.visibility = '';
+          actionBar.style.visibility = ''; restaurarHojas();
           canvas.toBlob(blob=>{
             if(!blob){ finish('No se pudo generar la imagen.'); return; }
             const file = new File([blob], 'geomav-'+toolId+'.png', {type:'image/png'});
@@ -810,7 +821,7 @@ function wireToolActions(toolId){
               finish('Imagen descargada.');
             }
           }, 'image/png');
-        }).catch(()=>{ actionBar.style.visibility = ''; finish('No se pudo generar la captura.'); });
+        }).catch(()=>{ actionBar.style.visibility = ''; restaurarHojas(); finish('No se pudo generar la captura.'); });
     };
     if(window.html2canvas){ doCapture(); return; }
     const s = document.createElement('script');
