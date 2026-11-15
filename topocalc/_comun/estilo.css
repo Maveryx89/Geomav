@@ -678,3 +678,42 @@ footer.app-foot .foot-copy{font-size:10px; line-height:1.4; opacity:.75;}
   #app{max-width:1280px;}
   .card-grid{grid-template-columns:repeat(4, 1fr);}
 }
+
+/* ===================== DENSIDAD COMPACTA (herramientas) =====================
+   Menos aire entre bloques y filas; el tamaño de letra de los datos (16px) no cambia. */
+.tool-view{gap:12px;}
+.field-card{padding:12px;}
+.field-card + .field-card{margin-top:8px;}
+.field-card h3, .results h3{font-size:12px; margin-bottom:8px;}
+.field-row{gap:3px; margin-bottom:8px;}
+.field-row label{font-size:12px; line-height:1.3;}
+.field-row input, .field-row select{padding:7px 10px;}
+/* Fila simple (un rótulo + un campo numérico): rótulo a la izquierda, campo a la derecha */
+.tool-view .field-row:has(> label:first-child + input:last-child){
+  display:grid; grid-template-columns:minmax(0, 44%) minmax(0, 1fr); align-items:center; column-gap:10px;
+}
+.tool-view :is(.field-inline, .field-inline2, .station-block) .field-row:has(> label:first-child + input:last-child){display:flex; align-items:stretch;}
+/* Bloques repetidos (vértices, estaciones) con un par de campos: la letra del bloque va al costado */
+.station-block{padding:8px; margin-bottom:6px;}
+.station-block:has(> .st-label:first-child + .field-inline2:last-child){
+  display:grid; grid-template-columns:min-content minmax(0, 1fr); align-items:end; column-gap:8px;
+}
+.station-block:has(> .st-label:first-child + .field-inline2:last-child) > .st-label{margin:0 0 6px; font-size:12.5px; line-height:1.25;}
+/* Bloque repetido con dos campos sueltos (p. ej. azimut + distancia): los dos en la misma fila */
+.station-block:has(> .st-label:first-child + .field-row + .field-row:last-child){
+  display:grid; grid-template-columns:min-content minmax(0, 1fr) minmax(0, 1fr); align-items:end; column-gap:8px;
+}
+.station-block:has(> .st-label:first-child + .field-row + .field-row:last-child) > .st-label{margin:0 0 6px; font-size:12.5px; line-height:1.25;}
+.station-block:has(> .st-label:first-child + .field-row + .field-row:last-child) > .field-row + .field-row{margin-top:0;}
+.station-block .field-row{margin-bottom:0;}
+.station-block .field-row input{padding-left:8px; padding-right:8px;}
+.station-block .field-inline2 + .field-inline2, .station-block > .field-row + .field-row{margin-top:6px;}
+.field-inline2 > .field-row, .field-inline > .field-row{margin-bottom:0;}
+.field-inline2 + .field-row, .field-inline + .field-row, .field-inline2 + .field-inline2{margin-top:8px;}
+.btn{padding:10px 18px;}
+.n-stepper button{width:34px; height:34px;}
+.n-stepper .n-val{font-size:18px;}
+.results{padding:12px;}
+.result-row{padding:4px 0; font-size:13.5px;}
+.result-row .v.big{font-size:16px;}
+.tool-view > .action-bar{padding:6px 8px;}
