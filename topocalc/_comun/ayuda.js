@@ -190,7 +190,7 @@ const SIGLAS_HERR = {
     const bar = tv.querySelector('.action-bar');
     /* Siglas: si la herramienta no trae glosario propio, se crea; si lo trae, se completa con las siglas comunes que falten */
     let g = tv.querySelector('.glosario');
-    if(!g){ bar.insertAdjacentHTML('beforebegin', panelSiglas(id)); }
+    if(!g){ b.insertAdjacentHTML('afterend', panelSiglas(id)); }
     else {
       const body = g.querySelector('.gloss-body');
       const ya = new Set([...body.querySelectorAll('.gloss-item b')].map(x => x.textContent));
@@ -198,5 +198,10 @@ const SIGLAS_HERR = {
     }
     b.insertAdjacentHTML('afterend', filaAyuda(id));
     tv.querySelector('#btnTour').addEventListener('click', () => iniciarTour(id));
+    /* Acceso al recorrido junto a «ver más»: los botones de ayuda quedan al final de la herramienta */
+    b.insertAdjacentHTML('afterend', '<div class="blurb-links"><button type="button" class="blurb-mas" id="lnkTour">¿Primera vez? Ver recorrido</button></div>');
+    tv.querySelector('#lnkTour').addEventListener('click', () => iniciarTour(id));
+    /* Ayuda y siglas van al final, bajo el formulario y la barra de exportar: el primer campo queda arriba */
+    tv.append(tv.querySelector('.glosario'), tv.querySelector('.ayuda-bar'));
   };
 })();
