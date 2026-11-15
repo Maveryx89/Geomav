@@ -411,6 +411,19 @@ function glosarioHtml(keys){
   if(!items) return '';
   return `<details class="glosario"><summary>Significado de las siglas usadas aquí</summary><div class="gloss-body">${items}</div></details>`;
 }
+/* Descripción de la herramienta en 2 líneas con «ver más» (solo si de verdad se corta) */
+function blurbPlegable(p){
+  if(!p) return;
+  p.classList.add('plegado');
+  requestAnimationFrame(() => {
+    if(p.scrollHeight <= p.clientHeight + 2){ p.classList.remove('plegado'); return; }
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'blurb-mas'; b.textContent = 'ver más';
+    b.addEventListener('click', () => { const ab = p.classList.toggle('plegado'); b.textContent = ab ? 'ver más' : 'ver menos'; });
+    const fila = p.parentNode.querySelector('.blurb-links');
+    if(fila) fila.prepend(b); else p.insertAdjacentElement('afterend', b);
+  });
+}
 function toolShell(id, blurb, bodyHtml, glosKeys){
   document.body.classList.remove('home');
   document.body.classList.add('in-tool');
@@ -419,13 +432,14 @@ function toolShell(id, blurb, bodyHtml, glosKeys){
   main.innerHTML = `<div class="tool-view">
     <p class="tool-blurb">${blurb}</p>
     ${glosarioHtml(glosKeys)}
+    ${bodyHtml}
     <div class="action-bar">
       <button type="button" id="btnExportInforme" class="btn-sm">📄 Exportar informe</button>
       <button type="button" id="btnShareCapture" class="btn-sm">📷 Compartir captura</button>
       <span id="actionMsg" class="proj-msg"></span>
     </div>
-    ${bodyHtml}
   </div>`;
+  blurbPlegable(main.querySelector('.tool-blurb'));
   wireToolActions(id);
 }
 const VR_TOOLS = ['chequeoNivel','chequeoTeodolito','chequeoEstacion'];
