@@ -21,7 +21,8 @@
 /* Tarjetas compactas: icono y nombre en la misma línea, descripción debajo */
 .tool-card{display:grid; grid-template-columns:auto 1fr; column-gap:10px; row-gap:6px; align-items:center; align-content:start;}
 .tool-card .glyph{width:28px; height:28px;}
-.tool-card .name{grid-column:2; font-size:14.5px;}
+.tool-card .name{grid-column:2; font-size:14.5px; min-width:0; overflow-wrap:break-word;}
+@media (max-width:400px){ .tool-card{padding:14px 10px; column-gap:8px;} .tool-card .glyph{width:24px; height:24px;} .tool-card .name{font-size:13.5px;} }
 .tool-card .desc,.tool-card .badge{grid-column:1 / -1;}
 main > .tool-blurb{margin:0 0 14px;}
 main > .card-grid + .proximamente{margin-top:18px;}
