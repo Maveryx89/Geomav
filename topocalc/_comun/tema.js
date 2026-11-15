@@ -69,6 +69,8 @@ if(btnQuitarAnuncios){
   });
 }
 try{ document.getElementById('footYear').textContent = new Date().getFullYear(); }catch(e){}
+/* Pie compacto: la línea de derechos queda en un solo renglón (© año Topo de Bolsillo · Política de privacidad) */
+try{ document.querySelectorAll('.app-foot .foot-copy').forEach(c => c.childNodes.forEach(n => { if(n.nodeType === 3) n.nodeValue = n.nodeValue.replace('. Todos los derechos reservados.', ''); })); }catch(e){}
 
 /* Botón «Acerca de» (módulo compartido GEOMAV: logo, versión, creador y contacto) */
 (function(){try{var s=document.createElement('script');s.src=(document.body.getAttribute('data-raiz')||'./')+'_comun/acerca-de.js';s.setAttribute('data-app','Topo de Bolsillo');s.setAttribute('data-desc','Calculadoras de topografía para el terreno o el gabinete, agrupadas por función. Sin conexión, sin instalación. El botón SEX / CEN de la barra superior cambia todos los ángulos entre sexagesimal (° \' ") y centesimal (gon).');s.setAttribute('data-host','.topbar');s.setAttribute('data-clase','theme-toggle');document.head.appendChild(s);}catch(e){}})();
