@@ -115,7 +115,9 @@ input, select{font-family:var(--font-mono); font-size:16px;}
 }
 
 /* ===================== APP SHELL ===================== */
-#app{max-width:640px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column;}
+#app{max-width:640px; margin:0 auto; min-height:100vh; min-height:100dvh; display:flex; flex-direction:column;}
+/* Con banner nativo el body ya reserva 60px abajo: se descuentan para que el pie quede justo sobre el anuncio, sin scroll */
+body.con-anuncio #app{min-height:calc(100vh - 60px - env(safe-area-inset-bottom)); min-height:calc(100dvh - 60px - env(safe-area-inset-bottom));}
 
 .topbar{
   position:sticky; top:0; z-index:20;
@@ -152,7 +154,7 @@ body.in-tool .topbar .back-btn{display:inline-flex;}
 body.in-tool .topbar .brand{display:none;}
 body.home .topbar .tool-title{display:none;}
 
-main{flex:1; padding:18px 16px 64px;}
+main{flex:1; padding:18px 16px 16px;}
 
 /* ===================== HOME ===================== */
 .intro{margin-bottom:22px;}
@@ -448,16 +450,21 @@ table.data-table td:first-child, table.data-table th:first-child{text-align:left
 .theme-toggle svg{width:17px;height:17px;}
 #angSysToggle{margin-left:auto; font-family:var(--font-mono); font-size:10.5px; font-weight:600; letter-spacing:.02em; color:var(--blueprint);}
 
+/* Pie compacto: logo + invitación a cotizar en una fila, derechos y privacidad debajo.
+   Queda pegado al borde inferior cuando el contenido es corto (main crece con flex:1). */
 footer.app-foot{
-  display:flex; flex-direction:column; align-items:center; gap:6px;
-  text-align:center; padding:22px 16px 32px; font-size:11px; color:var(--ink-soft);
+  display:grid; grid-template-columns:auto minmax(0, max-content); justify-content:center; align-items:center;
+  column-gap:8px; row-gap:4px;
+  padding:10px 16px 10px; font-size:10.5px; color:var(--ink-soft);
   font-family:var(--font-mono);
-  border-top:1px solid var(--line); margin-top:10px;
+  border-top:1px solid var(--line); margin-top:0;
 }
-footer.app-foot .foot-logo{width:28px; height:28px; object-fit:contain; opacity:.85;}
-footer.app-foot .foot-copy{font-size:10px; opacity:.75;}
+footer.app-foot .foot-logo{width:24px; height:24px; object-fit:contain; opacity:.85; justify-self:end;}
+footer.app-foot > span:not([class]){display:none;}   /* línea «Topo de Bolsillo · herramientas…»: repite la marca de la barra superior */
+footer.app-foot .foot-cta{max-width:none; line-height:1.45; text-align:left;}
+footer.app-foot #btnQuitarAnuncios, footer.app-foot .foot-copy{grid-column:1 / -1; justify-self:center; text-align:center;}
+footer.app-foot .foot-copy{font-size:10px; line-height:1.4; opacity:.75;}
 .app-foot a{color:var(--blueprint); text-decoration:underline; text-underline-offset:2px; padding:4px 1px;}
-.app-foot .foot-cta{max-width:34ch; line-height:1.5;}
 
 /* ===================== INFORME IMPRIMIBLE / EXPORTAR PDF ===================== */
 /* #printArea se arma dinámicamente al presionar "Exportar informe" reutilizando
