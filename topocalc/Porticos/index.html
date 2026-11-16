@@ -1292,6 +1292,36 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .note .note-head .pct{ font-family:var(--font-mono); font-size:9px; font-weight:600; color:var(--ink-soft); letter-spacing:-.2px; }
 @media (max-width:760px){ .note .note-head .pct{ font-size:9px; } }
 </style>
+<style id="ajustes-movil">
+.porticos-table .ubic-ic{ display:none; }   /* el ícono solo reemplaza al texto en teléfono */
+@media screen and (max-width:860px){
+  /* Barra superior: cabe en 360 px y baja de alto */
+  .topbar{ gap:6px; padding:10px 12px; padding-top:calc(10px + env(safe-area-inset-top)); }
+  .topbar .btn-sm{ min-height:36px; padding-top:4px; padding-bottom:4px; }
+  /* Encabezado de sección con menos aire */
+  .section-head{ padding-top:10px; }
+  .section-head h2{ margin:6px 0; }
+  /* Etiquetas de las pestañas inferiores legibles */
+  .m-tabs button, .m-tabs button span.t-l{ font-size:11px; letter-spacing:-.01em; }
+
+  .topbar .brand .tag{ display:none; }   /* a 7,5 px no se leía */
+  .topbar .brand .mark{ font-size:15px; }
+  /* Listado de pórticos: una línea por pórtico */
+  .porticos-table td:first-child, .porticos-table td.estado{ white-space:nowrap; }
+  .porticos-table .ubic-txt{ display:none; }
+  .porticos-table .ubic-ic{ display:inline; }
+  .porticos-table th.th-ubic, .porticos-table td.ubic{ width:34px; text-align:center; padding-left:2px; padding-right:2px; font-size:.86rem; }
+  .porticos-table .ubic-link{ display:inline-flex; align-items:center; justify-content:center; min-width:32px; min-height:28px; margin:-5px 0; }
+  /* Indicadores: enlace «Abrir historial» fácil de tocar */
+  .ep-ir{ display:inline-flex; align-items:center; min-height:34px; }
+}
+/* Pie compacto (igual que topocalc): logo + invitación en una fila, derechos debajo */
+footer.app-foot{ display:grid; grid-template-columns:auto minmax(0, max-content); justify-content:center; align-items:center; column-gap:8px; row-gap:4px; padding:10px 16px; font-size:10.5px; margin-top:0; }
+footer.app-foot .foot-logo{ width:24px; height:24px; justify-self:end; }
+footer.app-foot > span:not([class]){ display:none; }
+footer.app-foot .foot-cta{ max-width:none; line-height:1.45; text-align:left; }
+footer.app-foot .foot-copy{ grid-column:1 / -1; justify-self:center; text-align:center; line-height:1.4; }
+</style>
 </head>
 
 <body>
@@ -1371,7 +1401,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
           </div>
           <div class="porticos-scroll">
             <table class="porticos-table">
-              <thead><tr><th>Nombre pórtico</th><th class="th-tipo" title="Tipo de pórtico (L o T)">Tipo</th><th>Comuna</th><th>Ubicación</th><th class="th-fotos" aria-label="Fotos">📷</th><th>Estado</th></tr></thead>
+              <thead><tr><th>Nombre pórtico</th><th class="th-tipo" title="Tipo de pórtico (L o T)">Tipo</th><th>Comuna</th><th class="th-ubic" title="Ubicación"><span class="ubic-txt">Ubicación</span><span class="ubic-ic" aria-hidden="true">📍</span></th><th class="th-fotos" aria-label="Fotos">📷</th><th>Estado</th></tr></thead>
               <tbody id="porticosBody"></tbody>
             </table>
           </div>
@@ -3730,9 +3760,10 @@ window.PORTICOS_LISTA = (function(){
     return '<button type="button" class="estado-btn" data-portico="'+num+'" title="Ver / registrar avance">'+inner+'</button>';
   }
   function ubicHtml(p){
-    if(!tieneCoords(p)) return '<span class="ubic-pend" title="Coordenadas pendientes">'+esc(p.ubicacion)+'</span>';
+    /* En teléfono la columna muestra solo el ícono (el texto .ubic-txt se oculta por CSS); sin coordenadas va un guion */
+    if(!tieneCoords(p)) return '<span class="ubic-pend" title="Coordenadas pendientes \u00b7 '+esc(p.ubicacion)+'"><span class="ubic-txt">'+esc(p.ubicacion)+'</span><span class="ubic-ic" aria-hidden="true">\u2013</span></span>';
     var url = "https://www.google.com/maps/search/?api=1&query=" + p.lat + "," + p.lng;
-    return '<a class="ubic-link" href="'+url+'" target="_blank" rel="noopener">\ud83d\udccd '+esc(p.ubicacion)+'</a>';
+    return '<a class="ubic-link" href="'+url+'" target="_blank" rel="noopener" title="'+esc(p.ubicacion)+'" aria-label="Ver ubicaci\u00f3n en el mapa: '+esc(p.ubicacion)+'">\ud83d\udccd<span class="ubic-txt"> '+esc(p.ubicacion)+'</span></a>';
   }
 
   var tb = document.getElementById("porticosBody");
