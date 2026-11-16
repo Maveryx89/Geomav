@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Panel · Imágenes 360° · GEOMAV</title>
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0A2240">
+<link rel="icon" href="/assets/img/geomav-icono.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0A2240;--paper:#F4F3EF;--accent:#D49A6A;--teal:#2C6B7E;--line:#d9d6cd;--dim:#5b6675;--danger:#b3261e;--ok:#1d7a4f}
+*{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--paper);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.45;min-height:100vh}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+header.top{background:var(--ink);color:#fff;position:sticky;top:0;z-index:5}
+header.top .in{max-width:860px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:10px}
+header.top img{height:34px;width:34px;object-fit:contain;background:#fff;border-radius:50%;padding:3px}
+header.top b{font-weight:800;font-size:15px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header.top small{display:block;font-weight:400;font-size:12px;color:#ffffffb3;overflow:hidden;text-overflow:ellipsis}
+main{max-width:860px;margin:0 auto;padding:18px 16px 80px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 16px;border-radius:10px;border:1.5px solid var(--ink);background:#fff;font-weight:600;font-size:14px;text-decoration:none;color:var(--ink)}
+.btn:hover{background:#eceae3}
+.btn.pri{background:var(--ink);color:#fff}
+.btn.pri:hover{background:#12365a}
+.btn.cobre{background:var(--accent);border-color:var(--accent);color:var(--ink)}
+.btn.sm{min-height:36px;padding:0 12px;font-size:13px;border-width:1px;border-color:var(--line)}
+.btn.pel{border-color:var(--danger);color:var(--danger)}
+.btn.claro{border-color:#ffffff66;background:transparent;color:#fff}
+.btn:disabled{opacity:.5;cursor:default}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
+.card + .card{margin-top:12px}
+h1{font-size:20px;font-weight:800}
+h2{font-size:16px;font-weight:800}
+.sub{color:var(--dim);font-size:13px}
+.fila{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.esp{flex:1}
+label.c{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
+input[type=text],input[type=email],input[type=password],input[type=date],select{width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg label{flex:1;min-width:140px;display:flex;gap:8px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:14px}
+.seg label:has(input:checked){border-color:var(--ink);background:#eef2f7}
+.seg small{display:block;color:var(--dim);font-size:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chip{min-height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:13px}
+.est{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.est.pub{background:#e3f1ea;color:var(--ok)}
+.est.pri{background:#e4edf2;color:var(--teal)}
+.est.ven{background:#f7e3e1;color:var(--danger)}
+.uso{height:8px;border-radius:4px;background:#e4e1d8;overflow:hidden;margin-top:6px}
+.uso i{display:block;height:100%;background:var(--teal);width:0}
+.aviso{background:#f7e3e1;border:1px solid #e6b8b3;border-radius:12px;padding:12px 14px;margin:12px 0;font-size:14px}
+.proy h2{overflow-wrap:anywhere}
+.acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+ol.imgs{list-style:none;padding:0;margin:12px 0 0;border-top:1px solid var(--line)}
+ol.imgs li{display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}
+ol.imgs .n{flex:none;width:26px;height:26px;border-radius:50%;background:#eceae3;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
+ol.imgs .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+ol.imgs .t small{color:var(--dim);font-size:12px;margin-left:6px}
+.ib{flex:none;width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-size:15px}
+.ib:disabled{opacity:.35}
+dialog{border:0;border-radius:16px;padding:0;width:min(520px,calc(100vw - 24px));max-height:calc(100vh - 24px);color:var(--ink)}
+dialog::backdrop{background:#0a2240b3}
+dialog form,dialog .dc{padding:18px;overflow:auto;max-height:calc(100vh - 24px)}
+dialog .pie{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+.chk{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:14px}
+.chk input{width:20px;height:20px}
+progress{width:100%;height:10px;margin-top:10px}
+.err{color:var(--danger);font-size:13px;margin-top:8px;min-height:1em}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:20;max-width:calc(100vw - 24px);text-align:center}
+#toast.on{opacity:1}
+.vacio{text-align:center;padding:36px 16px;color:var(--dim)}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <img src="/assets/img/geomav-logo.png" alt="GEOMAV">
+  <b>Panel · Imágenes 360°<small id="quien"></small></b>
+  <button class="btn sm claro" id="salir" type="button" hidden>Salir</button>
+</div></header>
+
+<main>
+  <!-- Ingreso -->
+  <section class="card" id="vLogin" hidden>
+    <h1>Ingresar</h1>
+    <p class="sub">Usa el correo y la contraseña de tu cuenta de Supabase (la misma del Visor 360°).</p>
+    <form id="fLogin">
+      <label class="c" for="lc">Correo</label><input id="lc" type="email" autocomplete="username" required>
+      <label class="c" for="lp">Contraseña</label><input id="lp" type="password" autocomplete="current-password" required>
+      <p class="err" id="lerr" role="alert"></p>
+      <button class="btn pri" type="submit" id="lbtn">Entrar</button>
+    </form>
+  </section>
+
+  <!-- Panel -->
+  <section id="vPanel" hidden>
+    <div class="fila">
+      <div class="esp"><h1>Proyectos</h1><p class="sub">Cada proyecto agrupa varias imágenes 360°.</p></div>
+      <button class="btn pri" id="nuevo" type="button">+ Nuevo proyecto</button>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="fila"><span class="esp" style="font-weight:600">Espacio usado por esta sección</span><span id="usoTxt" class="sub"></span></div>
+      <div class="uso"><i id="usoBar"></i></div>
+      <p class="sub" style="margin-top:6px">El plan gratuito de Supabase da 1 GB en total, compartido con Familia y el Visor 360°.</p>
+    </div>
+    <div class="aviso" id="avVenc" hidden>
+      <b id="avTxt"></b><br>Sus enlaces ya no funcionan. Borra los archivos para liberar espacio, o edita el proyecto para extender el plazo.
+      <div class="acc"><button class="btn sm pel" id="borrarVenc" type="button">Borrar proyectos vencidos</button></div>
+    </div>
+    <div id="lista" style="margin-top:14px"></div>
+  </section>
+</main>
+
+<!-- Proyecto -->
+<dialog id="dProy"><form id="fProy" method="dialog">
+  <h2 id="dProyTit">Nuevo proyecto</h2>
+  <label class="c" for="pt">Título</label><input id="pt" type="text" maxlength="120" required placeholder="Ej. Loteo Las Rastras">
+  <label class="c" for="pu">Ubicación</label><input id="pu" type="text" maxlength="120" placeholder="Ej. Talca, Región del Maule">
+  <label class="c">¿Quién lo puede ver?</label>
+  <div class="seg">
+    <label><input type="radio" name="vis" value="pub"><span>Público<small>Aparece en el portafolio para cualquier visitante.</small></span></label>
+    <label><input type="radio" name="vis" value="pri" checked><span>Privado con enlace<small>Solo quien tenga el enlace. No aparece en el portafolio.</small></span></label>
+  </div>
+  <div id="soloPri">
+    <label class="c" for="pc">Cliente (para la marca de agua)</label><input id="pc" type="text" maxlength="120" placeholder="Ej. Inmobiliaria Los Robles">
+  </div>
+  <label class="c" for="pv">Disponible hasta</label>
+  <input id="pv" type="date">
+  <div class="chips" id="dias">
+    <button class="chip" type="button" data-d="3">3 días</button><button class="chip" type="button" data-d="7">7 días</button>
+    <button class="chip" type="button" data-d="15">15 días</button><button class="chip" type="button" data-d="30">30 días</button>
+    <button class="chip" type="button" data-d="0">Sin vencimiento</button>
+  </div>
+  <label class="c" for="pm">Formato del visor en celular</label>
+  <select id="pm"><option value="h">Horizontal (16:9)</option><option value="v">Vertical (9:16)</option></select>
+  <p class="err" id="perr" role="alert"></p>
+  <div class="pie"><button class="btn" type="button" data-cerrar>Cancelar</button><button class="btn pri" type="submit" id="pok">Guardar</button></div>
+</form></dialog>
+
+<!-- Subir -->
+<dialog id="dSub"><form id="fSub" method="dialog">
+  <h2>Subir imágenes 360°</h2>
+  <p class="sub" id="subProy"></p>
+  <label class="c" for="sf">Imágenes (JPG, PNG o WebP)</label>
+  <input id="sf" type="file" accept="image/jpeg,image/png,image/webp" multiple required>
+  <p class="sub" style="margin-top:6px">Panoramas equirectangulares 2:1 (DJI, Insta360 exportado a JPG). Una foto normal se muestra como imagen plana.</p>
+  <label class="c" for="sq">Calidad</label>
+  <select id="sq"><option value="8192">Alta — 8192 px de ancho</option><option value="4096">Media — 4096 px (más liviana, menos detalle al descargar)</option></select>
+  <label class="chk"><input type="checkbox" id="sm"> Marca de agua quemada en la imagen</label>
+  <div id="smBox"><label class="c" for="st">Texto de la marca</label><input id="st" type="text" maxlength="60"></div>
+  <progress id="sp" max="1" value="0" hidden></progress>
+  <p class="sub" id="sest" role="status"></p>
+  <p class="err" id="serr" role="alert"></p>
+  <div class="pie"><button class="btn" type="button" data-cerrar>Cerrar</button><button class="btn pri" type="submit" id="sok">Subir</button></div>
+</form></dialog>
+
+<!-- Confirmar -->
+<dialog id="dConf"><div class="dc">
+  <h2 id="cTit"></h2><p id="cTxt" style="margin-top:8px"></p>
+  <div class="pie"><button class="btn" type="button" id="cNo">Cancelar</button><button class="btn pri" type="button" id="cSi">Aceptar</button></div>
+</div></dialog>
+
+<!-- Renombrar -->
+<dialog id="dNom"><form id="fNom" method="dialog">
+  <h2>Nombre de la imagen</h2>
+  <label class="c" for="nt">Se muestra en el visor</label><input id="nt" type="text" maxlength="120" placeholder="Ej. Acceso principal">
+  <div class="pie"><button class="btn" type="button" data-cerrar>Cancelar</button><button class="btn pri" type="submit">Guardar</button></div>
+</form></dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+const $ = id => document.getElementById(id);
+const SB = {url:'https://xoorsgrgptxvqtfaqdfw.supabase.co', key:'sb_publishable_JsifPijoGET8d5aZwcvHFg_YtTIGyN8', bucket:'panoramas'};
+const LS = 'topocalc_v360_auth';           // misma sesión que el Visor 360° de Topo de Bolsillo
+const CUPO = 1024*1024*1024, MAX_ARCH = 40*1024*1024;
+let proyectos = [];
+
+/* ---------- utilidades ---------- */
+function toast(t){ const e=$('toast'); e.textContent=t; e.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>e.classList.remove('on'),2600); }
+function aleat(n){ const a=new Uint8Array(n); crypto.getRandomValues(a); return Array.from(a,b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join(''); }
+function el(tag, attrs, ...hijos){ const e=document.createElement(tag); for(const k in (attrs||{})){ if(k==='class') e.className=attrs[k]; else if(k.startsWith('on')) e.addEventListener(k.slice(2),attrs[k]); else if(attrs[k]!==false&&attrs[k]!=null) e.setAttribute(k,attrs[k]===true?'':attrs[k]); } e.append(...hijos.filter(h=>h!=null&&h!==false)); return e; }
+const mb = b => b>=1048576 ? (b/1048576).toFixed(b>=104857600?0:1).replace('.',',')+' MB' : Math.max(1,Math.round(b/1024))+' KB';
+const fechaCorta = iso => { const d=new Date(iso); return String(d.getDate()).padStart(2,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+d.getFullYear(); };
+const vencido = p => !!p.vence && new Date(p.vence).getTime() <= Date.now();
+function confirmar(tit, txt, si){ return new Promise(res=>{ $('cTit').textContent=tit; $('cTxt').textContent=txt; $('cSi').textContent=si||'Aceptar';
+  const d=$('dConf'); const fin=v=>{ d.close(); $('cSi').onclick=$('cNo').onclick=d.oncancel=null; res(v); };
+  $('cSi').onclick=()=>fin(true); $('cNo').onclick=()=>fin(false); d.oncancel=()=>fin(false); d.showModal(); }); }
+document.querySelectorAll('[data-cerrar]').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
+
+/* ---------- Supabase (REST) ---------- */
+function authGet(){ try{ return JSON.parse(localStorage.getItem(LS)||'null'); }catch(e){ return null; } }
+function authSet(j){ try{ if(!j){ localStorage.removeItem(LS); return; }
+  localStorage.setItem(LS, JSON.stringify({access:j.access_token, refresh:j.refresh_token, exp:Date.now()+(j.expires_in||3600)*1000, email:(j.user&&j.user.email)||''})); }catch(e){} }
+async function crudo(ruta, opt, tok){
+  const h = Object.assign({apikey:SB.key, Authorization:'Bearer '+(tok||SB.key)}, (opt&&opt.headers)||{});
+  let r; try{ r = await fetch(SB.url+ruta, Object.assign({}, opt, {headers:h})); }catch(e){ throw new Error('Sin conexión con el servidor. Revisa tu internet.'); }
+  const txt = await r.text(); let j=null; try{ j = txt ? JSON.parse(txt) : null; }catch(e){}
+  if(!r.ok){ const m = (j&&(j.msg||j.message||j.error_description||j.error))||('Error '+r.status);
+    if(/invalid login credentials/i.test(m)) throw new Error('Correo o contraseña incorrectos.');
+    if(/row-level security|not authorized|unauthorized|permission denied|jwt/i.test(m)) throw new Error('Tu cuenta no tiene permiso para esta acción.');
+    if(/does not exist|schema cache|not find/i.test(m)) throw new Error('Falta configurar las tablas en Supabase (p360_proyectos).');
+    throw new Error(m); }
+  return j;
+}
+async function token(){
+  const a = authGet(); if(!a) throw new Error('sesion');
+  if(a.exp - Date.now() > 60000) return a.access;
+  try{ const j = await crudo('/auth/v1/token?grant_type=refresh_token', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({refresh_token:a.refresh})}); authSet(j); return j.access_token; }
+  catch(e){ authSet(null); throw new Error('sesion'); }
+}
+async function api(ruta, opt){ return crudo(ruta, opt, await token()); }
+const jsonH = extra => Object.assign({'Content-Type':'application/json'}, extra||{});
+const rutaArch = (p, archivo) => 'p360/'+p.carpeta+'/'+archivo;
+async function borrarArchivos(p){ const pref = (p.p360_imagenes||[]).map(i=>rutaArch(p,i.archivo)); if(!pref.length) return;
+  await api('/storage/v1/object/'+SB.bucket, {method:'DELETE', headers:jsonH(), body:JSON.stringify({prefixes:pref})}); }
+
+/* ---------- sesión ---------- */
+function vista(){ const a = authGet(); $('vLogin').hidden = !!a; $('vPanel').hidden = !a; $('salir').hidden = !a; $('quien').textContent = a ? a.email : ''; if(a) cargar(); }
+function sinSesion(e){ if(e&&e.message==='sesion'){ authSet(null); vista(); toast('La sesión venció. Vuelve a ingresar.'); return true; } return false; }
+$('fLogin').addEventListener('submit', async ev=>{ ev.preventDefault(); $('lerr').textContent=''; $('lbtn').disabled=true;
+  try{ authSet(await crudo('/auth/v1/token?grant_type=password', {method:'POST', headers:jsonH(), body:JSON.stringify({email:$('lc').value.trim(), password:$('lp').value})})); $('lp').value=''; vista(); }
+  catch(e){ $('lerr').textContent = e.message; }
+  $('lbtn').disabled=false; });
+$('salir').addEventListener('click', ()=>{ authSet(null); proyectos=[]; vista(); });
+
+/* ---------- listado ---------- */
+async function cargar(){
+  try{
+    proyectos = await api('/rest/v1/p360_proyectos?select=*,p360_imagenes(*)&order=orden.asc,creado.desc') || [];
+    proyectos.forEach(p=>(p.p360_imagenes||(p.p360_imagenes=[])).sort((a,b)=>a.orden-b.orden||a.creado.localeCompare(b.creado)));
+    pintar();
+  }catch(e){ if(sinSesion(e)) return; $('lista').replaceChildren(el('div',{class:'aviso'}, e.message)); }
+}
+function enlace(p){ const base = location.origin+'/portafolio/imagenes-360.html'; return p.publico ? base+'?p='+p.id : base+'?v='+p.clave; }
+function pintar(){
+  const usados = proyectos.reduce((s,p)=>s+p.p360_imagenes.reduce((t,i)=>t+(i.bytes||0),0),0);
+  $('usoTxt').textContent = mb(usados)+' de 1 GB'; $('usoBar').style.width = Math.min(100,100*usados/CUPO)+'%';
+  const ven = proyectos.filter(vencido);
+  $('avVenc').hidden = !ven.length; $('avTxt').textContent = ven.length===1 ? '1 proyecto vencido.' : ven.length+' proyectos vencidos.';
+  if(!proyectos.length){ $('lista').replaceChildren(el('div',{class:'card vacio'}, 'Aún no hay proyectos. Crea el primero con «Nuevo proyecto».')); return; }
+  $('lista').replaceChildren(...proyectos.map(tarjeta));
+}
+function tarjeta(p){
+  const n = p.p360_imagenes.length, v = vencido(p);
+  const estado = v ? el('span',{class:'est ven'},'Vencido el '+fechaCorta(p.vence))
+    : p.publico ? el('span',{class:'est pub'}, p.vence?'Público · hasta el '+fechaCorta(p.vence):'Público')
+    : el('span',{class:'est pri'}, p.vence?'Privado · hasta el '+fechaCorta(p.vence):'Privado · sin vencimiento');
+  const imgs = el('ol',{class:'imgs'}, ...p.p360_imagenes.map((im,i)=> el('li',null,
+    el('span',{class:'n'}, String(i+1)),
+    el('span',{class:'t'}, im.titulo||'Sin nombre', el('small',null, (im.tipo==='flat'?'plana · ':'')+mb(im.bytes||0))),
+    el('button',{class:'ib',type:'button','aria-label':'Subir en el orden',title:'Subir',disabled:i===0,onclick:()=>mover(p,i,-1)},'↑'),
+    el('button',{class:'ib',type:'button','aria-label':'Bajar en el orden',title:'Bajar',disabled:i===n-1,onclick:()=>mover(p,i,1)},'↓'),
+    el('button',{class:'ib',type:'button','aria-label':'Cambiar nombre',title:'Cambiar nombre',onclick:()=>renombrar(p,im)},'✎'),
+    el('button',{class:'ib',type:'button','aria-label':'Borrar imagen',title:'Borrar imagen',onclick:()=>borrarImagen(p,im)},'🗑'))));
+  return el('article',{class:'card proy'},
+    el('div',{class:'fila'}, el('h2',{class:'esp'}, p.titulo), estado),
+    el('p',{class:'sub'}, [p.ubicacion, p.cliente&&!p.publico?'Cliente: '+p.cliente:'', n===1?'1 imagen':n+' imágenes'].filter(Boolean).join(' · ')),
+    n ? imgs : el('p',{class:'sub',style:'margin-top:10px'}, 'Sin imágenes todavía: no se muestra a nadie hasta que subas al menos una.'),
+    el('div',{class:'acc'},
+      el('button',{class:'btn sm cobre',type:'button',onclick:()=>abrirSubir(p)},'Subir imágenes'),
+      n&&!v ? el('button',{class:'btn sm',type:'button',onclick:()=>copiar(p)},'Copiar enlace') : null,
+      n&&!v ? el('a',{class:'btn sm',href:'https://wa.me/?text='+encodeURIComponent(p.titulo+' · imágenes 360° de GEOMAV '+enlace(p)),target:'_blank',rel:'noopener'},'WhatsApp') : null,
+      n&&!v ? el('a',{class:'btn sm',href:enlace(p),target:'_blank',rel:'noopener'},'Ver') : null,
+      el('button',{class:'btn sm',type:'button',onclick:()=>abrirProy(p)},'Editar'),
+      el('button',{class:'btn sm pel',type:'button',onclick:()=>borrarProyecto(p)},'Borrar')));
+}
+function copiar(p){ (navigator.clipboard?navigator.clipboard.writeText(enlace(p)):Promise.reject()).then(()=>toast('Enlace copiado'), ()=>toast(enlace(p))); }
+
+/* ---------- proyecto: crear / editar / borrar ---------- */
+let editando = null;
+const visSel = () => document.querySelector('input[name=vis]:checked').value;
+function refrescarVis(){ $('soloPri').hidden = visSel()==='pub'; }
+document.querySelectorAll('input[name=vis]').forEach(r=>r.addEventListener('change',refrescarVis));
+$('dias').addEventListener('click', e=>{ const b=e.target.closest('[data-d]'); if(!b) return; const d=+b.dataset.d;
+  if(!d){ $('pv').value=''; return; } const f=new Date(); f.setDate(f.getDate()+d); $('pv').value = f.getFullYear()+'-'+String(f.getMonth()+1).padStart(2,'0')+'-'+String(f.getDate()).padStart(2,'0'); });
+function abrirProy(p){
+  editando = p||null; $('dProyTit').textContent = p?'Editar proyecto':'Nuevo proyecto'; $('perr').textContent='';
+  $('pt').value = p?p.titulo:''; $('pu').value = p?p.ubicacion:''; $('pc').value = p?p.cliente:'';
+  document.querySelector('input[name=vis][value='+(p&&p.publico?'pub':'pri')+']').checked = true;
+  if(p&&p.vence){ const d=new Date(p.vence); $('pv').value = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); } else $('pv').value='';
+  $('pm').value = p&&p.vertical?'v':'h'; refrescarVis(); $('dProy').showModal();
+}
+$('nuevo').addEventListener('click', ()=>abrirProy(null));
+$('fProy').addEventListener('submit', async ev=>{ ev.preventDefault(); $('perr').textContent='';
+  const publico = visSel()==='pub', f = $('pv').value;
+  const vence = f ? new Date(f+'T23:59:59').toISOString() : null;      // vence al terminar ese día, hora local
+  if(vence && new Date(vence).getTime() <= Date.now()){ $('perr').textContent='La fecha debe ser de hoy en adelante.'; return; }
+  const d = {titulo:$('pt').value.trim(), ubicacion:$('pu').value.trim(), cliente:publico?'':$('pc').value.trim(), publico, vence, vertical:$('pm').value==='v'};
+  if(!d.titulo){ $('perr').textContent='Falta el título.'; return; }
+  $('pok').disabled = true;
+  try{
+    if(editando){
+      if(editando.publico && !publico) d.clave = aleat(24);            // al pasar a privado, el enlace público anterior deja de servir
+      await api('/rest/v1/p360_proyectos?id=eq.'+editando.id, {method:'PATCH', headers:jsonH(), body:JSON.stringify(d)});
+    } else {
+      d.clave = aleat(24); d.carpeta = aleat(24);
+      await api('/rest/v1/p360_proyectos', {method:'POST', headers:jsonH(), body:JSON.stringify(d)});
+    }
+    $('dProy').close(); toast(editando?'Proyecto actualizado':'Proyecto creado'); await cargar();
+  }catch(e){ if(!sinSesion(e)) $('perr').textContent = e.message; }
+  $('pok').disabled = false; });
+async function eliminar(p){ await borrarArchivos(p); await api('/rest/v1/p360_proyectos?id=eq.'+p.id, {method:'DELETE'}); }
+async function borrarProyecto(p){
+  if(!await confirmar('Borrar «'+p.titulo+'»', 'Se borran el proyecto y sus '+p.p360_imagenes.length+' imágenes de la nube. No se puede deshacer.', 'Borrar')) return;
+  try{ await eliminar(p); toast('Proyecto borrado'); await cargar(); }catch(e){ if(!sinSesion(e)) toast(e.message); }
+}
+$('borrarVenc').addEventListener('click', async ()=>{ const ven = proyectos.filter(vencido);
+  if(!await confirmar('Borrar proyectos vencidos', 'Se borran '+ven.length+' proyecto(s) vencido(s) con todas sus imágenes. No se puede deshacer.', 'Borrar')) return;
+  try{ for(const p of ven) await eliminar(p); toast('Proyectos vencidos borrados'); }catch(e){ if(!sinSesion(e)) toast(e.message); }
+  await cargar(); });
+
+/* ---------- imágenes: orden / nombre / borrar ---------- */
+async function mover(p, i, d){
+  const l = p.p360_imagenes.slice(); const j = i+d; if(j<0||j>=l.length) return; [l[i],l[j]] = [l[j],l[i]];
+  try{ for(let k=0;k<l.length;k++) if(l[k].orden!==k) await api('/rest/v1/p360_imagenes?id=eq.'+l[k].id, {method:'PATCH', headers:jsonH(), body:JSON.stringify({orden:k})}); }
+  catch(e){ if(!sinSesion(e)) toast(e.message); }
+  await cargar();
+}
+let nomIm = null;
+function renombrar(p, im){ nomIm = im; $('nt').value = im.titulo||''; $('dNom').showModal(); }
+$('fNom').addEventListener('submit', async ev=>{ ev.preventDefault();
+  try{ await api('/rest/v1/p360_imagenes?id=eq.'+nomIm.id, {method:'PATCH', headers:jsonH(), body:JSON.stringify({titulo:$('nt').value.trim()})}); $('dNom').close(); await cargar(); }
+  catch(e){ if(!sinSesion(e)) toast(e.message); } });
+async function borrarImagen(p, im){
+  if(!await confirmar('Borrar imagen', '«'+(im.titulo||'Sin nombre')+'» se borra de la nube. No se puede deshacer.', 'Borrar')) return;
+  try{ await api('/storage/v1/object/'+SB.bucket, {method:'DELETE', headers:jsonH(), body:JSON.stringify({prefixes:[rutaArch(p,im.archivo)]})});
+       await api('/rest/v1/p360_imagenes?id=eq.'+im.id, {method:'DELETE'}); toast('Imagen borrada'); }
+  catch(e){ if(!sinSesion(e)) toast(e.message); }
+  await cargar();
+}
+
+/* ---------- subir ---------- */
+let subP = null, subiendo = false;
+function abrirSubir(p){
+  subP = p; $('subProy').textContent = 'Proyecto: '+p.titulo+(p.publico?' (público)':' (privado)');
+  $('sf').value=''; $('sq').value = p.publico?'8192':'4096'; $('sm').checked = !p.publico;
+  $('st').value = ('GEOMAV'+(p.cliente?' · '+p.cliente:'')).slice(0,60); $('smBox').hidden = !$('sm').checked;
+  $('sp').hidden = true; $('sest').textContent=''; $('serr').textContent=''; $('sok').disabled=false; $('dSub').showModal();
+}
+$('sm').addEventListener('change', ()=>{ $('smBox').hidden = !$('sm').checked; });
+$('dSub').addEventListener('cancel', e=>{ if(subiendo) e.preventDefault(); });
+async function leerImagen(file){
+  try{ return await createImageBitmap(file); }
+  catch(e){ return await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('No se pudo leer «'+file.name+'». ¿Es JPG, PNG o WebP?')); i.src=URL.createObjectURL(file); }); }
+}
+function marcar(ctx, w, h, texto){
+  const fs = Math.max(18, Math.round(h/30));
+  ctx.save(); ctx.font = '700 '+fs+'px Inter, system-ui, sans-serif'; ctx.textBaseline='middle';
+  ctx.fillStyle='rgba(255,255,255,.30)'; ctx.strokeStyle='rgba(0,0,0,.28)'; ctx.lineWidth=Math.max(1,fs/14);
+  const ancho = ctx.measureText(texto).width, dx = ancho+fs*5, dy = fs*5.5;
+  for(let y=dy/2, f=0; y<h+dy; y+=dy, f++) for(let x=(f%2?-dx/2:0); x<w+dx; x+=dx){
+    ctx.save(); ctx.translate(x,y); ctx.rotate(-0.26); ctx.strokeText(texto,0,0); ctx.fillText(texto,0,0); ctx.restore(); }
+  ctx.restore();
+}
+async function preparar(file, anchoMax, marca){
+  const src = await leerImagen(file), w0 = src.width||src.naturalWidth, h0 = src.height||src.naturalHeight;
+  if(!w0||!h0) throw new Error('No se pudo leer «'+file.name+'».');
+  const tipo = Math.abs(w0/h0-2) < 0.03 ? 'sphere' : 'flat';
+  for(const tope of anchoMax>4096 ? [anchoMax,4096] : [anchoMax]){
+    const k = Math.min(1, tope/w0), w = Math.round(w0*k), h = Math.round(h0*k);
+    const c = document.createElement('canvas'); c.width=w; c.height=h; const ctx = c.getContext('2d'); if(!ctx) continue;
+    ctx.drawImage(src,0,0,w,h); if(marca) marcar(ctx,w,h,marca);
+    const blob = await new Promise(r=>c.toBlob(r,'image/jpeg',0.86)); c.width=c.height=0;
+    if(blob && blob.size>1000){ if(src.close) src.close(); return {blob, w, h, tipo}; }   // si el equipo no soporta 8192 px, baja a 4096
+  }
+  throw new Error('Este equipo no pudo procesar «'+file.name+'». Prueba desde un computador.');
+}
+$('fSub').addEventListener('submit', async ev=>{ ev.preventDefault(); if(subiendo) return;
+  const files = Array.from($('sf').files||[]); if(!files.length) return;
+  const marca = $('sm').checked ? ($('st').value.trim()||'GEOMAV') : '', ancho = +$('sq').value, p = subP;
+  subiendo = true; $('sok').disabled = true; $('serr').textContent=''; $('sp').hidden=false; $('sp').value=0;
+  let base = p.p360_imagenes.reduce((m,i)=>Math.max(m,i.orden+1),0), ok = 0;
+  try{
+    for(let i=0;i<files.length;i++){
+      const f = files[i]; $('sest').textContent = 'Preparando '+(i+1)+' de '+files.length+': '+f.name;
+      const r = await preparar(f, ancho, marca);
+      if(r.blob.size > MAX_ARCH) throw new Error('«'+f.name+'» pesa '+mb(r.blob.size)+' ya procesada; el máximo es 40 MB. Elige calidad Media.');
+      $('sest').textContent = 'Subiendo '+(i+1)+' de '+files.length+' ('+mb(r.blob.size)+')…';
+      const archivo = aleat(12)+'.jpg';
+      await api('/storage/v1/object/'+SB.bucket+'/'+rutaArch(p,archivo), {method:'POST', headers:{'Content-Type':'image/jpeg','x-upsert':'false','cache-control':'max-age=3600'}, body:r.blob});
+      try{ await api('/rest/v1/p360_imagenes', {method:'POST', headers:jsonH(), body:JSON.stringify({proyecto_id:p.id, titulo:f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').slice(0,120), archivo, tipo:r.tipo, ancho:r.w, alto:r.h, bytes:r.blob.size, orden:base+i})}); }
+      catch(e){ try{ await api('/storage/v1/object/'+SB.bucket, {method:'DELETE', headers:jsonH(), body:JSON.stringify({prefixes:[rutaArch(p,archivo)]})}); }catch(_){} throw e; }
+      ok++; $('sp').value = (i+1)/files.length;
+    }
+    $('dSub').close(); toast(ok===1?'1 imagen subida':ok+' imágenes subidas');
+  }catch(e){ if(sinSesion(e)) $('dSub').close(); else $('serr').textContent = e.message+(ok?' (se subieron '+ok+' antes del error)':''); $('sest').textContent=''; }
+  subiendo = false; $('sok').disabled = false; await cargar(); });
+
+vista();
+})();
+</script>
+</body>
+</html>

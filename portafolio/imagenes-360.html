@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GEOMAV — Portafolio de Imágenes 360°</title>
+  <meta name="description" content="Imágenes panorámicas 360° de terrenos, obras y propiedades captadas por GEOMAV con dron y cámara 360° en O’Higgins, Maule y Ñuble." />
+  <link rel="canonical" href="https://geomav.me/portafolio/imagenes-360.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="GEOMAV — Portafolio de Imágenes 360°" />
+  <meta property="og:description" content="Imágenes panorámicas 360° de terrenos, obras y propiedades captadas por GEOMAV con dron y cámara 360° en O’Higgins, Maule y Ñuble." />
+  <meta property="og:url" content="https://geomav.me/portafolio/imagenes-360.html" />
+  <meta property="og:locale" content="es_CL" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta property="og:image" content="https://geomav.me/assets/img/og-geomav.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
+  <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png" />
+
+  <!-- Tipografía Profesional -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../assets/css/estilo.css">
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header class="cabecera" id="cabeceraPrincipal">
+    <div class="contenedor">
+      <nav class="nav-flexible">
+        <a href="../index.html" class="logotipo" aria-label="GEOMAV Inicio">
+          <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+        </a>
+
+        <ul class="menu-lista">
+          <li><a href="../index.html#servicios" class="menu-enlace">Servicios</a></li>
+          <li><a href="../index.html#beneficios" class="menu-enlace">Beneficios</a></li>
+          <li><a href="../aprende/" class="menu-enlace">Aprende</a></li>
+          <li><a href="../alianzas/" class="menu-enlace">Alianzas</a></li>
+          <li><a href="../topocalc/" class="menu-enlace">Topo de Bolsillo</a></li>
+          <li class="menu-item-dropdown">
+            <a href="../index.html#portafolio" class="menu-enlace">
+              Portafolio
+              <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+            <div class="submenu">
+              <a href="topografia.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">📐</span> Topografía
+              </a>
+              <a href="drones-mapeo.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🚁</span> Drones / Mapeo
+              </a>
+              <a href="recorridos-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🏠</span> Recorridos 360°
+              </a>
+              <a href="imagenes-360.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🌐</span> Imágenes 360°
+              </a>
+              <a href="timelapse-obra.html" class="submenu-enlace">
+                <span class="submenu-enlace-icono">🎥</span> Time-Lapse de Obra
+              </a>
+            </div>
+          </li>
+          <li><a href="../index.html#contacto" class="menu-enlace">Contacto</a></li>
+        </ul>
+
+        <div class="nav-acciones">
+          <a href="../index.html#contacto" class="boton boton-primario" style="padding: 10px 20px; font-size: 0.85rem;">Iniciar Proyecto</a>
+          <button class="menu-movil-toggle" id="botonMenuMovil" aria-label="Abrir menú" aria-expanded="false" aria-controls="menuOverlay">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MENÚ MÓVIL OVERLAY -->
+  <div class="overlay-menu" id="menuOverlay" role="dialog" aria-modal="true" aria-label="Menú de navegación">
+    <a href="../index.html" class="overlay-logo" aria-label="GEOMAV Inicio">
+      <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+    </a>
+    <button id="cerrarMenuMovil" class="boton-cerrar-menu" aria-label="Cerrar menú">✕</button>
+    <a href="../index.html#servicios" class="overlay-enlace">Servicios</a>
+    <a href="../index.html#beneficios" class="overlay-enlace">Beneficios</a>
+    <a href="../aprende/" class="overlay-enlace">Aprende</a>
+    <a href="../alianzas/" class="overlay-enlace">Alianzas</a>
+
+    <a href="../topocalc/" class="overlay-enlace">Topo de Bolsillo</a>
+
+    <div class="overlay-item-portafolio">
+      <button type="button" class="overlay-toggle-portafolio" id="toggleSubmenuMovil" aria-expanded="false" aria-controls="submenuMovil">
+        <span class="overlay-enlace">Portafolio</span>
+        <svg class="menu-enlace-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="submenu-movil" id="submenuMovil">
+        <a href="topografia.html" class="submenu-movil-enlace">📐 Topografía</a>
+        <a href="drones-mapeo.html" class="submenu-movil-enlace">🚁 Drones / Mapeo</a>
+        <a href="recorridos-360.html" class="submenu-movil-enlace">🏠 Recorridos 360°</a>
+        <a href="imagenes-360.html" class="submenu-movil-enlace">🌐 Imágenes 360°</a>
+        <a href="timelapse-obra.html" class="submenu-movil-enlace">🎥 Time-Lapse de Obra</a>
+      </div>
+    </div>
+
+    <a href="../index.html#contacto" class="overlay-enlace">Contacto</a>
+    <a href="../index.html#contacto" class="boton boton-primario">Cotizar Proyecto</a>
+  </div>
+
+  <!-- CABECERA DE LA PÁGINA -->
+  <section class="pagina-hero">
+    <div class="contenedor">
+      <a href="../index.html#portafolio" class="enlace-volver">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        Volver al portafolio
+      </a>
+      <span class="etiqueta-seccion">Portafolio</span>
+      <h1 class="titulo-seccion">Imágenes <span class="texto-destacado">360°</span></h1>
+      <p class="pagina-hero-descripcion">Panorámicas 360° de terrenos, obras y propiedades, captadas con dron y cámara 360°. Elige un proyecto y recorre sus imágenes arrastrando la vista.</p>
+    </div>
+  </section>
+
+  <!-- GALERÍA COMPLETA DE PROYECTOS -->
+  <section class="pagina-galeria">
+    <div class="contenedor">
+      <p id="avisoPrivado" hidden style="margin-bottom:20px; padding:14px 18px; border-radius:12px; background:#f7e3e1; border:1px solid #e6b8b3; color:#7a1c16; font-weight:600;">El enlace privado que abriste ya no está disponible. Pide a GEOMAV uno actualizado.</p>
+      <div class="visor-contenedor">
+        <div class="visor-portada" id="portadaVisor">
+          <div class="play-icono" id="botonIniciarVisor" title="Activar Visor Interactivo">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <p style="margin-top:24px; font-weight:800; color:white; text-transform:uppercase; letter-spacing:0.1em;">Iniciar Visualización Interactiva</p>
+        </div>
+        <div class="visor-scroll" id="visorScroll">
+          <iframe
+            id="iframeVisor"
+            class="visor-iframe"
+            src=""
+            allow="xr-spatial-tracking; gyroscope; accelerometer; fullscreen; autoplay; encrypted-media; picture-in-picture;"
+            loading="lazy"
+            title="Visor Interactivo GEOMAV">
+          </iframe>
+        </div>
+
+        <!-- Visor de modelos 3D (fotogrametría). Se activa en vez del iframe
+             cuando el proyecto tiene modelo3d: true en portafolio-data.js -->
+        <model-viewer
+          id="modelVisor"
+          class="visor-iframe"
+          camera-controls
+          auto-rotate
+          shadow-intensity="1"
+          exposure="1"
+          alt="Modelo 3D del proyecto GEOMAV">
+        </model-viewer>
+
+        <!-- Controles de zoom, solo visibles cuando el proyecto activo es
+             un PDF cargado desde Google Drive. -->
+        <div class="visor-zoom-controles" id="visorZoomControles">
+          <button type="button" class="visor-zoom-boton" id="zoomOut" aria-label="Alejar">−</button>
+          <span class="visor-zoom-etiqueta" id="zoomEtiqueta" title="Restablecer zoom">100%</span>
+          <button type="button" class="visor-zoom-boton" id="zoomIn" aria-label="Acercar">+</button>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:baseline; justify-content:space-between; margin-top:40px; flex-wrap:wrap; gap:12px;">
+        <h2 style="font-size:1.3rem; font-weight:800;">Todos los proyectos</h2>
+        <span id="galeriaContador" style="font-size:0.85rem; color:var(--color-dim); font-weight:600;"></span>
+      </div>
+
+      <div class="galeria-grid tours-grid visible" id="galeriaGrid"></div>
+    </div>
+  </section>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <div class="pie-cuadricula">
+        <div class="pie-marca">
+          <a href="../index.html" class="logotipo">
+            <img src="../assets/img/geomav-logo.png" alt="GEOMAV — Topografía & Fotogrametría" class="logotipo-imagen">
+          </a>
+          <p style="margin-top:24px; color:var(--color-muted); font-size:0.9rem; max-width:280px;">Topografía y visualización inmersiva de alta precisión en la zona centro-sur de Chile.</p>
+          <p style="margin-top:10px; color:var(--color-primario); font-size:0.85rem; font-weight:700; max-width:280px;">Perito Judicial habilitado — Cortes de Apelaciones de Rancagua, Talca y Chillán</p>
+          <p style="margin-top:10px; max-width:280px;"><a href="https://maps.google.com/?cid=16890480175112336440" target="_blank" rel="noopener" class="pie-enlace" style="color:var(--color-secundario); font-size:0.85rem; font-weight:600;">📍 Ver GEOMAV en Google Maps</a></p>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Servicios</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#servicios" class="pie-enlace">Topografía Técnica</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Fotogrametría</a></li>
+            <li><a href="../index.html#servicios" class="pie-enlace">Recorridos 360°</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="pie-titulo-col">Empresa</h4>
+          <ul class="pie-enlaces">
+            <li><a href="../index.html#inicio" class="pie-enlace">Inicio</a></li>
+            <li><a href="../index.html#portafolio" class="pie-enlace">Portafolio</a></li>
+            <li><a href="../aprende/" class="pie-enlace">Aprende</a></li>
+            <li><a href="../alianzas/" class="pie-enlace">Alianzas</a></li>
+            <li><a href="../index.html#contacto" class="pie-enlace">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pie-inferior">
+        <p>© 2026 GEOMAV Soluciones. Todos los derechos reservados. Chile.</p>
+        <p>Diseño & Topografía</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/portafolio-data.js"></script>
+  <script>const TIPO_CATEGORIA = 'imagenes360';</script>
+  <script src="../assets/js/site.js"></script>
+  <script src="../assets/js/imagenes-360.js"></script>
+</body>
+</html>
