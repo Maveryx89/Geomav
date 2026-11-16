@@ -883,6 +883,32 @@ section[data-board="maestro"] .m-view, section[data-board="maestro"] .board-scro
 @media (max-width:860px){ .cola-box{ bottom:calc(74px + env(safe-area-inset-bottom, 0px)); } .nav-semanas .btn-sm{ flex:1 1 auto; } }
 @media print{ .cola-box, .vista-banner{ display:none !important; } }
 </style>
+<style id="ajustes-movil">
+@media screen and (max-width:860px){
+  /* Barra superior: cabe en 360 px y baja de alto */
+  .topbar{ gap:6px; padding:10px 12px; padding-top:calc(10px + env(safe-area-inset-top)); }
+  .topbar .btn-sm{ min-height:36px; padding-top:4px; padding-bottom:4px; }
+  /* Encabezado de sección con menos aire */
+  .section-head{ padding-top:10px; }
+  .section-head h2{ margin:6px 0; }
+  /* Etiquetas de las pestañas inferiores legibles */
+  .m-tabs button, .m-tabs button span.t-l{ font-size:11px; letter-spacing:-.01em; }
+
+  .topbar .brand{ display:none; }   /* en teléfono no le queda ancho: el nombre va en el encabezado del proyecto */
+  /* Semanal: días y tareas primero; confiabilidad y rutina de reunión pasan debajo del tablero */
+  body[data-mtab="semanal"] .pizarra-block[data-board="semanal"]{ display:flex; flex-direction:column; }
+  .pizarra-block > .reliability-panel, .pizarra-block > .checklist-details{ order:1; }
+  /* Zona táctil de 34 px para casillas y botones chicos, sin cambiar su tamaño visible */
+  .check-box, .g-fase-tools button{ position:relative; }
+  .check-box::after, .g-mes-x::after, .g-fase-tools button::after{ content:''; position:absolute; inset:-8px; }
+}
+/* Pie compacto (igual que topocalc): logo + invitación en una fila, derechos debajo */
+footer.app-foot{ display:grid; grid-template-columns:auto minmax(0, max-content); justify-content:center; align-items:center; column-gap:8px; row-gap:4px; padding:10px 16px; font-size:10.5px; margin-top:0; }
+footer.app-foot .foot-logo{ width:24px; height:24px; justify-self:end; }
+footer.app-foot > span:not([class]){ display:none; }
+footer.app-foot .foot-cta{ max-width:none; line-height:1.45; text-align:left; }
+footer.app-foot .foot-copy{ grid-column:1 / -1; justify-self:center; text-align:center; line-height:1.4; }
+</style>
 </head>
 
 <body>
