@@ -129,3 +129,11 @@ body.drawer-open #drawer { transform: none; }
   #sceneName { font-size: 14px; }
 }
 @media (hover: none) { #tip { display: none; } }
+
+
+/* ---------- Barra de controles compacta en celulares angostos ---------- */
+@media (max-width: 480px) {
+  #controls { gap: 0; padding: 4px; max-width: calc(100vw - 12px); }
+  #controls .icon-btn { width: 36px; height: 36px; }
+  #controls .icon-btn svg { width: 20px; height: 20px; }
+}

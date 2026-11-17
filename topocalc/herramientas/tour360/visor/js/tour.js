@@ -246,6 +246,38 @@
   $('pano').addEventListener('pointerdown', function () { if (autoOn) setAuto(false); });
   if (CFG.autorotateIdleMs > 0) viewer.setIdleMovement(CFG.autorotateIdleMs, autorotate);
 
+  // ---------- Zoom (+ / −): toque = un paso suave; mantener presionado = acercamiento continuo ----------
+  function curView() { return current && built[current] ? built[current].scene.view() : null; }
+  var zoomRaf = 0;
+  function zoomTween(factor) {
+    var v = curView(); if (!v) return;
+    var from = v.fov(), to = from * factor, t0 = null;
+    cancelAnimationFrame(zoomRaf);
+    (function frame(ts) {
+      if (t0 == null) t0 = ts;
+      var k = Math.min(1, (ts - t0) / 220), e = 1 - Math.pow(1 - k, 3);
+      v.setFov(from + (to - from) * e);
+      if (k < 1) zoomRaf = requestAnimationFrame(frame);
+    })(performance.now());
+  }
+  function bindZoom(id, factor) {
+    var el = $(id), hold = 0, loop = 0, moved = false;
+    function stop() { clearTimeout(hold); cancelAnimationFrame(loop); }
+    el.addEventListener('pointerdown', function (e) {
+      e.preventDefault(); if (autoOn) setAuto(false); moved = false; stop();
+      hold = setTimeout(function () {
+        moved = true; var step = Math.pow(factor, 1 / 8);
+        (function run() { var v = curView(); if (v) v.setFov(v.fov() * step); loop = requestAnimationFrame(run); })();
+      }, 300);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) {
+      el.addEventListener(ev, function () { stop(); if (ev === 'pointerup' && !moved) zoomTween(factor); moved = false; });
+    });
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); zoomTween(factor); } });
+  }
+  bindZoom('btnZoomIn', 0.7);
+  bindZoom('btnZoomOut', 1 / 0.7);
+
   var fsEl = document.documentElement;
   var fsReq = fsEl.requestFullscreen || fsEl.webkitRequestFullscreen;
   if (!fsReq) { $('btnFull').hidden = true; }
@@ -288,7 +320,7 @@
     if (e.target && e.target.tagName === 'INPUT') return;
     if (e.key === 'ArrowRight' && e.shiftKey) step(1);
     else if (e.key === 'ArrowLeft' && e.shiftKey) step(-1);
-    else if (e.key === 'Escape') toggleDrawer(false);
+    else if (e.key === '+' || e.key === '=') zoomTween(0.7);\n    else if (e.key === '-' || e.key === '_') zoomTween(1 / 0.7);\n    else if (e.key === 'Escape') toggleDrawer(false);
   });
 
   // ---------- API pública (la usa js/cargar.js para fotos 360 del usuario) ----------
