@@ -161,6 +161,7 @@ const GRUPOS = [
   "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><circle cx=\"20\" cy=\"20\" r=\"14\"/><ellipse cx=\"20\" cy=\"20\" rx=\"14\" ry=\"5\"/><ellipse cx=\"20\" cy=\"20\" rx=\"5.5\" ry=\"14\" stroke-width=\"1.1\"/><circle cx=\"20\" cy=\"20\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></svg>",
   "tools": [
    "visor360",
+   "tour360",
    "gsd",
    "traslapeVuelo",
    "astronomica",
@@ -845,6 +846,14 @@ const CATALOGO = {
   "name": "Visor 360°",
   "desc": "Carga y recorre imágenes 360° de dron DJI e Insta360 (panorama)",
   "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><circle cx=\"20\" cy=\"20\" r=\"14\"/><ellipse cx=\"20\" cy=\"20\" rx=\"14\" ry=\"5\"/><ellipse cx=\"20\" cy=\"20\" rx=\"5.5\" ry=\"14\" stroke-width=\"1.1\"/><circle cx=\"20\" cy=\"20\" r=\"1.8\" fill=\"currentColor\" stroke=\"none\"/></svg>",
+  "grupo": "foto",
+  "oculta": false,
+  "migrada": true
+ },
+ "tour360": {
+  "name": "Tour 360° GEOMAV",
+  "desc": "Recorrido virtual 360° con menú de escenas, giroscopio y pantalla completa",
+  "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><rect x=\"5\" y=\"9\" width=\"30\" height=\"22\" rx=\"3\"/><circle cx=\"20\" cy=\"20\" r=\"6\"/><path d=\"M5 20h9M26 20h9\" stroke-width=\"1.2\"/><circle cx=\"20\" cy=\"20\" r=\"1.6\" fill=\"currentColor\" stroke=\"none\"/></svg>",
   "grupo": "foto",
   "oculta": false,
   "migrada": true
