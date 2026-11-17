@@ -74,6 +74,7 @@
       });
       top = s.levels[s.levels.length - 1].size;
     }
+    top = Math.round(top * (CFG.zoomFactor || 2));   // más zoom que el límite de nitidez (digital); 1 = solo hasta 1:1
     var limiter = Marzipano.RectilinearView.limit.traditional(top, rad(Math.min(s.hfovMax || 130, 130)));
     var iv = s.initialView || { yaw: 0, pitch: 0 };
     var view = new Marzipano.RectilinearView({ yaw: rad(iv.yaw), pitch: rad(iv.pitch), fov: initialFov() }, limiter);
