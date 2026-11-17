@@ -10,7 +10,7 @@ function renderTour360(){
     @media (max-width:640px){ .t3-wrap{aspect-ratio:3/4;} }
   </style>
   <div class="field-card">
-    <p>Recorrido virtual 360° con menú de escenas, buscador, giro automático, giroscopio y pantalla completa. Abajo ves una <strong>demostración</strong> con escenas de prueba. Para ver tus propias fotos 360° (formato equirectangular 2:1, desde el celular o el computador), toca el botón <strong>⬆</strong> de la barra inferior del visor. Las fotos se procesan en tu equipo y no se suben a ningún servidor.</p>
+    <p>Recorrido virtual 360° con menú de escenas, buscador, giro automático, giroscopio y pantalla completa. Abajo ves una <strong>demostración</strong> con escenas de prueba. Para ver tus propias fotos 360° (formato equirectangular 2:1, desde el celular o el computador), toca el botón <strong>⬆</strong> de la barra inferior del visor. Las fotos se procesan en tu equipo y no se suben a ningún servidor. Luego toca el lápiz <strong>✎</strong> para fijar la vista inicial, crear enlaces entre escenas, agregar información y <strong>exportar el tour como ZIP</strong> listo para tu hosting.</p>
     <div class="t3-btns">
       <a class="btn" id="t3_full" href="visor/index.html" target="_blank" rel="noopener">⛶ Abrir a pantalla completa</a>
       <a class="btn-sm" href="https://geomav.me/?utm_source=topocalc&amp;utm_medium=app&amp;utm_campaign=tour360" target="_blank" rel="noopener">Cotiza tu tour 360° en geomav.me</a>

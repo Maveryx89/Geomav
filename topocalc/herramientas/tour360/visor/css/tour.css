@@ -137,3 +137,55 @@ body.drawer-open #drawer { transform: none; }
   #controls .icon-btn { width: 36px; height: 36px; }
   #controls .icon-btn svg { width: 20px; height: 20px; }
 }
+
+
+/* ---------- Hotspot de información ---------- */
+.hs-info { display: grid; place-items: center; cursor: pointer; border-radius: 50%; background: var(--accent); color: #fff;
+  box-shadow: 0 0 0 4px rgba(255,255,255,.85), 0 4px 14px rgba(0,0,0,.45); }
+.hs-info span { font-size: 1em; line-height: 1; font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 700; }
+.hs-info:hover { filter: brightness(1.15); }
+.hs-link.nosprite { animation: hsPulse 1.8s ease-in-out infinite; }
+@keyframes hsPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+
+.info-card { position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; padding: 18px; background: rgba(0,0,0,.45); }
+.info-card.show { display: flex; }
+.info-card .box { position: relative; max-width: min(480px, 100%); max-height: 80vh; overflow: auto; background: rgba(18,22,28,.96); color: #fff;
+  border-radius: 16px; padding: 22px 24px 24px; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+.info-card h3 { margin: 0 28px 10px 0; font-size: 18px; }
+.info-card h3:empty { display: none; }
+.info-card p { margin: 0; font-size: 15px; line-height: 1.5; white-space: pre-wrap; }
+.info-card .x { position: absolute; top: 8px; right: 10px; width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; color: #fff; font-size: 26px; cursor: pointer; }
+.info-card .x:hover { background: rgba(255,255,255,.14); }
+
+/* ---------- Panel de edición ---------- */
+#editor { position: fixed; z-index: 25; top: calc(70px + var(--safe-t)); right: 12px; width: min(320px, calc(100vw - 24px)); max-height: calc(100vh - 170px); overflow-y: auto;
+  background: rgba(14,18,24,.94); color: #fff; border-radius: 16px; padding: 12px 14px 14px; box-shadow: 0 10px 34px rgba(0,0,0,.5); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); font-size: 14px; }
+#editor[hidden] { display: none; }
+.ed-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.ed-x { border: 0; background: transparent; color: #fff; font-size: 24px; cursor: pointer; width: 32px; height: 32px; border-radius: 50%; }
+.ed-x:hover { background: rgba(255,255,255,.14); }
+.ed-note { margin: 6px 0; opacity: .85; line-height: 1.45; }
+.ed-hint { color: #ffd54f; opacity: 1; }
+.ed-field { display: block; margin: 8px 0; font-size: 12px; opacity: .95; }
+.ed-field input, .ed-field select, .ed-field textarea { display: block; width: 100%; margin-top: 4px; padding: 8px 10px; border-radius: 9px; border: 1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.08); color: #fff; font: inherit; font-size: 14px; outline: none; }
+.ed-field select option { color: #000; }
+.ed-field input:focus, .ed-field select:focus, .ed-field textarea:focus { border-color: var(--accent); }
+.ed-check { display: block; margin: 8px 0; font-size: 13px; cursor: pointer; }
+.ed-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.ed-btn { flex: 1 1 auto; padding: 9px 11px; border-radius: 10px; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.08); color: #fff; font: inherit; font-size: 13px; cursor: pointer; }
+.ed-btn:hover { background: rgba(255,255,255,.16); }
+.ed-btn.on, .ed-btn.primary { background: var(--accent); border-color: var(--accent); }
+.ed-btn.warn { background: #c62828; border-color: #c62828; }
+.ed-sub { margin: 12px 0 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; opacity: .65; }
+.ed-list { list-style: none; margin: 0; padding: 0; }
+.ed-list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.1); }
+.ed-list li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ed-mini { border: 0; background: rgba(255,255,255,.12); color: #fff; border-radius: 8px; padding: 4px 9px; font-size: 12px; cursor: pointer; }
+.ed-foot { margin-top: 14px; }
+body.placing #pano { cursor: crosshair; }
+body.editing .hs-link, body.editing .hs-info { outline: 2px dashed rgba(255,213,79,.9); outline-offset: 3px; }
+@media (max-width: 640px) {
+  #editor { top: auto; right: 8px; left: 8px; width: auto; bottom: calc(112px + var(--safe-b)); max-height: 46vh; }
+  #controls { flex-wrap: wrap; justify-content: center; border-radius: 24px; }
+}

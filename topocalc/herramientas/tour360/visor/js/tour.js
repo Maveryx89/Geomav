@@ -70,6 +70,7 @@
       geometry = new Marzipano.CubeGeometry(levels);
       source = new Marzipano.ImageUrlSource(function (tile) {
         var lv = s.levels[tile.z];
+        if (s.tileUrls) return { url: s.tileUrls[tile.z + '/' + tile.face + '/' + tile.y + '_' + tile.x] };
         return { url: lv.url.replace('{face}', tile.face).replace('{row}', tile.y).replace('{column}', tile.x) };
       });
       top = s.levels[s.levels.length - 1].size;
@@ -94,6 +95,24 @@
   }
   function px(deg) { return 2 * R * Math.tan(rad(deg) / 2); }
 
+  var hsMap = new WeakMap();       // dato del hotspot -> { hs, el } (para poder quitarlo)
+  var editHook = null;             // el editor lo define: si devuelve true, se cancela la acción normal
+  function editing(h, kind) { return editHook ? !!editHook(h, kind) : false; }
+
+  function showInfo(title, text) {
+    var o = $('infoCard');
+    if (!o) {
+      o = document.createElement('div'); o.id = 'infoCard'; o.className = 'info-card';
+      o.innerHTML = '<div class="box" role="dialog" aria-modal="true"><button type="button" class="x" aria-label="Cerrar">&times;</button><h3></h3><p></p></div>';
+      o.addEventListener('click', function (e) { if (e.target === o || e.target.className === 'x') o.classList.remove('show'); });
+      document.body.appendChild(o);
+    }
+    o.querySelector('h3').textContent = title || '';
+    o.querySelector('p').textContent = text || '';
+    o.classList.add('show');
+  }
+  function hideInfo() { var o = $('infoCard'); if (o) o.classList.remove('show'); }
+
   function addHotspot(scene, h, kind, sprites) {
     if (kind === 'decor' && !h.sprite && !h.text) return;
     var el = document.createElement('div');
@@ -107,7 +126,13 @@
     if (h.rotationX) transforms += ' rotateX(' + (-h.rotationX) + 'deg)';
     if (h.rotationY) transforms += ' rotateY(' + h.rotationY + 'deg)';
 
-    if (kind === 'label') {
+    if (kind === 'info') {
+      el.classList.add('hs-info');
+      el.innerHTML = '<span>i</span>';
+      el.style.fontSize = (hgt * 0.62) + 'px';
+      el.addEventListener('click', function () { if (editing(h, kind)) return; hideTip(); showInfo(h.title, h.text); });
+      bindTip(el, h.title || 'Información');
+    } else if (kind === 'label') {
       el.classList.add('hs-label');
       el.textContent = h.text;
       el.style.fontSize = (hgt * 0.62) + 'px';
@@ -126,7 +151,7 @@
       }
       if (kind === 'link') {
         var name = cleanName((SC[h.target] || {}).name);
-        el.addEventListener('click', function () { hideTip(); go(h.target, h.arrival); });
+        el.addEventListener('click', function () { if (editing(h, kind)) return; hideTip(); go(h.target, h.arrival); });
         bindTip(el, name);
       } else if (kind === 'url') {
         el.addEventListener('click', function () { window.open(h.url, '_blank', 'noopener'); });
@@ -137,8 +162,9 @@
       }
     }
     stopPropagation(el);
-    scene.hotspotContainer().createHotspot(el, { yaw: rad(h.yaw), pitch: rad(h.pitch) },
+    var hs = scene.hotspotContainer().createHotspot(el, { yaw: rad(h.yaw), pitch: rad(h.pitch) },
       { perspective: { radius: R, extraTransforms: transforms.trim() } });
+    hsMap.set(h, { hs: hs, el: el });
   }
 
   function setFrame(el, sp, n) {
@@ -320,23 +346,73 @@
     if (e.target && e.target.tagName === 'INPUT') return;
     if (e.key === 'ArrowRight' && e.shiftKey) step(1);
     else if (e.key === 'ArrowLeft' && e.shiftKey) step(-1);
-    else if (e.key === '+' || e.key === '=') zoomTween(0.7);\n    else if (e.key === '-' || e.key === '_') zoomTween(1 / 0.7);\n    else if (e.key === 'Escape') toggleDrawer(false);
+    else if (e.key === '+' || e.key === '=') zoomTween(0.7);
+    else if (e.key === '-' || e.key === '_') zoomTween(1 / 0.7);
+    else if (e.key === 'Escape') { hideInfo(); toggleDrawer(false); }
   });
 
-  // ---------- API pública (la usa js/cargar.js para fotos 360 del usuario) ----------
+  // ---------- API pública (la usan js/cargar.js y js/editor.js) ----------
+  var userMode = false;
   window.TourAPI = {
+    // Reemplaza la demo por las escenas del usuario; las siguientes cargas se agregan a las existentes.
     loadScenes: function (scenes, title) {
       if (!scenes || !scenes.length) return;
+      if (userMode) {
+        scenes.forEach(function (s) { SC[s.id] = s; ORDER.push(s.id); });
+        buildMenu();
+        first = false;
+        go(scenes[0].id);
+        return;
+      }
       Object.keys(built).forEach(function (k) { try { viewer.destroyScene(built[k].scene); } catch (e) { /* ya liberada */ } });
       built = {}; current = null; SC = {};
       scenes.forEach(function (s) { SC[s.id] = s; });
       ORDER = scenes.map(function (s) { return s.id; });
       $('sectors').innerHTML = '';
       buildMenu();
-      first = true;
-      if (title) $('tourTitle').textContent = title;
+      first = true; userMode = true;
+      if (title) { tourTitle = title; $('tourTitle').textContent = title; }
       go(ORDER[0]);
-    }
+    },
+    hasUser: function () { return userMode; },
+    currentId: function () { return current; },
+    scene: function (id) { return SC[id]; },
+    order: function () { return ORDER.slice(); },
+    title: function () { return tourTitle; },
+    setTitle: function (t) { tourTitle = t; $('tourTitle').textContent = t; document.title = t || document.title; },
+    go: function (id) { go(id); },
+    // yaw/pitch (grados) del punto de la pantalla (x, y en px de la ventana) o null
+    coords: function (x, y) {
+      var v = curView(); if (!v) return null;
+      var r = $('pano').getBoundingClientRect();
+      var c = v.screenToCoordinates({ x: x - r.left, y: y - r.top });
+      return { yaw: +(c.yaw * 180 / Math.PI).toFixed(2), pitch: +(c.pitch * 180 / Math.PI).toFixed(2) };
+    },
+    view: function () { var v = curView(); return v ? { yaw: +(v.yaw() * 180 / Math.PI).toFixed(2), pitch: +(v.pitch() * 180 / Math.PI).toFixed(2) } : null; },
+    addHotspot: function (h, kind) { var b = built[current]; if (b) addHotspot(b.scene, h, kind, b.sprites); },
+    removeHotspot: function (h) {
+      var b = built[current], r = hsMap.get(h); if (!b || !r) return;
+      try { b.scene.hotspotContainer().destroyHotspot(r.hs); } catch (e) { /* ya quitado */ }
+      b.sprites = b.sprites.filter(function (o) { return o.el !== r.el; });
+      hsMap.delete(h);
+    },
+    removeScene: function (id) {
+      if (!SC[id]) return;
+      if (built[id]) { try { viewer.destroyScene(built[id].scene); } catch (e) { /* nada */ } delete built[id]; }
+      delete SC[id]; ORDER = ORDER.filter(function (x) { return x !== id; });
+      buildMenu();
+      if (current === id) { current = null; if (ORDER.length) { first = true; go(ORDER[0]); } }
+    },
+    invalidate: function (id) {      // fuerza reconstruir una escena (p. ej. tras cambiar sus enlaces)
+      var b = built[id]; if (!b) return;
+      var cur = id === current, v = b.scene.view(), p = { yaw: v.yaw(), pitch: v.pitch(), fov: v.fov() };
+      try { viewer.destroyScene(b.scene); } catch (e) { /* nada */ }
+      delete built[id];
+      if (cur) { var nb = buildScene(id); nb.scene.view().setParameters(p); nb.scene.switchTo({ transitionDuration: 0 }); }
+    },
+    rebuildMenu: function () { buildMenu(); markCurrent(current); },
+    setEditHook: function (fn) { editHook = fn; },
+    showInfo: showInfo
   };
 
   // ---------- Arranque ----------
