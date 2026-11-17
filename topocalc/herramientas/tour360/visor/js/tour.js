@@ -58,19 +58,26 @@
   function buildScene(id) {
     if (built[id]) return built[id];
     var s = SC[id];
-    var levels = s.levels.map(function (l, i) {
-      return { tileSize: l.tileSize, size: l.size, fallbackOnly: i === 0 && s.levels.length > 1 };
-    });
-    var geometry = new Marzipano.CubeGeometry(levels);
-    var source = new Marzipano.ImageUrlSource(function (tile) {
-      var lv = s.levels[tile.z];
-      return { url: lv.url.replace('{face}', tile.face).replace('{row}', tile.y).replace('{column}', tile.x) };
-    });
-    var top = s.levels[s.levels.length - 1].size;
+    var geometry, source, top;
+    if (s.equirect) {                              // foto 360 equirectangular cargada por el usuario
+      geometry = new Marzipano.EquirectGeometry([{ width: s.equirect.width }]);
+      source = Marzipano.ImageUrlSource.fromString(s.equirect.url);
+      top = Math.round(s.equirect.width / 2);
+    } else {                                       // cubo en teselas (export 3DVista)
+      var levels = s.levels.map(function (l, i) {
+        return { tileSize: l.tileSize, size: l.size, fallbackOnly: i === 0 && s.levels.length > 1 };
+      });
+      geometry = new Marzipano.CubeGeometry(levels);
+      source = new Marzipano.ImageUrlSource(function (tile) {
+        var lv = s.levels[tile.z];
+        return { url: lv.url.replace('{face}', tile.face).replace('{row}', tile.y).replace('{column}', tile.x) };
+      });
+      top = s.levels[s.levels.length - 1].size;
+    }
     var limiter = Marzipano.RectilinearView.limit.traditional(top, rad(Math.min(s.hfovMax || 130, 130)));
     var iv = s.initialView || { yaw: 0, pitch: 0 };
     var view = new Marzipano.RectilinearView({ yaw: rad(iv.yaw), pitch: rad(iv.pitch), fov: initialFov() }, limiter);
-    var scene = viewer.createScene({ source: source, geometry: geometry, view: view, pinFirstLevel: true });
+    var scene = viewer.createScene({ source: source, geometry: geometry, view: view, pinFirstLevel: !s.equirect });
     var sprites = [];
     (s.links || []).forEach(function (h) { addHotspot(scene, h, 'link', sprites); });
     (s.hotspots || []).forEach(function (h) { addHotspot(scene, h, h.kind, sprites); });
@@ -182,18 +189,23 @@
 
   // ---------- Menú lateral ----------
   var listEl = $('sceneList');
-  ORDER.forEach(function (id) {
-    var s = SC[id], li = document.createElement('li');
-    li.dataset.id = id; li.dataset.q = norm(cleanName(s.name));
-    var im = document.createElement('img'); im.loading = 'lazy'; im.alt = '';
-    if (s.thumbnail) im.src = s.thumbnail;
-    var sp = document.createElement('span'); sp.textContent = cleanName(s.name);
-    li.appendChild(im); li.appendChild(sp);
-    li.addEventListener('click', function () { go(id); });
-    listEl.appendChild(li);
-  });
-  var empty = document.createElement('li'); empty.className = 'empty'; empty.textContent = L.noResults || 'Sin resultados'; empty.hidden = true;
-  listEl.appendChild(empty);
+  var empty;
+  function buildMenu() {
+    listEl.innerHTML = '';
+    ORDER.forEach(function (id) {
+      var s = SC[id], li = document.createElement('li');
+      li.dataset.id = id; li.dataset.q = norm(cleanName(s.name));
+      var im = document.createElement('img'); im.loading = 'lazy'; im.alt = '';
+      if (s.thumbnail) im.src = s.thumbnail;
+      var sp = document.createElement('span'); sp.textContent = cleanName(s.name);
+      li.appendChild(im); li.appendChild(sp);
+      li.addEventListener('click', function () { go(id); });
+      listEl.appendChild(li);
+    });
+    empty = document.createElement('li'); empty.className = 'empty'; empty.textContent = L.noResults || 'Sin resultados'; empty.hidden = true;
+    listEl.appendChild(empty);
+  }
+  buildMenu();
   function markCurrent(id) {
     Array.prototype.forEach.call(listEl.children, function (li) { li.classList.toggle('current', li.dataset.id === id); });
     var cur = listEl.querySelector('li.current'); if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'nearest' });
@@ -277,6 +289,22 @@
     else if (e.key === 'ArrowLeft' && e.shiftKey) step(-1);
     else if (e.key === 'Escape') toggleDrawer(false);
   });
+
+  // ---------- API pública (la usa js/cargar.js para fotos 360 del usuario) ----------
+  window.TourAPI = {
+    loadScenes: function (scenes, title) {
+      if (!scenes || !scenes.length) return;
+      Object.keys(built).forEach(function (k) { try { viewer.destroyScene(built[k].scene); } catch (e) { /* ya liberada */ } });
+      built = {}; current = null; SC = {};
+      scenes.forEach(function (s) { SC[s.id] = s; });
+      ORDER = scenes.map(function (s) { return s.id; });
+      $('sectors').innerHTML = '';
+      buildMenu();
+      first = true;
+      if (title) $('tourTitle').textContent = title;
+      go(ORDER[0]);
+    }
+  };
 
   // ---------- Arranque ----------
   var hash = decodeURIComponent((location.hash || '').replace(/^#/, ''));
