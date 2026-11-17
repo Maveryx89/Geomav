@@ -25,5 +25,5 @@ window.TOUR_CONFIG = {
   sceneListOpen: false,           // menú lateral abierto al iniciar (escritorio)
   hotspotRadius: 1000,            // radio de proyección de hotspots (px)
   hotspotRollSign: 1,             // pon -1 si los textos/flechas del tour giran al revés
-  zoomFactor: 2,                 // acercamiento máximo: 1 = hasta la nitidez 1:1; 2 = unos 20° de campo vertical; 3 = aún más (se ve pixelado)
+  zoomFactor: 3,                 // acercamiento máximo: 1 = hasta la nitidez 1:1; 2 = unos 20° de campo vertical; 3 = unos 13° (más pixelado)
 };
