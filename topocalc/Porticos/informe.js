@@ -20,7 +20,7 @@ var CAUSAS0 = { A:"Mala planificación", B:"Trabajo anterior sin terminar", C:"T
 var ORDEN = Object.keys(TONE0).filter(function(n){ return n !== "Inst. Pórtico"; }), COL = {};
 function initOrden(){
   var pt = window.PARTIDA_TONE;
-  if(pt && Object.keys(pt).length){ ORDEN = window.PARTIDAS_ORDEN ? window.PARTIDAS_ORDEN() : Object.keys(pt).filter(function(n){ return n !== "Inst. Pórtico"; }); }
+  if(pt && Object.keys(pt).length){ ORDEN = (window.PARTIDAS_ORDEN ? window.PARTIDAS_ORDEN() : Object.keys(pt).filter(function(n){ return n !== "Inst. Pórtico"; })).filter(function(n){ return (window.PARTIDAS_COMPLEMENTARIAS || []).indexOf(n) < 0; }); }   /* el informe usa solo la secuencia principal */
   COL = {}; ORDEN.forEach(function(p){ COL[p] = TONOS[(pt && pt[p]) || TONE0[p]] || "#8C949E"; });
 }
 
