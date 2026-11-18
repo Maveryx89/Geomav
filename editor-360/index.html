@@ -198,7 +198,7 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
   <button id="btnPrev" disabled title="Ver el tour terminado, sin exportar">▶ Previsualizar</button>
   <button id="btnExport" class="primary" disabled>Exportar ZIP</button>
   </div>
-  <input id="fileImgs" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+  <input id="fileImgs" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.avif,.insp,.heic,.heif" multiple hidden>
   <input id="fileZip" type="file" accept=".zip,application/zip" hidden>
 </header>
 <main>
@@ -209,7 +209,7 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
       <div class="sb">
         <div class="row"><button class="primary" id="btnAdd" type="button">+ Añadir panoramas</button><button id="btnImport" type="button">Abrir tour (ZIP)</button></div>
         <div id="list"></div>
-        <div id="drop">Arrastra aquí tus panoramas<br>(equirectangulares 2:1)</div>
+        <div id="drop">Arrastra aquí tus panoramas<br>(equirectangulares 2:1 o .insp de Insta360)</div>
       </div>
     </section>
     <section class="sec open" id="secScene">
@@ -278,16 +278,64 @@ function uid(){return 'h'+(S.nextId++)+Math.random().toString(36).slice(2,6)}
 function normYaw(y){while(y>Math.PI)y-=2*Math.PI;while(y<-Math.PI)y+=2*Math.PI;return y}
 function byId(id){return S.scenes.find(function(s){return s.id===id})}
 function loadImg(url){return new Promise(function(ok,no){var i=new Image();i.onload=function(){ok(i)};i.onerror=function(){no(new Error('No se pudo leer la imagen'))};i.src=url})}
+/* ---------- Insta360 (.insp = JPEG con dos lentes ojo de pez lado a lado) ---------- */
+function isDualFisheye(img){
+  try{
+    var c=document.createElement('canvas');c.width=64;c.height=32;var g=c.getContext('2d');g.drawImage(img,0,0,64,32);
+    var pts=[[1,1],[30,1],[1,30],[30,30],[33,1],[62,1],[33,30],[62,30]];
+    return Math.abs(img.naturalWidth/img.naturalHeight-2)<0.08&&pts.every(function(q){var d=g.getImageData(q[0],q[1],1,1).data;return d[0]+d[1]+d[2]<60});
+  }catch(e){return false}
+}
+var FISH_FOV=200; // campo de visión aproximado de cada lente (grados)
+async function stitchDual(img){
+  var SW=img.naturalWidth,SH=img.naturalHeight,HALF=Math.min(4096,Math.round(Math.min(SW/2,SH)));
+  var c0=document.createElement('canvas');c0.width=2*HALF;c0.height=HALF;
+  var g=c0.getContext('2d',{willReadFrequently:true});g.imageSmoothingQuality='high';g.drawImage(img,0,0,SW,SH,0,0,2*HALF,HALF);
+  var src=g.getImageData(0,0,2*HALF,HALF).data,SWd=2*HALF;
+  var W=Math.min(8192,2*HALF),H=W/2,out=new Uint8ClampedArray(W*H*4),R=HALF/2,fr=FISH_FOV/2*Math.PI/180;
+  var PI=Math.PI,cxs=[HALF/2,HALF+HALF/2],cy=HALF/2;
+  function samp(l,lx,ly,lz,o,wt,acc){
+    var th=Math.acos(Math.max(-1,Math.min(1,lz))),rho=Math.sqrt(lx*lx+ly*ly),r=th/fr*R,px,py;
+    if(rho<1e-9){px=cxs[l];py=cy}else{px=cxs[l]+lx/rho*r;py=cy-ly/rho*r}
+    var x0=Math.floor(px-.5),y0=Math.floor(py-.5),tx=px-.5-x0,ty=py-.5-y0;
+    var xa=Math.max(l*HALF,Math.min((l+1)*HALF-1,x0)),xb=Math.max(l*HALF,Math.min((l+1)*HALF-1,x0+1)),ya=Math.max(0,Math.min(HALF-1,y0)),yb=Math.max(0,Math.min(HALF-1,y0+1));
+    var i00=(ya*SWd+xa)*4,i10=(ya*SWd+xb)*4,i01=(yb*SWd+xa)*4,i11=(yb*SWd+xb)*4;
+    var a=(1-tx)*(1-ty),b=tx*(1-ty),c=(1-tx)*ty,d=tx*ty;
+    for(var k=0;k<3;k++)acc[k]+=wt*(src[i00+k]*a+src[i10+k]*b+src[i01+k]*c+src[i11+k]*d);
+  }
+  var acc=[0,0,0];
+  for(var y=0;y<H;y++){
+    var pitch=PI/2-(y+.5)/H*PI,cp=Math.cos(pitch),sp=Math.sin(pitch);
+    for(var x=0;x<W;x++){
+      var yaw=(x+.5)/W*2*PI-PI,dx=Math.sin(yaw)*cp,dz=Math.cos(yaw)*cp,th1=Math.acos(Math.max(-1,Math.min(1,dz)));
+      // mezcla entre lentes cerca de los 90° (zona de unión de 80° a 100°)
+      var t=(th1*180/PI-80)/20;t=t<0?0:t>1?1:t;t=t*t*(3-2*t);
+      acc[0]=acc[1]=acc[2]=0;
+      if(t<1)samp(0,dx,sp,dz,0,1-t,acc);
+      if(t>0)samp(1,-dx,sp,-dz,0,t,acc);
+      var o=(y*W+x)*4;out[o]=acc[0];out[o+1]=acc[1];out[o+2]=acc[2];out[o+3]=255;
+    }
+    if(y%96===95){toast('Uniendo lentes de Insta360… '+Math.round(y/H*100)+'%');await new Promise(function(r){setTimeout(r,0)})}
+  }
+  var c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d').putImageData(new ImageData(out,W,H),0,0);
+  return c;
+}
 function canvasBlob(c,type,q){return new Promise(function(ok){c.toBlob(ok,type,q)})}
 function uniqueId(base,skip){var id=base,n=2;while(S.scenes.some(function(s){return s!==skip&&s.id===id}))id=base+'-'+(n++);return id}
 
 /* ---------- escenas ---------- */
 async function addImage(file,meta){
-  var url=URL.createObjectURL(file);
+  var url=URL.createObjectURL(/\.insp$/i.test(file.name)?file.slice(0,file.size,'image/jpeg'):file);
   var img;
-  try{img=await loadImg(url)}catch(e){URL.revokeObjectURL(url);toast('"'+file.name+'" no es una imagen válida',true);return null}
+  try{img=await loadImg(url)}catch(e){URL.revokeObjectURL(url);toast('"'+file.name+'" no se pudo leer'+(/\.(heic|heif)$/i.test(file.name)?' (HEIC no es compatible con este navegador: expórtala a JPG)':' como imagen'),true);return null}
   var w=img.naturalWidth,h=img.naturalHeight,blob=file;
-  if(w>MAX_W){
+  if(/\.insp$/i.test(file.name)||isDualFisheye(img)){
+    if(Math.abs(w/h-2)>0.08){URL.revokeObjectURL(url);toast('"'+file.name+'": este archivo de Insta360 no tiene el formato de 2 lentes. Expórtalo a JPG desde la app Insta360.',true);return null}
+    var st=await stitchDual(img);
+    img=st;w=st.width;h=st.height;blob=await canvasBlob(st,'image/jpeg',.92);
+    URL.revokeObjectURL(url);url=URL.createObjectURL(blob);
+    toast('Insta360 detectada: lentes unidas con ajuste automático. Para máxima calidad exporta JPG desde la app Insta360 o activa la unión en cámara.');
+  }else if(w>MAX_W){
     var c=document.createElement('canvas');c.width=MAX_W;c.height=Math.round(h*MAX_W/w);
     c.getContext('2d').drawImage(img,0,0,c.width,c.height);
     blob=await canvasBlob(c,'image/jpeg',.9);
@@ -338,8 +386,8 @@ function makeMScene(sc){
   applyScene(sc);
 }
 async function addFiles(files){
-  files=Array.prototype.filter.call(files,function(f){return /^image\//.test(f.type)||/\.(jpe?g|png|webp)$/i.test(f.name)});
-  if(!files.length){toast('Selecciona imágenes JPG, PNG o WebP',true);return}
+  files=Array.prototype.filter.call(files,function(f){return /^image\//.test(f.type)||/\.(jpe?g|png|webp|avif|insp|heic|heif)$/i.test(f.name)});
+  if(!files.length){toast('Selecciona imágenes JPG, PNG, WebP o INSP (Insta360)',true);return}
   files.sort(function(a,b){return a.name.localeCompare(b.name,undefined,{numeric:true})});
   var first=null;
   for(var i=0;i<files.length;i++){
@@ -786,7 +834,7 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-pvm]'),function(b)
 var GUIDE=[
  {sel:'#tourName',t:'Nombre del tour',d:'Ponle un nombre a tu tour. Aparecerá como título en el tour exportado.'},
  {sel:'#btnMenu',t:'Menú lateral',d:'Este botón muestra u oculta el menú con tus escenas, las opciones de la escena actual y los ajustes del tour. Ocúltalo para tener más espacio de trabajo.',menu:null},
- {sel:'#btnAdd',t:'1. Sube tus panoramas',d:'Elige varias imágenes equirectangulares (relación 2:1) o arrástralas a la página. Cada una será una escena. Con “Abrir tour (ZIP)” retomas un tour que ya exportaste.',menu:'secScenes'},
+ {sel:'#btnAdd',t:'1. Sube tus panoramas',d:'Elige varias imágenes equirectangulares (relación 2:1, o archivos .insp de Insta360) o arrástralas a la página. Cada una será una escena. Con “Abrir tour (ZIP)” retomas un tour que ya exportaste.',menu:'secScenes'},
  {sel:'#list',t:'2. Tus escenas',d:'Haz clic en una escena para editarla, cambia su nombre, ordénalas con ▲▼ o elimínalas con ✕. La primera es el punto de partida del tour.',menu:'secScenes'},
  {sel:'[data-mode=view]',t:'Navegar',d:'Arrastra la panorama para mirar alrededor. En este modo los enlaces te llevan a la otra escena y los puntos de info muestran su texto.'},
  {sel:'[data-mode=link]',t:'3. Conecta las escenas',d:'Activa “+ Enlace”, haz clic donde quieras la flecha (una puerta, un pasillo…) y elige a qué escena lleva. Puedes cambiar su ícono y color, girarlo y crear el enlace de regreso automáticamente.'},
