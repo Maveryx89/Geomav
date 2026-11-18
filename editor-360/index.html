@@ -84,6 +84,17 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
 .bubble b{display:block;margin-bottom:3px;color:var(--acc)}
 .editing .hs{outline:1px dashed #fff8;outline-offset:3px;border-radius:50%}
 .moving .hs{opacity:.4}
+#gBlock{position:fixed;inset:0;z-index:39;display:none}
+#gSpot{position:fixed;z-index:40;display:none;border-radius:10px;pointer-events:none;box-shadow:0 0 0 9999px rgba(10,34,64,.74),0 0 0 3px var(--acc);transition:all .3s cubic-bezier(.4,0,.2,1)}
+#gCard{position:fixed;z-index:41;display:none;width:min(340px,92vw);background:#fff;color:var(--navy);border-radius:8px;padding:16px 16px 14px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+#gCard .gs{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--acc);margin-bottom:6px}
+#gCard h4{margin:0 0 6px;font-size:16px;font-weight:800;letter-spacing:-.01em}
+#gCard p{margin:0;color:var(--mut);font-size:13.5px}
+#gCard .gb{display:flex;gap:8px;align-items:center;margin-top:14px}
+#gCard .gb .sk{margin-right:auto;border:0;background:none;color:var(--mut);padding:8px 4px;font-weight:600}
+#gCard .gdots{display:flex;gap:4px;margin-top:12px}
+#gCard .gdots i{height:3px;flex:1;border-radius:2px;background:var(--line)}
+#gCard .gdots i.on{background:var(--acc)}
 #gate{position:absolute;inset:0;z-index:30;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px;background:radial-gradient(120% 90% at 50% 0%,#2C6B7E 0%,#123556 55%,#0A2240 100%);color:#fff}
 #gate b{font-size:1.1rem;font-weight:800}
 #gate a.btn{background:var(--acc);border-color:var(--acc);color:var(--navy)}
@@ -108,6 +119,7 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
   <a class="brand" href="/" target="_top" aria-label="GEOMAV"><img src="/assets/img/geomav-icono.png" alt=""><div><span>GEOMAV</span><b>Editor de tours 360°</b></div></a>
   <input id="tourName" type="text" value="Mi tour 360°" aria-label="Nombre del tour">
   <div class="sp"></div>
+  <button id="btnHelp" title="Guía paso a paso">? Guía</button>
   <a id="btnFull" class="btn" href="/editor-360/" target="_blank" rel="noopener">Abrir en pantalla completa ↗</a>
   <button id="btnAdd">+ Panoramas</button>
   <button id="btnImport">Abrir tour (ZIP)</button>
@@ -142,6 +154,7 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
   </section>
 </main>
 </div>
+<div id="gBlock"></div><div id="gSpot"></div><div id="gCard" role="dialog" aria-live="polite" aria-label="Guía del editor"></div>
 <div id="gate"><b>Editor de Tours 360°</b><div>Para crear tours cómodamente, ábrelo en pantalla completa.</div><a class="btn" href="/editor-360/" target="_blank" rel="noopener">Abrir editor ↗</a></div>
 <div id="toast"></div>
 
@@ -513,6 +526,70 @@ return '<!DOCTYPE html>\n<html lang="es"><head><meta charset="utf-8">'+
 '})();\n'+
 '<\/script></body></html>\n';
 }
+
+/* ---------- guía paso a paso ---------- */
+var GUIDE=[
+ {sel:'#tourName',t:'Nombre del tour',d:'Ponle un nombre a tu tour. Aparecerá como título en el tour exportado.'},
+ {sel:'#btnAdd',t:'1. Sube tus panoramas',d:'Elige varias imágenes equirectangulares (relación 2:1) o arrástralas a la página. Cada una será una escena del tour. Con “Abrir tour (ZIP)” puedes retomar un tour que ya exportaste.'},
+ {sel:'aside',t:'2. Tus escenas',d:'Aquí ves todas las escenas. Haz clic para editarlas, cambia el nombre, ordénalas con ▲▼ o elimínalas con ✕. La primera es el punto de partida del tour.'},
+ {sel:'[data-mode=view]',t:'Vista previa',d:'Arrastra la panorama para mirar alrededor. En este modo los enlaces te llevan a la otra escena y los puntos de info muestran su texto, tal como lo verá tu cliente.'},
+ {sel:'[data-mode=link]',t:'3. Conecta las escenas',d:'Activa “+ Enlace”, haz clic donde quieras la flecha (una puerta, un pasillo…) y elige a qué escena lleva. Puedes girar la flecha y crear el enlace de regreso automáticamente.'},
+ {sel:'[data-mode=info]',t:'4. Agrega información',d:'Con “+ Info” marcas un punto con título y texto: medidas, materiales, avances de obra, recomendaciones.'},
+ {sel:'#btnInit',t:'5. Vista inicial',d:'Mira hacia donde quieras que parta cada escena y pulsa “Fijar vista inicial”. Así cada vez que alguien entre, verá lo más importante primero.'},
+ {sel:'#btnSet',t:'6. Ajustes del tour',d:'Activa o desactiva la autorrotación, el botón de pantalla completa, los controles de flechas y zoom, y el menú de escenas.'},
+ {sel:'#btnExport',t:'7. Exporta tu tour',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
+];
+var gi=-1,gKey='geomav-editor-guia';
+function gEls(){return {b:$('#gBlock'),s:$('#gSpot'),c:$('#gCard')}}
+function guideEnd(seen){
+  var e=gEls();e.b.style.display=e.s.style.display=e.c.style.display='none';gi=-1;
+  document.removeEventListener('keydown',guideKey);window.removeEventListener('resize',guidePlace);
+  if(seen)try{localStorage.setItem(gKey,'1')}catch(x){}
+}
+function guideKey(e){if(e.key==='Escape')guideEnd(true);else if(e.key==='ArrowRight')guideGo(1);else if(e.key==='ArrowLeft')guideGo(-1)}
+function guideGo(d){
+  var n=gi+d;
+  if(n>=GUIDE.length){guideEnd(true);return}
+  if(n<0)n=0;
+  gi=n;guideShow();
+}
+function guideShow(){
+  var st=GUIDE[gi],e=gEls();
+  if(!document.querySelector(st.sel)){guideGo(1);return}
+  e.b.style.display=e.s.style.display=e.c.style.display='block';
+  var last=gi===GUIDE.length-1;
+  e.c.innerHTML='<div class="gs">Paso '+(gi+1)+' de '+GUIDE.length+'</div><h4>'+esc(st.t)+'</h4><p>'+esc(st.d)+'</p>'+
+    '<div class="gdots">'+GUIDE.map(function(_,i){return '<i class="'+(i<=gi?'on':'')+'"></i>'}).join('')+'</div>'+
+    '<div class="gb"><button class="sk" id="gSk">'+(last?'':'Omitir')+'</button>'+(gi>0?'<button id="gPv">Atrás</button>':'')+'<button class="primary" id="gNx">'+(last?'Entendido':'Siguiente')+'</button></div>';
+  $('#gSk').onclick=function(){guideEnd(true)};
+  $('#gNx').onclick=function(){guideGo(1)};
+  if($('#gPv'))$('#gPv').onclick=function(){guideGo(-1)};
+  guidePlace();
+  $('#gNx').focus();
+}
+function guidePlace(){
+  if(gi<0)return;
+  var t=document.querySelector(GUIDE[gi].sel),e=gEls();if(!t)return;
+  var r=t.getBoundingClientRect(),pad=6;
+  e.s.style.left=(r.left-pad)+'px';e.s.style.top=(r.top-pad)+'px';e.s.style.width=(r.width+pad*2)+'px';e.s.style.height=(r.height+pad*2)+'px';
+  var cw=e.c.offsetWidth,ch=e.c.offsetHeight,vw=window.innerWidth,vh=window.innerHeight,x,y;
+  if(vw<600){x=(vw-cw)/2;y=r.top>vh/2?Math.max(10,r.top-ch-16):Math.min(vh-ch-10,r.bottom+16)}
+  else{
+    x=Math.min(Math.max(10,r.left),vw-cw-10);
+    if(r.width>vw*0.5||r.height>vh*0.6){x=Math.min(r.right+16,vw-cw-10);y=r.top+16}
+    else y=(r.bottom+ch+24<vh)?r.bottom+16:Math.max(10,r.top-ch-16);
+  }
+  e.c.style.left=x+'px';e.c.style.top=Math.min(Math.max(10,y),vh-ch-10)+'px';
+}
+function guideStart(){
+  closePanel();S.reloc=null;
+  gi=0;guideShow();
+  document.addEventListener('keydown',guideKey);window.addEventListener('resize',guidePlace);
+}
+$('#btnHelp').onclick=guideStart;
+$('#gBlock').onclick=function(){};
+var seen=false;try{seen=!!localStorage.getItem(gKey)}catch(x){}
+if(!seen&&window.self===window.top&&window.innerHeight>=520)setTimeout(guideStart,700);
 
 syncUI();
 })();
