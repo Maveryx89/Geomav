@@ -29,6 +29,7 @@ input[type=text],select,textarea{width:100%;background:var(--bg);border:1px soli
 input:focus,select:focus,textarea:focus{outline:2px solid var(--acc2);border-color:transparent}
 #app{display:grid;grid-template-rows:auto minmax(0,1fr);grid-template-columns:minmax(0,1fr);height:100%}
 header{min-width:0}
+#btnMenu.on{background:var(--navy);color:#fff;border-color:var(--navy)}
 header{display:flex;gap:10px;align-items:center;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;color:var(--navy);text-decoration:none}
 .brand img{height:34px;width:auto}
@@ -36,12 +37,32 @@ header{display:flex;gap:10px;align-items:center;padding:8px 12px;background:var(
 .brand b{display:block;font-size:15px;line-height:1.2}
 #tourName{flex:1;min-width:140px;max-width:340px}
 .sp{flex:1}
-main{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:0}
+main{display:grid;grid-template-columns:316px minmax(0,1fr);min-height:0;position:relative;transition:grid-template-columns .25s ease}
+main.menu-closed{grid-template-columns:0 minmax(0,1fr)}
+main.menu-closed aside{visibility:hidden;border-right:0}
 aside,#stage{min-width:0}
 .acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
-aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:var(--acc);margin:0;padding:12px 12px 6px}
-#list{overflow:auto;padding:6px 8px 10px;display:flex;flex-direction:column;gap:6px;flex:1}
+aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+#menuScroll{overflow:auto;flex:1;-webkit-overflow-scrolling:touch}
+.sec{border-bottom:1px solid var(--line)}
+.sh{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:transparent;border:0;border-radius:0;padding:13px 14px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--navy)}
+.sh:hover{background:rgba(10,34,64,.04)}
+.sh .ct{color:var(--acc);font-weight:700;letter-spacing:.05em;text-transform:none;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh .sp2{flex:1}
+.sh i{font-style:normal;transition:transform .2s;color:var(--mut)}
+.sec.open>.sh i{transform:rotate(180deg)}
+.sb{display:none;padding:2px 12px 14px}
+.sec.open>.sb{display:block}
+.sb h5{margin:14px 0 6px;font-size:11px;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.1em}
+.sb label{display:block;margin:8px 0 3px;color:var(--mut);font-size:12px}
+.sb small{display:block;color:var(--mut);font-size:12px;margin:3px 0}
+.sb .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.sb .row>button{flex:1;min-width:0;padding:7px 8px;font-size:13px}
+.sb .wide{width:100%}
+.sb .chk{display:flex;gap:9px;align-items:center;padding:6px 0}
+.sb .chk input{width:18px;height:18px;accent-color:var(--acc2);flex:none}
+.sb.off{opacity:.45;pointer-events:none}
+#scrim{display:none}
 .sc{display:grid;grid-template-columns:64px 1fr auto;gap:8px;align-items:center;padding:6px;border:2px solid var(--line);border-radius:6px;background:var(--panel2);cursor:pointer;transition:all .25s}
 .sc:hover{border-color:var(--acc2)}
 .sc.on{border-color:var(--acc);background:rgba(212,154,106,.1)}
@@ -52,7 +73,8 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
 .sc .btns{display:flex;flex-direction:column;gap:2px}
 .sc .btns button{padding:0 6px;font-size:11px;line-height:16px;border-radius:5px}
 .sc .first{color:var(--acc2);font-size:10px;font-weight:700;letter-spacing:.05em}
-#drop{margin:8px;padding:18px 10px;border:2px dashed var(--line);border-radius:6px;text-align:center;color:var(--mut)}
+#list{padding:10px 0 4px;display:flex;flex-direction:column;gap:6px}
+#drop{margin:8px 0 0;padding:14px 10px;border:2px dashed var(--line);border-radius:6px;text-align:center;color:var(--mut)}
 #drop.over{border-color:var(--acc);color:var(--navy);background:rgba(212,154,106,.1)}
 #stage{position:relative;min-height:0;background:#0A1118}
 #pano{position:absolute;inset:0}
@@ -153,11 +175,11 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
  #hint{font-size:12px;padding:6px 12px;border-radius:12px;bottom:10px;max-width:94%}
  #pvBar{padding:6px 10px}
  #pvBar .seg{display:none}
- main{grid-template-columns:minmax(0,1fr);grid-template-rows:150px minmax(0,1fr)}
- aside{border-right:0;border-bottom:1px solid var(--line)}
- #list{flex-direction:row;overflow-x:auto}
- .sc{min-width:210px}
- aside h2{padding-top:8px}
+ main,main.menu-closed{grid-template-columns:minmax(0,1fr);overflow:hidden}
+ aside,main.menu-closed aside{position:absolute;top:0;bottom:0;left:0;width:min(88vw,340px);z-index:25;transform:translateX(-102%);transition:transform .25s ease;box-shadow:6px 0 30px #0006;visibility:visible}
+ main.menu-open aside{transform:none}
+ #scrim{position:absolute;inset:0;z-index:24;background:#0A224066}
+ main.menu-open #scrim{display:block}
  #drop{display:none}
  .brand span{display:none}
 }
@@ -166,14 +188,13 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
 <body>
 <div id="app">
 <header>
+  <button id="btnMenu" type="button" aria-label="Mostrar u ocultar el menú lateral" title="Menú lateral">☰ Menú</button>
   <a class="brand" href="/" target="_top" aria-label="GEOMAV"><img src="/assets/img/geomav-icono.png" alt=""><div><span>GEOMAV</span><b>Editor de tours 360°</b></div></a>
   <input id="tourName" type="text" value="Mi tour 360°" aria-label="Nombre del tour">
   <div class="sp"></div>
   <div class="acts">
   <button id="btnHelp" title="Guía paso a paso">? Guía</button>
   <a id="btnFull" class="btn" href="/editor-360/" target="_blank" rel="noopener">Abrir en pantalla completa ↗</a>
-  <button id="btnAdd">+ Panoramas</button>
-  <button id="btnImport">Abrir tour (ZIP)</button>
   <button id="btnPrev" disabled title="Ver el tour terminado, sin exportar">▶ Previsualizar</button>
   <button id="btnExport" class="primary" disabled>Exportar ZIP</button>
   </div>
@@ -181,11 +202,27 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
   <input id="fileZip" type="file" accept=".zip,application/zip" hidden>
 </header>
 <main>
-  <aside>
-    <h2>Escenas <span id="count"></span></h2>
-    <div id="list"></div>
-    <div id="drop">Arrastra aquí tus panoramas<br>(equirectangulares 2:1)</div>
-  </aside>
+  <aside id="menu" aria-label="Menú del editor">
+  <div id="menuScroll">
+    <section class="sec open" id="secScenes">
+      <button class="sh" type="button">Escenas <span class="ct" id="count"></span><i>▾</i></button>
+      <div class="sb">
+        <div class="row"><button class="primary" id="btnAdd" type="button">+ Añadir panoramas</button><button id="btnImport" type="button">Abrir tour (ZIP)</button></div>
+        <div id="list"></div>
+        <div id="drop">Arrastra aquí tus panoramas<br>(equirectangulares 2:1)</div>
+      </div>
+    </section>
+    <section class="sec open" id="secScene">
+      <button class="sh" type="button">Esta escena <span class="ct" id="curName"></span><i>▾</i></button>
+      <div class="sb" id="sceneTools"></div>
+    </section>
+    <section class="sec" id="secSet">
+      <button class="sh" type="button">Ajustes del tour<span class="sp2"></span><i>▾</i></button>
+      <div class="sb" id="setTools"></div>
+    </section>
+  </div>
+</aside>
+<div id="scrim"></div>
   <section id="stage">
     <div id="pano"></div>
     <div id="tools">
@@ -196,10 +233,6 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
         <button data-mode="embed">+ Contenido</button>
         <button data-mode="imagen">+ Imagen</button>
       </div>
-      <button id="btnInit" class="chip" title="Usa la dirección actual como vista de entrada a esta escena">Fijar vista inicial</button>
-      <button id="btnAdj" class="chip" title="Brillo, contraste y saturación de esta escena">Ajustes de imagen</button>
-      <button id="btnLayer" class="chip" title="Superpone otra imagen (plano, etapa anterior) con un control de transparencia">Capa</button>
-      <button id="btnSet" class="chip" title="Ajustes del tour">⚙ Ajustes del tour</button>
     </div>
     <div id="hint"></div>
     <div id="empty">
@@ -480,7 +513,7 @@ function syncUI(){
   $('#empty').style.display=S.scenes.length?'none':'flex';
   $('#btnExport').disabled=!S.scenes.length;
   $('#btnPrev').disabled=!S.scenes.length;
-  $('#btnInit').disabled=!S.cur;$('#btnAdj').disabled=!S.cur;$('#btnLayer').disabled=!S.cur;
+  renderMenu();
   $('#count').textContent=S.scenes.length?'('+S.scenes.length+')':'';
   $('#stage').classList.toggle('editing',S.mode!=='view');
   Array.prototype.forEach.call(document.querySelectorAll('#modes button'),function(b){b.classList.toggle('on',b.dataset.mode===S.mode)});
@@ -492,7 +525,7 @@ function renderList(){
     var d=document.createElement('div');d.className='sc'+(sc===S.cur?' on':'');
     var nl=sc.hs.filter(function(h){return h.type==='link'}).length,ne=sc.hs.filter(function(h){return h.type==='embed'}).length,ni=sc.hs.length-nl-ne-sc.hs.filter(function(h){return h.type==='imagen'}).length,nm=sc.hs.length-nl-ne-ni;
     d.innerHTML='<img src="'+sc.thumb+'" alt=""><div><input type="text" value="'+esc(sc.name)+'" aria-label="Nombre de la escena"><div class="meta">'+(i===0?'<span class="first">INICIO · </span>':'')+nl+' enlaces · '+ni+' info'+(ne?' · '+ne+' contenido':'')+(nm?' · '+nm+' imagen':'')+(sc.layer?' · capa':'')+'</div></div><div class="btns"><button title="Subir">▲</button><button title="Bajar">▼</button><button class="danger" title="Eliminar">✕</button></div>';
-    d.onclick=function(e){if(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON')return;select(sc)};
+    d.onclick=function(e){if(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON')return;select(sc);if(mq.matches)setMenu(false)};
     var inp=d.querySelector('input');
     inp.onfocus=function(){if(S.cur!==sc)select(sc)};
     inp.onchange=function(){sc.name=inp.value.trim()||sc.name;renderHotspots(S.cur||sc)};
@@ -505,71 +538,92 @@ $('#modes').addEventListener('click',function(e){
   var b=e.target.closest('button');if(!b)return;S.mode=b.dataset.mode;S.reloc=null;$('#stage').classList.remove('moving');
   if(S.mode==='view')closePanel();syncUI();
 });
-$('#btnInit').onclick=function(){
+/* ---------- menú lateral ---------- */
+var mq=window.matchMedia('(max-width:760px)'),rzT=null;
+function setMenu(v){
+  S.menu=v;$('main').className=v?'menu-open':'menu-closed';$('#btnMenu').classList.toggle('on',v);
+  clearTimeout(rzT);rzT=setTimeout(function(){try{viewer.updateSize()}catch(e){}},320);
+}
+function openSec(id){var e=document.getElementById(id);if(e)e.classList.add('open')}
+$('#btnMenu').onclick=function(){setMenu(!S.menu)};
+$('#scrim').onclick=function(){setMenu(false)};
+if(mq.addEventListener)mq.addEventListener('change',function(){setMenu(!mq.matches)});
+$('#menuScroll').addEventListener('click',function(e){var h=e.target.closest('.sh');if(h)h.parentNode.classList.toggle('open')});
+
+var menuCur=undefined;
+function fixInit(){
   if(!S.cur)return;var p=S.cur.ms.view().parameters();
   S.cur.init={yaw:p.yaw,pitch:p.pitch,fov:p.fov};toast('Vista inicial fijada para "'+S.cur.name+'"');
-};
-$('#btnAdj').onclick=function(){
-  if(!S.cur||S.pending||S.reloc)return;
-  var sc=S.cur,A=sc.adjust,p=$('#panel'),snap={b:A.b,c:A.c,s:A.s};
+}
+/* Construye "Esta escena" (vista inicial, ajustes de imagen, capa) cuando cambia la escena activa. */
+function renderMenu(){
+  syncSettings();
+  if(S.cur===menuCur)return;
+  menuCur=S.cur;
+  var sc=S.cur,box=$('#sceneTools');
+  $('#curName').textContent=sc?sc.name:'';
+  if(!sc){box.className='sb off';box.innerHTML='<small>Sube una panorama para editar su vista inicial, sus ajustes de imagen y su capa.</small><button class="wide" id="btnInit" disabled>Fijar vista inicial</button><div id="adjBox"><h5>Ajustes de imagen</h5><small>Brillo, contraste y saturación.</small></div><div id="layerBox"><h5>Capa de comparación</h5><small>Superpone un plano o una etapa anterior.</small></div>';return}
+  box.className='sb';
+  var A=sc.adjust;
   var sl=function(id,k,txt){return '<label>'+txt+': <span id="'+id+'v">'+A[k]+'</span></label><input type="range" class="sldr" id="'+id+'" min="-100" max="100" step="1" value="'+A[k]+'">'};
-  p.innerHTML='<h4>Ajustes de imagen</h4><small>Se aplican a la escena "'+esc(sc.name)+'" (no modifican tu archivo original).</small>'+sl('aB','b','Brillo')+sl('aC','c','Contraste')+sl('aS','s','Saturación')+
-    '<div class="row"><button class="primary" id="aOk">Listo</button><button id="aReset">Restablecer</button><button id="aAll">Aplicar a todas</button><button id="pNo">Cancelar</button></div>';
-  p.style.display='block';
+  box.innerHTML='<button class="wide" id="btnInit" type="button" title="Usa la dirección actual como vista de entrada a esta escena">Fijar vista inicial</button><small>Mira hacia donde quieras que parta esta escena y pulsa el botón.</small>'+
+    '<div id="adjBox"><h5>Ajustes de imagen</h5><small>No modifican tu archivo original.</small>'+sl('aB','b','Brillo')+sl('aC','c','Contraste')+sl('aS','s','Saturación')+
+    '<div class="row"><button id="aReset" type="button">Restablecer</button><button id="aAll" type="button">Aplicar a todas</button></div></div>'+
+    '<div id="layerBox"><h5>Capa de comparación</h5><small>Superpone otra panorama (plano, etapa anterior de obra); el visitante la mezcla con un deslizador. Debe ser equirectangular 2:1.</small><div id="layerUI"></div></div>';
+  $('#btnInit').onclick=fixInit;
   [['aB','b'],['aC','c'],['aS','s']].forEach(function(x){$('#'+x[0]).oninput=function(e){A[x[1]]=+e.target.value;$('#'+x[0]+'v').textContent=A[x[1]];applyScene(sc)}});
-  $('#aOk').onclick=function(){p.style.display='none'};
   $('#aReset').onclick=function(){A.b=A.c=A.s=0;['aB','aC','aS'].forEach(function(i){$('#'+i).value=0;$('#'+i+'v').textContent=0});applyScene(sc)};
-  $('#aAll').onclick=function(){S.scenes.forEach(function(o){o.adjust={b:A.b,c:A.c,s:A.s};applyScene(o)});sc.adjust=A=Object.assign({},A);p.style.display='none';toast('Ajustes aplicados a todas las escenas')};
-  $('#pNo').onclick=function(){A.b=snap.b;A.c=snap.c;A.s=snap.s;applyScene(sc);p.style.display='none'};
-};
-$('#btnLayer').onclick=function(){
-  if(!S.cur||S.pending||S.reloc)return;
-  var sc=S.cur,p=$('#panel'),snap=sc.layer?Object.assign({},sc.layer):null,made=[];
-  function draw(){
-    var L=sc.layer;
-    p.innerHTML='<h4>Capa de comparación</h4><small>Superpone otra panorama (plano, estado anterior, otra etapa de obra) sobre esta escena. En el tour el visitante la mezcla con un control deslizante. Debe ser equirectangular (2:1), igual que la escena.</small>'+
-      '<div class="row"><button id="lPick" type="button">'+(L?'Cambiar imagen…':'Elegir imagen…')+'</button></div>'+
-      (L?'<label>Etiqueta del control</label><input type="text" id="lName" value="'+esc(L.name||'')+'" placeholder="Ej: Avance semana 3">'+
-         '<label>Mezcla inicial: <span id="lOv">'+L.opacity+'</span>% capa</label><input type="range" class="sldr" id="lOp" min="0" max="100" value="'+L.opacity+'">':'')+
-      '<div class="row"><button class="primary" id="lOk">Listo</button>'+(L?'<button class="danger" id="lDel">Quitar capa</button>':'')+'<button id="pNo">Cancelar</button></div>';
-    $('#lPick').onclick=function(){$('#fileLayer').click()};
-    if(L){
-      $('#lName').oninput=function(e){L.name=e.target.value};
-      $('#lOp').oninput=function(e){L.opacity=+e.target.value;$('#lOv').textContent=L.opacity;applyScene(sc)};
-      $('#lDel').onclick=function(){sc.layer=null;applyScene(sc);draw()};
-    }
-    $('#lOk').onclick=function(){
-      if(snap&&(!sc.layer||sc.layer.url!==snap.url))URL.revokeObjectURL(snap.url);
-      made.forEach(function(u){if(!sc.layer||sc.layer.url!==u)URL.revokeObjectURL(u)});
-      p.style.display='none';renderList();
-    };
-    $('#pNo').onclick=function(){
-      made.forEach(function(u){URL.revokeObjectURL(u)});
-      sc.layer=snap;applyScene(sc);p.style.display='none';
-    };
+  $('#aAll').onclick=function(){S.scenes.forEach(function(o){o.adjust={b:A.b,c:A.c,s:A.s};applyScene(o)});sc.adjust=A=Object.assign({},A);toast('Ajustes aplicados a todas las escenas')};
+  drawLayer();
+}
+function drawLayer(){
+  var sc=S.cur,u=$('#layerUI');if(!sc||!u)return;var L=sc.layer;
+  u.innerHTML='<div class="row"><button id="lPick" type="button">'+(L?'Cambiar imagen…':'Elegir imagen…')+'</button>'+(L?'<button class="danger" id="lDel" type="button">Quitar</button>':'')+'</div>'+
+    (L?'<label>Etiqueta del control</label><input type="text" id="lName" value="'+esc(L.name||'')+'" placeholder="Ej: Avance semana 3"><label>Mezcla inicial: <span id="lOv">'+L.opacity+'</span>% capa</label><input type="range" class="sldr" id="lOp" min="0" max="100" value="'+L.opacity+'">':'');
+  $('#lPick').onclick=function(){$('#fileLayer').click()};
+  if(L){
+    $('#lName').oninput=function(e){L.name=e.target.value};
+    $('#lOp').oninput=function(e){L.opacity=+e.target.value;$('#lOv').textContent=L.opacity;applyScene(sc)};
+    $('#lDel').onclick=function(){var old=sc.layer.url;sc.layer=null;applyScene(sc);URL.revokeObjectURL(old);drawLayer();renderList()};
   }
-  $('#fileLayer').onchange=async function(e){
-    var f=e.target.files[0];e.target.value='';if(!f)return;
-    var r=await prepImg(f,MAX_W);if(!r)return;
-    if(Math.abs(r.w/r.h-2)>0.05)toast('La capa no es 2:1; se verá deformada.',true);
-    made.push(r.url);
-    sc.layer={blob:r.blob,url:r.url,width:r.w,name:(sc.layer&&sc.layer.name)||f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' '),opacity:(sc.layer&&sc.layer.opacity)||50};
-    applyScene(sc);draw();
-  };
-  draw();p.style.display='block';
+}
+$('#fileLayer').onchange=async function(e){
+  var f=e.target.files[0],sc=S.cur;e.target.value='';if(!f||!sc)return;
+  var r=await prepImg(f,MAX_W);if(!r)return;
+  if(Math.abs(r.w/r.h-2)>0.05)toast('La capa no es 2:1; se verá deformada.',true);
+  var old=sc.layer&&sc.layer.url;
+  sc.layer={blob:r.blob,url:r.url,width:r.w,name:(sc.layer&&sc.layer.name)||f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' '),opacity:(sc.layer&&sc.layer.opacity)||50};
+  applyScene(sc);if(old)URL.revokeObjectURL(old);drawLayer();renderList();
 };
-$('#btnSet').onclick=function(){
-  if(S.pending||S.reloc)return;
-  var p=$('#panel'),T=S.set;
-  var chk=function(id,k,txt){return '<div class="chk"><input type="checkbox" id="'+id+'"'+(T[k]?' checked':'')+'><label for="'+id+'" style="margin:0;color:inherit;font-size:13px">'+txt+'</label></div>'};
-  p.innerHTML='<h4>Ajustes del tour</h4>'+chk('sA','autorotate','Autorrotación cuando no hay actividad')+chk('sF','fullscreen','Botón de pantalla completa')+chk('sV','viewControls','Botones de control de vista (flechas y zoom)')+chk('sL','sceneList','Menú de escenas')+chk('sG','gyro','Botón de giroscopio (celulares)')+
-    '<label>Calidad de imagen al exportar</label><select id="sQ"><option value="standard"'+(T.quality!=='cube'?' selected':'')+'>Estándar: 1 imagen por escena (rápido)</option><option value="cube"'+(T.quality==='cube'?' selected':'')+'>Alta: multiresolución en cubo (más nítida, carga progresiva)</option></select><small>La alta genera teselas en tu navegador y tarda más al exportar. La vista previa siempre usa la imagen única.</small>'+
-    '<label>Transición al usar un enlace</label><select id="sT"><option value="zoom"'+(T.transition!=='fade'?' selected':'')+'>Girar y acercar hacia el enlace</option><option value="fade"'+(T.transition==='fade'?' selected':'')+'>Fundido simple</option></select>'+
-    '<label>Movimiento del mouse</label><select id="sM"><option value="drag"'+(T.mouseMode==='drag'?' selected':'')+'>Arrastrar para mirar</option><option value="qtvr"'+(T.mouseMode==='qtvr'?' selected':'')+'>Seguir el puntero</option></select>'+
-    '<div class="row"><button class="primary" id="sOk">Listo</button></div>';
-  p.style.display='block';
-  $('#sOk').onclick=function(){T.autorotate=$('#sA').checked;T.fullscreen=$('#sF').checked;T.viewControls=$('#sV').checked;T.sceneList=$('#sL').checked;T.gyro=$('#sG').checked;T.quality=$('#sQ').value;T.transition=$('#sT').value;T.mouseMode=$('#sM').value;p.style.display='none'};
-};
+
+/* ---------- ajustes del tour (en el menú) ---------- */
+var SETUI=[
+  ['h','Visor'],
+  ['c','autorotate','Autorrotación cuando no hay actividad'],
+  ['c','fullscreen','Botón de pantalla completa'],
+  ['c','viewControls','Botones de flechas y zoom'],
+  ['c','sceneList','Menú de escenas'],
+  ['c','gyro','Botón de giroscopio (celulares)'],
+  ['h','Navegación'],
+  ['s','mouseMode','Movimiento del mouse',[['drag','Arrastrar para mirar'],['qtvr','Seguir el puntero']]],
+  ['s','transition','Transición al usar un enlace',[['zoom','Girar y acercar hacia el enlace'],['fade','Fundido simple']]],
+  ['h','Exportación'],
+  ['s','quality','Calidad de imagen',[['standard','Estándar: 1 imagen por escena (rápido)'],['cube','Alta: multiresolución en cubo (más nítida)']],'La calidad alta genera teselas en tu navegador y tarda más al exportar. La vista previa siempre usa la imagen única.']
+];
+(function(){
+  var h='';
+  SETUI.forEach(function(r,i){
+    if(r[0]==='h')h+='<h5>'+r[1]+'</h5>';
+    else if(r[0]==='c')h+='<div class="chk"><input type="checkbox" id="set_'+r[1]+'"><label for="set_'+r[1]+'" style="margin:0;color:inherit;font-size:13px">'+r[2]+'</label></div>';
+    else h+='<label for="set_'+r[1]+'">'+r[2]+'</label><select id="set_'+r[1]+'">'+r[3].map(function(o){return '<option value="'+o[0]+'">'+o[1]+'</option>'}).join('')+'</select>'+(r[4]?'<small>'+r[4]+'</small>':'');
+  });
+  $('#setTools').innerHTML=h;
+  SETUI.forEach(function(r){
+    if(r[0]==='h')return;var el=$('#set_'+r[1]);
+    el.onchange=function(){S.set[r[1]]=r[0]==='c'?el.checked:el.value};
+  });
+})();
+function syncSettings(){SETUI.forEach(function(r){if(r[0]==='h')return;var el=$('#set_'+r[1]);if(!el)return;if(r[0]==='c')el.checked=!!S.set[r[1]];else el.value=S.set[r[1]]||r[3][0][0]})}
 $('#tourName').oninput=function(e){S.name=e.target.value};
 $('#btnAdd').onclick=$('#btnAdd2').onclick=function(){$('#fileImgs').click()};
 $('#fileImgs').onchange=function(e){addFiles(e.target.files);e.target.value=''};
@@ -731,19 +785,20 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-pvm]'),function(b)
 /* ---------- guía paso a paso ---------- */
 var GUIDE=[
  {sel:'#tourName',t:'Nombre del tour',d:'Ponle un nombre a tu tour. Aparecerá como título en el tour exportado.'},
- {sel:'#btnAdd',t:'1. Sube tus panoramas',d:'Elige varias imágenes equirectangulares (relación 2:1) o arrástralas a la página. Cada una será una escena del tour. Con “Abrir tour (ZIP)” puedes retomar un tour que ya exportaste.'},
- {sel:'aside',t:'2. Tus escenas',d:'Aquí ves todas las escenas. Haz clic para editarlas, cambia el nombre, ordénalas con ▲▼ o elimínalas con ✕. La primera es el punto de partida del tour.'},
+ {sel:'#btnMenu',t:'Menú lateral',d:'Este botón muestra u oculta el menú con tus escenas, las opciones de la escena actual y los ajustes del tour. Ocúltalo para tener más espacio de trabajo.',menu:null},
+ {sel:'#btnAdd',t:'1. Sube tus panoramas',d:'Elige varias imágenes equirectangulares (relación 2:1) o arrástralas a la página. Cada una será una escena. Con “Abrir tour (ZIP)” retomas un tour que ya exportaste.',menu:'secScenes'},
+ {sel:'#list',t:'2. Tus escenas',d:'Haz clic en una escena para editarla, cambia su nombre, ordénalas con ▲▼ o elimínalas con ✕. La primera es el punto de partida del tour.',menu:'secScenes'},
  {sel:'[data-mode=view]',t:'Navegar',d:'Arrastra la panorama para mirar alrededor. En este modo los enlaces te llevan a la otra escena y los puntos de info muestran su texto.'},
  {sel:'[data-mode=link]',t:'3. Conecta las escenas',d:'Activa “+ Enlace”, haz clic donde quieras la flecha (una puerta, un pasillo…) y elige a qué escena lleva. Puedes cambiar su ícono y color, girarlo y crear el enlace de regreso automáticamente.'},
  {sel:'[data-mode=info]',t:'4. Agrega información',d:'Con “+ Info” marcas un punto con título y texto: medidas, materiales, avances de obra, recomendaciones.'},
- {sel:'#btnInit',t:'6. Vista inicial',d:'Mira hacia donde quieras que parta cada escena y pulsa “Fijar vista inicial”. Así cada vez que alguien entre, verá lo más importante primero.'},
- {sel:'[data-mode=imagen]',t:'5b. Imagen sobre el panorama',d:'Con “+ Imagen” pegas un logo, una señal o un plano dentro de la escena. Se ajusta a la perspectiva y puedes cambiar su tamaño.'},
- {sel:'#btnAdj',t:'Ajustes de imagen',d:'Brillo, contraste y saturación de la escena actual, con vista en vivo. Puedes copiarlos a todas las escenas.'},
- {sel:'#btnLayer',t:'Capa de comparación',d:'Superpone otra panorama (plano, etapa anterior de obra) y el visitante la mezcla con un deslizador. Ideal para control de avance.'},
  {sel:'[data-mode=embed]',t:'5. Contenido incrustado',d:'Con “+ Contenido” abres un video de YouTube/Vimeo, un mapa, un PDF de Google Drive o una web dentro del tour. Pega el enlace y listo.'},
- {sel:'#btnSet',t:'7. Ajustes del tour',d:'Autorrotación, pantalla completa, controles de flechas y zoom, menú de escenas, giroscopio en celulares, tipo de transición y calidad de imagen al exportar (estándar o multiresolución en cubo).'},
- {sel:'#btnPrev',t:'8. Previsualiza el tour',d:'Mira el tour terminado, con todos tus ajustes (menú, controles, autorrotación), sin exportar nada. Puedes ver cómo se verá en escritorio y en celular.'},
- {sel:'#btnExport',t:'9. Exporta tu tour',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
+ {sel:'[data-mode=imagen]',t:'6. Imagen sobre el panorama',d:'Con “+ Imagen” pegas un logo, una señal o un plano dentro de la escena. Se ajusta a la perspectiva y puedes cambiar su tamaño.'},
+ {sel:'#btnInit',t:'7. Vista inicial',d:'Mira hacia donde quieras que parta cada escena y pulsa “Fijar vista inicial” en el menú. Así cada vez que alguien entre, verá lo más importante primero.',menu:'secScene'},
+ {sel:'#adjBox',t:'8. Ajustes de imagen',d:'Brillo, contraste y saturación de la escena actual, con vista en vivo. Puedes copiarlos a todas las escenas.',menu:'secScene'},
+ {sel:'#layerBox',t:'9. Capa de comparación',d:'Superpone otra panorama (plano, etapa anterior de obra) y el visitante la mezcla con un deslizador. Ideal para control de avance.',menu:'secScene'},
+ {sel:'#setTools',t:'10. Ajustes del tour',d:'Autorrotación, pantalla completa, controles, menú de escenas, giroscopio, transición y calidad de imagen al exportar (estándar o multiresolución en cubo).',menu:'secSet'},
+ {sel:'#btnPrev',t:'11. Previsualiza el tour',d:'Mira el tour terminado, con todos tus ajustes, sin exportar nada. Puedes ver cómo se verá en escritorio y en celular.'},
+ {sel:'#btnExport',t:'12. Exporta tu tour',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
 ];
 var gi=-1,gKey='geomav-editor-guia';
 function gEls(){return {b:$('#gBlock'),s:$('#gSpot'),c:$('#gCard')}}
@@ -761,7 +816,9 @@ function guideGo(d){
 }
 function guideShow(){
   var st=GUIDE[gi],e=gEls();
+  if(st.menu){setMenu(true);openSec(st.menu)}else if(mq.matches)setMenu(false);
   if(!document.querySelector(st.sel)){guideGo(1);return}
+  if(st.menu){var te=document.querySelector(st.sel);if(te.scrollIntoView)te.scrollIntoView({block:'nearest'})}
   e.b.style.display=e.s.style.display=e.c.style.display='block';
   var last=gi===GUIDE.length-1;
   e.c.innerHTML='<div class="gs">Paso '+(gi+1)+' de '+GUIDE.length+'</div><h4>'+esc(st.t)+'</h4><p>'+esc(st.d)+'</p>'+
@@ -770,7 +827,7 @@ function guideShow(){
   $('#gSk').onclick=function(){guideEnd(true)};
   $('#gNx').onclick=function(){guideGo(1)};
   if($('#gPv'))$('#gPv').onclick=function(){guideGo(-1)};
-  guidePlace();
+  guidePlace();if(st.menu||mq.matches)setTimeout(guidePlace,340);
   $('#gNx').focus();
 }
 function guidePlace(){
@@ -797,6 +854,7 @@ $('#gBlock').onclick=function(){};
 var seen=false;try{seen=!!localStorage.getItem(gKey)}catch(x){}
 if(!seen&&window.self===window.top&&window.innerHeight>=520)setTimeout(guideStart,700);
 
+setMenu(!mq.matches);
 syncUI();
 })();
 </script>
