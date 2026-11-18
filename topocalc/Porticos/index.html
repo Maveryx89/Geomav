@@ -18,7 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="clima.js?v=20261020a"></script>
-<script src="estado-porticos.js?v=20261109a"></script>
+<script src="estado-porticos.js?v=20261118a"></script>
 <script>
 /* Reintenta cargar ExcelJS bajo demanda (si falló al abrir la app sin conexión) */
 window.LP_cargarExcel = function(){
@@ -1757,8 +1757,11 @@ window.PORTICOS_LISTA = (function(){
   /* Color fijo por partida: al elegir la partida, la nota toma su color automaticamente */
   var PARTIDA_TONE = {
     "Trazado":"sky", "Excavaci\u00f3n":"copper", "Emplantillado":"neutral", "Inst. de Fundaci\u00f3n":"blueprint",
-    "Inst. Malla":"amber", "Relleno":"success", "Inst. P\u00f3rtico":"violet", "Inst. Poste V":"violet", "Inst. Brazo H":"rose", "Inst. C\u00e1mara":"danger"
+    "Inst. Malla":"amber", "Relleno":"success", "Inst. P\u00f3rtico":"violet", "Inst. Poste V":"violet", "Inst. Brazo H":"rose", "Inst. C\u00e1mara":"danger",
+    "Plomo":"blueprint", "Nivelaci\u00f3n":"amber", "Grouting":"neutral"
   };
+  /* Partidas complementarias: se registran por separado y NO forman parte de la secuencia acumulada (un Grouting ejecutado no implica Brazo H ni C\u00e1mara) */
+  window.PARTIDAS_COMPLEMENTARIAS = ["Plomo", "Nivelaci\u00f3n", "Grouting"];
   window.PARTIDA_TONE = PARTIDA_TONE;
   /* "Inst. P\u00f3rtico" (7) qued\u00f3 como hist\u00f3rico: ya no se muestra como columna (ni en la app ni en el informe). Ahora la 7 se divide en 7.1 Poste V y 7.2 Brazo H */
   var PARTIDA_LEGACY = "Inst. P\u00f3rtico";
@@ -3094,7 +3097,7 @@ window.PORTICOS_LISTA = (function(){
       else if(action === "importar-planilla"){
         var go = function(){ if(window.PORTICOS_IMPORTAR) window.PORTICOS_IMPORTAR.abrir(); };
         if(window.PORTICOS_IMPORTAR){ go(); }
-        else { var sc = document.createElement("script"); sc.src = "importar-planilla.js?v=20261109a"; sc.onload = go; sc.onerror = function(){ alert("No se pudo cargar el importador. Revisa tu conexi\u00f3n."); }; document.head.appendChild(sc); }
+        else { var sc = document.createElement("script"); sc.src = "importar-planilla.js?v=20261118a"; sc.onload = go; sc.onerror = function(){ alert("No se pudo cargar el importador. Revisa tu conexi\u00f3n."); }; document.head.appendChild(sc); }
       }
       else if(action === "ruta"){ abrirRuta(); }
       else if(action === "guardar-todo"){ guardarTodo(el); }
@@ -3389,7 +3392,7 @@ window.PORTICOS_LISTA = (function(){
   function abrirInformeEjecutivo(){
     function ir(){ if(window.PORTICOS_INFORME) window.PORTICOS_INFORME.pdf(resumenBtn); }
     if(window.PORTICOS_INFORME){ ir(); return; }
-    var sc = document.createElement("script"); sc.src = "informe.js?v=20261109a"; sc.onload = ir;
+    var sc = document.createElement("script"); sc.src = "informe.js?v=20261118a"; sc.onload = ir;
     sc.onerror = function(){ alert("No se pudo cargar el generador del informe. Revisa tu conexi\u00f3n e int\u00e9ntalo de nuevo."); };
     document.head.appendChild(sc);
   }
@@ -3741,7 +3744,7 @@ window.PORTICOS_LISTA = (function(){
     REMOTO.avance.forEach(function(a){
       var n = String(a.portico);
       (hist[n] = hist[n] || []).push(a);
-      var idx = o.indexOf(String(a.partida).trim()); if(idx < 0) return;
+      var idx = o.indexOf(String(a.partida).trim()); if(idx < 0 || (window.PARTIDAS_COMPLEMENTARIAS || []).indexOf(o[idx]) >= 0) return;
       if(!est[n] || idx > est[n].idx || (idx === est[n].idx && (a.fecha + a.registrado) > (est[n].fecha + est[n].reg))) est[n] = { idx: idx, fecha: a.fecha, reg: a.registrado || "", avance: a.avance };
     });
     return { orden: o, est: est, hist: hist };
