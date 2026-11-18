@@ -190,7 +190,7 @@ function duplicadas(prog){
 }
 
 /* ---------- interfaz ---------- */
-var GRUPOS = [ ["ejec", "Pasan a ejecutadas", true], ["fecha", "Cambian de fecha", true], ["prog", "Nuevas programadas", true], ["noej", "No ejecutadas", true], ["cond", "Excavación: a mano o con maquinaria (condición del pórtico)", true], ["dup", "Tareas repetidas el mismo día (se elimina la copia sobrante)", true], ["del", "Programadas que ya no están en la planilla (se borran)", true], ["avance", "Registros de avance 100 % (opcional, sin fotos)", false] ];
+var GRUPOS = [ ["ejec", "Pasan a ejecutadas", true], ["fecha", "Cambian de fecha", true], ["prog", "Nuevas programadas", true], ["noej", "No ejecutadas", true], ["cond", "Excavación: a mano o con maquinaria (condición del pórtico)", true], ["dup", "Tareas repetidas el mismo día (se elimina la copia sobrante)", true], ["del", "Programadas que no aparecen en la planilla (se borran; desmarcado por defecto: una planilla de lo realizado no las menciona)", false], ["avance", "Registros de avance 100 % (opcional, sin fotos)", false] ];
 function abrir(){
   var api = window.PORTICOS_API; if(!api){ alert("Sin conexión con la planilla compartida."); return; }
   var ov = document.createElement("div"); ov.className = "bg-ov"; ov.style.overflow = "auto";
