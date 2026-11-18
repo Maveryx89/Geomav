@@ -35,3 +35,12 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#fff;font:1
 .mhd button{background:#ffffff1a;color:#fff;border:0;border-radius:8px;width:34px;height:34px;font-size:16px;cursor:pointer}
 #mF{flex:1;border:0;background:#fff;width:100%}
 @media(max-width:600px){#modal{padding:0}.mbox{height:100%;border-radius:0}}
+.hs.imagen{transform:none;cursor:default}
+.hs.imagen img{display:block;height:auto;max-width:none;pointer-events:none;user-select:none;border-radius:2px}
+.hs.imagen .lbl{top:auto;bottom:100%;margin:0 0 4px}
+.hs.imagen:hover .lbl{display:block}
+#capa{position:absolute;left:12px;bottom:14px;z-index:5;display:none;align-items:center;gap:10px;background:#0A1118cc;border:1px solid #fff3;border-radius:10px;padding:8px 12px;max-width:calc(100% - 190px)}
+#capa.show{display:flex}
+#capa b{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
+#capa input{width:min(180px,32vw);accent-color:#D49A6A}
+#capa span{font-size:11px;opacity:.75;white-space:nowrap}

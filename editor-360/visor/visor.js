@@ -9,11 +9,20 @@ function stop(el){['touchstart','touchmove','touchend','touchcancel','wheel','mo
 /* ---------- escenas y hotspots ---------- */
 var byId={},list=$('list'),cur=null;
 var scenes=d.scenes.map(function(s){
-  var lim=Marzipano.RectilinearView.limit.traditional(s.width,100*Math.PI/180);
+  var m=s.multires; // cubo multiresolución (teselas) o imagen equirectangular única
+  var lim=Marzipano.RectilinearView.limit.traditional(m?m.levels[m.levels.length-1].size:s.width,100*Math.PI/180);
   var view=new Marzipano.RectilinearView(s.initialViewParameters,lim);
-  var sc=viewer.createScene({source:Marzipano.ImageUrlSource.fromString(s.file),geometry:new Marzipano.EquirectGeometry([{width:s.width}]),view:view});
+  var sc=viewer.createScene(m?{source:Marzipano.ImageUrlSource.fromString(m.tiles,{cubeMapPreviewUrl:m.preview}),geometry:new Marzipano.CubeGeometry(m.levels),view:view,pinFirstLevel:true}
+    :{source:Marzipano.ImageUrlSource.fromString(s.file),geometry:new Marzipano.EquirectGeometry([{width:s.width}]),view:view});
   var o={data:s,scene:sc};byId[s.id]=o;
-  function put(el,h){stop(el);sc.hotspotContainer().createHotspot(el,{yaw:h.yaw,pitch:h.pitch})}
+  var fx=G.adjustEffects(s.adjust);if(fx)sc.layer().setEffects(fx);
+  if(s.layer&&s.layer.file){ // capa de comparación (plano, avance anterior...)
+    o.op=(s.layer.opacity==null?50:s.layer.opacity)/100;
+    o.layerObj=sc.createLayer({source:Marzipano.ImageUrlSource.fromString(s.layer.file),geometry:new Marzipano.EquirectGeometry([{width:s.layer.width||4096}])});
+    o.layerObj.setEffects({opacity:o.op});
+  }
+  function put(el,h,opts){stop(el);sc.hotspotContainer().createHotspot(el,{yaw:h.yaw,pitch:h.pitch},opts)}
+  (s.imageHotspots||[]).forEach(function(h){put(G.imageHotspot(h,h.file),h,G.imageOpts)});
   (s.linkHotspots||[]).forEach(function(h){
     var t=byId[h.target]||d.scenes.filter(function(x){return x.id===h.target})[0];
     var el=G.hotspot('link',h,t&&(t.data?t.data.name:t.name));
@@ -38,7 +47,12 @@ function go(id,instant){
   cur=o;
   scenes.forEach(function(x){x.a.className=x===o?'on':''});
   $('ttl').textContent=d.name+(d.scenes.length>1?' · '+o.data.name:'');
+  var cp=$('capa');
+  if(o.layerObj){cp.className='show';$('capaT').textContent=o.data.layer.name||'Capa';$('capaR').value=Math.round(o.op*100)}
+  else cp.className='';
 }
+$('capaR').addEventListener('input',function(e){if(cur&&cur.layerObj){cur.op=e.target.value/100;cur.layerObj.setEffects({opacity:cur.op})}});
+stop($('capa'));
 /* Transición al usar un enlace: gira y acerca hacia la flecha y luego cambia de escena. */
 function via(h,o){
   if(T.transition==='fade'){go(h.target);return}

@@ -75,4 +75,26 @@ G.normEmbed=function(raw){
     return {err:'Ese enlace de Google Maps no se puede incrustar. En Google Maps usa Compartir → Insertar un mapa y pega el código completo.'};
   return {src:u.href};
 };
+
+/* Ajustes de imagen (brillo, contraste, saturación: -100..100) -> efectos de color de Marzipano. null si no hay cambios. */
+G.adjustEffects=function(a){
+  a=a||{};var b=+a.b||0,c=+a.c||0,sa=+a.s||0;
+  if(!b&&!c&&!sa)return null;
+  var k=1+c/100,s=1+sa/100,lr=.2126,lg=.7152,lb=.0722,o=.5*(1-k)+b/200;
+  var m=[[s+(1-s)*lr,(1-s)*lg,(1-s)*lb],[(1-s)*lr,s+(1-s)*lg,(1-s)*lb],[(1-s)*lr,(1-s)*lg,s+(1-s)*lb]];
+  var M=[m[0][0]*k,m[0][1]*k,m[0][2]*k,0, m[1][0]*k,m[1][1]*k,m[1][2]*k,0, m[2][0]*k,m[2][1]*k,m[2][2]*k,0, 0,0,0,1];
+  return {colorMatrix:M,colorOffset:[o,o,o,0]};
+};
+
+/* Imagen anclada al panorama (logo, señal, plano...). h: {yaw,pitch,size (grados de ancho),title}. */
+G.PERSP_R=1000;
+G.imageHotspot=function(h,src){
+  var el=document.createElement('div');el.className='hs imagen';
+  var im=document.createElement('img');im.src=src;im.alt=G.esc(h.title||'');im.draggable=false;
+  im.style.width=(2*G.PERSP_R*Math.tan((Math.max(3,Math.min(120,+h.size||20)))*Math.PI/360))+'px';
+  el.appendChild(im);
+  if(h.title){var l=document.createElement('div');l.className='lbl';l.textContent=h.title;el.appendChild(l)}
+  return el;
+};
+G.imageOpts={perspective:{radius:G.PERSP_R}};
 })();
