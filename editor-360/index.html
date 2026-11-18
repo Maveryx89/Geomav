@@ -27,7 +27,8 @@ button.danger{color:var(--bad)}
 button:disabled{opacity:.45;cursor:not-allowed}
 input[type=text],select,textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--acc2);border-color:transparent}
-#app{display:grid;grid-template-rows:auto 1fr;height:100%}
+#app{display:grid;grid-template-rows:auto minmax(0,1fr);grid-template-columns:minmax(0,1fr);height:100%}
+header{min-width:0}
 header{display:flex;gap:10px;align-items:center;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;color:var(--navy);text-decoration:none}
 .brand img{height:34px;width:auto}
@@ -35,7 +36,9 @@ header{display:flex;gap:10px;align-items:center;padding:8px 12px;background:var(
 .brand b{display:block;font-size:15px;line-height:1.2}
 #tourName{flex:1;min-width:140px;max-width:340px}
 .sp{flex:1}
-main{display:grid;grid-template-columns:260px 1fr;min-height:0}
+main{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:0}
+aside,#stage{min-width:0}
+.acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
 aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:var(--acc);margin:0;padding:12px 12px 6px}
 #list{overflow:auto;padding:6px 8px 10px;display:flex;flex-direction:column;gap:6px;flex:1}
@@ -73,17 +76,33 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
 #toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:var(--navy);color:#fff;border:1px solid var(--line);padding:9px 16px;border-radius:10px;z-index:50;display:none;max-width:92%}
 #toast.bad{background:var(--bad);border-color:var(--bad)}
 .hs{position:absolute;cursor:pointer;transform:translate(-50%,-50%)}
-.hs.link .dot{width:46px;height:46px;border-radius:50%;background:#0A1118cc;border:2.5px solid var(--acc);display:grid;place-items:center;box-shadow:0 2px 12px #0008;transition:transform .15s}
-.hs.link:hover .dot{transform:scale(1.12)}
-.hs.link .dot svg{width:24px;height:24px;stroke:var(--acc);fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.hs .dot{width:46px;height:46px;border-radius:50%;background:#0A1118a6;border:2.5px solid var(--c);display:grid;place-items:center;box-shadow:0 2px 12px #0008;transition:transform .15s}
+.hs:hover .dot{transform:scale(1.12)}
+.hs .dot svg{width:24px;height:24px;stroke:var(--c);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.hs.info .dot{width:40px;height:40px}
 .hs .lbl{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:5px;background:#0A2240ee;color:#fff;border:1px solid #ffffff26;padding:2px 9px;border-radius:999px;white-space:nowrap;font-size:12px;display:none}
 .hs:hover .lbl,.editing .hs .lbl{display:block}
-.hs.info .dot{width:36px;height:36px;border-radius:50%;background:var(--acc2);color:#fff;font-weight:800;display:grid;place-items:center;border:2.5px solid #fff;box-shadow:0 2px 12px #0008;font-family:Georgia,serif;font-size:19px}
 .hs .bubble{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:10px;width:230px;background:#0A2240f2;color:#fff;border:1px solid #ffffff26;border-radius:8px;padding:10px 12px;display:none;cursor:default;font-size:13px}
 .hs.open .bubble{display:block}
-.bubble b{display:block;margin-bottom:3px;color:var(--acc)}
+.bubble b{display:block;margin-bottom:3px;color:var(--c)}
 .editing .hs{outline:1px dashed #fff8;outline-offset:3px;border-radius:50%}
 .moving .hs{opacity:.4}
+.pick{display:flex;gap:6px;flex-wrap:wrap}
+.pick button{width:38px;height:38px;padding:0;display:grid;place-items:center;background:#0A1118;color:#fff;border:2px solid transparent;border-radius:8px}
+.pick button svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.pick button.sw{width:30px;height:30px;border-radius:50%;border:2px solid var(--line)}
+.pick button.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc) inset}
+.pick button.sw.on{border-color:var(--navy);box-shadow:0 0 0 2px #fff inset}
+#panel{max-height:82%;overflow:auto}
+#panel small{display:block;color:var(--mut);margin-top:4px;font-size:12px}
+#emModal{position:fixed;inset:0;z-index:55;display:none;align-items:center;justify-content:center;background:#0A1118e6;padding:12px}
+#emModal.open{display:flex}
+#emModal .mbox{width:min(980px,100%);height:min(640px,100%);display:flex;flex-direction:column;background:#0A2240;border-radius:10px;overflow:hidden}
+#emModal .mhd{display:flex;gap:10px;align-items:center;padding:8px 12px;color:#fff}
+#emModal .mhd b{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#emModal .mhd a{color:var(--acc);font-size:12px;text-decoration:none;white-space:nowrap}
+#emModal .mhd button{background:#ffffff1a;color:#fff;border:0;width:34px;height:34px;padding:0}
+#emF{flex:1;border:0;background:#fff;width:100%}
 #pv{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;background:#0A1118}
 #pvBar{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#0A2240;color:#fff;flex-wrap:wrap}
 #pvBar b{font-weight:800}
@@ -116,7 +135,19 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
 .embed .brand span{display:none}
 @media(max-height:520px){.embed #gate{display:flex}}
 @media(max-width:760px){
- main{grid-template-columns:1fr;grid-template-rows:170px 1fr}
+ header{padding:6px 10px;gap:6px}
+ .brand img{height:28px}
+ .brand b{font-size:14px}
+ #tourName{min-width:0;flex:1;max-width:none;padding:6px 10px}
+ header .sp{display:none}
+ .acts{width:100%;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+ .acts>*{flex:none;white-space:nowrap;padding:6px 11px;font-size:13px}
+ #tools{top:8px;left:8px;right:8px;gap:5px}
+ .seg button,.chip{padding:6px 10px;font-size:13px}
+ #hint{font-size:12px;padding:6px 12px;border-radius:12px;bottom:10px;max-width:94%}
+ #pvBar{padding:6px 10px}
+ #pvBar .seg{display:none}
+ main{grid-template-columns:minmax(0,1fr);grid-template-rows:150px minmax(0,1fr)}
  aside{border-right:0;border-bottom:1px solid var(--line)}
  #list{flex-direction:row;overflow-x:auto}
  .sc{min-width:210px}
@@ -132,12 +163,14 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
   <a class="brand" href="/" target="_top" aria-label="GEOMAV"><img src="/assets/img/geomav-icono.png" alt=""><div><span>GEOMAV</span><b>Editor de tours 360°</b></div></a>
   <input id="tourName" type="text" value="Mi tour 360°" aria-label="Nombre del tour">
   <div class="sp"></div>
+  <div class="acts">
   <button id="btnHelp" title="Guía paso a paso">? Guía</button>
   <a id="btnFull" class="btn" href="/editor-360/" target="_blank" rel="noopener">Abrir en pantalla completa ↗</a>
   <button id="btnAdd">+ Panoramas</button>
   <button id="btnImport">Abrir tour (ZIP)</button>
   <button id="btnPrev" disabled title="Ver el tour terminado, sin exportar">▶ Previsualizar</button>
   <button id="btnExport" class="primary" disabled>Exportar ZIP</button>
+  </div>
   <input id="fileImgs" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
   <input id="fileZip" type="file" accept=".zip,application/zip" hidden>
 </header>
@@ -154,6 +187,7 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
         <button data-mode="view" class="on">Navegar</button>
         <button data-mode="link">+ Enlace</button>
         <button data-mode="info">+ Info</button>
+        <button data-mode="embed">+ Contenido</button>
       </div>
       <button id="btnInit" class="chip" title="Usa la dirección actual como vista de entrada a esta escena">Fijar vista inicial</button>
       <button id="btnSet" class="chip" title="Ajustes del tour">⚙ Ajustes del tour</button>
@@ -174,19 +208,22 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
     <button id="pvClose" class="primary">← Volver al editor</button></div>
   <div id="pvWrap"><iframe id="pvFrame" title="Vista previa del tour" allow="fullscreen; gyroscope; accelerometer"></iframe></div>
 </div>
+<div id="emModal"><div class="mbox"><div class="mhd"><b id="emT"></b><a id="emOpen" target="_blank" rel="noopener">Abrir en pestaña nueva ↗</a><button id="emX" aria-label="Cerrar">✕</button></div>
+<iframe id="emF" title="Contenido" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-forms" referrerpolicy="strict-origin-when-cross-origin"></iframe></div></div>
 <div id="gBlock"></div><div id="gSpot"></div><div id="gCard" role="dialog" aria-live="polite" aria-label="Guía del editor"></div>
 <div id="gate"><b>Editor de Tours 360°</b><div>Para crear tours cómodamente, ábrelo en pantalla completa.</div><a class="btn" href="/editor-360/" target="_blank" rel="noopener">Abrir editor ↗</a></div>
 <div id="toast"></div>
 
 <script src="marzipano.min.js"></script>
 <script src="jszip.min.js"></script>
+<script src="visor/icons.js"></script>
 <script>
 (function(){
 'use strict';
 var $=function(s){return document.querySelector(s)};
 var MAX_W=8192;
 try{if(window.self!==window.top)document.documentElement.classList.add('embed')}catch(e){document.documentElement.classList.add('embed')}
-var S={name:'Mi tour 360°',set:{autorotate:true,fullscreen:true,viewControls:true,sceneList:true,mouseMode:'drag'},scenes:[],cur:null,mode:'view',pending:null,reloc:null,nextId:1};
+var S={name:'Mi tour 360°',set:{autorotate:true,fullscreen:true,viewControls:true,sceneList:true,gyro:true,transition:'zoom',mouseMode:'drag'},scenes:[],cur:null,mode:'view',pending:null,reloc:null,nextId:1};
 var viewer=new Marzipano.Viewer($('#pano'),{controls:{mouseViewMode:'drag'}});
 
 /* ---------- utilidades ---------- */
@@ -262,29 +299,31 @@ function select(sc,opts){
 }
 
 /* ---------- hotspots ---------- */
-var ARROW='<svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+var G=window.GEOMAV;
 function stopProp(el){['touchstart','touchmove','touchend','touchcancel','wheel','mousewheel','pointerdown'].forEach(function(e){el.addEventListener(e,function(ev){ev.stopPropagation()})})}
 function renderHotspots(sc){
   var cont=sc.ms.hotspotContainer();
   (sc.els||[]).forEach(function(h){try{cont.destroyHotspot(h)}catch(e){}});
   sc.els=[];
   sc.hs.forEach(function(h){
-    var el=document.createElement('div');el.className='hs '+h.type;
-    if(h.type==='link'){
-      var t=byId(h.target);
-      el.innerHTML='<div class="dot">'+ARROW+'</div><div class="lbl">'+esc(t?t.name:'(sin destino)')+'</div>';
-      el.querySelector('svg').style.transform='rotate('+(h.rot||0)+'deg)';
-    }else{
-      el.innerHTML='<div class="dot">i</div><div class="bubble"><b>'+esc(h.title||'Información')+'</b>'+esc(h.text||'')+'</div>';
-    }
+    var label=h.type==='link'?(byId(h.target)?byId(h.target).name:'(sin destino)'):(h.title||(h.type==='embed'?'Ver contenido':''));
+    var el=G.hotspot(h.type,h,label);
     stopProp(el);
     el.addEventListener('click',function(ev){ev.stopPropagation();onHotspotClick(h,el)});
     sc.els.push(cont.createHotspot(el,{yaw:h.yaw,pitch:h.pitch}));
   });
 }
+function openEmbed(h){
+  var r=G.normEmbed(h.url);if(!r.src){toast('Este hotspot aún no tiene un enlace válido',true);return}
+  $('#emT').textContent=h.title||'Contenido';$('#emOpen').href=r.src;$('#emF').src=r.src;$('#emModal').className='open';
+}
+function closeEmbed(){$('#emModal').className='';$('#emF').src='about:blank'}
+$('#emX').onclick=closeEmbed;
+$('#emModal').addEventListener('click',function(e){if(e.target===$('#emModal'))closeEmbed()});
 function onHotspotClick(h,el){
   if(S.mode==='view'){
     if(h.type==='link'){var t=byId(h.target);if(t)select(t)}
+    else if(h.type==='embed')openEmbed(h);
     else el.classList.toggle('open');
   }else openPanel(h,false);
 }
@@ -302,12 +341,18 @@ paneEl.addEventListener('pointerup',function(e){
   if(S.reloc){S.reloc.yaw=c.yaw;S.reloc.pitch=c.pitch;S.reloc=null;paneEl.parentNode.classList.remove('moving');refreshCur();hint();toast('Hotspot reubicado');return}
   if(S.mode==='view'){document.querySelectorAll('.hs.open').forEach(function(x){x.classList.remove('open')});return}
   if(S.pending||$('#panel').style.display==='block')return;
-  var h=S.mode==='link'?{id:uid(),type:'link',yaw:c.yaw,pitch:c.pitch,target:null}:{id:uid(),type:'info',yaw:c.yaw,pitch:c.pitch,title:'',text:''};
+  var h={id:uid(),type:S.mode,yaw:c.yaw,pitch:c.pitch};
+  if(S.mode==='link')h.target=null;else if(S.mode==='info'){h.title='';h.text=''}else{h.title='';h.url=''}
   openPanel(h,true);
 });
 
 /* ---------- panel de edición ---------- */
 function closePanel(){$('#panel').style.display='none';S.pending=null;if(S.cur)renderHotspots(S.cur)}
+function stylePicker(h){
+  var cur=G.icon(h.type,h),col=G.color(h.type,h);
+  return '<label>Ícono</label><div class="pick" id="pIc">'+G.SETS[h.type].map(function(n){return '<button type="button" data-ic="'+n+'" title="'+G.ICONS[n].t+'" class="'+(n===cur?'on':'')+'">'+G.svg(n)+'</button>'}).join('')+'</div>'+
+    '<label>Color</label><div class="pick" id="pCo">'+G.COLORS.map(function(c){return '<button type="button" data-co="'+c.v+'" title="'+c.n+'" class="sw'+(c.v.toLowerCase()===col.toLowerCase()?' on':'')+'" style="background:'+c.v+'"></button>'}).join('')+'</div>';
+}
 function openPanel(h,isNew){
   var p=$('#panel'),sc=S.cur,html='';
   if(h.type==='link'){
@@ -315,21 +360,26 @@ function openPanel(h,isNew){
     if(!opts.length){toast('Agrega al menos otra escena para poder enlazar',true);return}
     html='<h4>'+(isNew?'Nuevo enlace':'Editar enlace')+'</h4><label>Lleva a la escena</label><select id="pT">'+
       '<option value="">— elegir —</option>'+opts.map(function(s){return '<option value="'+esc(s.id)+'"'+(s.id===h.target?' selected':'')+'>'+esc(s.name)+'</option>'}).join('')+'</select>'+
-      '<label>Giro de la flecha: <span id="pRv">'+(h.rot||0)+'</span>°</label><input type="range" id="pR" min="0" max="345" step="15" value="'+(h.rot||0)+'" style="width:100%;accent-color:var(--acc)">'+
+      stylePicker(h)+
+      '<label>Giro del ícono: <span id="pRv">'+(h.rot||0)+'</span>°</label><input type="range" id="pR" min="0" max="345" step="15" value="'+(h.rot||0)+'" style="width:100%;accent-color:var(--acc)">'+
       (isNew?'<div class="chk"><input type="checkbox" id="pB" checked><label for="pB" style="margin:0;color:inherit;font-size:13px">Crear también el enlace de regreso</label></div>':'');
+  }else if(h.type==='info'){
+    html='<h4>'+(isNew?'Nuevo punto de información':'Editar información')+'</h4><label>Título</label><input type="text" id="pTi" value="'+esc(h.title||'')+'"><label>Texto</label><textarea id="pTx" rows="3">'+esc(h.text||'')+'</textarea>'+stylePicker(h);
   }else{
-    html='<h4>'+(isNew?'Nuevo punto de información':'Editar información')+'</h4><label>Título</label><input type="text" id="pTi" value="'+esc(h.title||'')+'"><label>Texto</label><textarea id="pTx" rows="3">'+esc(h.text||'')+'</textarea>';
+    html='<h4>'+(isNew?'Nuevo contenido incrustado':'Editar contenido incrustado')+'</h4><label>Enlace</label><input type="text" id="pU" value="'+esc(h.url||'')+'" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off">'+
+      '<small>YouTube, Vimeo, PDF de Google Drive, mapa de Google Maps (Compartir → Insertar un mapa) o cualquier web con https. Algunas webs no permiten ser incrustadas.</small>'+
+      '<label>Título (opcional)</label><input type="text" id="pTi" value="'+esc(h.title||'')+'">'+stylePicker(h);
   }
   html+='<div class="row"><button class="primary" id="pOk">Guardar</button><button id="pNo">Cancelar</button>'+
     (isNew?'':'<button id="pMv">Reubicar</button><button class="danger" id="pDel">Eliminar</button>')+'</div>';
   p.innerHTML=html;p.style.display='block';
   S.pending=isNew?h:null;
-  if(isNew){ // mostrar marcador provisional
-    sc.hs.push(h);renderHotspots(sc);
-  }
-  var rot0=h.rot||0;
+  if(isNew){sc.hs.push(h);renderHotspots(sc)}
+  var snap={rot:h.rot,icon:h.icon,color:h.color};
+  Array.prototype.forEach.call(p.querySelectorAll('#pIc button'),function(b){b.onclick=function(){h.icon=b.dataset.ic;Array.prototype.forEach.call(p.querySelectorAll('#pIc button'),function(x){x.classList.toggle('on',x===b)});renderHotspots(sc)}});
+  Array.prototype.forEach.call(p.querySelectorAll('#pCo button'),function(b){b.onclick=function(){h.color=b.dataset.co;Array.prototype.forEach.call(p.querySelectorAll('#pCo button'),function(x){x.classList.toggle('on',x===b)});renderHotspots(sc)}});
   if(h.type==='link')$('#pR').oninput=function(e){h.rot=+e.target.value;$('#pRv').textContent=h.rot;renderHotspots(sc)};
-  var cancel=function(){if(isNew){sc.hs=sc.hs.filter(function(x){return x!==h})}else if(h.type==='link')h.rot=rot0;closePanel()};
+  var cancel=function(){if(isNew){sc.hs=sc.hs.filter(function(x){return x!==h})}else{h.rot=snap.rot;h.icon=snap.icon;h.color=snap.color}closePanel()};
   $('#pNo').onclick=cancel;
   $('#pOk').onclick=function(){
     if(h.type==='link'){
@@ -338,9 +388,13 @@ function openPanel(h,isNew){
       if(isNew&&$('#pB')&&$('#pB').checked){
         var dst=byId(v);
         if(dst&&!dst.hs.some(function(x){return x.type==='link'&&x.target===sc.id}))
-          dst.hs.push({id:uid(),type:'link',yaw:normYaw(h.yaw+Math.PI),pitch:0,target:sc.id});
+          dst.hs.push({id:uid(),type:'link',yaw:normYaw(h.yaw+Math.PI),pitch:0,target:sc.id,icon:h.icon,color:h.color});
       }
-    }else{h.title=$('#pTi').value.trim();h.text=$('#pTx').value.trim()}
+    }else if(h.type==='info'){h.title=$('#pTi').value.trim();h.text=$('#pTx').value.trim()}
+    else{
+      var r=G.normEmbed($('#pU').value);if(!r.src){toast(r.err,true);return}
+      h.url=r.src;h.title=$('#pTi').value.trim();
+    }
     S.pending=null;p.style.display='none';refreshCur();
     if(isNew&&h.type==='link'&&$('#pB'))toast('Enlace creado. Revisa el de regreso en la otra escena y reubícalo si hace falta.');
   };
@@ -353,7 +407,7 @@ function openPanel(h,isNew){
 /* ---------- UI ---------- */
 function hint(msg){
   var h=$('#hint');
-  if(msg===undefined){msg={view:'Arrastra para mirar alrededor. Cambia a “+ Enlace” o “+ Info” para editar.',link:'Haz clic en la panorama donde quieras la flecha hacia otra escena.',info:'Haz clic donde quieras un punto de información.'}[S.mode]}
+  if(msg===undefined){msg={view:'Arrastra para mirar alrededor. Usa “+ Enlace”, “+ Info” o “+ Contenido” para editar.',link:'Haz clic en la panorama donde quieras la flecha hacia otra escena.',info:'Haz clic donde quieras un punto de información.',embed:'Haz clic donde quieras un video, mapa, plano o web incrustado.'}[S.mode]}
   if(!S.cur)msg='';
   h.textContent=msg;h.style.display=msg?'block':'none';
 }
@@ -371,8 +425,8 @@ function renderList(){
   var L=$('#list');L.innerHTML='';
   S.scenes.forEach(function(sc,i){
     var d=document.createElement('div');d.className='sc'+(sc===S.cur?' on':'');
-    var nl=sc.hs.filter(function(h){return h.type==='link'}).length,ni=sc.hs.length-nl;
-    d.innerHTML='<img src="'+sc.thumb+'" alt=""><div><input type="text" value="'+esc(sc.name)+'" aria-label="Nombre de la escena"><div class="meta">'+(i===0?'<span class="first">INICIO · </span>':'')+nl+' enlaces · '+ni+' info</div></div><div class="btns"><button title="Subir">▲</button><button title="Bajar">▼</button><button class="danger" title="Eliminar">✕</button></div>';
+    var nl=sc.hs.filter(function(h){return h.type==='link'}).length,ne=sc.hs.filter(function(h){return h.type==='embed'}).length,ni=sc.hs.length-nl-ne;
+    d.innerHTML='<img src="'+sc.thumb+'" alt=""><div><input type="text" value="'+esc(sc.name)+'" aria-label="Nombre de la escena"><div class="meta">'+(i===0?'<span class="first">INICIO · </span>':'')+nl+' enlaces · '+ni+' info'+(ne?' · '+ne+' contenido':'')+'</div></div><div class="btns"><button title="Subir">▲</button><button title="Bajar">▼</button><button class="danger" title="Eliminar">✕</button></div>';
     d.onclick=function(e){if(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON')return;select(sc)};
     var inp=d.querySelector('input');
     inp.onfocus=function(){if(S.cur!==sc)select(sc)};
@@ -394,11 +448,12 @@ $('#btnSet').onclick=function(){
   if(S.pending||S.reloc)return;
   var p=$('#panel'),T=S.set;
   var chk=function(id,k,txt){return '<div class="chk"><input type="checkbox" id="'+id+'"'+(T[k]?' checked':'')+'><label for="'+id+'" style="margin:0;color:inherit;font-size:13px">'+txt+'</label></div>'};
-  p.innerHTML='<h4>Ajustes del tour</h4>'+chk('sA','autorotate','Autorrotación cuando no hay actividad')+chk('sF','fullscreen','Botón de pantalla completa')+chk('sV','viewControls','Botones de control de vista (flechas y zoom)')+chk('sL','sceneList','Menú de escenas')+
+  p.innerHTML='<h4>Ajustes del tour</h4>'+chk('sA','autorotate','Autorrotación cuando no hay actividad')+chk('sF','fullscreen','Botón de pantalla completa')+chk('sV','viewControls','Botones de control de vista (flechas y zoom)')+chk('sL','sceneList','Menú de escenas')+chk('sG','gyro','Botón de giroscopio (celulares)')+
+    '<label>Transición al usar un enlace</label><select id="sT"><option value="zoom"'+(T.transition!=='fade'?' selected':'')+'>Girar y acercar hacia el enlace</option><option value="fade"'+(T.transition==='fade'?' selected':'')+'>Fundido simple</option></select>'+
     '<label>Movimiento del mouse</label><select id="sM"><option value="drag"'+(T.mouseMode==='drag'?' selected':'')+'>Arrastrar para mirar</option><option value="qtvr"'+(T.mouseMode==='qtvr'?' selected':'')+'>Seguir el puntero</option></select>'+
     '<div class="row"><button class="primary" id="sOk">Listo</button></div>';
   p.style.display='block';
-  $('#sOk').onclick=function(){T.autorotate=$('#sA').checked;T.fullscreen=$('#sF').checked;T.viewControls=$('#sV').checked;T.sceneList=$('#sL').checked;T.mouseMode=$('#sM').value;p.style.display='none'};
+  $('#sOk').onclick=function(){T.autorotate=$('#sA').checked;T.fullscreen=$('#sF').checked;T.viewControls=$('#sV').checked;T.sceneList=$('#sL').checked;T.gyro=$('#sG').checked;T.transition=$('#sT').value;T.mouseMode=$('#sM').value;p.style.display='none'};
 };
 $('#tourName').oninput=function(e){S.name=e.target.value};
 $('#btnAdd').onclick=$('#btnAdd2').onclick=function(){$('#fileImgs').click()};
@@ -422,23 +477,25 @@ function buildData(){
     var id=sc.id;
     return {id:id,name:sc.name,file:'img/'+id+'.'+ext(sc.blob),width:sc.width,height:sc.height,
       initialViewParameters:{yaw:+sc.init.yaw.toFixed(5),pitch:+sc.init.pitch.toFixed(5),fov:+sc.init.fov.toFixed(5)},
-      linkHotspots:sc.hs.filter(function(h){return h.type==='link'&&h.target&&byId(h.target)}).map(function(h){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),rotation:h.rot||0,target:h.target}}),
-      infoHotspots:sc.hs.filter(function(h){return h.type==='info'}).map(function(h){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),title:h.title,text:h.text}})};
+      linkHotspots:sc.hs.filter(function(h){return h.type==='link'&&h.target&&byId(h.target)}).map(function(h){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),rotation:h.rot||0,icon:h.icon,color:h.color,target:h.target}}),
+      infoHotspots:sc.hs.filter(function(h){return h.type==='info'}).map(function(h){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),title:h.title,text:h.text,icon:h.icon,color:h.color}}),
+      embedHotspots:sc.hs.filter(function(h){return h.type==='embed'&&G.normEmbed(h.url).src}).map(function(h){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),title:h.title,url:h.url,icon:h.icon,color:h.color}})};
   });
   return {name:S.name||'Tour 360°',format:'geomav-equirect-1',settings:Object.assign({},S.set),scenes:scenes};
 }
-var LEEME='TOUR 360° - GEOMAV\r\n\r\nContenido:\r\n  index.html   visor del tour\r\n  data.js      escenas y hotspots\r\n  tour.json    mismo contenido, para reabrir el tour en el editor\r\n  marzipano.js librería del visor (Apache-2.0)\r\n  img/         panoramas\r\n\r\nPara publicarlo: sube TODA la carpeta a un hosting web (GitHub Pages, Netlify, tu servidor).\r\nNo funciona abriendo index.html con doble clic desde el disco: el navegador bloquea las imágenes WebGL.\r\nPara probarlo localmente usa un servidor, por ejemplo:  python -m http.server 8000  y abre http://localhost:8000\r\n\r\nPara seguir editando: en el editor GEOMAV usa "Abrir tour (ZIP)" con este mismo archivo ZIP.\r\n';
-var LICENSE_NOTE='Marzipano\r\nCopyright 2016 Google Inc.\r\nLicensed under the Apache License, Version 2.0\r\nhttp://www.apache.org/licenses/LICENSE-2.0\r\n\r\nEl visor incluido (marzipano.js) es una compilación de https://github.com/Maveryx89/marzipano-geomav, basada en https://github.com/google/marzipano.\r\n';
+var LEEME='TOUR 360° - GEOMAV\r\n\r\nContenido:\r\n  index.html   página del tour\r\n  visor.js, visor.css, icons.js, gyro.js   visor del tour (código GEOMAV)\r\n  marzipano.js librería del visor (Apache-2.0)\r\n  data.js      escenas y hotspots\r\n  tour.json    mismo contenido, para reabrir el tour en el editor\r\n  img/         panoramas\r\n\r\nPara publicarlo: sube TODA la carpeta a un hosting web (GitHub Pages, Netlify, tu servidor).\r\nNo funciona abriendo index.html con doble clic desde el disco: el navegador bloquea las imágenes WebGL.\r\nPara probarlo localmente usa un servidor, por ejemplo:  python -m http.server 8000  y abre http://localhost:8000\r\n\r\nPara seguir editando: en el editor GEOMAV usa "Abrir tour (ZIP)" con este mismo archivo ZIP.\r\n';
+var LICENSE_NOTE='Marzipano\r\nCopyright 2016 Google Inc.\r\nLicensed under the Apache License, Version 2.0\r\nhttp://www.apache.org/licenses/LICENSE-2.0\r\n\r\nEl visor incluido (marzipano.js) es una compilación de https://github.com/Maveryx89/marzipano-geomav, basada en https://github.com/google/marzipano.\r\ngyro.js está adaptado del demo "device-orientation" de Marzipano (Apache-2.0, Copyright 2016 Google Inc.).\r\n';
 
 async function exportZip(){
   var btn=$('#btnExport'),old=btn.textContent;btn.disabled=true;btn.textContent='Generando…';
   try{
     var data=buildData(),zip=new JSZip(),D={compression:'DEFLATE'};
-    var lib=await fetch('marzipano.min.js').then(function(r){if(!r.ok)throw new Error('No se pudo leer el visor');return r.text()});
+    var rd=function(u){return fetch(u).then(function(r){if(!r.ok)throw new Error('No se pudo leer '+u);return r.text()})};
+    var res=await Promise.all([rd('marzipano.min.js'),rd('visor/visor.js'),rd('visor/visor.css'),rd('visor/icons.js'),rd('visor/gyro.js')]);
     zip.file('index.html',viewerHtml(data.name),D);
+    zip.file('marzipano.js',res[0],D);zip.file('visor.js',res[1],D);zip.file('visor.css',res[2],D);zip.file('icons.js',res[3],D);zip.file('gyro.js',res[4],D);
     zip.file('data.js','var APP_DATA = '+JSON.stringify(data,null,2)+';\n',D);
     zip.file('tour.json',JSON.stringify(data,null,2),D);
-    zip.file('marzipano.js',lib,D);
     zip.file('LEEME.txt',LEEME,D);
     zip.file('LICENSE-marzipano.txt',LICENSE_NOTE,D);
     S.scenes.forEach(function(sc,i){zip.file(data.scenes[i].file,sc.blob,{compression:'STORE'})});
@@ -471,81 +528,35 @@ async function importZip(file){
       var buf=await f.async('blob');
       var type=/\.png$/i.test(s.file)?'image/png':/\.webp$/i.test(s.file)?'image/webp':'image/jpeg';
       var fl=new File([buf],s.id+'.'+ext({type:type}),{type:type});
-      var hs=(s.linkHotspots||[]).map(function(h){return {id:uid(),type:'link',yaw:h.yaw,pitch:h.pitch,rot:h.rotation||0,target:h.target}})
-        .concat((s.infoHotspots||[]).map(function(h){return {id:uid(),type:'info',yaw:h.yaw,pitch:h.pitch,title:h.title||'',text:h.text||''}}));
+      var hs=(s.linkHotspots||[]).map(function(h){return {id:uid(),type:'link',yaw:h.yaw,pitch:h.pitch,rot:h.rotation||0,icon:h.icon,color:h.color,target:h.target}})
+        .concat((s.infoHotspots||[]).map(function(h){return {id:uid(),type:'info',yaw:h.yaw,pitch:h.pitch,title:h.title||'',text:h.text||'',icon:h.icon,color:h.color}}))
+        .concat((s.embedHotspots||[]).map(function(h){return {id:uid(),type:'embed',yaw:h.yaw,pitch:h.pitch,title:h.title||'',url:h.url||'',icon:h.icon,color:h.color}}));
       await addImage(fl,{id:s.id,name:s.name,init:s.initialViewParameters,hs:hs});
     }
     S.name=data.name||S.name;$('#tourName').value=S.name;
-    S.set=Object.assign({autorotate:true,fullscreen:true,viewControls:true,sceneList:true,mouseMode:'drag'},data.settings||{});
+    S.set=Object.assign({autorotate:true,fullscreen:true,viewControls:true,sceneList:true,gyro:true,transition:'zoom',mouseMode:'drag'},data.settings||{});
     renderList();if(S.scenes[0])select(S.scenes[0],{instant:true});syncUI();toast('Tour abierto');
   }catch(e){toast('No se pudo abrir: '+(e&&e.message||e),true)}
 }
 
 /* ---------- visor exportado (index.html del tour) ---------- */
+/* pv: null para exportar (archivos planos); con datos (JSON) para la vista previa (rutas del editor). */
 function viewerHtml(title,pv){
-return '<!DOCTYPE html>\n<html lang="es"><head><meta charset="utf-8">'+
-'<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">'+
-'<title>'+esc(title)+'</title>\n<style>\n'+
-'html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#fff;font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}\n'+
-'#pano{position:absolute;inset:0}\n'+
-'#bar{position:absolute;top:0;left:0;right:0;display:flex;gap:8px;align-items:center;padding:10px 12px;background:linear-gradient(#000b,#0000);z-index:5}\n'+
-'#bar h1{font-size:15px;font-weight:600;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 4px #000}\n'+
-'#bar button{background:#0A1118a6;color:#fff;border:1px solid #fff3;border-radius:8px;padding:6px 11px;font:inherit;cursor:pointer}\n'+
-'#bar button.on{background:#D49A6A;color:#0A2240;border-color:#D49A6A}\n'+
-'#list{position:absolute;top:52px;left:0;bottom:0;width:250px;max-width:80vw;background:#0d1117f2;transform:translateX(-100%);transition:transform .25s;overflow:auto;z-index:6;padding:8px}\n'+
-'#list.open{transform:none}\n'+
-'#list a{display:block;padding:9px 11px;border-radius:8px;color:#e8edf3;cursor:pointer;margin-bottom:3px}\n'+
-'#list a:hover{background:#ffffff14}#list a.on{background:#D49A6A;color:#0A2240;font-weight:600}\n'+
-'.hs{position:absolute;cursor:pointer;transform:translate(-50%,-50%)}\n'+
-'.hs.link .dot{width:46px;height:46px;border-radius:50%;background:#0A1118a6;border:2.5px solid #D49A6A;display:grid;place-items:center;box-shadow:0 2px 12px #0008;transition:transform .15s}\n'+
-'.hs.link:hover .dot{transform:scale(1.12)}\n'+
-'#vc{position:absolute;right:12px;bottom:14px;display:grid;grid-template-columns:repeat(3,40px);grid-auto-rows:40px;gap:4px;z-index:5}\n'+
-'#vc button{background:#0A1118a6;color:#fff;border:1px solid #fff3;border-radius:8px;font:inherit;font-size:16px;cursor:pointer;touch-action:none;user-select:none}\n'+
-'.hs.link svg{width:24px;height:24px;stroke:#D49A6A;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}\n'+
-'.hs .lbl{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:5px;background:#0A2240ee;padding:2px 9px;border-radius:999px;white-space:nowrap;font-size:12px;display:none}\n'+
-'.hs:hover .lbl{display:block}\n'+
-'.hs.info .dot{width:36px;height:36px;border-radius:50%;background:#2C6B7E;color:#fff;font:800 19px Georgia,serif;display:grid;place-items:center;border:2.5px solid #fff;box-shadow:0 2px 12px #0008}\n'+
-'.hs .bubble{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:10px;width:230px;background:#0A2240f2;border:1px solid #fff3;border-radius:10px;padding:10px 12px;display:none;cursor:default;font-size:13px}\n'+
-'.hs.open .bubble{display:block}.bubble b{display:block;margin-bottom:3px;color:#D49A6A}\n'+
-'</style></head><body>\n'+
-'<div id="pano"></div>\n'+
-'<div id="bar"><button id="bList" title="Escenas">&#9776;</button><h1 id="ttl"></h1><button id="bAuto" title="Autorrotación">&#10227;</button><button id="bFull" title="Pantalla completa">&#9974;</button></div>\n'+
-'<div id="list"></div>\n'+
-'<div id="vc"><button id="vIn" style="grid-column:1">+</button><button id="vUp">&#9650;</button><button id="vOut">&minus;</button><button id="vLeft" style="grid-column:1">&#9664;</button><button id="vDown">&#9660;</button><button id="vRight">&#9654;</button></div>\n'+
-(pv?'<script src="marzipano.min.js"><\/script><script>var APP_DATA='+pv.replace(/</g,'\\u003c')+';<\/script>\n':'<script src="marzipano.js"><\/script><script src="data.js"><\/script>\n')+
-'<script>\n'+
-'(function(){\n'+
-'var d=APP_DATA,T=d.settings||{},viewer=new Marzipano.Viewer(document.getElementById("pano"),{controls:{mouseViewMode:T.mouseMode==="qtvr"?"qtvr":"drag"}});\n'+
-'var ARROW=\'<svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>\';\n'+
-'function esc(s){return String(s==null?"":s).replace(/[&<>"\']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",\'"\':"&quot;","\'":"&#39;"}[c]})}\n'+
-'function stop(el){["touchstart","touchmove","touchend","touchcancel","wheel","mousewheel","pointerdown"].forEach(function(e){el.addEventListener(e,function(v){v.stopPropagation()})})}\n'+
-'var byId={},list=document.getElementById("list"),cur=null;\n'+
-'var scenes=d.scenes.map(function(s){\n'+
-'  var lim=Marzipano.RectilinearView.limit.traditional(s.width,100*Math.PI/180);\n'+
-'  var view=new Marzipano.RectilinearView(s.initialViewParameters,lim);\n'+
-'  var sc=viewer.createScene({source:Marzipano.ImageUrlSource.fromString(s.file),geometry:new Marzipano.EquirectGeometry([{width:s.width}]),view:view});\n'+
-'  var o={data:s,scene:sc};byId[s.id]=o;\n'+
-'  (s.linkHotspots||[]).forEach(function(h){var el=document.createElement("div");el.className="hs link";var t=d.scenes.filter(function(x){return x.id===h.target})[0];\n'+
-'    el.innerHTML=\'<div class="dot">\'+ARROW+\'</div><div class="lbl">\'+esc(t?t.name:"")+\'</div>\';el.querySelector("svg").style.transform="rotate("+(h.rotation||0)+"deg)";stop(el);el.addEventListener("click",function(){go(h.target)});sc.hotspotContainer().createHotspot(el,{yaw:h.yaw,pitch:h.pitch})});\n'+
-'  (s.infoHotspots||[]).forEach(function(h){var el=document.createElement("div");el.className="hs info";\n'+
-'    el.innerHTML=\'<div class="dot">i</div><div class="bubble"><b>\'+esc(h.title||"Información")+\'</b>\'+esc(h.text)+\'</div>\';stop(el);el.addEventListener("click",function(){el.classList.toggle("open")});sc.hotspotContainer().createHotspot(el,{yaw:h.yaw,pitch:h.pitch})});\n'+
-'  var a=document.createElement("a");a.textContent=s.name;a.onclick=function(){go(s.id);list.classList.remove("open")};list.appendChild(a);o.a=a;\n'+
-'  return o});\n'+
-'function go(id,instant){var o=byId[id];if(!o)return;o.scene.view().setParameters(o.data.initialViewParameters);o.scene.switchTo({transitionDuration:instant?0:700});\n'+
-'  cur=o;scenes.forEach(function(x){x.a.className=x===o?"on":""});document.getElementById("ttl").textContent=d.name+(d.scenes.length>1?" · "+o.data.name:"")}\n'+
-'var auto=Marzipano.autorotate({yawSpeed:0.03,targetPitch:0,targetFov:Math.PI/2}),on=!!(d.settings&&d.settings.autorotate),bA=document.getElementById("bAuto");\n'+
-'function setAuto(v){on=v;bA.className=v?"on":"";if(v){viewer.setIdleMovement(3000,auto);viewer.startMovement(auto)}else{viewer.stopMovement();viewer.setIdleMovement(Infinity)}}\n'+
-'bA.onclick=function(){setAuto(!on)};\n'+
-'document.getElementById("bList").onclick=function(){list.classList.toggle("open")};\n'+
-'document.getElementById("bFull").onclick=function(){var e=document.documentElement;if(document.fullscreenElement)document.exitFullscreen();else if(e.requestFullscreen)e.requestFullscreen()};\n'+
-'if(scenes.length<2||T.sceneList===false)document.getElementById("bList").style.display="none";\n'+
-'if(T.fullscreen===false)document.getElementById("bFull").style.display="none";\n'+
-'if(T.viewControls===false)document.getElementById("vc").style.display="none";else{\n'+
-'  var cm=viewer.controls(),pr=function(id,ax,v){cm.registerMethod(id,new Marzipano.ElementPressControlMethod(document.getElementById(id),ax,v,3),true)};\n'+
-'  pr("vUp","y",-0.7);pr("vDown","y",0.7);pr("vLeft","x",-0.7);pr("vRight","x",0.7);pr("vIn","zoom",-0.7);pr("vOut","zoom",0.7)}\n'+
-'if(scenes.length){go(scenes[Math.min(d.start||0,scenes.length-1)].data.id,true);setAuto(on)}\n'+
-'})();\n'+
-'<\/script></body></html>\n';
+  var pre=pv?'visor/':'',lib=pv?'marzipano.min.js':'marzipano.js';
+  var data=pv?'<script>var APP_DATA='+pv.replace(/</g,'\\u003c')+';<\/script>':'<script src="data.js"><\/script>';
+  return '<!DOCTYPE html>\n<html lang="es"><head><meta charset="utf-8">'+
+  '<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">'+
+  '<title>'+esc(title)+'</title>\n<link rel="stylesheet" href="'+pre+'visor.css"></head><body>\n'+
+  '<div id="pano"></div>\n'+
+  '<div id="bar"><button id="bList" title="Escenas">&#9776;</button><h1 id="ttl"></h1>'+
+  '<button id="bGyro" title="Giroscopio"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></button>'+
+  '<button id="bAuto" title="Autorrotación">&#10227;</button><button id="bFull" title="Pantalla completa">&#9974;</button></div>\n'+
+  '<div id="list"></div>\n'+
+  '<div id="vc"><button id="vIn" style="grid-column:1">+</button><button id="vUp">&#9650;</button><button id="vOut">&minus;</button><button id="vLeft" style="grid-column:1">&#9664;</button><button id="vDown">&#9660;</button><button id="vRight">&#9654;</button></div>\n'+
+  '<div id="modal"><div class="mbox"><div class="mhd"><b id="mT"></b><a id="mOpen" target="_blank" rel="noopener">Abrir en pestaña nueva &#8599;</a><button id="mX" aria-label="Cerrar">&#10005;</button></div>'+
+  '<iframe id="mF" title="Contenido" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-forms" referrerpolicy="strict-origin-when-cross-origin"></iframe></div></div>\n'+
+  '<script src="'+lib+'"><\/script><script src="'+pre+'gyro.js"><\/script><script src="'+pre+'icons.js"><\/script>'+data+'<script src="'+pre+'visor.js"><\/script>\n'+
+  '</body></html>\n';
 }
 
 /* ---------- vista previa del tour (sin exportar) ---------- */
@@ -559,9 +570,11 @@ function openPreview(){
   $('#pvFrame').srcdoc=viewerHtml(data.name,JSON.stringify(data));
   $('#pv').style.display='flex';
   document.addEventListener('keydown',pvKey);
+  if(document.documentElement.classList.contains('embed')){try{var fs=document.documentElement.requestFullscreen();if(fs&&fs.catch)fs.catch(function(){})}catch(e){}}
 }
 function closePreview(){
   $('#pv').style.display='none';$('#pvFrame').srcdoc='';
+  try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}
   document.removeEventListener('keydown',pvKey);
 }
 $('#btnPrev').onclick=openPreview;
@@ -579,12 +592,13 @@ var GUIDE=[
  {sel:'#btnAdd',t:'1. Sube tus panoramas',d:'Elige varias imágenes equirectangulares (relación 2:1) o arrástralas a la página. Cada una será una escena del tour. Con “Abrir tour (ZIP)” puedes retomar un tour que ya exportaste.'},
  {sel:'aside',t:'2. Tus escenas',d:'Aquí ves todas las escenas. Haz clic para editarlas, cambia el nombre, ordénalas con ▲▼ o elimínalas con ✕. La primera es el punto de partida del tour.'},
  {sel:'[data-mode=view]',t:'Navegar',d:'Arrastra la panorama para mirar alrededor. En este modo los enlaces te llevan a la otra escena y los puntos de info muestran su texto.'},
- {sel:'[data-mode=link]',t:'3. Conecta las escenas',d:'Activa “+ Enlace”, haz clic donde quieras la flecha (una puerta, un pasillo…) y elige a qué escena lleva. Puedes girar la flecha y crear el enlace de regreso automáticamente.'},
+ {sel:'[data-mode=link]',t:'3. Conecta las escenas',d:'Activa “+ Enlace”, haz clic donde quieras la flecha (una puerta, un pasillo…) y elige a qué escena lleva. Puedes cambiar su ícono y color, girarlo y crear el enlace de regreso automáticamente.'},
  {sel:'[data-mode=info]',t:'4. Agrega información',d:'Con “+ Info” marcas un punto con título y texto: medidas, materiales, avances de obra, recomendaciones.'},
- {sel:'#btnInit',t:'5. Vista inicial',d:'Mira hacia donde quieras que parta cada escena y pulsa “Fijar vista inicial”. Así cada vez que alguien entre, verá lo más importante primero.'},
- {sel:'#btnSet',t:'6. Ajustes del tour',d:'Activa o desactiva la autorrotación, el botón de pantalla completa, los controles de flechas y zoom, y el menú de escenas.'},
- {sel:'#btnPrev',t:'7. Previsualiza el tour',d:'Mira el tour terminado, con todos tus ajustes (menú, controles, autorrotación), sin exportar nada. Puedes ver cómo se verá en escritorio y en celular.'},
- {sel:'#btnExport',t:'8. Exporta tu tour',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
+ {sel:'#btnInit',t:'6. Vista inicial',d:'Mira hacia donde quieras que parta cada escena y pulsa “Fijar vista inicial”. Así cada vez que alguien entre, verá lo más importante primero.'},
+ {sel:'[data-mode=embed]',t:'5. Contenido incrustado',d:'Con “+ Contenido” abres un video de YouTube/Vimeo, un mapa, un PDF de Google Drive o una web dentro del tour. Pega el enlace y listo.'},
+ {sel:'#btnSet',t:'7. Ajustes del tour',d:'Autorrotación, pantalla completa, controles de flechas y zoom, menú de escenas, giroscopio en celulares y el tipo de transición entre escenas.'},
+ {sel:'#btnPrev',t:'8. Previsualiza el tour',d:'Mira el tour terminado, con todos tus ajustes (menú, controles, autorrotación), sin exportar nada. Puedes ver cómo se verá en escritorio y en celular.'},
+ {sel:'#btnExport',t:'9. Exporta tu tour',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
 ];
 var gi=-1,gKey='geomav-editor-guia';
 function gEls(){return {b:$('#gBlock'),s:$('#gSpot'),c:$('#gCard')}}
