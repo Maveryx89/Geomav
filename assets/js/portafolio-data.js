@@ -122,6 +122,17 @@ const proyectosPortafolio = {
       real: true,
       icono: '🌳',
       vertical: true
+    },
+    {
+      // Herramienta propia de GEOMAV (no es un tour de cliente): editor para
+      // crear tours virtuales 360° y exportarlos listos para publicar.
+      // Ruta absoluta para que funcione igual desde /portafolio/*.html.
+      id: 'editor-tours-360',
+      titulo: 'Editor de Tours 360°',
+      ubicacion: 'Herramienta GEOMAV',
+      url: '/editor-360/',
+      real: true,
+      icono: '🛠️'
     }
   ],
   // ⚠️ RECOMENDACIÓN: sube los videos a YouTube como "No listado" (no
