@@ -84,6 +84,19 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
 .bubble b{display:block;margin-bottom:3px;color:var(--acc)}
 .editing .hs{outline:1px dashed #fff8;outline-offset:3px;border-radius:50%}
 .moving .hs{opacity:.4}
+#pv{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;background:#0A1118}
+#pvBar{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#0A2240;color:#fff;flex-wrap:wrap}
+#pvBar b{font-weight:800}
+#pvBar span{color:#ffffffa6;font-size:13px}
+#pvBar .sp{flex:1}
+#pvBar button{color:#fff}
+#pvBar button.primary{background:var(--acc);border-color:var(--acc);color:var(--navy)}
+#pvBar button.primary:hover{background:#e3ab7e;border-color:#e3ab7e}
+#pvWrap{flex:1;min-height:0;display:flex;justify-content:center;background:#05080c}
+#pvFrame{border:0;width:100%;height:100%;background:#000}
+#pvWrap.m{align-items:center}
+#pvWrap.m #pvFrame{width:390px;max-width:100%;height:min(100%,844px);border:6px solid #1d2b3a;border-radius:22px}
+@media(max-width:600px){#pvBar span{display:none}}
 #gBlock{position:fixed;inset:0;z-index:39;display:none}
 #gSpot{position:fixed;z-index:40;display:none;border-radius:10px;pointer-events:none;box-shadow:0 0 0 9999px rgba(10,34,64,.74),0 0 0 3px var(--acc);transition:all .3s cubic-bezier(.4,0,.2,1)}
 #gCard{position:fixed;z-index:41;display:none;width:min(340px,92vw);background:#fff;color:var(--navy);border-radius:8px;padding:16px 16px 14px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
@@ -123,6 +136,7 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
   <a id="btnFull" class="btn" href="/editor-360/" target="_blank" rel="noopener">Abrir en pantalla completa ↗</a>
   <button id="btnAdd">+ Panoramas</button>
   <button id="btnImport">Abrir tour (ZIP)</button>
+  <button id="btnPrev" disabled title="Ver el tour terminado, sin exportar">▶ Previsualizar</button>
   <button id="btnExport" class="primary" disabled>Exportar ZIP</button>
   <input id="fileImgs" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
   <input id="fileZip" type="file" accept=".zip,application/zip" hidden>
@@ -137,7 +151,7 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
     <div id="pano"></div>
     <div id="tools">
       <div class="seg" id="modes">
-        <button data-mode="view" class="on">Vista previa</button>
+        <button data-mode="view" class="on">Navegar</button>
         <button data-mode="link">+ Enlace</button>
         <button data-mode="info">+ Info</button>
       </div>
@@ -153,6 +167,12 @@ aside h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:
     <div id="panel"></div>
   </section>
 </main>
+</div>
+<div id="pv" role="dialog" aria-label="Vista previa del tour">
+  <div id="pvBar"><b>Vista previa</b><span>Así se verá tu tour exportado</span><div class="sp"></div>
+    <div class="seg"><button data-pvm="d" class="on">Escritorio</button><button data-pvm="m">Celular</button></div>
+    <button id="pvClose" class="primary">← Volver al editor</button></div>
+  <div id="pvWrap"><iframe id="pvFrame" title="Vista previa del tour" allow="fullscreen; gyroscope; accelerometer"></iframe></div>
 </div>
 <div id="gBlock"></div><div id="gSpot"></div><div id="gCard" role="dialog" aria-live="polite" aria-label="Guía del editor"></div>
 <div id="gate"><b>Editor de Tours 360°</b><div>Para crear tours cómodamente, ábrelo en pantalla completa.</div><a class="btn" href="/editor-360/" target="_blank" rel="noopener">Abrir editor ↗</a></div>
@@ -340,6 +360,7 @@ function hint(msg){
 function syncUI(){
   $('#empty').style.display=S.scenes.length?'none':'flex';
   $('#btnExport').disabled=!S.scenes.length;
+  $('#btnPrev').disabled=!S.scenes.length;
   $('#btnInit').disabled=!S.cur;
   $('#count').textContent=S.scenes.length?'('+S.scenes.length+')':'';
   $('#stage').classList.toggle('editing',S.mode!=='view');
@@ -461,7 +482,7 @@ async function importZip(file){
 }
 
 /* ---------- visor exportado (index.html del tour) ---------- */
-function viewerHtml(title){
+function viewerHtml(title,pv){
 return '<!DOCTYPE html>\n<html lang="es"><head><meta charset="utf-8">'+
 '<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">'+
 '<title>'+esc(title)+'</title>\n<style>\n'+
@@ -491,7 +512,7 @@ return '<!DOCTYPE html>\n<html lang="es"><head><meta charset="utf-8">'+
 '<div id="bar"><button id="bList" title="Escenas">&#9776;</button><h1 id="ttl"></h1><button id="bAuto" title="Autorrotación">&#10227;</button><button id="bFull" title="Pantalla completa">&#9974;</button></div>\n'+
 '<div id="list"></div>\n'+
 '<div id="vc"><button id="vIn" style="grid-column:1">+</button><button id="vUp">&#9650;</button><button id="vOut">&minus;</button><button id="vLeft" style="grid-column:1">&#9664;</button><button id="vDown">&#9660;</button><button id="vRight">&#9654;</button></div>\n'+
-'<script src="marzipano.js"><\/script><script src="data.js"><\/script>\n'+
+(pv?'<script src="marzipano.min.js"><\/script><script>var APP_DATA='+pv.replace(/</g,'\\u003c')+';<\/script>\n':'<script src="marzipano.js"><\/script><script src="data.js"><\/script>\n')+
 '<script>\n'+
 '(function(){\n'+
 'var d=APP_DATA,T=d.settings||{},viewer=new Marzipano.Viewer(document.getElementById("pano"),{controls:{mouseViewMode:T.mouseMode==="qtvr"?"qtvr":"drag"}});\n'+
@@ -522,22 +543,48 @@ return '<!DOCTYPE html>\n<html lang="es"><head><meta charset="utf-8">'+
 'if(T.viewControls===false)document.getElementById("vc").style.display="none";else{\n'+
 '  var cm=viewer.controls(),pr=function(id,ax,v){cm.registerMethod(id,new Marzipano.ElementPressControlMethod(document.getElementById(id),ax,v,3),true)};\n'+
 '  pr("vUp","y",-0.7);pr("vDown","y",0.7);pr("vLeft","x",-0.7);pr("vRight","x",0.7);pr("vIn","zoom",-0.7);pr("vOut","zoom",0.7)}\n'+
-'if(scenes.length){go(scenes[0].data.id,true);setAuto(on)}\n'+
+'if(scenes.length){go(scenes[Math.min(d.start||0,scenes.length-1)].data.id,true);setAuto(on)}\n'+
 '})();\n'+
 '<\/script></body></html>\n';
 }
+
+/* ---------- vista previa del tour (sin exportar) ---------- */
+function pvKey(e){if(e.key==='Escape')closePreview()}
+function openPreview(){
+  if(!S.scenes.length)return;
+  closePanel();
+  var data=buildData();
+  data.scenes.forEach(function(sc,i){sc.file=S.scenes[i].url});
+  data.start=Math.max(0,S.scenes.indexOf(S.cur));
+  $('#pvFrame').srcdoc=viewerHtml(data.name,JSON.stringify(data));
+  $('#pv').style.display='flex';
+  document.addEventListener('keydown',pvKey);
+}
+function closePreview(){
+  $('#pv').style.display='none';$('#pvFrame').srcdoc='';
+  document.removeEventListener('keydown',pvKey);
+}
+$('#btnPrev').onclick=openPreview;
+$('#pvClose').onclick=closePreview;
+Array.prototype.forEach.call(document.querySelectorAll('[data-pvm]'),function(b){
+  b.onclick=function(){
+    $('#pvWrap').className=b.dataset.pvm==='m'?'m':'';
+    Array.prototype.forEach.call(document.querySelectorAll('[data-pvm]'),function(x){x.classList.toggle('on',x===b)});
+  };
+});
 
 /* ---------- guía paso a paso ---------- */
 var GUIDE=[
  {sel:'#tourName',t:'Nombre del tour',d:'Ponle un nombre a tu tour. Aparecerá como título en el tour exportado.'},
  {sel:'#btnAdd',t:'1. Sube tus panoramas',d:'Elige varias imágenes equirectangulares (relación 2:1) o arrástralas a la página. Cada una será una escena del tour. Con “Abrir tour (ZIP)” puedes retomar un tour que ya exportaste.'},
  {sel:'aside',t:'2. Tus escenas',d:'Aquí ves todas las escenas. Haz clic para editarlas, cambia el nombre, ordénalas con ▲▼ o elimínalas con ✕. La primera es el punto de partida del tour.'},
- {sel:'[data-mode=view]',t:'Vista previa',d:'Arrastra la panorama para mirar alrededor. En este modo los enlaces te llevan a la otra escena y los puntos de info muestran su texto, tal como lo verá tu cliente.'},
+ {sel:'[data-mode=view]',t:'Navegar',d:'Arrastra la panorama para mirar alrededor. En este modo los enlaces te llevan a la otra escena y los puntos de info muestran su texto.'},
  {sel:'[data-mode=link]',t:'3. Conecta las escenas',d:'Activa “+ Enlace”, haz clic donde quieras la flecha (una puerta, un pasillo…) y elige a qué escena lleva. Puedes girar la flecha y crear el enlace de regreso automáticamente.'},
  {sel:'[data-mode=info]',t:'4. Agrega información',d:'Con “+ Info” marcas un punto con título y texto: medidas, materiales, avances de obra, recomendaciones.'},
  {sel:'#btnInit',t:'5. Vista inicial',d:'Mira hacia donde quieras que parta cada escena y pulsa “Fijar vista inicial”. Así cada vez que alguien entre, verá lo más importante primero.'},
  {sel:'#btnSet',t:'6. Ajustes del tour',d:'Activa o desactiva la autorrotación, el botón de pantalla completa, los controles de flechas y zoom, y el menú de escenas.'},
- {sel:'#btnExport',t:'7. Exporta tu tour',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
+ {sel:'#btnPrev',t:'7. Previsualiza el tour',d:'Mira el tour terminado, con todos tus ajustes (menú, controles, autorrotación), sin exportar nada. Puedes ver cómo se verá en escritorio y en celular.'},
+ {sel:'#btnExport',t:'8. Exporta tu tour',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
 ];
 var gi=-1,gKey='geomav-editor-guia';
 function gEls(){return {b:$('#gBlock'),s:$('#gSpot'),c:$('#gCard')}}
