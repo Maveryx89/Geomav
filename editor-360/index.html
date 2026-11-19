@@ -440,7 +440,7 @@ async function addImage(file,meta){
   var sc={id:uniqueId(meta&&meta.id||slug(base)),name:base,blob:blob,url:url,width:w,height:h,thumb:t.toDataURL('image/jpeg',.7),
     init:meta&&meta.init||{yaw:0,pitch:0,fov:Math.PI/2},hs:meta&&meta.hs||[],ms:null,
     adjust:meta&&meta.adjust||{b:0,c:0,s:0},layer:meta&&meta.layer||null,
-    rot:{yaw:0,pitch:0,roll:0},base:{blob:blob,url:url,width:w,height:h},orig:(blob===file&&!/\.insp$/i.test(file.name))?file:blob};
+    rot:{yaw:0,pitch:0,roll:0,tx:0,ty:0,tz:0,dist:30,h:1.6,model:'suelo'},base:{blob:blob,url:url,width:w,height:h},orig:(blob===file&&!/\.insp$/i.test(file.name))?file:blob};
   makeMScene(sc);
   S.scenes.push(sc);
   return sc;
@@ -898,7 +898,8 @@ function rotMatrix(r){
   function mul(A,B){var R=[[0,0,0],[0,0,0],[0,0,0]];for(var i=0;i<3;i++)for(var j=0;j<3;j++)for(var k=0;k<3;k++)R[i][j]+=A[i][k]*B[k][j];return R}
   return mul(Z,mul(X,Y));
 }
-function isRotZero(r){return !r||(!r.yaw&&!r.pitch&&!r.roll)}
+function isRotZero(r){return !r||(!r.yaw&&!r.pitch&&!r.roll&&!r.tx&&!r.ty&&!r.tz)}
+function hasShift(r){return !!(r&&(r.tx||r.ty||r.tz))}
 function imgData(img,w,h){var c=document.createElement('canvas');c.width=w;c.height=h;var g=c.getContext('2d',{willReadFrequently:true});g.imageSmoothingQuality='high';g.drawImage(img,0,0,w,h);return g.getImageData(0,0,w,h)}
 /* Giro horizontal puro: desplazamiento exacto de columnas (sin remuestreo, sin pérdida de píxeles). */
 function shiftYaw(img,w,h,yaw){
@@ -909,15 +910,26 @@ function shiftYaw(img,w,h,yaw){
 async function rotRender(sd,sw,sh,rot,ow,oh,cubic,token,onP){
   var M=rotMatrix(rot),m00=M[0][0],m01=M[0][1],m02=M[0][2],m10=M[1][0],m11=M[1][1],m12=M[1][2],m20=M[2][0],m21=M[2][1],m22=M[2][2];
   var out=new ImageData(ow,oh),od=out.data,PI=Math.PI,TP=2*Math.PI;
+  /* Centro de giro desplazado (paralaje): el rayo desde la cámara virtual en t se intersecta con un modelo de escena
+     (esfera de radio R, o suelo plano a h bajo la cámara + esfera lejana R) y se proyecta desde la cámara original. */
+  var TR=hasShift(rot),R=Math.max(2,+rot.dist||30),gnd=rot.model!=='esfera',H0=Math.max(.2,+rot.h||1.6),tx=+rot.tx||0,ty=+rot.ty||0,tz=+rot.tz||0;
+  if(TR){var tl=Math.sqrt(tx*tx+ty*ty+tz*tz),lim=R*.9;if(tl>lim){tx*=lim/tl;ty*=lim/tl;tz*=lim/tl}if(gnd&&ty<-H0*.9)ty=-H0*.9}
+  var tt=tx*tx+ty*ty+tz*tz;
   var sinL=new Float32Array(ow),cosL=new Float32Array(ow);
   for(var i=0;i<ow;i++){var lo=(i+.5)/ow*TP-PI;sinL[i]=Math.sin(lo);cosL[i]=Math.cos(lo)}
-  var wx=new Float32Array(4),wy=new Float32Array(4);
+  var wx=new Float32Array(4),wy=new Float32Array(4),sl2=0;
   function cr(t,w){var t2=t*t,t3=t2*t;w[0]=-.5*t3+t2-.5*t;w[1]=1.5*t3-2.5*t2+1;w[2]=-1.5*t3+2*t2+.5*t;w[3]=.5*t3-.5*t2}
   for(var j=0;j<oh;j++){
     if(token&&token.dead)return null;
     var lat=PI/2-(j+.5)/oh*PI,sl=Math.sin(lat),cl=Math.cos(lat),o=j*ow*4;
     for(i=0;i<ow;i++){
-      var dx=cl*sinL[i],dz=cl*cosL[i],sx=m00*dx+m01*sl+m02*dz,sy=m10*dx+m11*sl+m12*dz,sz=m20*dx+m21*sl+m22*dz;
+      var dx=cl*sinL[i],dz=cl*cosL[i];
+      if(TR){
+        var bb=tx*dx+ty*sl+tz*dz,rr=-bb+Math.sqrt(Math.max(0,bb*bb-tt+R*R));
+        if(gnd&&sl<-1e-6){var rg=(-H0-ty)/sl;if(rg>0&&rg<rr)rr=rg}
+        var px=tx+rr*dx,py=ty+rr*sl,pz=tz+rr*dz,pl=Math.sqrt(px*px+py*py+pz*pz)||1;dx=px/pl;sl2=py/pl;dz=pz/pl;
+      }else sl2=sl;
+      var sx=m00*dx+m01*sl2+m02*dz,sy=m10*dx+m11*sl2+m12*dz,sz=m20*dx+m21*sl2+m22*dz;
       if(sy>1)sy=1;else if(sy<-1)sy=-1;
       var u=(Math.atan2(sx,sz)/TP+.5)*sw-.5,v=(.5-Math.asin(sy)/PI)*sh-.5,x0=Math.floor(u),y0=Math.floor(v),fx=u-x0,fy=v-y0;
       if(!cubic){
@@ -941,7 +953,7 @@ async function rotRender(sd,sw,sh,rot,ow,oh,cubic,token,onP){
 /* Genera la imagen corregida a partir de una imagen cargada (usa giro exacto si solo hay giro horizontal). */
 async function rotImage(img,w,h,rot,cubic,token,onP,ow,oh){
   ow=ow||w;oh=oh||h;
-  if(!rot.pitch&&!rot.roll&&ow===w&&oh===h)return shiftYaw(img,w,h,rot.yaw);
+  if(!rot.pitch&&!rot.roll&&!hasShift(rot)&&ow===w&&oh===h)return shiftYaw(img,w,h,rot.yaw);
   var sd=imgData(img,w,h).data;
   return rotRender(sd,w,h,rot,ow,oh,cubic,token,onP);
 }
@@ -1032,9 +1044,16 @@ async function renderCorrected(sc,onP){
 }
 function drawOrient(){
   var sc=S.cur;if(!sc||!$('#orBox'))return;
-  var R=sc.rot,AX=[['yaw','Giro (yaw)',180,'Gira la panorama alrededor, como girar sobre tu eje.'],['pitch','Inclinación (pitch)',90,'Sube o baja el horizonte.'],['roll','Horizonte (roll)',180,'Nivela una imagen ladeada.']];
+  var R=sc.rot,AX=[['yaw','Giro (yaw)',180,'°',.1],['pitch','Inclinación (pitch)',90,'°',.1],['roll','Horizonte (roll)',180,'°',.1]],
+    TX=[['tx','Derecha (+) / izquierda (−)',5,'m',.01],['tz','Adelante (+) / atrás (−)',5,'m',.01],['ty','Arriba (+) / abajo (−)',5,'m',.01]];
   var h='<small>Corrige el giro y la posición de la panorama. Hazlo <b>antes</b> de colocar enlaces y puntos: al mover la imagen, lo ya colocado no se mueve con ella.</small>';
-  AX.forEach(function(a){h+='<label>'+a[1]+'</label><div class="orr"><input type="range" class="sldr" id="or_'+a[0]+'" min="-'+a[2]+'" max="'+a[2]+'" step="0.1" value="'+R[a[0]]+'"><input type="number" id="on_'+a[0]+'" min="-'+a[2]+'" max="'+a[2]+'" step="0.1" value="'+R[a[0]]+'"><span>°</span></div>'});
+  function ctl(a){return '<label>'+a[1]+'</label><div class="orr"><input type="range" class="sldr" id="or_'+a[0]+'" min="-'+a[2]+'" max="'+a[2]+'" step="'+a[4]+'" value="'+R[a[0]]+'"><input type="number" id="on_'+a[0]+'" min="-'+a[2]+'" max="'+a[2]+'" step="'+a[4]+'" value="'+R[a[0]]+'"><span>'+a[3]+'</span></div>'}
+  AX.forEach(function(a){h+=ctl(a)});
+  h+='<h5>Mover el centro de giro</h5><small>Para fotos tomadas desde el mismo lugar pero con la cámara desplazada. Mueve el punto desde donde se “ve” la panorama. Es una aproximación: corrige bien lo que está cerca de la superficie elegida (suelo o distancia); lo muy cercano o lejano puede quedar con algo de desfase, y no se recupera lo que la cámara no vio. Funciona mejor con desplazamientos pequeños (hasta 2–3 m). Usa la referencia de abajo para ajustar a ojo.</small>';
+  TX.forEach(function(a){h+=ctl(a)});
+  h+='<label>Modelo de escena</label><select id="orModel"><option value="suelo"'+(R.model!=='esfera'?' selected':'')+'>Suelo plano + fondo lejano (exteriores, obras)</option><option value="esfera"'+(R.model==='esfera'?' selected':'')+'>Esfera a distancia fija (interiores)</option></select>'+
+    '<label>Distancia a los objetos / fondo (m)</label><div class="orr"><input type="number" id="orDist" min="2" max="1000" step="1" value="'+R.dist+'"></div>'+
+    '<div id="orHrow"'+(R.model==='esfera'?' style="display:none"':'')+'><label>Altura de la cámara sobre el suelo (m)</label><div class="orr"><input type="number" id="orH" min="0.2" max="200" step="0.1" value="'+R.h+'"></div></div>';
   var others=S.scenes.filter(function(o){return o!==sc}),rf=sc.ref||{};
   h+='<div class="row"><button id="orReset" type="button">Restablecer</button></div>'+
     '<h5>Alinear con otra escena</h5><small>Muestra otra escena semitransparente encima para ver cuánto está desviada. Solo ayuda a editar; no se exporta.</small>'+
@@ -1043,12 +1062,15 @@ function drawOrient(){
     '<h5>Descargar imagen corregida</h5><small>Misma resolución y formato que tu archivo original (JPG conserva EXIF/XMP; PNG sin pérdida). El giro horizontal puro es exacto, sin perder píxeles; inclinar o nivelar remuestrea con interpolación bicúbica.</small>'+
     '<div class="row"><button id="orDl" type="button">Esta imagen</button><button id="orDlAll" type="button">Todas (ZIP)</button></div><small id="oNote" aria-live="polite"></small>';
   $('#orBox').innerHTML=h;
-  AX.forEach(function(a){
-    var k=a[0],rg=$('#or_'+k),nm=$('#on_'+k);
-    function set(v){v=Math.max(-a[2],Math.min(a[2],+v||0));R[k]=Math.round(v*10)/10;rg.value=R[k];nm.value=R[k];rotChanged(sc)}
+  AX.concat(TX).forEach(function(a){
+    var k=a[0],rg=$('#or_'+k),nm=$('#on_'+k),q=a[4]===.01?100:10;
+    function set(v){v=Math.max(-a[2],Math.min(a[2],+v||0));R[k]=Math.round(v*q)/q;rg.value=R[k];nm.value=R[k];rotChanged(sc)}
     rg.oninput=function(){set(rg.value)};nm.onchange=function(){set(nm.value)};
   });
-  $('#orReset').onclick=function(){R.yaw=R.pitch=R.roll=0;drawOrient();rotChanged(sc)};
+  $('#orModel').onchange=function(){R.model=this.value;$('#orHrow').style.display=R.model==='esfera'?'none':'';rotChanged(sc)};
+  $('#orDist').onchange=function(){R.dist=Math.max(2,Math.min(1000,+this.value||30));this.value=R.dist;rotChanged(sc)};
+  $('#orH').onchange=function(){R.h=Math.max(.2,Math.min(200,+this.value||1.6));this.value=R.h;rotChanged(sc)};
+  $('#orReset').onclick=function(){R.yaw=R.pitch=R.roll=R.tx=R.ty=R.tz=0;drawOrient();rotChanged(sc)};
   if($('#orRef')){
     $('#orRef').onchange=function(){sc.ref=this.value?{id:this.value,on:true,opacity:(sc.ref&&sc.ref.opacity)||50}:null;applyRef(sc)};
     $('#orOp').oninput=function(){if(!sc.ref)return;sc.ref.opacity=+this.value;$('#orOv').textContent=this.value;applyRef(sc)};
@@ -1344,17 +1366,18 @@ var GUIDE=[
  {sel:'[data-mode=imagen]',t:'6. Imagen sobre el panorama',d:'Con “+ Imagen” pegas un logo, una señal o un plano dentro de la escena. Se ajusta a la perspectiva y puedes cambiar su tamaño.'},
  {sel:'#btnInit',t:'7. Vista inicial',d:'Mira hacia donde quieras que parta cada escena y pulsa “Fijar vista inicial” en el menú. Así cada vez que alguien entre, verá lo más importante primero.',menu:'secScene'},
  {sel:'#orBox',t:'8. Orientación de la panorama',d:'Corrige el giro, la inclinación y el horizonte de cada panorama con los deslizadores o escribiendo grados con décimas. Se ve en vivo. Hazlo antes de colocar enlaces y puntos: al mover la imagen, lo ya colocado no se mueve con ella.',menu:'secScene'},
- {sel:'#orDl',t:'9. Alinear y descargar corregida',d:'Elige otra escena como referencia semitransparente para ver cuánto se desvió esta imagen (no se exporta). Luego descarga la imagen corregida, o todas en un ZIP, con la misma resolución y formato. El giro horizontal es exacto; inclinar o nivelar remuestrea con interpolación bicúbica.',menu:'secScene'},
- {sel:'#adjBox',t:'10. Ajustes de imagen',d:'Brillo, contraste y saturación de la escena actual, con vista en vivo. Puedes copiarlos a todas las escenas.',menu:'secScene'},
- {sel:'#layerBox',t:'11. Capa de comparación',d:'Superpone otra panorama (plano, etapa anterior de obra) y el visitante la mezcla con un deslizador. Ideal para control de avance.',menu:'secScene'},
- {sel:'#tbActs',t:'12. Atajos sobre el visor',d:'Estos iconos te llevan rápido a copiar el enlace del tour, compartir (redes, correo, QR y código para insertar), corregir el color de la imagen, el logo y colores, y la información del tour.'},
- {sel:'#stTitle',t:'13. Nombre de la escena',d:'Haz clic en este cuadro, abajo a la izquierda del visor, para renombrar la escena actual. Se actualiza también en la lista del menú.'},
- {sel:'#brandTools',t:'14. Logo y colores',d:'Sube tu logo (aparece en la barra del tour) y elige el color de acento y de las barras, con presets o a tu gusto.',menu:'secBrand'},
- {sel:'#infoTools',t:'15. Info del tour',d:'Agrega un botón “Info” con una ficha: descripción, teléfono, correo, web, PDF, video y un botón de acción como “Solicitar cotización”.',menu:'secInfo'},
- {sel:'#setTools',t:'16. Ajustes del tour',d:'Autorrotación, pantalla completa, controles, menú de escenas, giroscopio, transición y calidad de imagen al exportar (estándar o multiresolución en cubo).',menu:'secSet'},
- {sel:'#btnPrev',t:'17. Previsualiza el tour',d:'Mira el tour terminado, con todos tus ajustes, sin exportar nada. Puedes ver cómo se verá en escritorio y en celular.'},
- {sel:'#btnShare',t:'18. Publica y comparte',d:'Con tu token de Netlify el editor sube el tour y te entrega el enlace, el código QR, los botones para compartir y el código para insertarlo en tu web. Al volver a publicar se actualiza la misma dirección.'},
- {sel:'#btnExport',t:'19. O exporta el ZIP',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
+ {sel:'#orModel',t:'9. Mover el centro de giro',d:'Si dos fotos del mismo lugar se tomaron con la cámara desplazada, mueve el centro de giro en metros (derecha, adelante, arriba) y elige el modelo: suelo plano para exteriores u obras, o esfera para interiores. Es una aproximación: corrige bien lo que está cerca de la superficie elegida y funciona mejor con desplazamientos pequeños. Ajusta a ojo con la referencia semitransparente.',menu:'secScene'},
+ {sel:'#orDl',t:'10. Alinear y descargar corregida',d:'Elige otra escena como referencia semitransparente para ver cuánto se desvió esta imagen (no se exporta). Luego descarga la imagen corregida, o todas en un ZIP, con la misma resolución y formato. El giro horizontal es exacto; inclinar o nivelar remuestrea con interpolación bicúbica.',menu:'secScene'},
+ {sel:'#adjBox',t:'11. Ajustes de imagen',d:'Brillo, contraste y saturación de la escena actual, con vista en vivo. Puedes copiarlos a todas las escenas.',menu:'secScene'},
+ {sel:'#layerBox',t:'12. Capa de comparación',d:'Superpone otra panorama (plano, etapa anterior de obra) y el visitante la mezcla con un deslizador. Ideal para control de avance.',menu:'secScene'},
+ {sel:'#tbActs',t:'13. Atajos sobre el visor',d:'Estos iconos te llevan rápido a copiar el enlace del tour, compartir (redes, correo, QR y código para insertar), corregir el color de la imagen, el logo y colores, y la información del tour.'},
+ {sel:'#stTitle',t:'14. Nombre de la escena',d:'Haz clic en este cuadro, abajo a la izquierda del visor, para renombrar la escena actual. Se actualiza también en la lista del menú.'},
+ {sel:'#brandTools',t:'15. Logo y colores',d:'Sube tu logo (aparece en la barra del tour) y elige el color de acento y de las barras, con presets o a tu gusto.',menu:'secBrand'},
+ {sel:'#infoTools',t:'16. Info del tour',d:'Agrega un botón “Info” con una ficha: descripción, teléfono, correo, web, PDF, video y un botón de acción como “Solicitar cotización”.',menu:'secInfo'},
+ {sel:'#setTools',t:'17. Ajustes del tour',d:'Autorrotación, pantalla completa, controles, menú de escenas, giroscopio, transición y calidad de imagen al exportar (estándar o multiresolución en cubo).',menu:'secSet'},
+ {sel:'#btnPrev',t:'18. Previsualiza el tour',d:'Mira el tour terminado, con todos tus ajustes, sin exportar nada. Puedes ver cómo se verá en escritorio y en celular.'},
+ {sel:'#btnShare',t:'19. Publica y comparte',d:'Con tu token de Netlify el editor sube el tour y te entrega el enlace, el código QR, los botones para compartir y el código para insertarlo en tu web. Al volver a publicar se actualiza la misma dirección.'},
+ {sel:'#btnExport',t:'20. O exporta el ZIP',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
 ];
 var gi=-1,gKey='geomav-editor-guia';
 function gEls(){return {b:$('#gBlock'),s:$('#gSpot'),c:$('#gCard')}}
