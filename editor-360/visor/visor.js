@@ -6,6 +6,16 @@ function $(id){return document.getElementById(id)}
 var viewer=new Marzipano.Viewer($('pano'),{controls:{mouseViewMode:T.mouseMode==='qtvr'?'qtvr':'drag'}});
 function stop(el){['touchstart','touchmove','touchend','touchcancel','wheel','mousewheel','pointerdown'].forEach(function(e){el.addEventListener(e,function(v){v.stopPropagation()})})}
 
+/* ---------- marca (colores y logo) ---------- */
+var B=d.brand||{},bv=G.applyBrand(B);
+Object.keys(bv).forEach(function(k){document.documentElement.style.setProperty(k,bv[k])});
+var bar0=$('bar'),ttl0=$('ttl');
+if(B.logo&&B.logo.file){
+  var lg=document.createElement(G.https(B.logo.link)?'a':'div');lg.id='logo';
+  if(G.https(B.logo.link)){lg.href=G.https(B.logo.link);lg.target='_blank';lg.rel='noopener'}
+  var li=document.createElement('img');li.src=B.logo.file;li.alt='Logo';lg.appendChild(li);bar0.insertBefore(lg,ttl0);
+}
+
 /* ---------- escenas y hotspots ---------- */
 var byId={},list=$('list'),cur=null;
 var scenes=d.scenes.map(function(s){
@@ -116,6 +126,35 @@ $('pano').addEventListener('pointerup',function(e){
 });
 
 /* ---------- barra y controles ---------- */
+/* ---------- ficha de información del tour ---------- */
+(function(){
+  var I=d.info;if(!I)return;
+  var mail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(I.email||'')?I.email:'',tel=/^[+0-9 ()\-]{6,}$/.test(I.phone||'')?I.phone:'';
+  var web=G.https(I.web),pdf=G.https(I.pdf),bu=G.https(I.btnUrl),vid=I.video?G.normEmbed(I.video):{};
+  if(!(I.title||I.sub||I.desc||mail||tel||web||pdf||bu||vid.src))return;
+  var m=document.createElement('div');m.id='info';
+  var box=document.createElement('div');box.id='ibox';m.appendChild(box);
+  function el(t,c,txt){var e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e}
+  var x=el('button',null,'✕');x.id='iX';x.setAttribute('aria-label','Cerrar');box.appendChild(x);
+  if(I.title)box.appendChild(el('h2',null,I.title));
+  if(I.sub)box.appendChild(el('div','isub',I.sub));
+  if(I.desc)box.appendChild(el('p',null,I.desc));
+  var vw=null;if(vid.src){vw=el('div','ivid');box.appendChild(vw)}
+  var acts=el('div','iacts');
+  function link(txt,href,cls,ext){var a=el('a',cls,txt);a.href=href;if(ext){a.target='_blank';a.rel='noopener'}acts.appendChild(a)}
+  if(tel)link('📞 '+tel,'tel:'+tel.replace(/[^+0-9]/g,''));
+  if(mail)link('✉ '+mail,'mailto:'+mail);
+  if(web)link('🌐 Sitio web',web,null,true);
+  if(pdf)link('📄 '+(I.pdfLabel||'PDF'),pdf,null,true);
+  if(bu)link(I.btnText||'Más información',bu,'cta',true);
+  if(acts.childNodes.length)box.appendChild(acts);
+  document.body.appendChild(m);
+  var b=el('button',null,'ⓘ '+(I.btnLabel||'Info'));b.id='bInfo';b.title='Información del tour';
+  bar0.insertBefore(b,$('bList'));
+  function open(v){m.className=v?'open':'';if(vw){vw.innerHTML='';if(v){var f=document.createElement('iframe');f.src=vid.src;f.allow='autoplay; fullscreen; encrypted-media; picture-in-picture';f.setAttribute('allowfullscreen','');f.setAttribute('sandbox','allow-scripts allow-same-origin allow-popups allow-presentation');f.title='Video';vw.appendChild(f)}}}
+  b.onclick=function(){open(true)};x.onclick=function(){open(false)};m.addEventListener('click',function(e){if(e.target===m)open(false)});
+  stop(m);
+})();
 $('bList').onclick=function(){list.classList.toggle('open')};
 $('bFull').onclick=function(){var e=document.documentElement;if(document.fullscreenElement)document.exitFullscreen();else if(e.requestFullscreen)e.requestFullscreen()};
 if(scenes.length<2||T.sceneList===false)$('bList').style.display='none';

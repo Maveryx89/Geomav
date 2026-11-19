@@ -63,6 +63,16 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
 .sb .chk input{width:18px;height:18px;accent-color:var(--acc2);flex:none}
 .sb.off{opacity:.45;pointer-events:none}
 #scrim{display:none}
+.sb input[type=text],.sb textarea{width:100%}
+.sb input[type=color]{width:44px;height:34px;padding:2px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);cursor:pointer;flex:none}
+.sb .crow{display:flex;align-items:center;gap:8px;margin-top:6px}
+.sb .crow span{flex:1;font-size:13px;color:var(--navy)}
+.sb .crow button{padding:4px 8px;font-size:12px}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.presets button{display:flex;gap:0;padding:0;border:2px solid var(--line);border-radius:8px;overflow:hidden;width:54px;height:30px}
+.presets button i{flex:1}
+#logoPrev{display:block;max-height:54px;max-width:100%;margin:8px 0 0;background:#0A2240;padding:6px 10px;border-radius:8px;object-fit:contain}
+.bad{border-color:var(--bad,#B3402F)!important}
 .sc{display:grid;grid-template-columns:minmax(0,1fr);gap:0;align-items:start;padding:0;position:relative;overflow:hidden;border:2px solid var(--line);border-radius:8px;background:var(--panel2);cursor:pointer;transition:all .25s}
 .sc:hover{border-color:var(--acc2)}
 .sc.on{border-color:var(--acc);background:rgba(212,154,106,.1)}
@@ -240,6 +250,14 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
       <button class="sh" type="button">Esta escena <span class="ct" id="curName"></span><i>▾</i></button>
       <div class="sb" id="sceneTools"></div>
     </section>
+    <section class="sec" id="secBrand">
+      <button class="sh" type="button">Marca: logo y colores<span class="sp2"></span><i>▾</i></button>
+      <div class="sb" id="brandTools"></div>
+    </section>
+    <section class="sec" id="secInfo">
+      <button class="sh" type="button">Info del tour<span class="sp2"></span><i>▾</i></button>
+      <div class="sb" id="infoTools"></div>
+    </section>
     <section class="sec" id="secSet">
       <button class="sh" type="button">Ajustes del tour<span class="sp2"></span><i>▾</i></button>
       <div class="sb" id="setTools"></div>
@@ -274,7 +292,7 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
     <button id="pvClose" class="primary">← Volver al editor</button></div>
   <div id="pvWrap"><iframe id="pvFrame" title="Vista previa del tour" allow="fullscreen; gyroscope; accelerometer"></iframe></div>
 </div>
-<input type="file" id="fileLayer" accept="image/*" hidden><input type="file" id="fileHsImg" accept="image/*" hidden>
+<input type="file" id="fileLogo" accept="image/*" hidden><input type="file" id="fileLayer" accept="image/*" hidden><input type="file" id="fileHsImg" accept="image/*" hidden>
 <div id="shMod"><div id="shBox" role="dialog" aria-label="Publicar y compartir">
   <h3>Publicar y compartir</h3><small>Sube el tour a Netlify y obtén el enlace para compartir, el QR y el código para insertar en tu web.</small>
   <h4>1 · Publicar en Netlify</h4>
@@ -316,7 +334,8 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
 var $=function(s){return document.querySelector(s)};
 var MAX_W=8192;
 try{if(window.self!==window.top)document.documentElement.classList.add('embed')}catch(e){document.documentElement.classList.add('embed')}
-var S={name:'Mi tour 360°',set:{autorotate:true,fullscreen:true,viewControls:true,sceneList:true,gyro:true,transition:'zoom',quality:'standard',mouseMode:'drag'},scenes:[],cur:null,mode:'view',pending:null,reloc:null,nextId:1};
+var S={name:'Mi tour 360°',set:{autorotate:true,fullscreen:true,viewControls:true,sceneList:true,gyro:true,transition:'zoom',quality:'standard',mouseMode:'drag'},scenes:[],cur:null,mode:'view',pending:null,reloc:null,nextId:1,
+  brand:{accent:'',bar:'',logo:null,logoLink:''},info:{title:'',sub:'',desc:'',email:'',phone:'',web:'',pdf:'',pdfLabel:'',video:'',btnText:'',btnUrl:''}};
 var viewer=new Marzipano.Viewer($('#pano'),{controls:{mouseViewMode:'drag'}});
 
 /* ---------- utilidades ---------- */
@@ -745,6 +764,54 @@ $('#shOpen').onclick=function(){window.open($('#shLink').value,'_blank','noopene
 $('#shCopyEmb').onclick=function(){copyText($('#shEmb').value,'Código copiado')};
 $('#shQRdl').onclick=function(){if(S.qrBig)S.qrBig.toBlob(function(b){saveBlob(b,slug(S.name)+'-qr.png')})};
 
+/* ---------- marca (logo y colores) e info del tour ---------- */
+var PRESETS=[['GEOMAV','#D49A6A','#0A2240'],['Océano','#3DB5D6','#0B2A3C'],['Bosque','#8BC34A','#14301F'],['Rojo','#E5604D','#2B1215'],['Grafito','#F2C94C','#1B1F24']];
+function applyBrandEditor(){G.applyBrand(S.brand);if(S.cur)renderHotspots(S.cur)}
+(function(){
+  var B=S.brand;
+  $('#brandTools').innerHTML='<h5>Logo</h5><small>Aparece en la barra superior del tour. PNG con fondo transparente se ve mejor.</small>'+
+    '<div class="row"><button id="bgLogo" type="button">Elegir logo…</button><button class="danger" id="bgLogoDel" type="button">Quitar</button></div><img id="logoPrev" alt="" style="display:none">'+
+    '<label for="bgLink">Enlace del logo (opcional)</label><input type="text" id="bgLink" placeholder="https://geomav.me" autocomplete="off">'+
+    '<h5>Colores</h5><small>Presets rápidos o elige tus colores.</small><div class="presets" id="bgPre">'+PRESETS.map(function(p,i){return '<button type="button" data-i="'+i+'" title="'+p[0]+'"><i style="background:'+p[1]+'"></i><i style="background:'+p[2]+'"></i></button>'}).join('')+'</div>'+
+    '<div class="crow"><input type="color" id="bgAcc" value="#D49A6A"><span>Acento (botones, enlaces)</span></div>'+
+    '<div class="crow"><input type="color" id="bgBar" value="#0A2240"><span>Barras y paneles</span><button id="bgRst" type="button">Restablecer</button></div>';
+  $('#bgLogo').onclick=function(){$('#fileLogo').click()};
+  $('#bgLogoDel').onclick=function(){if(B.logo)URL.revokeObjectURL(B.logo.url);B.logo=null;syncBrand()};
+  $('#bgLink').oninput=function(e){B.logoLink=e.target.value.trim();$('#bgLink').classList.toggle('bad',!!B.logoLink&&!G.https(B.logoLink))};
+  $('#bgAcc').oninput=function(e){B.accent=e.target.value;applyBrandEditor()};
+  $('#bgBar').oninput=function(e){B.bar=e.target.value};
+  $('#bgRst').onclick=function(){B.accent='';B.bar='';syncBrand();applyBrandEditor()};
+  $('#bgPre').onclick=function(e){var b=e.target.closest('button');if(!b)return;var p=PRESETS[+b.dataset.i];B.accent=p[1];B.bar=p[2];syncBrand();applyBrandEditor()};
+  $('#fileLogo').onchange=async function(e){
+    var f=e.target.files[0];e.target.value='';if(!f)return;
+    var r=await prepImg(f,600);if(!r)return;
+    if(B.logo)URL.revokeObjectURL(B.logo.url);
+    B.logo={blob:r.blob,url:r.url};syncBrand();
+  };
+  var I=S.info,F=[['title','Título','Ej: Edificio Los Aromos – Talca','t'],['sub','Subtítulo (precio, superficie, etapa…)','Ej: Avance al 65% · 1.240 m²','t'],['desc','Descripción','Qué es, ubicación, puntos destacados…','a'],
+    ['phone','Teléfono','+56 9 1234 5678','t'],['email','Correo','contacto@empresa.cl','t'],['web','Sitio web (https://)','https://geomav.me','t'],['pdf','Enlace a PDF (https://)','Brochure o informe en Drive, Dropbox…','t'],['pdfLabel','Texto del botón PDF','PDF','t'],
+    ['video','Video (YouTube o Vimeo)','https://www.youtube.com/watch?v=…','t'],['btnText','Texto del botón de acción','Solicitar cotización','t'],['btnUrl','Enlace del botón de acción (https://)','https://wa.me/56912345678','t']];
+  $('#infoTools').innerHTML='<small>Agrega un botón “Info” al tour con una ficha: descripción, contacto, PDF, video y un botón de acción. Si dejas todo vacío, no aparece.</small>'+
+    F.map(function(f){return '<label for="inf_'+f[0]+'">'+f[1]+'</label>'+(f[3]==='a'?'<textarea id="inf_'+f[0]+'" rows="4" placeholder="'+f[2]+'"></textarea>':'<input type="text" id="inf_'+f[0]+'" placeholder="'+f[2]+'" autocomplete="off">')}).join('');
+  F.forEach(function(f){
+    var el=$('#inf_'+f[0]);
+    el.oninput=function(){
+      I[f[0]]=el.value.trim()?el.value:'';
+      var needsUrl=['web','pdf','btnUrl'].indexOf(f[0])>=0;
+      el.classList.toggle('bad',needsUrl&&!!I[f[0]]&&!G.https(I[f[0]]));
+      if(f[0]==='video')el.classList.toggle('bad',!!I.video&&!G.normEmbed(I.video).src);
+    };
+  });
+})();
+function syncBrand(){
+  var B=S.brand,I=S.info,pv=$('#logoPrev');
+  if(!pv)return;
+  pv.style.display=B.logo?'block':'none';if(B.logo)pv.src=B.logo.url;
+  $('#bgLogoDel').style.display=B.logo?'':'none';$('#bgLogo').textContent=B.logo?'Cambiar logo…':'Elegir logo…';
+  $('#bgLink').value=B.logoLink||'';$('#bgAcc').value=B.accent||'#D49A6A';$('#bgBar').value=B.bar||'#0A2240';
+  Object.keys(I).forEach(function(k){var e=$('#inf_'+k);if(e&&e.value!==I[k])e.value=I[k]||''});
+}
+
 /* ---------- menú lateral ---------- */
 var mq=window.matchMedia('(max-width:760px)'),rzT=null;
 function setMenu(v){
@@ -764,7 +831,7 @@ function fixInit(){
 }
 /* Construye "Esta escena" (vista inicial, ajustes de imagen, capa) cuando cambia la escena activa. */
 function renderMenu(){
-  syncSettings();
+  syncSettings();syncBrand();
   if(S.cur===menuCur)return;
   menuCur=S.cur;
   var sc=S.cur,box=$('#sceneTools');
@@ -863,6 +930,15 @@ function buildData(pv,cube){
   });
   var out={name:S.name||'Tour 360°',format:'geomav-equirect-1',settings:Object.assign({},S.set),scenes:scenes};
   if(S.pub&&!pv)out.publish={siteId:S.pub.siteId||null,url:S.pub.url};
+  var B=S.brand,br={};
+  if(G.HEX.test(B.accent))br.accent=B.accent;if(G.HEX.test(B.bar))br.bar=B.bar;
+  if(B.logo)br.logo={file:pv?B.logo.url:'img/logo.'+ext(B.logo.blob),link:G.https(B.logoLink)||''};
+  if(Object.keys(br).length)out.brand=br;
+  var I=S.info,inf={};
+  ['title','sub','desc','phone','email','pdfLabel','btnText'].forEach(function(k){if(I[k]&&I[k].trim())inf[k]=I[k].trim()});
+  ['web','pdf','btnUrl'].forEach(function(k){if(G.https(I[k]))inf[k]=G.https(I[k])});
+  if(I.video&&G.normEmbed(I.video).src)inf.video=I.video.trim();
+  if(Object.keys(inf).length)out.info=inf;
   return out;
 }
 var LEEME='TOUR 360° - GEOMAV\r\n\r\nContenido:\r\n  index.html   página del tour\r\n  visor.js, visor.css, icons.js, gyro.js   visor del tour (código GEOMAV)\r\n  marzipano.js librería del visor (Apache-2.0)\r\n  data.js      escenas y hotspots\r\n  tour.json    mismo contenido, para reabrir el tour en el editor\r\n  img/         panoramas, capas e imágenes\r\n  originales/  (solo calidad alta) panoramas originales; sirven para reeditar el tour. Puedes no subirlos al hosting.\r\n\r\nPara publicarlo: sube TODA la carpeta a un hosting web (GitHub Pages, Netlify, tu servidor).\r\nNo funciona abriendo index.html con doble clic desde el disco: el navegador bloquea las imágenes WebGL.\r\nPara probarlo localmente usa un servidor, por ejemplo:  python -m http.server 8000  y abre http://localhost:8000\r\n\r\nPara seguir editando: en el editor GEOMAV usa "Abrir tour (ZIP)" con este mismo archivo ZIP.\r\n';
@@ -891,6 +967,7 @@ async function buildTourZip(o){
         ds.multires={levels:r.levels,tiles:r.tiles,preview:r.preview};
       }
     }
+    if(S.brand.logo)zip.file(data.brand.logo.file,S.brand.logo.blob,{compression:'STORE'});
     // data.js y tour.json se escriben al final, con las teselas ya registradas
     zip.file('data.js','var APP_DATA = '+JSON.stringify(data,null,2)+';\n',D);
     zip.file('tour.json',JSON.stringify(data,null,2),D);
@@ -948,6 +1025,14 @@ async function importZip(file){
     }
     S.name=data.name||S.name;$('#tourName').value=S.name;
     S.pub=data.publish||null;
+    if(S.brand.logo)URL.revokeObjectURL(S.brand.logo.url);
+    S.brand={accent:(data.brand&&data.brand.accent)||'',bar:(data.brand&&data.brand.bar)||'',logo:null,logoLink:(data.brand&&data.brand.logo&&data.brand.logo.link)||''};
+    if(data.brand&&data.brand.logo&&zip.file(data.brand.logo.file)){
+      var lgb=await zip.file(data.brand.logo.file).async('blob'),lgt=/\.png$/i.test(data.brand.logo.file)?'image/png':/\.webp$/i.test(data.brand.logo.file)?'image/webp':'image/jpeg';lgb=new Blob([lgb],{type:lgt});
+      S.brand.logo={blob:lgb,url:URL.createObjectURL(lgb)};
+    }
+    S.info=Object.assign({title:'',sub:'',desc:'',email:'',phone:'',web:'',pdf:'',pdfLabel:'',video:'',btnText:'',btnUrl:''},data.info||{});
+    G.applyBrand(S.brand);menuCur=undefined;
     S.set=Object.assign({autorotate:true,fullscreen:true,viewControls:true,sceneList:true,gyro:true,transition:'zoom',quality:'standard',mouseMode:'drag'},data.settings||{});
     renderList();if(S.scenes[0])select(S.scenes[0],{instant:true});syncUI();toast('Tour abierto');
   }catch(e){toast('No se pudo abrir: '+(e&&e.message||e),true)}
@@ -1014,10 +1099,12 @@ var GUIDE=[
  {sel:'#btnInit',t:'7. Vista inicial',d:'Mira hacia donde quieras que parta cada escena y pulsa “Fijar vista inicial” en el menú. Así cada vez que alguien entre, verá lo más importante primero.',menu:'secScene'},
  {sel:'#adjBox',t:'8. Ajustes de imagen',d:'Brillo, contraste y saturación de la escena actual, con vista en vivo. Puedes copiarlos a todas las escenas.',menu:'secScene'},
  {sel:'#layerBox',t:'9. Capa de comparación',d:'Superpone otra panorama (plano, etapa anterior de obra) y el visitante la mezcla con un deslizador. Ideal para control de avance.',menu:'secScene'},
- {sel:'#setTools',t:'10. Ajustes del tour',d:'Autorrotación, pantalla completa, controles, menú de escenas, giroscopio, transición y calidad de imagen al exportar (estándar o multiresolución en cubo).',menu:'secSet'},
- {sel:'#btnPrev',t:'11. Previsualiza el tour',d:'Mira el tour terminado, con todos tus ajustes, sin exportar nada. Puedes ver cómo se verá en escritorio y en celular.'},
- {sel:'#btnShare',t:'12. Publica y comparte',d:'Con tu token de Netlify el editor sube el tour y te entrega el enlace, el código QR, los botones para compartir y el código para insertarlo en tu web. Al volver a publicar se actualiza la misma dirección.'},
- {sel:'#btnExport',t:'13. O exporta el ZIP',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
+ {sel:'#brandTools',t:'10. Logo y colores',d:'Sube tu logo (aparece en la barra del tour) y elige el color de acento y de las barras, con presets o a tu gusto.',menu:'secBrand'},
+ {sel:'#infoTools',t:'11. Info del tour',d:'Agrega un botón “Info” con una ficha: descripción, teléfono, correo, web, PDF, video y un botón de acción como “Solicitar cotización”.',menu:'secInfo'},
+ {sel:'#setTools',t:'12. Ajustes del tour',d:'Autorrotación, pantalla completa, controles, menú de escenas, giroscopio, transición y calidad de imagen al exportar (estándar o multiresolución en cubo).',menu:'secSet'},
+ {sel:'#btnPrev',t:'13. Previsualiza el tour',d:'Mira el tour terminado, con todos tus ajustes, sin exportar nada. Puedes ver cómo se verá en escritorio y en celular.'},
+ {sel:'#btnShare',t:'14. Publica y comparte',d:'Con tu token de Netlify el editor sube el tour y te entrega el enlace, el código QR, los botones para compartir y el código para insertarlo en tu web. Al volver a publicar se actualiza la misma dirección.'},
+ {sel:'#btnExport',t:'15. O exporta el ZIP',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
 ];
 var gi=-1,gKey='geomav-editor-guia';
 function gEls(){return {b:$('#gBlock'),s:$('#gSpot'),c:$('#gCard')}}

@@ -97,4 +97,18 @@ G.imageHotspot=function(h,src){
   return el;
 };
 G.imageOpts={perspective:{radius:G.PERSP_R}};
+
+/* Marca: color de acento y color de barras. Devuelve las variables CSS del visor y ajusta el color por defecto de los enlaces. */
+G.HEX=/^#[0-9a-f]{6}$/i;
+G.applyBrand=function(b){
+  b=b||{};var acc=G.HEX.test(b.accent)?b.accent:'#D49A6A';G.DEF.link.color=acc;
+  var bar=G.HEX.test(b.bar)?b.bar:null;
+  function rgb(h){return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]}
+  function lum(h){var c=rgb(h);return (0.2126*c[0]+0.7152*c[1]+0.0722*c[2])/255}
+  var v={'--v-acc':acc,'--v-onacc':lum(acc)>0.55?'#0A1118':'#FFFFFF'};
+  if(bar){var c=rgb(bar);v['--v-bar']=bar;v['--v-bbg']='rgba('+c.join(',')+',.72)';v['--v-pbg']='rgba('+c.join(',')+',.95)'}
+  return v;
+};
+/* URLs seguras para la ficha de información */
+G.https=function(u){u=String(u||'').trim();return /^https:\/\/[^\s]+\.[^\s]+$/i.test(u)?u:''};
 })();
