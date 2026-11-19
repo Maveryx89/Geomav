@@ -1343,16 +1343,18 @@ var GUIDE=[
  {sel:'[data-mode=embed]',t:'5. Contenido incrustado',d:'Con “+ Contenido” abres un video de YouTube/Vimeo, un mapa, un PDF de Google Drive o una web dentro del tour. Pega el enlace y listo.'},
  {sel:'[data-mode=imagen]',t:'6. Imagen sobre el panorama',d:'Con “+ Imagen” pegas un logo, una señal o un plano dentro de la escena. Se ajusta a la perspectiva y puedes cambiar su tamaño.'},
  {sel:'#btnInit',t:'7. Vista inicial',d:'Mira hacia donde quieras que parta cada escena y pulsa “Fijar vista inicial” en el menú. Así cada vez que alguien entre, verá lo más importante primero.',menu:'secScene'},
- {sel:'#adjBox',t:'8. Ajustes de imagen',d:'Brillo, contraste y saturación de la escena actual, con vista en vivo. Puedes copiarlos a todas las escenas.',menu:'secScene'},
- {sel:'#layerBox',t:'9. Capa de comparación',d:'Superpone otra panorama (plano, etapa anterior de obra) y el visitante la mezcla con un deslizador. Ideal para control de avance.',menu:'secScene'},
- {sel:'#sceneTools',t:'Orientación de la panorama',d:'En “Esta escena” puedes corregir el giro, la inclinación y el horizonte de cada panorama, y alinearla con otra escena casi igual usando una referencia semitransparente. Luego descarga la imagen corregida con la misma resolución y formato. Hazlo antes de colocar enlaces y puntos.'},
- {sel:'#tbActs',t:'Atajos sobre el visor',d:'Estos iconos te llevan rápido a copiar el enlace del tour, compartir (redes, correo, QR y código para insertar), corregir el color de la imagen, el logo y colores, y la información del tour. También puedes cambiar el nombre de la escena con el cuadro de abajo a la izquierda.'},
- {sel:'#brandTools',t:'10. Logo y colores',d:'Sube tu logo (aparece en la barra del tour) y elige el color de acento y de las barras, con presets o a tu gusto.',menu:'secBrand'},
- {sel:'#infoTools',t:'11. Info del tour',d:'Agrega un botón “Info” con una ficha: descripción, teléfono, correo, web, PDF, video y un botón de acción como “Solicitar cotización”.',menu:'secInfo'},
- {sel:'#setTools',t:'12. Ajustes del tour',d:'Autorrotación, pantalla completa, controles, menú de escenas, giroscopio, transición y calidad de imagen al exportar (estándar o multiresolución en cubo).',menu:'secSet'},
- {sel:'#btnPrev',t:'13. Previsualiza el tour',d:'Mira el tour terminado, con todos tus ajustes, sin exportar nada. Puedes ver cómo se verá en escritorio y en celular.'},
- {sel:'#btnShare',t:'14. Publica y comparte',d:'Con tu token de Netlify el editor sube el tour y te entrega el enlace, el código QR, los botones para compartir y el código para insertarlo en tu web. Al volver a publicar se actualiza la misma dirección.'},
- {sel:'#btnExport',t:'15. O exporta el ZIP',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
+ {sel:'#orBox',t:'8. Orientación de la panorama',d:'Corrige el giro, la inclinación y el horizonte de cada panorama con los deslizadores o escribiendo grados con décimas. Se ve en vivo. Hazlo antes de colocar enlaces y puntos: al mover la imagen, lo ya colocado no se mueve con ella.',menu:'secScene'},
+ {sel:'#orDl',t:'9. Alinear y descargar corregida',d:'Elige otra escena como referencia semitransparente para ver cuánto se desvió esta imagen (no se exporta). Luego descarga la imagen corregida, o todas en un ZIP, con la misma resolución y formato. El giro horizontal es exacto; inclinar o nivelar remuestrea con interpolación bicúbica.',menu:'secScene'},
+ {sel:'#adjBox',t:'10. Ajustes de imagen',d:'Brillo, contraste y saturación de la escena actual, con vista en vivo. Puedes copiarlos a todas las escenas.',menu:'secScene'},
+ {sel:'#layerBox',t:'11. Capa de comparación',d:'Superpone otra panorama (plano, etapa anterior de obra) y el visitante la mezcla con un deslizador. Ideal para control de avance.',menu:'secScene'},
+ {sel:'#tbActs',t:'12. Atajos sobre el visor',d:'Estos iconos te llevan rápido a copiar el enlace del tour, compartir (redes, correo, QR y código para insertar), corregir el color de la imagen, el logo y colores, y la información del tour.'},
+ {sel:'#stTitle',t:'13. Nombre de la escena',d:'Haz clic en este cuadro, abajo a la izquierda del visor, para renombrar la escena actual. Se actualiza también en la lista del menú.'},
+ {sel:'#brandTools',t:'14. Logo y colores',d:'Sube tu logo (aparece en la barra del tour) y elige el color de acento y de las barras, con presets o a tu gusto.',menu:'secBrand'},
+ {sel:'#infoTools',t:'15. Info del tour',d:'Agrega un botón “Info” con una ficha: descripción, teléfono, correo, web, PDF, video y un botón de acción como “Solicitar cotización”.',menu:'secInfo'},
+ {sel:'#setTools',t:'16. Ajustes del tour',d:'Autorrotación, pantalla completa, controles, menú de escenas, giroscopio, transición y calidad de imagen al exportar (estándar o multiresolución en cubo).',menu:'secSet'},
+ {sel:'#btnPrev',t:'17. Previsualiza el tour',d:'Mira el tour terminado, con todos tus ajustes, sin exportar nada. Puedes ver cómo se verá en escritorio y en celular.'},
+ {sel:'#btnShare',t:'18. Publica y comparte',d:'Con tu token de Netlify el editor sube el tour y te entrega el enlace, el código QR, los botones para compartir y el código para insertarlo en tu web. Al volver a publicar se actualiza la misma dirección.'},
+ {sel:'#btnExport',t:'19. O exporta el ZIP',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
 ];
 var gi=-1,gKey='geomav-editor-guia';
 function gEls(){return {b:$('#gBlock'),s:$('#gSpot'),c:$('#gCard')}}
