@@ -110,6 +110,10 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
 #stTitle:hover,#stTitle:focus{border-color:var(--acc);outline:0}
 #stTitle[hidden]{display:none}
 @media(max-width:760px){#stTitle{bottom:auto;top:auto;left:8px;width:min(220px,56%);bottom:64px}}
+#orBox .orr{display:flex;align-items:center;gap:6px}
+#orBox .orr input[type=range]{flex:1;min-width:0}
+#orBox .orr input[type=number]{width:74px;flex:none;padding:5px 6px}
+#orBox select{width:100%;margin-top:6px}
 #hint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:#0A2240dd;color:#fff;border:1px solid #ffffff26;border-radius:999px;padding:7px 16px;z-index:5;max-width:92%;text-align:center;pointer-events:none}
 #empty{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;text-align:center;padding:20px;color:var(--mut);z-index:3;background:var(--bg)}
 #empty h3{margin:0;color:var(--navy);font-size:clamp(1.4rem,3vw,2rem);font-weight:900;letter-spacing:-.03em}
@@ -435,7 +439,8 @@ async function addImage(file,meta){
   var base=meta&&meta.name||file.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');
   var sc={id:uniqueId(meta&&meta.id||slug(base)),name:base,blob:blob,url:url,width:w,height:h,thumb:t.toDataURL('image/jpeg',.7),
     init:meta&&meta.init||{yaw:0,pitch:0,fov:Math.PI/2},hs:meta&&meta.hs||[],ms:null,
-    adjust:meta&&meta.adjust||{b:0,c:0,s:0},layer:meta&&meta.layer||null};
+    adjust:meta&&meta.adjust||{b:0,c:0,s:0},layer:meta&&meta.layer||null,
+    rot:{yaw:0,pitch:0,roll:0},base:{blob:blob,url:url,width:w,height:h},orig:(blob===file&&!/\.insp$/i.test(file.name))?file:blob};
   makeMScene(sc);
   S.scenes.push(sc);
   return sc;
@@ -885,6 +890,185 @@ function fixInit(){
   S.cur.init={yaw:p.yaw,pitch:p.pitch,fov:p.fov};toast('Vista inicial fijada para "'+S.cur.name+'"');
 }
 /* Construye "Esta escena" (vista inicial, ajustes de imagen, capa) cuando cambia la escena activa. */
+
+/* ---------- orientación de la panorama (giro, inclinación, horizonte) ---------- */
+function rotMatrix(r){
+  var d=Math.PI/180,a=-r.yaw*d,b=-r.pitch*d,c=-r.roll*d,ca=Math.cos(a),sa=Math.sin(a),cb=Math.cos(b),sb=Math.sin(b),cc=Math.cos(c),sc_=Math.sin(c);
+  var Y=[[ca,0,sa],[0,1,0],[-sa,0,ca]],X=[[1,0,0],[0,cb,sb],[0,-sb,cb]],Z=[[cc,-sc_,0],[sc_,cc,0],[0,0,1]];
+  function mul(A,B){var R=[[0,0,0],[0,0,0],[0,0,0]];for(var i=0;i<3;i++)for(var j=0;j<3;j++)for(var k=0;k<3;k++)R[i][j]+=A[i][k]*B[k][j];return R}
+  return mul(Z,mul(X,Y));
+}
+function isRotZero(r){return !r||(!r.yaw&&!r.pitch&&!r.roll)}
+function imgData(img,w,h){var c=document.createElement('canvas');c.width=w;c.height=h;var g=c.getContext('2d',{willReadFrequently:true});g.imageSmoothingQuality='high';g.drawImage(img,0,0,w,h);return g.getImageData(0,0,w,h)}
+/* Giro horizontal puro: desplazamiento exacto de columnas (sin remuestreo, sin pérdida de píxeles). */
+function shiftYaw(img,w,h,yaw){
+  var c=document.createElement('canvas');c.width=w;c.height=h;var g=c.getContext('2d');
+  var px=((Math.round(yaw/360*w)%w)+w)%w;g.drawImage(img,px,0);g.drawImage(img,px-w,0);return c;
+}
+/* Rota la esfera: devuelve un canvas ow×oh. cubic=true usa interpolación bicúbica (máxima nitidez). */
+async function rotRender(sd,sw,sh,rot,ow,oh,cubic,token,onP){
+  var M=rotMatrix(rot),m00=M[0][0],m01=M[0][1],m02=M[0][2],m10=M[1][0],m11=M[1][1],m12=M[1][2],m20=M[2][0],m21=M[2][1],m22=M[2][2];
+  var out=new ImageData(ow,oh),od=out.data,PI=Math.PI,TP=2*Math.PI;
+  var sinL=new Float32Array(ow),cosL=new Float32Array(ow);
+  for(var i=0;i<ow;i++){var lo=(i+.5)/ow*TP-PI;sinL[i]=Math.sin(lo);cosL[i]=Math.cos(lo)}
+  var wx=new Float32Array(4),wy=new Float32Array(4);
+  function cr(t,w){var t2=t*t,t3=t2*t;w[0]=-.5*t3+t2-.5*t;w[1]=1.5*t3-2.5*t2+1;w[2]=-1.5*t3+2*t2+.5*t;w[3]=.5*t3-.5*t2}
+  for(var j=0;j<oh;j++){
+    if(token&&token.dead)return null;
+    var lat=PI/2-(j+.5)/oh*PI,sl=Math.sin(lat),cl=Math.cos(lat),o=j*ow*4;
+    for(i=0;i<ow;i++){
+      var dx=cl*sinL[i],dz=cl*cosL[i],sx=m00*dx+m01*sl+m02*dz,sy=m10*dx+m11*sl+m12*dz,sz=m20*dx+m21*sl+m22*dz;
+      if(sy>1)sy=1;else if(sy<-1)sy=-1;
+      var u=(Math.atan2(sx,sz)/TP+.5)*sw-.5,v=(.5-Math.asin(sy)/PI)*sh-.5,x0=Math.floor(u),y0=Math.floor(v),fx=u-x0,fy=v-y0;
+      if(!cubic){
+        var xa=((x0%sw)+sw)%sw,xb=(xa+1)%sw,ya=y0<0?0:y0>sh-1?sh-1:y0,yb=y0+1<0?0:y0+1>sh-1?sh-1:y0+1;
+        var a=(ya*sw+xa)*4,b=(ya*sw+xb)*4,c=(yb*sw+xa)*4,d=(yb*sw+xb)*4,w1=(1-fx)*(1-fy),w2=fx*(1-fy),w3=(1-fx)*fy,w4=fx*fy;
+        od[o]=sd[a]*w1+sd[b]*w2+sd[c]*w3+sd[d]*w4;od[o+1]=sd[a+1]*w1+sd[b+1]*w2+sd[c+1]*w3+sd[d+1]*w4;od[o+2]=sd[a+2]*w1+sd[b+2]*w2+sd[c+2]*w3+sd[d+2]*w4;od[o+3]=255;
+      }else{
+        cr(fx,wx);cr(fy,wy);var r=0,g2=0,b2=0;
+        for(var q=0;q<4;q++){
+          var yy=y0-1+q;yy=yy<0?0:yy>sh-1?sh-1:yy;var row=yy*sw,wq=wy[q];
+          for(var k=0;k<4;k++){var xx=(((x0-1+k)%sw)+sw)%sw,pi=(row+xx)*4,ww=wq*wx[k];r+=sd[pi]*ww;g2+=sd[pi+1]*ww;b2+=sd[pi+2]*ww}
+        }
+        od[o]=r;od[o+1]=g2;od[o+2]=b2;od[o+3]=255;
+      }
+      o+=4;
+    }
+    if(j%48===47){if(onP)onP(j/oh);await sleep(0)}
+  }
+  var c=document.createElement('canvas');c.width=ow;c.height=oh;c.getContext('2d').putImageData(out,0,0);return c;
+}
+/* Genera la imagen corregida a partir de una imagen cargada (usa giro exacto si solo hay giro horizontal). */
+async function rotImage(img,w,h,rot,cubic,token,onP,ow,oh){
+  ow=ow||w;oh=oh||h;
+  if(!rot.pitch&&!rot.roll&&ow===w&&oh===h)return shiftYaw(img,w,h,rot.yaw);
+  var sd=imgData(img,w,h).data;
+  return rotRender(sd,w,h,rot,ow,oh,cubic,token,onP);
+}
+function reloadScene(sc,url,w,h){
+  var old=sc.ms,cur=S.cur===sc,par=cur?old.view().parameters():null;
+  sc.url=url;sc.width=w;sc.height=h;
+  makeMScene(sc);
+  if(par)sc.ms.view().setParameters(par);
+  if(cur){sc.ms.switchTo({transitionDuration:0});renderHotspots(sc)}
+  try{viewer.destroyScene(old)}catch(e){}
+  applyRef(sc);
+}
+function setTmpUrl(sc,url){if(sc.tmpUrl&&sc.tmpUrl!==sc.base.url&&sc.tmpUrl!==url)URL.revokeObjectURL(sc.tmpUrl);sc.tmpUrl=url}
+var rotTimers={};
+function rotChanged(sc){
+  sc.rotDirty=true;
+  if(sc.rotJob)sc.rotJob.dead=true;
+  clearTimeout(rotTimers[sc.id+'p']);clearTimeout(rotTimers[sc.id+'f']);
+  rotTimers[sc.id+'p']=setTimeout(function(){rotPreview(sc)},90);
+  rotTimers[sc.id+'f']=setTimeout(function(){rotFinal(sc)},1000);
+}
+async function rotPreview(sc){
+  if(isRotZero(sc.rot)){return rotFinal(sc)}
+  var tok={dead:false};sc.rotJob=tok;
+  var img=await loadImg(sc.base.url),pw=Math.min(2048,sc.base.width),ph=Math.round(pw/2),pc=document.createElement('canvas');
+  if(!sc.prevData||sc.prevData.w!==pw){sc.prevData={w:pw,d:imgData(img,pw,ph).data}}
+  var c=await rotRender(sc.prevData.d,pw,ph,sc.rot,pw,ph,false,tok);
+  if(!c||tok.dead)return;
+  var b=await canvasBlob(c,'image/jpeg',.85);if(tok.dead)return;
+  var u=URL.createObjectURL(b);setTmpUrl(sc,u);reloadScene(sc,u,pw,ph);
+}
+async function rotFinal(sc){
+  if(!sc.rotDirty)return;
+  if(sc.rotJob)sc.rotJob.dead=true;
+  var tok={dead:false};sc.rotJob=tok;
+  if(isRotZero(sc.rot)){
+    sc.blob=sc.base.blob;sc.rotDirty=false;setTmpUrl(sc,null);reloadScene(sc,sc.base.url,sc.base.width,sc.base.height);refreshThumb(sc);rotNote('');return;
+  }
+  rotNote('Aplicando corrección con máxima calidad…');
+  var img=await loadImg(sc.base.url),c=await rotImage(img,sc.base.width,sc.base.height,sc.rot,true,tok,function(p){rotNote('Aplicando corrección… '+Math.round(p*100)+'%')});
+  if(!c||tok.dead)return;
+  var png=/png/.test(sc.base.blob.type),b=await canvasBlob(c,png?'image/png':'image/jpeg',.92);if(tok.dead)return;
+  var u=URL.createObjectURL(b);setTmpUrl(sc,u);sc.blob=b;sc.rotDirty=false;
+  reloadScene(sc,u,c.width,c.height);refreshThumb(sc,c);rotNote('Corrección aplicada');
+}
+function refreshThumb(sc,c){
+  var t=document.createElement('canvas');t.width=480;t.height=240;
+  (c?Promise.resolve(c):loadImg(sc.url)).then(function(im){t.getContext('2d').drawImage(im,0,0,480,240);sc.thumb=t.toDataURL('image/jpeg',.7);renderList()});
+}
+async function flushRot(){
+  for(var i=0;i<S.scenes.length;i++){var sc=S.scenes[i];if(sc.rotDirty){clearTimeout(rotTimers[sc.id+'p']);clearTimeout(rotTimers[sc.id+'f']);await rotFinal(sc)}}
+}
+function rotNote(t){var e=$('#oNote');if(e)e.textContent=t}
+/* Imagen de referencia (transparente sobre la escena actual) para alinear escenas casi iguales. No se exporta. */
+function applyRef(sc){
+  var r=sc.ref,o=r&&byId(r.id);
+  if(sc.refObj&&(!o||sc.refUrl!==o.url||!r.on)){try{sc.ms.destroyLayer(sc.refObj)}catch(e){}sc.refObj=null;sc.refUrl=null}
+  if(o&&r.on&&!sc.refObj){
+    sc.refObj=sc.ms.createLayer({source:Marzipano.ImageUrlSource.fromString(o.url),geometry:new Marzipano.EquirectGeometry([{width:o.width}])});sc.refUrl=o.url;
+  }
+  if(sc.refObj)sc.refObj.setEffects({opacity:(r.opacity==null?50:r.opacity)/100});
+}
+/* Descarga con la calidad original: misma resolución y mismo formato; copia EXIF/XMP en JPEG. */
+async function jpegWithMeta(newBlob,origFile){
+  try{
+    var o=new Uint8Array(await origFile.arrayBuffer()),n=new Uint8Array(await newBlob.arrayBuffer());
+    if(o[0]!==0xFF||o[1]!==0xD8||n[0]!==0xFF||n[1]!==0xD8)return newBlob;
+    var segs=[],i=2;
+    while(i+4<o.length&&o[i]===0xFF){
+      var mk=o[i+1];if(mk===0xDA||mk===0xD9)break;
+      var len=(o[i+2]<<8)|o[i+3];
+      if(mk===0xE1)segs.push(o.subarray(i,i+2+len));
+      i+=2+len;
+    }
+    if(!segs.length)return newBlob;
+    var tot=segs.reduce(function(a,x){return a+x.length},0),res=new Uint8Array(n.length+tot);
+    res.set(n.subarray(0,2),0);var p=2;segs.forEach(function(x){res.set(x,p);p+=x.length});res.set(n.subarray(2),p);
+    return new Blob([res],{type:'image/jpeg'});
+  }catch(e){return newBlob}
+}
+async function renderCorrected(sc,onP){
+  var f=sc.orig,url=URL.createObjectURL(f),img=await loadImg(url),w=img.naturalWidth,h=img.naturalHeight,png=/png/.test(f.type)||/\.png$/i.test(f.name||'');
+  var c=await rotImage(img,w,h,sc.rot,true,null,onP);URL.revokeObjectURL(url);
+  var b=await canvasBlob(c,png?'image/png':'image/jpeg',.98);
+  if(!png)b=await jpegWithMeta(b,f);
+  var nm=(f.name||sc.id+'.jpg').replace(/\.[^.]+$/,'')+'_corregida.'+(png?'png':'jpg');
+  return {blob:b,name:nm,w:w,h:h};
+}
+function drawOrient(){
+  var sc=S.cur;if(!sc||!$('#orBox'))return;
+  var R=sc.rot,AX=[['yaw','Giro (yaw)',180,'Gira la panorama alrededor, como girar sobre tu eje.'],['pitch','Inclinación (pitch)',90,'Sube o baja el horizonte.'],['roll','Horizonte (roll)',180,'Nivela una imagen ladeada.']];
+  var h='<small>Corrige el giro y la posición de la panorama. Hazlo <b>antes</b> de colocar enlaces y puntos: al mover la imagen, lo ya colocado no se mueve con ella.</small>';
+  AX.forEach(function(a){h+='<label>'+a[1]+'</label><div class="orr"><input type="range" class="sldr" id="or_'+a[0]+'" min="-'+a[2]+'" max="'+a[2]+'" step="0.1" value="'+R[a[0]]+'"><input type="number" id="on_'+a[0]+'" min="-'+a[2]+'" max="'+a[2]+'" step="0.1" value="'+R[a[0]]+'"><span>°</span></div>'});
+  var others=S.scenes.filter(function(o){return o!==sc}),rf=sc.ref||{};
+  h+='<div class="row"><button id="orReset" type="button">Restablecer</button></div>'+
+    '<h5>Alinear con otra escena</h5><small>Muestra otra escena semitransparente encima para ver cuánto está desviada. Solo ayuda a editar; no se exporta.</small>'+
+    (others.length?'<select id="orRef"><option value="">— Sin referencia —</option>'+others.map(function(o){return '<option value="'+esc(o.id)+'"'+(rf.id===o.id?' selected':'')+'>'+esc(o.name)+'</option>'}).join('')+'</select>'+
+      '<label>Transparencia: <span id="orOv">'+(rf.opacity==null?50:rf.opacity)+'</span>%</label><input type="range" class="sldr" id="orOp" min="0" max="100" value="'+(rf.opacity==null?50:rf.opacity)+'">':'<small>Agrega otra escena para usarla de referencia.</small>')+
+    '<h5>Descargar imagen corregida</h5><small>Misma resolución y formato que tu archivo original (JPG conserva EXIF/XMP; PNG sin pérdida). El giro horizontal puro es exacto, sin perder píxeles; inclinar o nivelar remuestrea con interpolación bicúbica.</small>'+
+    '<div class="row"><button id="orDl" type="button">Esta imagen</button><button id="orDlAll" type="button">Todas (ZIP)</button></div><small id="oNote" aria-live="polite"></small>';
+  $('#orBox').innerHTML=h;
+  AX.forEach(function(a){
+    var k=a[0],rg=$('#or_'+k),nm=$('#on_'+k);
+    function set(v){v=Math.max(-a[2],Math.min(a[2],+v||0));R[k]=Math.round(v*10)/10;rg.value=R[k];nm.value=R[k];rotChanged(sc)}
+    rg.oninput=function(){set(rg.value)};nm.onchange=function(){set(nm.value)};
+  });
+  $('#orReset').onclick=function(){R.yaw=R.pitch=R.roll=0;drawOrient();rotChanged(sc)};
+  if($('#orRef')){
+    $('#orRef').onchange=function(){sc.ref=this.value?{id:this.value,on:true,opacity:(sc.ref&&sc.ref.opacity)||50}:null;applyRef(sc)};
+    $('#orOp').oninput=function(){if(!sc.ref)return;sc.ref.opacity=+this.value;$('#orOv').textContent=this.value;applyRef(sc)};
+  }
+  $('#orDl').onclick=async function(){
+    var b=this;b.disabled=true;
+    try{var r=await renderCorrected(sc,function(p){rotNote('Procesando… '+Math.round(p*100)+'%')});saveBlob(r.blob,r.name);rotNote('Listo: '+r.name+' ('+r.w+'×'+r.h+' px)')}
+    catch(e){toast('No se pudo generar la imagen: '+e.message,true)}
+    b.disabled=false;
+  };
+  $('#orDlAll').onclick=async function(){
+    var b=this;b.disabled=true;
+    try{
+      var z=new JSZip();
+      for(var i=0;i<S.scenes.length;i++){var o=S.scenes[i];rotNote('Procesando '+(i+1)+' de '+S.scenes.length+'…');var r=await renderCorrected(o,null);z.file(r.name,r.blob,{compression:'STORE'})}
+      var blob=await z.generateAsync({type:'blob'});saveBlob(blob,slug(S.name||'tour')+'_imagenes_corregidas.zip');rotNote('ZIP listo')
+    }catch(e){toast('No se pudo generar el ZIP: '+e.message,true)}
+    b.disabled=false;
+  };
+}
 function syncTitle(){var t=$('#stTitle');t.hidden=!S.cur;if(S.cur&&document.activeElement!==t)t.value=S.cur.name}
 $('#stTitle').oninput=function(e){if(S.cur){S.cur.name=e.target.value||S.cur.name;$('#curName').textContent=S.cur.name;var i=S.scenes.indexOf(S.cur),n=document.querySelectorAll('#list .sc input')[i];if(n)n.value=S.cur.name}};
 $('#stTitle').onchange=function(){if(S.cur){S.cur.name=e_trim(this.value)||S.cur.name;this.value=S.cur.name;renderHotspots(S.cur)}};
@@ -900,10 +1084,12 @@ function renderMenu(){
   var A=sc.adjust;
   var sl=function(id,k,txt){return '<label>'+txt+': <span id="'+id+'v">'+A[k]+'</span></label><input type="range" class="sldr" id="'+id+'" min="-100" max="100" step="1" value="'+A[k]+'">'};
   box.innerHTML='<button class="wide" id="btnInit" type="button" title="Usa la dirección actual como vista de entrada a esta escena">Fijar vista inicial</button><small>Mira hacia donde quieras que parta esta escena y pulsa el botón.</small>'+
+    '<div id="orBox"><h5>Orientación de la panorama</h5></div>'+
     '<div id="adjBox"><h5>Ajustes de imagen</h5><small>No modifican tu archivo original.</small>'+sl('aB','b','Brillo')+sl('aC','c','Contraste')+sl('aS','s','Saturación')+
     '<div class="row"><button id="aReset" type="button">Restablecer</button><button id="aAll" type="button">Aplicar a todas</button></div></div>'+
     '<div id="layerBox"><h5>Capa de comparación</h5><small>Superpone otra panorama (plano, etapa anterior de obra); el visitante la mezcla con un deslizador. Debe ser equirectangular 2:1.</small><div id="layerUI"></div></div>';
   $('#btnInit').onclick=fixInit;
+  drawOrient();
   [['aB','b'],['aC','c'],['aS','s']].forEach(function(x){$('#'+x[0]).oninput=function(e){A[x[1]]=+e.target.value;$('#'+x[0]+'v').textContent=A[x[1]];applyScene(sc)}});
   $('#aReset').onclick=function(){A.b=A.c=A.s=0;['aB','aC','aS'].forEach(function(i){$('#'+i).value=0;$('#'+i+'v').textContent=0});applyScene(sc)};
   $('#aAll').onclick=function(){S.scenes.forEach(function(o){o.adjust={b:A.b,c:A.c,s:A.s};applyScene(o)});sc.adjust=A=Object.assign({},A);toast('Ajustes aplicados a todas las escenas')};
@@ -1005,7 +1191,7 @@ var LICENSE_NOTE='Marzipano\r\nCopyright 2016 Google Inc.\r\nLicensed under the 
 
 /* Arma el ZIP del tour. o.web: sin originales (para publicar). o.onProgress(texto). */
 async function buildTourZip(o){
-  o=o||{};var prog=o.onProgress||function(){};
+  o=o||{};await flushRot();var prog=o.onProgress||function(){};
   {
     var cube=S.set.quality==='cube',data=buildData(false,cube),zip=new JSZip(),D={compression:'DEFLATE'};
     var rd=function(u){return fetch(u).then(function(r){if(!r.ok)throw new Error('No se pudo leer '+u);return r.text()})};
@@ -1120,8 +1306,9 @@ function viewerHtml(title,pv){
 
 /* ---------- vista previa del tour (sin exportar) ---------- */
 function pvKey(e){if(e.key==='Escape')closePreview()}
-function openPreview(){
+async function openPreview(){
   if(!S.scenes.length)return;
+  await flushRot();
   closePanel();
   var data=buildData(true);
   data.start=Math.max(0,S.scenes.indexOf(S.cur));
@@ -1158,6 +1345,7 @@ var GUIDE=[
  {sel:'#btnInit',t:'7. Vista inicial',d:'Mira hacia donde quieras que parta cada escena y pulsa “Fijar vista inicial” en el menú. Así cada vez que alguien entre, verá lo más importante primero.',menu:'secScene'},
  {sel:'#adjBox',t:'8. Ajustes de imagen',d:'Brillo, contraste y saturación de la escena actual, con vista en vivo. Puedes copiarlos a todas las escenas.',menu:'secScene'},
  {sel:'#layerBox',t:'9. Capa de comparación',d:'Superpone otra panorama (plano, etapa anterior de obra) y el visitante la mezcla con un deslizador. Ideal para control de avance.',menu:'secScene'},
+ {sel:'#sceneTools',t:'Orientación de la panorama',d:'En “Esta escena” puedes corregir el giro, la inclinación y el horizonte de cada panorama, y alinearla con otra escena casi igual usando una referencia semitransparente. Luego descarga la imagen corregida con la misma resolución y formato. Hazlo antes de colocar enlaces y puntos.'},
  {sel:'#tbActs',t:'Atajos sobre el visor',d:'Estos iconos te llevan rápido a copiar el enlace del tour, compartir (redes, correo, QR y código para insertar), corregir el color de la imagen, el logo y colores, y la información del tour. También puedes cambiar el nombre de la escena con el cuadro de abajo a la izquierda.'},
  {sel:'#brandTools',t:'10. Logo y colores',d:'Sube tu logo (aparece en la barra del tour) y elige el color de acento y de las barras, con presets o a tu gusto.',menu:'secBrand'},
  {sel:'#infoTools',t:'11. Info del tour',d:'Agrega un botón “Info” con una ficha: descripción, teléfono, correo, web, PDF, video y un botón de acción como “Solicitar cotización”.',menu:'secInfo'},
