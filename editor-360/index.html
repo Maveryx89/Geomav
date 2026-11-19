@@ -716,18 +716,44 @@ function openShare(){
 }
 async function netlifyPublish(token,name,onP){
   var H={Authorization:'Bearer '+token};
-  async function api(path,opt){
+  async function api(path,opt,step){
     var r;
-    try{r=await fetch('https://api.netlify.com/api/v1'+path,opt)}catch(e){var er=new Error('No se pudo conectar con Netlify desde el navegador. Usa la opción manual (descargar ZIP y arrastrarlo a Netlify Drop).');er.net=true;throw er}
+    try{r=await fetch('https://api.netlify.com/api/v1'+path,opt)}catch(e){var er=new Error('No se pudo conectar con Netlify'+(step?' al '+step:'')+' ('+(e&&e.message||'error de red')+'). Usa la opción manual (descargar ZIP y arrastrarlo a Netlify Drop).');er.net=true;throw er}
     if(r.status===401)throw Object.assign(new Error('El token no es válido o fue revocado'),{status:401});
     if(!r.ok){var t='';try{t=await r.text()}catch(e){}throw Object.assign(new Error('Netlify respondió '+r.status+(t?': '+t.slice(0,160):'')),{status:r.status})}
     return r.json();
   }
   onP('Preparando archivos del tour…');
   var z=await buildTourZip({web:true,onProgress:onP}),site=null,dep;
+  async function sha1(buf){var h=await crypto.subtle.digest('SHA-1',buf);return Array.prototype.map.call(new Uint8Array(h),function(b){return ('0'+b.toString(16)).slice(-2)}).join('')}
   async function deploy(id){
-    onP('Subiendo '+(z.blob.size/1048576).toFixed(1)+' MB a Netlify…');
-    return api('/sites/'+id+'/deploys',{method:'POST',headers:Object.assign({'Content-Type':'application/zip'},H),body:z.blob});
+    /* Deploy por archivos (sin límite de tamaño de ZIP): se envían solo los archivos que Netlify pide. */
+    onP('Leyendo archivos del tour…');
+    var zz=await JSZip.loadAsync(z.blob),files={},byHash={},names=Object.keys(zz.files).filter(function(n){return !zz.files[n].dir});
+    for(var i=0;i<names.length;i++){
+      var buf=await zz.files[names[i]].async('arraybuffer'),h=await sha1(buf);
+      files['/'+names[i]]=h;(byHash[h]=byHash[h]||[]).push({n:names[i],buf:buf});
+      if(i%10===0)onP('Preparando '+(i+1)+' de '+names.length+' archivos…');
+    }
+    var dep=await api('/sites/'+id+'/deploys',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},H),body:JSON.stringify({files:files})},'crear el deploy');
+    var req=dep.required||[],queue=[];
+    req.forEach(function(h){(byHash[h]||[]).slice(0,1).forEach(function(f){queue.push(f)})});
+    var done=0,tot=queue.length,total=queue.reduce(function(a,f){return a+f.buf.byteLength},0);
+    onP('Subiendo '+tot+' archivos ('+(total/1048576).toFixed(1)+' MB)…');
+    async function put(f){
+      for(var t=0;t<3;t++){
+        try{
+          var r=await fetch('https://api.netlify.com/api/v1/deploys/'+dep.id+'/files/'+f.n.split('/').map(encodeURIComponent).join('/'),{method:'PUT',headers:Object.assign({'Content-Type':'application/octet-stream'},H),body:f.buf});
+          if(r.ok)return;
+          if(r.status===401)throw Object.assign(new Error('El token no es válido o fue revocado'),{status:401});
+          if(t===2)throw new Error('Netlify rechazó "'+f.n+'" (HTTP '+r.status+')');
+        }catch(e){if(e.status===401||t===2){if(e.name==='TypeError'){var er=new Error('Falló la subida de "'+f.n+'" ('+e.message+'). Revisa tu conexión o extensiones del navegador; también puedes usar la opción manual.');er.net=true;throw er}throw e}}
+        await sleep(800*(t+1));
+      }
+    }
+    var next=0;
+    await Promise.all([0,1,2,3].map(async function(){while(next<queue.length){var f=queue[next++];await put(f);done++;onP('Subiendo archivos '+done+' de '+tot+'…')}}));
+    return dep;
   }
   if(S.pub&&S.pub.siteId){
     try{dep=await deploy(S.pub.siteId);site={id:S.pub.siteId,ssl_url:S.pub.url}}
@@ -737,7 +763,7 @@ async function netlifyPublish(token,name,onP){
     var base=slug(name||S.name||'tour').slice(0,40);if(base.length<3)base='tour-'+base;
     for(var n=0;n<4&&!site;n++){
       var nm=n?base+'-'+Math.random().toString(36).slice(2,6):base;
-      try{site=await api('/sites',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},H),body:JSON.stringify({name:nm})})}
+      try{site=await api('/sites',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},H),body:JSON.stringify({name:nm})},'crear el sitio')}
       catch(e){if(e.status===422&&n<3)continue;throw e}
     }
     dep=await deploy(site.id);
