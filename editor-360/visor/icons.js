@@ -17,13 +17,15 @@ G.ICONS={
   video:    {t:'Video',      d:'M8 5v14l11-7z'},
   mapa:     {t:'Mapa',       d:'M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z'},
   documento:{t:'Documento',  d:'M7 3h7l5 5v13H7zM14 3v5h5M9 13h6M9 17h6'},
+  galeria:  {t:'Galería',    d:'M3 7h14v12H3zM7 7V4h14v12h-4M6 16l3-3 2 2 3-3 3 4'},
   web:      {t:'Web',        d:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z'}
 };
 // Íconos ofrecidos para cada tipo de hotspot.
 G.SETS={
   link:['flecha','puerta','escalera','punto','mas'],
   info:['info','alerta','foto','medida','punto'],
-  embed:['video','mapa','documento','web','foto']
+  embed:['video','mapa','documento','web','foto'],
+  galeria:['galeria','foto','mas','punto','info']
 };
 G.COLORS=[
   {n:'Cobre',    v:'#D49A6A'},
@@ -32,7 +34,7 @@ G.COLORS=[
   {n:'Amarillo', v:'#F2C94C'},
   {n:'Rojo',     v:'#E5604D'}
 ];
-G.DEF={link:{icon:'flecha',color:'#D49A6A'},info:{icon:'info',color:'#6FD0C0'},embed:{icon:'video',color:'#FFFFFF'}};
+G.DEF={link:{icon:'flecha',color:'#D49A6A'},info:{icon:'info',color:'#6FD0C0'},embed:{icon:'video',color:'#FFFFFF'},galeria:{icon:'galeria',color:'#F2C94C'}};
 
 G.esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
 G.icon=function(type,h){var n=h&&h.icon;return (n&&G.ICONS[n])?n:G.DEF[type].icon};
@@ -111,4 +113,50 @@ G.applyBrand=function(b){
 };
 /* URLs seguras para la ficha de información */
 G.https=function(u){u=String(u||'').trim();return /^https:\/\/[^\s]+\.[^\s]+$/i.test(u)?u:''};
+
+/* SHA-256 (hex) en JS puro: sirve también al abrir el tour desde un archivo local. */
+G.sha256=function(str){
+  function R(n,x){return (x>>>n)|(x<<(32-n))}
+  var K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  var b=unescape(encodeURIComponent(str)),l=b.length,w=[],i,j;
+  for(i=0;i<l;i++)w[i>>2]|=b.charCodeAt(i)<<(24-(i%4)*8);
+  w[l>>2]|=0x80<<(24-(l%4)*8);w[(((l+8)>>6)<<4)+15]=l*8;
+  for(var o=0;o<w.length;o+=16){
+    var W=[],a=H[0],bb=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(j=0;j<64;j++){
+      if(j<16)W[j]=w[o+j]|0;else{var s0=R(7,W[j-15])^R(18,W[j-15])^(W[j-15]>>>3),s1=R(17,W[j-2])^R(19,W[j-2])^(W[j-2]>>>10);W[j]=(W[j-16]+s0+W[j-7]+s1)|0}
+      var S1=R(6,e)^R(11,e)^R(25,e),ch=(e&f)^(~e&g),t1=(h+S1+ch+K[j]+W[j])|0,S0=R(2,a)^R(13,a)^R(22,a),mj=(a&bb)^(a&c)^(bb&c),t2=(S0+mj)|0;
+      h=g;g=f;f=e;e=(d+t1)|0;d=c;c=bb;bb=a;a=(t1+t2)|0;
+    }
+    H[0]=(H[0]+a)|0;H[1]=(H[1]+bb)|0;H[2]=(H[2]+c)|0;H[3]=(H[3]+d)|0;H[4]=(H[4]+e)|0;H[5]=(H[5]+f)|0;H[6]=(H[6]+g)|0;H[7]=(H[7]+h)|0;
+  }
+  return H.map(function(x){return ('00000000'+(x>>>0).toString(16)).slice(-8)}).join('');
+};
+
+/* Galería a pantalla completa (imágenes por URL). Estilos en línea: sirve en el visor y en el editor. */
+G.openGallery=function(urls,title){
+  if(!urls||!urls.length)return;
+  var i=0,timer=null,ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;font:14px system-ui,sans-serif;color:#fff';
+  var top=document.createElement('div');top.style.cssText='position:absolute;top:0;left:0;right:0;display:flex;gap:10px;align-items:center;padding:10px 14px';
+  var tt=document.createElement('b');tt.style.cssText='flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';tt.textContent=title||'Galería';
+  function btn(txt,label){var b=document.createElement('button');b.textContent=txt;b.setAttribute('aria-label',label);b.style.cssText='background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:8px;min-width:38px;height:38px;font-size:16px;cursor:pointer;padding:0 10px';return b}
+  var play=btn('▶ Pase','Pase automático'),x=btn('✕','Cerrar'),cnt=document.createElement('span');cnt.style.cssText='opacity:.8;font-size:13px';
+  top.appendChild(tt);top.appendChild(cnt);top.appendChild(play);top.appendChild(x);
+  var im=document.createElement('img');im.style.cssText='max-width:94vw;max-height:78vh;object-fit:contain;border-radius:6px;user-select:none';im.alt='';
+  var pv=btn('‹','Anterior'),nx=btn('›','Siguiente');
+  [pv,nx].forEach(function(b){b.style.cssText+='position:absolute;top:50%;transform:translateY(-50%);width:46px;height:56px;font-size:28px'});pv.style.left='10px';nx.style.right='10px';
+  ov.appendChild(top);ov.appendChild(im);if(urls.length>1){ov.appendChild(pv);ov.appendChild(nx)}else play.style.display='none';
+  function show(n){i=(n+urls.length)%urls.length;im.src=urls[i];cnt.textContent=(i+1)+' / '+urls.length}
+  function stopP(){clearInterval(timer);timer=null;play.textContent='▶ Pase'}
+  function close(){stopP();document.removeEventListener('keydown',key);ov.remove()}
+  function key(e){if(e.key==='Escape')close();else if(e.key==='ArrowRight')show(i+1);else if(e.key==='ArrowLeft')show(i-1)}
+  pv.onclick=function(){show(i-1)};nx.onclick=function(){show(i+1)};x.onclick=close;
+  play.onclick=function(){if(timer)stopP();else{play.textContent='❚❚ Pausa';timer=setInterval(function(){show(i+1)},4000)}};
+  ov.addEventListener('click',function(e){if(e.target===ov)close()});
+  var sx=0;ov.addEventListener('touchstart',function(e){sx=e.touches[0].clientX},{passive:true});
+  ov.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>50)show(i+(dx<0?1:-1))},{passive:true});
+  document.addEventListener('keydown',key);document.body.appendChild(ov);show(0);
+};
 })();

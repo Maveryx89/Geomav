@@ -61,3 +61,20 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#fff;font:1
 #ibox .iacts a{display:inline-block;padding:8px 13px;border:1px solid #fff4;border-radius:999px;color:#fff;text-decoration:none;font-size:13px;background:#ffffff14}
 #ibox .iacts a.cta{background:var(--v-acc);color:var(--v-onacc);border-color:var(--v-acc);font-weight:700}
 #iX{position:absolute;top:10px;right:10px;background:#ffffff1a;color:#fff;border:0;border-radius:8px;width:34px;height:34px;font-size:16px;cursor:pointer}
+
+/* plano con radar, recorrido, sonido, contraseña */
+#plan{position:absolute;left:12px;top:56px;z-index:7;display:none;background:var(--v-pbg);border:1px solid #fff3;border-radius:10px;padding:6px;max-width:min(360px,70vw)}
+#plan.open{display:block}
+#pbox{position:relative;line-height:0}
+#pbox img{display:block;max-width:100%;max-height:50vh;border-radius:6px;user-select:none;-webkit-user-drag:none}
+.pin{position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:var(--v-bbg);border:2.5px solid #fff;box-sizing:border-box;cursor:pointer;padding:0}
+.pin:hover{transform:scale(1.25)}
+.pin.on{background:var(--v-acc);border-color:#fff;width:22px;height:22px;margin:-11px 0 0 -11px;z-index:2}
+#radar{position:absolute;width:90px;height:90px;margin:-45px 0 0 -45px;border-radius:50%;pointer-events:none;display:none;-webkit-mask:radial-gradient(circle,#000 20%,transparent 71%);mask:radial-gradient(circle,#000 20%,transparent 71%)}
+#plan .pn{position:absolute;left:8px;bottom:8px;background:var(--v-pbg);padding:1px 8px;border-radius:999px;font-size:11px;line-height:1.5;pointer-events:none}
+#gate{position:fixed;inset:0;z-index:60;background:#0A1118;display:flex;align-items:center;justify-content:center;padding:16px}
+#gate form{width:min(340px,100%);display:flex;flex-direction:column;gap:10px;text-align:center}
+#gate h2{margin:0;font-size:19px}
+#gate input{padding:11px 12px;border-radius:8px;border:1px solid #fff4;background:#ffffff14;color:#fff;font:inherit;text-align:center}
+#gate button{padding:11px;border:0;border-radius:8px;background:var(--v-acc);color:var(--v-onacc);font:inherit;font-weight:700;cursor:pointer}
+#gate .er{color:#ff9d8f;min-height:18px;font-size:13px}

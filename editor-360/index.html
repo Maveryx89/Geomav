@@ -101,7 +101,8 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
 .seg button{display:flex;align-items:center;gap:6px}
 .seg .tl{display:none}
 @media(min-width:1180px){.seg#modes .tl{display:inline}}
-#tbActs button{padding:8px 11px}
+#tbActs button,#tbHist button{padding:8px 11px}
+#tbHist button:disabled{opacity:.35;cursor:default}
 #tbActs button:disabled{opacity:.4;cursor:default}
 #tbActs button.on{background:var(--acc);color:var(--navy)}
 .chip{background:#0A1118c9;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid #ffffff26;border-radius:8px;padding:8px 14px;display:flex;align-items:center;gap:6px;color:#fff}
@@ -265,6 +266,14 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
       <button class="sh" type="button">Esta escena <span class="ct" id="curName"></span><i>▾</i></button>
       <div class="sb" id="sceneTools"></div>
     </section>
+    <section class="sec" id="secPlan">
+      <button class="sh" type="button">Plano / mapa<span class="sp2"></span><i>▾</i></button>
+      <div class="sb" id="planTools"></div>
+    </section>
+    <section class="sec" id="secAudio">
+      <button class="sh" type="button">Audio y recorrido<span class="sp2"></span><i>▾</i></button>
+      <div class="sb" id="audioTools"></div>
+    </section>
     <section class="sec" id="secBrand">
       <button class="sh" type="button">Marca: logo y colores<span class="sp2"></span><i>▾</i></button>
       <div class="sb" id="brandTools"></div>
@@ -289,6 +298,11 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
         <button data-mode="info" title="Agregar punto de información" aria-label="Agregar punto de información"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span class="tl">+ Info</span></button>
         <button data-mode="embed" title="Agregar contenido incrustado (video, mapa, PDF, web)" aria-label="Agregar contenido incrustado (video, mapa, PDF, web)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg><span class="tl">+ Contenido</span></button>
         <button data-mode="imagen" title="Agregar imagen sobre el panorama" aria-label="Agregar imagen sobre el panorama"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-9 9"/></svg><span class="tl">+ Imagen</span></button>
+        <button data-mode="galeria" title="Agregar galería de fotos" aria-label="Agregar galería de fotos"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h14v12H3zM7 7V4h14v12h-4M6 16l3-3 2 2 3-3 3 4"/></svg></button>
+      </div>
+      <div class="seg" id="tbHist">
+        <button id="tbUndo" type="button" title="Deshacer (Ctrl+Z)" aria-label="Deshacer" disabled><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+        <button id="tbRedo" type="button" title="Rehacer (Ctrl+Y)" aria-label="Rehacer" disabled><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
       </div>
       <div class="seg" id="tbActs">
         <button id="tbLink" type="button" title="Copiar enlace del tour" aria-label="Copiar enlace del tour" disabled><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></button>
@@ -315,7 +329,7 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
     <button id="pvClose" class="primary">← Volver al editor</button></div>
   <div id="pvWrap"><iframe id="pvFrame" title="Vista previa del tour" allow="fullscreen; gyroscope; accelerometer"></iframe></div>
 </div>
-<input type="file" id="fileLogo" accept="image/*" hidden><input type="file" id="fileLayer" accept="image/*" hidden><input type="file" id="fileHsImg" accept="image/*" hidden>
+<input type="file" id="fileLogo" accept="image/*" hidden><input type="file" id="fileLayer" accept="image/*" hidden><input type="file" id="filePlan" accept="image/*" hidden><input type="file" id="fileMusic" accept="audio/*" hidden><input type="file" id="fileNarr" accept="audio/*" hidden><input type="file" id="fileGal" accept="image/*" multiple hidden><input type="file" id="fileHsImg" accept="image/*" hidden>
 <div id="shMod"><div id="shBox" role="dialog" aria-label="Publicar y compartir">
   <h3>Publicar y compartir</h3><small>Sube el tour a Netlify y obtén el enlace para compartir, el QR y el código para insertar en tu web.</small>
   <h4>1 · Publicar en Netlify</h4>
@@ -357,7 +371,7 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
 var $=function(s){return document.querySelector(s)};
 var MAX_W=8192;
 try{if(window.self!==window.top)document.documentElement.classList.add('embed')}catch(e){document.documentElement.classList.add('embed')}
-var S={name:'Mi tour 360°',set:{autorotate:true,fullscreen:true,viewControls:true,sceneList:true,gyro:true,transition:'zoom',quality:'standard',mouseMode:'drag'},scenes:[],cur:null,mode:'view',pending:null,reloc:null,nextId:1,
+var S={plan:null,music:null,passHash:null,passTxt:'',name:'Mi tour 360°',set:{pilot:true,pilotSecs:8,pilotLoop:true,pilotStart:false,autorotate:true,fullscreen:true,viewControls:true,sceneList:true,gyro:true,transition:'zoom',quality:'standard',mouseMode:'drag'},scenes:[],cur:null,mode:'view',pending:null,reloc:null,nextId:1,
   brand:{accent:'',bar:'',logo:null,logoLink:''},info:{title:'',sub:'',desc:'',email:'',phone:'',web:'',pdf:'',pdfLabel:'',video:'',btnText:'',btnUrl:''}};
 var viewer=new Marzipano.Viewer($('#pano'),{controls:{mouseViewMode:'drag'}});
 
@@ -439,7 +453,7 @@ async function addImage(file,meta){
   var base=meta&&meta.name||file.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');
   var sc={id:uniqueId(meta&&meta.id||slug(base)),name:base,blob:blob,url:url,width:w,height:h,thumb:t.toDataURL('image/jpeg',.7),
     init:meta&&meta.init||{yaw:0,pitch:0,fov:Math.PI/2},hs:meta&&meta.hs||[],ms:null,
-    adjust:meta&&meta.adjust||{b:0,c:0,s:0},layer:meta&&meta.layer||null,
+    adjust:meta&&meta.adjust||{b:0,c:0,s:0},layer:meta&&meta.layer||null,plan:meta&&meta.plan||null,audio:meta&&meta.audio||null,secs:meta&&meta.secs||0,skip:!!(meta&&meta.skip),
     rot:{yaw:0,pitch:0,roll:0,tx:0,ty:0,tz:0,dist:30,h:1.6,model:'suelo'},base:{blob:blob,url:url,width:w,height:h},orig:(blob===file&&!/\.insp$/i.test(file.name))?file:blob};
   makeMScene(sc);
   S.scenes.push(sc);
@@ -523,7 +537,7 @@ function renderHotspots(sc){
       im.addEventListener('click',function(ev){ev.stopPropagation();if(S.mode!=='view')openPanel(h,false)});
       sc.els.push(cont.createHotspot(im,{yaw:h.yaw,pitch:h.pitch},G.imageOpts));return;
     }
-    var label=h.type==='link'?(byId(h.target)?byId(h.target).name:'(sin destino)'):(h.title||(h.type==='embed'?'Ver contenido':''));
+    var label=h.type==='link'?(byId(h.target)?byId(h.target).name:'(sin destino)'):(h.title||(h.type==='embed'?'Ver contenido':h.type==='galeria'?'Galería':''));
     var el=G.hotspot(h.type,h,label);
     stopProp(el);
     el.addEventListener('click',function(ev){ev.stopPropagation();onHotspotClick(h,el)});
@@ -541,6 +555,7 @@ function onHotspotClick(h,el){
   if(S.mode==='view'){
     if(h.type==='link'){var t=byId(h.target);if(t)select(t)}
     else if(h.type==='embed')openEmbed(h);
+    else if(h.type==='galeria'){if((h.images||[]).length)G.openGallery(h.images.map(function(x){return x.url}),h.title);else toast('Esta galería aún no tiene fotos',true)}
     else el.classList.toggle('open');
   }else openPanel(h,false);
 }
@@ -559,7 +574,7 @@ paneEl.addEventListener('pointerup',function(e){
   if(S.mode==='view'){document.querySelectorAll('.hs.open').forEach(function(x){x.classList.remove('open')});return}
   if(S.pending||$('#panel').style.display==='block')return;
   var h={id:uid(),type:S.mode,yaw:c.yaw,pitch:c.pitch};
-  if(S.mode==='link')h.target=null;else if(S.mode==='info'){h.title='';h.text=''}else if(S.mode==='embed'){h.title='';h.url=''}else{h.title='';h.size=20;h.blob=null;h.url=null}
+  if(S.mode==='link')h.target=null;else if(S.mode==='info'){h.title='';h.text=''}else if(S.mode==='embed'){h.title='';h.url=''}else if(S.mode==='galeria'){h.title='';h.images=[]}else{h.title='';h.size=20;h.blob=null;h.url=null}
   openPanel(h,true);
 });
 
@@ -586,17 +601,19 @@ function openPanel(h,isNew){
     html='<h4>'+(isNew?'Nueva imagen sobre el panorama':'Editar imagen')+'</h4><label>Imagen (PNG con transparencia, JPG o WebP)</label><div class="row"><button id="pPick" type="button">'+(h.url?'Cambiar imagen…':'Elegir imagen…')+'</button></div><small id="pImgInfo">'+(h.url?'Imagen cargada.':'Aún no elegiste una imagen.')+'</small>'+
       '<label>Tamaño: <span id="pSv">'+h.size+'</span>° de ancho</label><input type="range" class="sldr" id="pSz" min="4" max="90" step="1" value="'+h.size+'">'+
       '<label>Texto al pasar el cursor (opcional)</label><input type="text" id="pTi" value="'+esc(h.title||'')+'">';
+  }else if(h.type==='galeria'){
+    html='<h4>'+(isNew?'Nueva galería de fotos':'Editar galería')+'</h4><label>Título (opcional)</label><input type="text" id="pTi" value="'+esc(h.title||'')+'"><label>Fotos</label><div class="row"><button id="gAdd" type="button">+ Agregar fotos…</button></div><div id="gThumbs" style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0"></div><small>Se muestran como presentación a pantalla completa, con pase automático.</small>'+stylePicker(h);
   }else{
     html='<h4>'+(isNew?'Nuevo contenido incrustado':'Editar contenido incrustado')+'</h4><label>Enlace</label><input type="text" id="pU" value="'+esc(h.url||'')+'" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off">'+
       '<small>YouTube, Vimeo, PDF de Google Drive, mapa de Google Maps (Compartir → Insertar un mapa) o cualquier web con https. Algunas webs no permiten ser incrustadas.</small>'+
       '<label>Título (opcional)</label><input type="text" id="pTi" value="'+esc(h.title||'')+'">'+stylePicker(h);
   }
   html+='<div class="row"><button class="primary" id="pOk">Guardar</button><button id="pNo">Cancelar</button>'+
-    (isNew?'':'<button id="pMv">Reubicar</button><button class="danger" id="pDel">Eliminar</button>')+'</div>';
+    (isNew?'':'<button id="pDup">Duplicar</button><button id="pMv">Reubicar</button><button class="danger" id="pDel">Eliminar</button>')+'</div>';
   p.innerHTML=html;p.style.display='block';
-  S.pending=isNew?h:null;
+  S.pending=isNew?h:null;S.sel=h;
   if(isNew){sc.hs.push(h);renderHotspots(sc)}
-  var snap={rot:h.rot,icon:h.icon,color:h.color,size:h.size,url:h.url,blob:h.blob,aspect:h.aspect};
+  var snap={images:h.images?h.images.slice():null,rot:h.rot,icon:h.icon,color:h.color,size:h.size,url:h.url,blob:h.blob,aspect:h.aspect};
   if(h.type==='imagen'){
     $('#pPick').onclick=function(){$('#fileHsImg').click()};
     $('#fileHsImg').onchange=async function(e){
@@ -607,11 +624,25 @@ function openPanel(h,isNew){
     };
     $('#pSz').oninput=function(e){h.size=+e.target.value;$('#pSv').textContent=h.size;renderHotspots(sc)};
   }
+  if(h.type==='galeria'){
+    var drawG=function(){
+      $('#gThumbs').innerHTML=h.images.map(function(x,k){return '<div style="position:relative"><img src="'+x.url+'" style="width:54px;height:54px;object-fit:cover;border-radius:6px;display:block"><button type="button" data-k="'+k+'" aria-label="Quitar foto" style="position:absolute;top:-5px;right:-5px;width:20px;height:20px;border-radius:50%;padding:0;line-height:1">✕</button></div>'}).join('')||'<small>Aún sin fotos.</small>';
+      Array.prototype.forEach.call($('#gThumbs').querySelectorAll('button'),function(b){b.onclick=function(){h.images.splice(+b.dataset.k,1);drawG()}});
+    };
+    drawG();
+    $('#gAdd').onclick=function(){$('#fileGal').click()};
+    $('#fileGal').onchange=async function(e){
+      var fs=Array.prototype.slice.call(e.target.files);e.target.value='';
+      for(var q=0;q<fs.length;q++){var r=await prepImg(fs[q],1800);if(r)h.images.push({blob:r.blob,url:r.url})}
+      drawG();
+    };
+  }
   Array.prototype.forEach.call(p.querySelectorAll('#pIc button'),function(b){b.onclick=function(){h.icon=b.dataset.ic;Array.prototype.forEach.call(p.querySelectorAll('#pIc button'),function(x){x.classList.toggle('on',x===b)});renderHotspots(sc)}});
   Array.prototype.forEach.call(p.querySelectorAll('#pCo button'),function(b){b.onclick=function(){h.color=b.dataset.co;Array.prototype.forEach.call(p.querySelectorAll('#pCo button'),function(x){x.classList.toggle('on',x===b)});renderHotspots(sc)}});
   if(h.type==='link')$('#pR').oninput=function(e){h.rot=+e.target.value;$('#pRv').textContent=h.rot;renderHotspots(sc)};
   var cancel=function(){
     if(h.type==='imagen'&&h.url&&h.url!==snap.url)URL.revokeObjectURL(h.url);
+    if(h.type==='galeria'){h.images.forEach(function(x){if(!snap.images||!snap.images.some(function(y){return y.url===x.url}))URL.revokeObjectURL(x.url)});if(snap.images)h.images=snap.images}
     if(isNew){sc.hs=sc.hs.filter(function(x){return x!==h})}else{h.rot=snap.rot;h.icon=snap.icon;h.color=snap.color;h.size=snap.size;h.url=snap.url;h.blob=snap.blob}
     closePanel()};
   $('#pNo').onclick=cancel;
@@ -625,7 +656,10 @@ function openPanel(h,isNew){
           dst.hs.push({id:uid(),type:'link',yaw:normYaw(h.yaw+Math.PI),pitch:0,target:sc.id,icon:h.icon,color:h.color});
       }
     }else if(h.type==='info'){h.title=$('#pTi').value.trim();h.text=$('#pTx').value.trim()}
-    else if(h.type==='imagen'){
+    else if(h.type==='galeria'){
+      if(!h.images.length){toast('Agrega al menos una foto',true);return}
+      h.title=$('#pTi').value.trim();
+    }else if(h.type==='imagen'){
       if(!h.url){toast('Elige una imagen',true);return}
       h.title=$('#pTi').value.trim();
       if(snap.url&&snap.url!==h.url)URL.revokeObjectURL(snap.url);
@@ -637,11 +671,61 @@ function openPanel(h,isNew){
     if(isNew&&h.type==='link'&&$('#pB'))toast('Enlace creado. Revisa el de regreso en la otra escena y reubícalo si hace falta.');
   };
   if(!isNew){
-    $('#pDel').onclick=function(){if(h.type==='imagen'&&h.url)URL.revokeObjectURL(h.url);sc.hs=sc.hs.filter(function(x){return x!==h});closePanel();refreshCur()};
+    $('#pDel').onclick=function(){sc.hs=sc.hs.filter(function(x){return x!==h});closePanel();refreshCur()};
+    $('#pDup').onclick=function(){pasteHs(cloneHs(h),sc,h.yaw+0.12,h.pitch);closePanel()};
     $('#pMv').onclick=function(){p.style.display='none';S.reloc=h;$('#stage').classList.add('moving');hint('Haz clic en la nueva posición del hotspot')};
   }
 }
 
+
+/* ---------- deshacer / rehacer y copiar / pegar hotspots ---------- */
+var HIST={u:[],r:[],last:null,sig:'',t:null};
+function cloneHs(h){var c=Object.assign({},h);if(h.images)c.images=h.images.slice();c.id=h.id;return c}
+function snapState(){
+  return {name:S.name,order:S.scenes.map(function(s){return s.id}),sc:S.scenes.map(function(s){return {id:s.id,name:s.name,init:Object.assign({},s.init),adjust:Object.assign({},s.adjust),secs:s.secs,skip:!!s.skip,plan:s.plan?Object.assign({},s.plan):null,hs:s.hs.map(cloneHs)}})};
+}
+function sigOf(st){return JSON.stringify(st)}
+function updateHistBtns(){$('#tbUndo').disabled=!HIST.u.length;$('#tbRedo').disabled=!HIST.r.length}
+function histReset(){HIST.u=[];HIST.r=[];HIST.last=snapState();HIST.sig=sigOf(HIST.last);updateHistBtns()}
+function histCheck(){
+  if(S.pending)return;
+  var st=snapState(),sg=sigOf(st);if(sg===HIST.sig)return;
+  var a=HIST.last.order.slice().sort().join('|'),b=st.order.slice().sort().join('|');
+  if(a!==b){HIST.u=[];HIST.r=[]}else{HIST.u.push(HIST.last);if(HIST.u.length>100)HIST.u.shift();HIST.r=[]}
+  HIST.last=st;HIST.sig=sg;updateHistBtns();
+}
+function histRestore(st){
+  var map={};S.scenes.forEach(function(s){map[s.id]=s});
+  S.scenes=st.order.map(function(id){return map[id]}).filter(Boolean);
+  st.sc.forEach(function(d){var s=map[d.id];if(!s)return;s.name=d.name;s.init=Object.assign({},d.init);s.adjust=Object.assign({},d.adjust);s.secs=d.secs;s.skip=d.skip;s.plan=d.plan?Object.assign({},d.plan):null;s.hs=d.hs.map(cloneHs);applyScene(s)});
+  if(st.name!=null){S.name=st.name;$('#tourName').value=S.name}
+  S.pending=null;S.sel=null;$('#panel').style.display='none';
+  S.scenes.forEach(function(s){if(s!==S.cur&&s.ms)renderHotspots(s)});
+  if(S.cur){S.cur.ms.view().setParameters(S.cur.init);renderHotspots(S.cur)}
+  menuCur=undefined;renderList();syncUI();syncTitle();if(typeof drawPlanEd==='function')drawPlanEd();
+  HIST.last=snapState();HIST.sig=sigOf(HIST.last);updateHistBtns();
+}
+function doUndo(){histCheck();if(!HIST.u.length)return;HIST.r.push(HIST.last);var st=HIST.u.pop();histRestore(st);toast('Deshecho')}
+function doRedo(){histCheck();if(!HIST.r.length)return;HIST.u.push(HIST.last);var st=HIST.r.pop();histRestore(st);toast('Rehecho')}
+['input','change','click','pointerup','keyup','drop'].forEach(function(ev){document.addEventListener(ev,function(e){if(e.target&&e.target.closest&&e.target.closest('#tbHist'))return;clearTimeout(HIST.t);HIST.t=setTimeout(histCheck,350)},true)});
+$('#tbUndo').onclick=doUndo;$('#tbRedo').onclick=doRedo;
+function pasteHs(h,sc,yaw,pitch){
+  sc=sc||S.cur;if(!sc)return;
+  var n=cloneHs(h);n.id=uid();n.yaw=yaw;n.pitch=pitch;
+  if(n.type==='link'&&n.target===sc.id)n.target=null;
+  sc.hs.push(n);renderHotspots(sc);renderList();toast('Hotspot pegado');
+}
+document.addEventListener('keydown',function(e){
+  var t=e.target,tx=t&&(/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||t.isContentEditable);
+  if(tx||!(e.ctrlKey||e.metaKey))return;
+  var k=e.key.toLowerCase();
+  if(k==='z'&&!e.shiftKey){e.preventDefault();doUndo()}
+  else if(k==='y'||(k==='z'&&e.shiftKey)){e.preventDefault();doRedo()}
+  else if(k==='c'&&S.sel){S.clip=cloneHs(S.sel);toast('Hotspot copiado: pégalo con Ctrl+V en cualquier escena')}
+  else if(k==='v'&&S.clip&&S.cur){e.preventDefault();var p=S.cur.ms.view().parameters();pasteHs(S.clip,S.cur,p.yaw,p.pitch)}
+});
+
+histReset();
 /* ---------- UI ---------- */
 function hint(msg){
   var h=$('#hint');
@@ -875,7 +959,7 @@ if(mq.addEventListener)mq.addEventListener('change',function(){setMenu(!mq.match
 $('#menuScroll').addEventListener('click',function(e){var h=e.target.closest('.sh');if(h)h.parentNode.classList.toggle('open')});
 
 /* barra de iconos sobre el visor */
-function goSec(id){setMenu(true);['secScenes','secScene','secBrand','secInfo','secSet'].forEach(function(x){var e=document.getElementById(x);if(e&&x!==id)e.classList.remove('open')});openSec(id);
+function goSec(id){setMenu(true);['secScenes','secScene','secPlan','secAudio','secBrand','secInfo','secSet'].forEach(function(x){var e=document.getElementById(x);if(e&&x!==id)e.classList.remove('open')});openSec(id);
   var e=document.getElementById(id);setTimeout(function(){if(e)e.scrollIntoView({block:'start',behavior:'smooth'})},60)}
 $('#tbShare').onclick=openShare;
 $('#tbLink').onclick=function(){if(S.pub&&S.pub.url)copyText(S.pub.url,'Enlace copiado');else{toast('Aún no está publicado: publícalo para obtener el enlace');openShare()}};
@@ -1264,7 +1348,7 @@ function e_trim(v){return (v||'').trim()}
 function renderMenu(){
   syncSettings();syncBrand();syncTitle();
   if(S.cur===menuCur)return;
-  menuCur=S.cur;
+  menuCur=S.cur;drawPlanEd();drawAudio();
   var sc=S.cur,box=$('#sceneTools');
   $('#curName').textContent=sc?sc.name:'';
   if(!sc){box.className='sb off';box.innerHTML='<small>Sube una panorama para editar su vista inicial, sus ajustes de imagen y su capa.</small><button class="wide" id="btnInit" disabled>Fijar vista inicial</button><div id="adjBox"><h5>Ajustes de imagen</h5><small>Brillo, contraste y saturación.</small></div><div id="layerBox"><h5>Capa de comparación</h5><small>Superpone un plano o una etapa anterior.</small></div>';return}
@@ -1303,6 +1387,69 @@ $('#fileLayer').onchange=async function(e){
   applyScene(sc);if(old)URL.revokeObjectURL(old);drawLayer();renderList();
 };
 
+
+/* ---------- plano / mapa ---------- */
+function drawPlanEd(){
+  var u=$('#planTools');if(!u)return;var P=S.plan,sc=S.cur;
+  if(!P){u.innerHTML='<small>Sube el plano de planta o un mapa. Cada escena se marca con un punto y el visitante ve un radar con hacia dónde mira.</small><div class="row"><button class="wide" id="plPick" type="button">Elegir imagen del plano…</button></div>';$('#plPick').onclick=function(){$('#filePlan').click()};return}
+  var pin=sc&&sc.plan;
+  var pins=S.scenes.filter(function(o){return o.plan}).map(function(o){return '<span class="pin" data-id="'+esc(o.id)+'" style="position:absolute;left:'+o.plan.x+'%;top:'+o.plan.y+'%;width:'+(o===sc?16:12)+'px;height:'+(o===sc?16:12)+'px;margin:'+(o===sc?-8:-6)+'px 0 0 '+(o===sc?-8:-6)+'px;border-radius:50%;background:'+(o===sc?'var(--acc)':'#fff')+';border:2px solid #0A1118;box-sizing:border-box"></span>'}).join('');
+  u.innerHTML='<small>'+(sc?'Haz clic en el plano para ubicar “'+esc(sc.name)+'”.':'Sube una panorama para ubicarla en el plano.')+'</small>'+
+    '<div id="plBox" style="position:relative;line-height:0;cursor:crosshair;margin:6px 0"><img src="'+P.url+'" style="width:100%;display:block;border-radius:6px" draggable="false">'+pins+'</div>'+
+    (pin?'<button class="wide" id="plNorth" type="button" title="Mira hacia lo que en el plano está ARRIBA y pulsa">Usar la vista actual como “arriba” del plano</button><small>Orienta el radar: apunta a lo que queda hacia arriba en el plano.</small><div class="row"><button class="danger" id="plUnpin" type="button">Quitar esta escena del plano</button></div>':'')+
+    '<div class="chk"><input type="checkbox" id="plRadar"'+(P.radar===false?'':' checked')+'><label for="plRadar" style="margin:0;color:inherit;font-size:13px">Mostrar radar (hacia dónde mira el visitante)</label></div>'+
+    '<div class="chk"><input type="checkbox" id="plOpen"'+(P.open?' checked':'')+'><label for="plOpen" style="margin:0;color:inherit;font-size:13px">Abrir el plano al entrar al tour</label></div>'+
+    '<div class="row"><button id="plPick" type="button">Cambiar plano…</button><button class="danger" id="plDel" type="button">Quitar plano</button></div>';
+  $('#plPick').onclick=function(){$('#filePlan').click()};
+  $('#plDel').onclick=function(){if(!confirm('¿Quitar el plano y todos sus puntos?'))return;URL.revokeObjectURL(P.url);S.plan=null;S.scenes.forEach(function(o){o.plan=null});drawPlanEd()};
+  $('#plRadar').onchange=function(e){P.radar=e.target.checked};$('#plOpen').onchange=function(e){P.open=e.target.checked};
+  $('#plBox').onclick=function(e){
+    if(!sc)return;var r=$('#plBox').getBoundingClientRect();
+    var x=Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100)),y=Math.max(0,Math.min(100,(e.clientY-r.top)/r.height*100));
+    sc.plan=Object.assign({north:0},sc.plan||{},{x:+x.toFixed(2),y:+y.toFixed(2)});drawPlanEd();
+  };
+  if(pin){
+    $('#plNorth').onclick=function(){sc.plan.north=+sc.ms.view().yaw().toFixed(4);toast('Orientación del radar guardada para esta escena')};
+    $('#plUnpin').onclick=function(){sc.plan=null;drawPlanEd()};
+  }
+}
+$('#filePlan').onchange=async function(e){
+  var f=e.target.files[0];e.target.value='';if(!f)return;
+  var r=await prepImg(f,2400);if(!r)return;
+  if(S.plan)URL.revokeObjectURL(S.plan.url);
+  S.plan={blob:r.blob,url:r.url,name:f.name,radar:S.plan?S.plan.radar:true,open:S.plan?!!S.plan.open:false};drawPlanEd();
+};
+
+/* ---------- audio y recorrido ---------- */
+function audName(b){return b&&b.name?esc(b.name):''}
+function drawAudio(){
+  var u=$('#audioTools');if(!u)return;var M=S.music,sc=S.cur;
+  var h='<h5>Música de fondo</h5>';
+  if(M)h+='<small>'+audName(M)+'</small><label>Volumen: <span id="muV">'+M.vol+'</span>%</label><input type="range" class="sldr" id="muVol" min="0" max="100" value="'+M.vol+'"><div class="row"><button id="muPick" type="button">Cambiar…</button><button class="danger" id="muDel" type="button">Quitar</button></div>';
+  else h+='<small>MP3, M4A u OGG. Suena en bucle; el navegador la inicia con el primer toque del visitante.</small><div class="row"><button id="muPick" type="button">Elegir música…</button></div>';
+  h+='<h5>Esta escena</h5>';
+  if(!sc)h+='<small>Sube una panorama para configurar su narración y su tiempo en el recorrido.</small>';
+  else{
+    h+='<label>Narración de “'+esc(sc.name)+'”</label>';
+    if(sc.audio)h+='<small>'+audName(sc.audio)+'</small><audio controls src="'+sc.audio.url+'" style="width:100%;height:34px"></audio><div class="row"><button id="naPick" type="button">Cambiar…</button><button class="danger" id="naDel" type="button">Quitar</button></div>';
+    else h+='<small>Se reproduce al entrar a la escena (y baja la música de fondo). En el recorrido automático, avanza al terminar.</small><div class="row"><button id="naPick" type="button">Elegir audio…</button></div>';
+    h+='<label>Segundos en el recorrido automático</label><input type="number" id="seSecs" min="0" max="300" placeholder="Por defecto ('+(S.set.pilotSecs||8)+' s)" value="'+(sc.secs||'')+'">'+
+      '<div class="chk"><input type="checkbox" id="seSkip"'+(sc.skip?' checked':'')+'><label for="seSkip" style="margin:0;color:inherit;font-size:13px">Saltar esta escena en el recorrido</label></div>';
+  }
+  u.innerHTML=h;
+  $('#muPick').onclick=function(){$('#fileMusic').click()};
+  if(M){$('#muVol').oninput=function(e){M.vol=+e.target.value;$('#muV').textContent=M.vol};$('#muDel').onclick=function(){URL.revokeObjectURL(M.url);S.music=null;drawAudio()}}
+  if(sc){
+    $('#naPick').onclick=function(){$('#fileNarr').click()};
+    if(sc.audio)$('#naDel').onclick=function(){URL.revokeObjectURL(sc.audio.url);sc.audio=null;drawAudio()};
+    $('#seSecs').oninput=function(e){sc.secs=Math.max(0,Math.min(300,+e.target.value||0))};
+    $('#seSkip').onchange=function(e){sc.skip=e.target.checked};
+  }
+}
+function loadAudio(f){return {blob:f,url:URL.createObjectURL(f),name:f.name}}
+$('#fileMusic').onchange=function(e){var f=e.target.files[0];e.target.value='';if(!f)return;if(S.music)URL.revokeObjectURL(S.music.url);var a=loadAudio(f);S.music={blob:a.blob,url:a.url,name:a.name,vol:S.music?S.music.vol:40};drawAudio();if(f.size>15e6)toast('El audio pesa '+(f.size/1e6).toFixed(1)+' MB: hará más lento el tour. Considera un MP3 más liviano.',true)};
+$('#fileNarr').onchange=function(e){var f=e.target.files[0],sc=S.cur;e.target.value='';if(!f||!sc)return;if(sc.audio)URL.revokeObjectURL(sc.audio.url);sc.audio=loadAudio(f);drawAudio();if(f.size>15e6)toast('El audio pesa '+(f.size/1e6).toFixed(1)+' MB.',true)};
+
 /* ---------- ajustes del tour (en el menú) ---------- */
 var SETUI=[
   ['h','Visor'],
@@ -1311,6 +1458,11 @@ var SETUI=[
   ['c','viewControls','Botones de flechas y zoom'],
   ['c','sceneList','Menú de escenas'],
   ['c','gyro','Botón de giroscopio (celulares)'],
+  ['h','Recorrido automático'],
+  ['c','pilot','Botón de recorrido automático (▶)'],
+  ['s','pilotSecs','Tiempo por escena',[['5','5 segundos'],['8','8 segundos'],['12','12 segundos'],['20','20 segundos'],['30','30 segundos']]],
+  ['c','pilotLoop','Repetir al terminar'],
+  ['c','pilotStart','Iniciar solo al abrir el tour'],
   ['h','Navegación'],
   ['s','mouseMode','Movimiento del mouse',[['drag','Arrastrar para mirar'],['qtvr','Seguir el puntero']]],
   ['s','transition','Transición al usar un enlace',[['zoom','Girar y acercar hacia el enlace'],['fade','Fundido simple']]],
@@ -1324,13 +1476,19 @@ var SETUI=[
     else if(r[0]==='c')h+='<div class="chk"><input type="checkbox" id="set_'+r[1]+'"><label for="set_'+r[1]+'" style="margin:0;color:inherit;font-size:13px">'+r[2]+'</label></div>';
     else h+='<label for="set_'+r[1]+'">'+r[2]+'</label><select id="set_'+r[1]+'">'+r[3].map(function(o){return '<option value="'+o[0]+'">'+o[1]+'</option>'}).join('')+'</select>'+(r[4]?'<small>'+r[4]+'</small>':'');
   });
+  h+='<h5>Contraseña del tour</h5><label for="passIn">Contraseña (opcional)</label><input type="text" id="passIn" autocomplete="off" placeholder="Sin contraseña"><small id="passNote"></small>';
   $('#setTools').innerHTML=h;
+  $('#passIn').oninput=function(e){S.passTxt=e.target.value;if(!S.passTxt)S.passHash=null;passNote()};
+  passNote();
   SETUI.forEach(function(r){
     if(r[0]==='h')return;var el=$('#set_'+r[1]);
-    el.onchange=function(){S.set[r[1]]=r[0]==='c'?el.checked:el.value};
+    el.onchange=function(){S.set[r[1]]=r[0]==='c'?el.checked:(r[1]==='pilotSecs'?+el.value:el.value)};
   });
 })();
-function syncSettings(){SETUI.forEach(function(r){if(r[0]==='h')return;var el=$('#set_'+r[1]);if(!el)return;if(r[0]==='c')el.checked=!!S.set[r[1]];else el.value=S.set[r[1]]||r[3][0][0]})}
+function passNote(){var n=$('#passNote');if(!n)return;n.textContent=S.passTxt?'El visor pedirá esta contraseña al abrir el tour. Es una protección básica: sirve para evitar visitas casuales, pero alguien con conocimientos técnicos puede saltársela porque no hay servidor. No uses una contraseña que ya uses en otros sitios.':S.passHash?'Este tour ya tiene una contraseña definida. Escribe una nueva para cambiarla o deja el campo vacío y pulsa Quitar.':'Protección básica del lado del visitante (sin servidor).';
+  if(S.passHash&&!S.passTxt&&!$('#passClr')){var b=document.createElement('button');b.id='passClr';b.type='button';b.textContent='Quitar contraseña';b.onclick=function(){S.passHash=null;b.remove();passNote()};n.parentNode.insertBefore(b,n.nextSibling)}
+  if(!S.passHash&&$('#passClr'))$('#passClr').remove()}
+function syncSettings(){SETUI.forEach(function(r){if(r[0]==='h')return;var el=$('#set_'+r[1]);if(!el)return;if(r[0]==='c')el.checked=!!S.set[r[1]];else el.value=S.set[r[1]]!=null?S.set[r[1]]:r[3][0][0]})}
 $('#tourName').oninput=function(e){S.name=e.target.value};
 $('#btnAdd').onclick=$('#btnAdd2').onclick=function(){$('#fileImgs').click()};
 $('#fileImgs').onchange=function(e){addFiles(e.target.files);e.target.value=''};
@@ -1346,6 +1504,8 @@ document.addEventListener('drop',function(e){
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(S.reloc){S.reloc=null;$('#stage').classList.remove('moving');hint()}else if($('#panel').style.display==='block'){$('#pNo')&&$('#pNo').click()}}});
 
 /* ---------- datos / exportación ---------- */
+function mimeA(f){f=f.toLowerCase();return /\.ogg$/.test(f)?'audio/ogg':/\.wav$/.test(f)?'audio/wav':/\.m4a$/.test(f)?'audio/mp4':/\.webm$/.test(f)?'audio/webm':'audio/mpeg'}
+function extA(b){var t=(b.type||'')+'',n=(b.name||'').toLowerCase();return /ogg/.test(t)||/\.(ogg|oga)$/.test(n)?'ogg':/wav/.test(t)||/\.wav$/.test(n)?'wav':/mp4|m4a|aac/.test(t)||/\.(m4a|aac|mp4)$/.test(n)?'m4a':/webm/.test(t)?'webm':'mp3'}
 function ext(b){return b.type==='image/png'?'png':b.type==='image/webp'?'webp':'jpg'}
 /* pv: true para la vista previa (URLs del editor); si no, rutas del ZIP. cube: las escenas llevan teselas y los originales van en originales/. */
 function buildData(pv,cube){
@@ -1357,11 +1517,22 @@ function buildData(pv,cube){
       infoHotspots:sc.hs.filter(function(h){return h.type==='info'}).map(function(h){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),title:h.title,text:h.text,icon:h.icon,color:h.color}}),
       embedHotspots:sc.hs.filter(function(h){return h.type==='embed'&&G.normEmbed(h.url).src}).map(function(h){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),title:h.title,url:h.url,icon:h.icon,color:h.color}}),
       imageHotspots:sc.hs.filter(function(h){return h.type==='imagen'&&h.url}).map(function(h,k){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),size:h.size,title:h.title,file:pv?h.url:'img/'+id+'_i'+k+'.'+ext(h.blob)}})};
+    var gl=sc.hs.filter(function(h){return h.type==='galeria'&&h.images&&h.images.length});
+    if(gl.length)o.galleryHotspots=gl.map(function(h,k){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),title:h.title,icon:h.icon,color:h.color,files:h.images.map(function(x,j){return pv?x.url:'img/'+id+'_g'+k+'_'+j+'.'+ext(x.blob)})}});
+    if(sc.audio)o.audio={file:pv?sc.audio.url:'audio/'+id+'.'+extA(sc.audio.blob),name:sc.audio.name};
+    if(sc.secs)o.secs=sc.secs;if(sc.skip)o.skip=true;
     if(nz)o.adjust={b:sc.adjust.b,c:sc.adjust.c,s:sc.adjust.s};
     if(sc.layer)o.layer={file:pv?sc.layer.url:'img/'+id+'_capa.'+ext(sc.layer.blob),width:sc.layer.width,name:sc.layer.name||'Capa',opacity:sc.layer.opacity};
     return o;
   });
   var out={name:S.name||'Tour 360°',format:'geomav-equirect-1',settings:Object.assign({},S.set),scenes:scenes};
+  if(S.plan&&S.scenes.some(function(o){return o.plan})){
+    out.plan={file:pv?S.plan.url:'img/plano.'+ext(S.plan.blob),radar:S.plan.radar!==false,open:!!S.plan.open,
+      pins:S.scenes.filter(function(o){return o.plan}).map(function(o){return {scene:o.id,x:o.plan.x,y:o.plan.y,north:o.plan.north||0}})};
+  }
+  if(S.music)out.music={file:pv?S.music.url:'audio/musica.'+extA(S.music.blob),volume:S.music.vol,loop:true,name:S.music.name};
+  if(S.passTxt){var salt=(S.passHash&&S.passHash.salt)||Math.random().toString(36).slice(2,10);S.passHash={salt:salt,hash:G.sha256(salt+S.passTxt)}}
+  if(S.passHash&&S.passHash.hash)out.settings.pass=S.passHash;
   if(S.pub&&!pv)out.publish={siteId:S.pub.siteId||null,url:S.pub.url};
   var B=S.brand,br={};
   if(G.HEX.test(B.accent))br.accent=B.accent;if(G.HEX.test(B.bar))br.bar=B.bar;
@@ -1393,6 +1564,8 @@ async function buildTourZip(o){
       if(!(cube&&o.web))zip.file(ds.file,sc.blob,{compression:'STORE'});
       if(sc.layer)zip.file(ds.layer.file,sc.layer.blob,{compression:'STORE'});
       sc.hs.filter(function(h){return h.type==='imagen'&&h.url}).forEach(function(h,k){zip.file(ds.imageHotspots[k].file,h.blob,{compression:'STORE'})});
+      sc.hs.filter(function(h){return h.type==='galeria'&&h.images&&h.images.length}).forEach(function(h,k){h.images.forEach(function(x,j){zip.file(ds.galleryHotspots[k].files[j],x.blob,{compression:'STORE'})})});
+      if(sc.audio)zip.file(ds.audio.file,sc.audio.blob,{compression:'STORE'});
       if(cube){
         var im=await loadImg(sc.url);
         var r=await CubeGen.build(im,'img/'+sc.id,{onProgress:function(t){prog('Escena '+(i+1)+'/'+S.scenes.length+': '+t)}});
@@ -1400,6 +1573,8 @@ async function buildTourZip(o){
         ds.multires={levels:r.levels,tiles:r.tiles,preview:r.preview};
       }
     }
+    if(data.plan)zip.file(data.plan.file,S.plan.blob,{compression:'STORE'});
+    if(data.music)zip.file(data.music.file,S.music.blob,{compression:'STORE'});
     if(S.brand.logo)zip.file(data.brand.logo.file,S.brand.logo.blob,{compression:'STORE'});
     // data.js y tour.json se escriben al final, con las teselas ya registradas
     zip.file('data.js','var APP_DATA = '+JSON.stringify(data,null,2)+';\n',D);
@@ -1449,15 +1624,30 @@ async function importZip(file){
         var ib=await zf.async('blob'),it=/\.png$/i.test(ih.file)?'image/png':/\.webp$/i.test(ih.file)?'image/webp':'image/jpeg';ib=new Blob([ib],{type:it});
         hs.push({id:uid(),type:'imagen',yaw:ih.yaw,pitch:ih.pitch,size:ih.size||20,title:ih.title||'',blob:ib,url:URL.createObjectURL(ib)});
       }
+      for(var gk=0;gk<(s.galleryHotspots||[]).length;gk++){
+        var gh=s.galleryHotspots[gk],imgs=[];
+        for(var gj=0;gj<gh.files.length;gj++){var gz=zip.file(gh.files[gj]);if(!gz)continue;var gb=await gz.async('blob'),gt=/\.png$/i.test(gh.files[gj])?'image/png':/\.webp$/i.test(gh.files[gj])?'image/webp':'image/jpeg';gb=new Blob([gb],{type:gt});imgs.push({blob:gb,url:URL.createObjectURL(gb)})}
+        hs.push({id:uid(),type:'galeria',yaw:gh.yaw,pitch:gh.pitch,title:gh.title||'',icon:gh.icon,color:gh.color,images:imgs});
+      }
+      var audio=null;
+      if(s.audio&&s.audio.file&&zip.file(s.audio.file)){var ab=await zip.file(s.audio.file).async('blob');ab=new Blob([ab],{type:mimeA(s.audio.file)});audio={blob:ab,url:URL.createObjectURL(ab),name:s.audio.name||s.audio.file.split('/').pop()}}
       var layer=null;
       if(s.layer&&s.layer.file&&zip.file(s.layer.file)){
         var lb=await zip.file(s.layer.file).async('blob'),lt=/\.png$/i.test(s.layer.file)?'image/png':/\.webp$/i.test(s.layer.file)?'image/webp':'image/jpeg';lb=new Blob([lb],{type:lt});
         layer={blob:lb,url:URL.createObjectURL(lb),width:s.layer.width||4096,name:s.layer.name||'Capa',opacity:s.layer.opacity==null?50:s.layer.opacity};
       }
-      await addImage(fl,{id:s.id,name:s.name,init:s.initialViewParameters,hs:hs,adjust:s.adjust&&{b:s.adjust.b||0,c:s.adjust.c||0,s:s.adjust.s||0},layer:layer});
+      await addImage(fl,{id:s.id,name:s.name,init:s.initialViewParameters,hs:hs,adjust:s.adjust&&{b:s.adjust.b||0,c:s.adjust.c||0,s:s.adjust.s||0},layer:layer,plan:null,audio:audio,secs:s.secs||0,skip:!!s.skip});
     }
     S.name=data.name||S.name;$('#tourName').value=S.name;
     S.pub=data.publish||null;
+    if(S.plan)URL.revokeObjectURL(S.plan.url);if(S.music)URL.revokeObjectURL(S.music.url);S.plan=null;S.music=null;S.passTxt='';
+    S.passHash=(data.settings&&data.settings.pass)||null;
+    if(data.plan&&data.plan.file&&zip.file(data.plan.file)){
+      var pb=await zip.file(data.plan.file).async('blob'),pt=/\.png$/i.test(data.plan.file)?'image/png':/\.webp$/i.test(data.plan.file)?'image/webp':'image/jpeg';pb=new Blob([pb],{type:pt});
+      S.plan={blob:pb,url:URL.createObjectURL(pb),name:'plano',radar:data.plan.radar!==false,open:!!data.plan.open};
+      (data.plan.pins||[]).forEach(function(pn){var o=byId(pn.scene);if(o)o.plan={x:pn.x,y:pn.y,north:pn.north||0}});
+    }
+    if(data.music&&data.music.file&&zip.file(data.music.file)){var mb=await zip.file(data.music.file).async('blob');mb=new Blob([mb],{type:mimeA(data.music.file)});S.music={blob:mb,url:URL.createObjectURL(mb),name:data.music.name||'musica',vol:data.music.volume==null?40:data.music.volume}}
     if(S.brand.logo)URL.revokeObjectURL(S.brand.logo.url);
     S.brand={accent:(data.brand&&data.brand.accent)||'',bar:(data.brand&&data.brand.bar)||'',logo:null,logoLink:(data.brand&&data.brand.logo&&data.brand.logo.link)||''};
     if(data.brand&&data.brand.logo&&zip.file(data.brand.logo.file)){
@@ -1465,9 +1655,9 @@ async function importZip(file){
       S.brand.logo={blob:lgb,url:URL.createObjectURL(lgb)};
     }
     S.info=Object.assign({title:'',sub:'',desc:'',email:'',phone:'',web:'',pdf:'',pdfLabel:'',video:'',btnText:'',btnUrl:''},data.info||{});
-    G.applyBrand(S.brand);menuCur=undefined;
-    S.set=Object.assign({autorotate:true,fullscreen:true,viewControls:true,sceneList:true,gyro:true,transition:'zoom',quality:'standard',mouseMode:'drag'},data.settings||{});
-    renderList();if(S.scenes[0])select(S.scenes[0],{instant:true});syncUI();toast('Tour abierto');
+    G.applyBrand(S.brand);menuCur=undefined;passNote();
+    S.set=Object.assign({pilot:true,pilotSecs:8,pilotLoop:true,pilotStart:false,autorotate:true,fullscreen:true,viewControls:true,sceneList:true,gyro:true,transition:'zoom',quality:'standard',mouseMode:'drag'},data.settings||{});delete S.set.pass;
+    renderList();if(S.scenes[0])select(S.scenes[0],{instant:true});syncUI();histReset();toast('Tour abierto');
   }catch(e){toast('No se pudo abrir: '+(e&&e.message||e),true)}
 }
 
@@ -1529,21 +1719,24 @@ var GUIDE=[
  {sel:'[data-mode=link]',t:'3. Conecta las escenas',d:'Activa “+ Enlace”, haz clic donde quieras la flecha (una puerta, un pasillo…) y elige a qué escena lleva. Puedes cambiar su ícono y color, girarlo y crear el enlace de regreso automáticamente.'},
  {sel:'[data-mode=info]',t:'4. Agrega información',d:'Con “+ Info” marcas un punto con título y texto: medidas, materiales, avances de obra, recomendaciones.'},
  {sel:'[data-mode=embed]',t:'5. Contenido incrustado',d:'Con “+ Contenido” abres un video de YouTube/Vimeo, un mapa, un PDF de Google Drive o una web dentro del tour. Pega el enlace y listo.'},
- {sel:'[data-mode=imagen]',t:'6. Imagen sobre el panorama',d:'Con “+ Imagen” pegas un logo, una señal o un plano dentro de la escena. Se ajusta a la perspectiva y puedes cambiar su tamaño.'},
- {sel:'#btnInit',t:'7. Vista inicial',d:'Mira hacia donde quieras que parta cada escena y pulsa “Fijar vista inicial” en el menú. Así cada vez que alguien entre, verá lo más importante primero.',menu:'secScene'},
- {sel:'#orBox',t:'8. Orientación de la panorama',d:'Corrige el giro, la inclinación y el horizonte de cada panorama con los deslizadores o escribiendo grados con décimas. Se ve en vivo. Hazlo antes de colocar enlaces y puntos: al mover la imagen, lo ya colocado no se mueve con ella.',menu:'secScene'},
- {sel:'#orModel',t:'9. Mover el centro de giro',d:'Si dos fotos del mismo lugar se tomaron con la cámara desplazada, mueve el centro de giro en metros (derecha, adelante, arriba) y elige el modelo: suelo plano para exteriores u obras, o esfera para interiores. Es una aproximación: corrige bien lo que está cerca de la superficie elegida y funciona mejor con desplazamientos pequeños. Ajusta a ojo con la referencia semitransparente.',menu:'secScene'},
- {sel:'#orDl',t:'10. Alinear y descargar corregida',d:'Elige otra escena como referencia semitransparente para ver cuánto se desvió esta imagen (no se exporta). Con una referencia elegida, el botón “Alinear automáticamente” calcula todo solo (indica antes la altura de la cámara). Luego descarga la imagen corregida, o todas en un ZIP, con la misma resolución y formato. El giro horizontal es exacto; inclinar o nivelar remuestrea con interpolación bicúbica.',menu:'secScene'},
- {sel:'#adjBox',t:'11. Ajustes de imagen',d:'Brillo, contraste y saturación de la escena actual, con vista en vivo. Puedes copiarlos a todas las escenas.',menu:'secScene'},
- {sel:'#layerBox',t:'12. Capa de comparación',d:'Superpone otra panorama (plano, etapa anterior de obra) y el visitante la mezcla con un deslizador. Ideal para control de avance.',menu:'secScene'},
- {sel:'#tbActs',t:'13. Atajos sobre el visor',d:'Estos iconos te llevan rápido a copiar el enlace del tour, compartir (redes, correo, QR y código para insertar), corregir el color de la imagen, el logo y colores, y la información del tour.'},
- {sel:'#stTitle',t:'14. Nombre de la escena',d:'Haz clic en este cuadro, abajo a la izquierda del visor, para renombrar la escena actual. Se actualiza también en la lista del menú.'},
- {sel:'#brandTools',t:'15. Logo y colores',d:'Sube tu logo (aparece en la barra del tour) y elige el color de acento y de las barras, con presets o a tu gusto.',menu:'secBrand'},
- {sel:'#infoTools',t:'16. Info del tour',d:'Agrega un botón “Info” con una ficha: descripción, teléfono, correo, web, PDF, video y un botón de acción como “Solicitar cotización”.',menu:'secInfo'},
- {sel:'#setTools',t:'17. Ajustes del tour',d:'Autorrotación, pantalla completa, controles, menú de escenas, giroscopio, transición y calidad de imagen al exportar (estándar o multiresolución en cubo).',menu:'secSet'},
- {sel:'#btnPrev',t:'18. Previsualiza el tour',d:'Mira el tour terminado, con todos tus ajustes, sin exportar nada. Puedes ver cómo se verá en escritorio y en celular.'},
- {sel:'#btnShare',t:'19. Publica y comparte',d:'Con tu token de Netlify el editor sube el tour y te entrega el enlace, el código QR, los botones para compartir y el código para insertarlo en tu web. Al volver a publicar se actualiza la misma dirección.'},
- {sel:'#btnExport',t:'20. O exporta el ZIP',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
+ {sel:'[data-mode=galeria]',t:'6. Galería de fotos',d:'Con “+ Galería” marcas un punto que abre varias fotos a pantalla completa, con flechas y pase automático. Útil para avances de obra o detalles.'},
+ {sel:'[data-mode=imagen]',t:'7. Imagen sobre el panorama',d:'Con “+ Imagen” pegas un logo, una señal o un plano dentro de la escena. Se ajusta a la perspectiva y puedes cambiar su tamaño.'},
+ {sel:'#btnInit',t:'8. Vista inicial',d:'Mira hacia donde quieras que parta cada escena y pulsa “Fijar vista inicial” en el menú. Así cada vez que alguien entre, verá lo más importante primero.',menu:'secScene'},
+ {sel:'#orBox',t:'9. Orientación de la panorama',d:'Corrige el giro, la inclinación y el horizonte de cada panorama con los deslizadores o escribiendo grados con décimas. Se ve en vivo. Hazlo antes de colocar enlaces y puntos: al mover la imagen, lo ya colocado no se mueve con ella.',menu:'secScene'},
+ {sel:'#orModel',t:'10. Mover el centro de giro',d:'Si dos fotos del mismo lugar se tomaron con la cámara desplazada, mueve el centro de giro en metros (derecha, adelante, arriba) y elige el modelo: suelo plano para exteriores u obras, o esfera para interiores. Es una aproximación: corrige bien lo que está cerca de la superficie elegida y funciona mejor con desplazamientos pequeños. Ajusta a ojo con la referencia semitransparente.',menu:'secScene'},
+ {sel:'#orDl',t:'11. Alinear y descargar corregida',d:'Elige otra escena como referencia semitransparente para ver cuánto se desvió esta imagen (no se exporta). Con una referencia elegida, el botón “Alinear automáticamente” calcula todo solo (indica antes la altura de la cámara). Luego descarga la imagen corregida, o todas en un ZIP, con la misma resolución y formato. El giro horizontal es exacto; inclinar o nivelar remuestrea con interpolación bicúbica.',menu:'secScene'},
+ {sel:'#adjBox',t:'12. Ajustes de imagen',d:'Brillo, contraste y saturación de la escena actual, con vista en vivo. Puedes copiarlos a todas las escenas.',menu:'secScene'},
+ {sel:'#layerBox',t:'13. Capa de comparación',d:'Superpone otra panorama (plano, etapa anterior de obra) y el visitante la mezcla con un deslizador. Ideal para control de avance.',menu:'secScene'},
+ {sel:'#tbActs',t:'14. Atajos sobre el visor',d:'Estos iconos te llevan rápido a copiar el enlace del tour, compartir (redes, correo, QR y código para insertar), corregir el color de la imagen, el logo y colores, y la información del tour.'},
+ {sel:'#stTitle',t:'15. Nombre de la escena',d:'Haz clic en este cuadro, abajo a la izquierda del visor, para renombrar la escena actual. Se actualiza también en la lista del menú.'},
+ {sel:'#planTools',t:'16. Plano o mapa',d:'Sube un plano de planta o mapa y ubica cada escena con un clic. El visitante ve un botón 🗺 con el plano, puede saltar entre escenas tocando los puntos y ve un radar que muestra hacia dónde mira. Usa “vista actual como arriba” para orientar el radar.',menu:'secPlan'},
+ {sel:'#audioTools',t:'17. Audio y recorrido',d:'Agrega música de fondo en bucle y una narración por escena que suena al entrar. También defines cuántos segundos dura cada escena en el recorrido automático, o la saltas.',menu:'secAudio'},
+ {sel:'#brandTools',t:'18. Logo y colores',d:'Sube tu logo (aparece en la barra del tour) y elige el color de acento y de las barras, con presets o a tu gusto.',menu:'secBrand'},
+ {sel:'#infoTools',t:'19. Info del tour',d:'Agrega un botón “Info” con una ficha: descripción, teléfono, correo, web, PDF, video y un botón de acción como “Solicitar cotización”.',menu:'secInfo'},
+ {sel:'#setTools',t:'20. Ajustes del tour',d:'Autorrotación, recorrido automático, pantalla completa, controles, menú de escenas, giroscopio, transición, contraseña básica y calidad de imagen al exportar (estándar o multiresolución en cubo).',menu:'secSet'},
+ {sel:'#btnPrev',t:'21. Previsualiza el tour',d:'Mira el tour terminado, con todos tus ajustes, sin exportar nada. Puedes ver cómo se verá en escritorio y en celular.'},
+ {sel:'#btnShare',t:'22. Publica y comparte',d:'Con tu token de Netlify el editor sube el tour y te entrega el enlace, el código QR, los botones para compartir y el código para insertarlo en tu web. Al volver a publicar se actualiza la misma dirección.'},
+ {sel:'#btnExport',t:'23. O exporta el ZIP',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
 ];
 var gi=-1,gKey='geomav-editor-guia';
 function gEls(){return {b:$('#gBlock'),s:$('#gSpot'),c:$('#gCard')}}
