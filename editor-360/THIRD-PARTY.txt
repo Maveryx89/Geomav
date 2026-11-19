@@ -1,0 +1,6 @@
+Componentes de terceros usados por el editor 360
+
+- Marzipano (Apache-2.0): visor 360.
+- JSZip (MIT / GPLv3): empaquetado ZIP.
+- qrcode-generator (MIT): códigos QR.
+- OpenCV.js (Apache-2.0, paquete @techstark/opencv-js): alineación automática de panorámicas. Se carga solo al usar esa función.

@@ -997,7 +997,7 @@ async function rotFinal(sc){
   if(!c||tok.dead)return;
   var png=/png/.test(sc.base.blob.type),b=await canvasBlob(c,png?'image/png':'image/jpeg',.92);if(tok.dead)return;
   var u=URL.createObjectURL(b);setTmpUrl(sc,u);sc.blob=b;sc.rotDirty=false;
-  reloadScene(sc,u,c.width,c.height);refreshThumb(sc,c);rotNote('Corrección aplicada');
+  reloadScene(sc,u,c.width,c.height);refreshThumb(sc,c);rotNote((sc.autoMsg?sc.autoMsg+' ':'')+'Corrección aplicada.');
 }
 function refreshThumb(sc,c){
   var t=document.createElement('canvas');t.width=480;t.height=240;
@@ -1045,36 +1045,50 @@ async function renderCorrected(sc,onP){
 function drawOrient(){
   var sc=S.cur;if(!sc||!$('#orBox'))return;
   var R=sc.rot,AX=[['yaw','Giro (yaw)',180,'°',.1],['pitch','Inclinación (pitch)',90,'°',.1],['roll','Horizonte (roll)',180,'°',.1]],
-    TX=[['tx','Derecha (+) / izquierda (−)',5,'m',.01],['tz','Adelante (+) / atrás (−)',5,'m',.01],['ty','Arriba (+) / abajo (−)',5,'m',.01]];
+    TX=[['tx','Derecha (+) / izquierda (−)',100,'m',.01],['tz','Adelante (+) / atrás (−)',100,'m',.01],['ty','Arriba (+) / abajo (−)',100,'m',.01]];
   var h='<small>Corrige el giro y la posición de la panorama. Hazlo <b>antes</b> de colocar enlaces y puntos: al mover la imagen, lo ya colocado no se mueve con ella.</small>';
-  function ctl(a){return '<label>'+a[1]+'</label><div class="orr"><input type="range" class="sldr" id="or_'+a[0]+'" min="-'+a[2]+'" max="'+a[2]+'" step="'+a[4]+'" value="'+R[a[0]]+'"><input type="number" id="on_'+a[0]+'" min="-'+a[2]+'" max="'+a[2]+'" step="'+a[4]+'" value="'+R[a[0]]+'"><span>'+a[3]+'</span></div>'}
+  function ctl(a){return '<label>'+a[1]+'</label><div class="orr"><input type="range" class="sldr" id="or_'+a[0]+'" min="-'+a[2]+'" max="'+a[2]+'" step="'+(a[3]==='m'?.05:a[4])+'" value="'+R[a[0]]+'"><input type="number" id="on_'+a[0]+'" min="-'+a[2]+'" max="'+a[2]+'" step="'+a[4]+'" value="'+R[a[0]]+'"><span>'+a[3]+'</span></div>'}
   AX.forEach(function(a){h+=ctl(a)});
   h+='<h5>Mover el centro de giro</h5><small>Para fotos tomadas desde el mismo lugar pero con la cámara desplazada. Mueve el punto desde donde se “ve” la panorama. Es una aproximación: corrige bien lo que está cerca de la superficie elegida (suelo o distancia); lo muy cercano o lejano puede quedar con algo de desfase, y no se recupera lo que la cámara no vio. Funciona mejor con desplazamientos pequeños (hasta 2–3 m). Usa la referencia de abajo para ajustar a ojo.</small>';
   TX.forEach(function(a){h+=ctl(a)});
   h+='<label>Modelo de escena</label><select id="orModel"><option value="suelo"'+(R.model!=='esfera'?' selected':'')+'>Suelo plano + fondo lejano (exteriores, obras)</option><option value="esfera"'+(R.model==='esfera'?' selected':'')+'>Esfera a distancia fija (interiores)</option></select>'+
-    '<label>Distancia a los objetos / fondo (m)</label><div class="orr"><input type="number" id="orDist" min="2" max="1000" step="1" value="'+R.dist+'"></div>'+
+    '<label>Distancia a los objetos / fondo (m)</label><div class="orr"><input type="number" id="orDist" min="2" max="50000" step="1" value="'+R.dist+'"></div>'+
     '<div id="orHrow"'+(R.model==='esfera'?' style="display:none"':'')+'><label>Altura de la cámara sobre el suelo (m)</label><div class="orr"><input type="number" id="orH" min="0.2" max="200" step="0.1" value="'+R.h+'"></div></div>';
   var others=S.scenes.filter(function(o){return o!==sc}),rf=sc.ref||{};
   h+='<div class="row"><button id="orReset" type="button">Restablecer</button></div>'+
     '<h5>Alinear con otra escena</h5><small>Muestra otra escena semitransparente encima para ver cuánto está desviada. Solo ayuda a editar; no se exporta.</small>'+
     (others.length?'<select id="orRef"><option value="">— Sin referencia —</option>'+others.map(function(o){return '<option value="'+esc(o.id)+'"'+(rf.id===o.id?' selected':'')+'>'+esc(o.name)+'</option>'}).join('')+'</select>'+
       '<label>Transparencia: <span id="orOv">'+(rf.opacity==null?50:rf.opacity)+'</span>%</label><input type="range" class="sldr" id="orOp" min="0" max="100" value="'+(rf.opacity==null?50:rf.opacity)+'">':'<small>Agrega otra escena para usarla de referencia.</small>')+
+    '<div class="row"><button class="primary wide" id="orAuto" type="button"'+(rf.id?'':' disabled')+'>Alinear automáticamente con la referencia</button></div><small>Detecta puntos en común entre esta escena y la referencia y calcula giro, inclinación, horizonte y desplazamiento. La primera vez descarga una librería de visión (~13 MB). Indica abajo la altura de la cámara sobre el suelo (en un dron, su altura de vuelo) para que el desplazamiento salga en metros.</small>'+
     '<h5>Descargar imagen corregida</h5><small>Misma resolución y formato que tu archivo original (JPG conserva EXIF/XMP; PNG sin pérdida). El giro horizontal puro es exacto, sin perder píxeles; inclinar o nivelar remuestrea con interpolación bicúbica.</small>'+
     '<div class="row"><button id="orDl" type="button">Esta imagen</button><button id="orDlAll" type="button">Todas (ZIP)</button></div><small id="oNote" aria-live="polite"></small>';
   $('#orBox').innerHTML=h;
   AX.concat(TX).forEach(function(a){
     var k=a[0],rg=$('#or_'+k),nm=$('#on_'+k),q=a[4]===.01?100:10;
-    function set(v){v=Math.max(-a[2],Math.min(a[2],+v||0));R[k]=Math.round(v*q)/q;rg.value=R[k];nm.value=R[k];rotChanged(sc)}
+    function set(v){v=Math.max(-a[2],Math.min(a[2],+v||0));R[k]=Math.round(v*q)/q;if(a[3]==='m')sc.autoT=null;sc.autoMsg='';rg.value=R[k];nm.value=R[k];rotChanged(sc)}
     rg.oninput=function(){set(rg.value)};nm.onchange=function(){set(nm.value)};
   });
   $('#orModel').onchange=function(){R.model=this.value;$('#orHrow').style.display=R.model==='esfera'?'none':'';rotChanged(sc)};
-  $('#orDist').onchange=function(){R.dist=Math.max(2,Math.min(1000,+this.value||30));this.value=R.dist;rotChanged(sc)};
-  $('#orH').onchange=function(){R.h=Math.max(.2,Math.min(200,+this.value||1.6));this.value=R.h;rotChanged(sc)};
-  $('#orReset').onclick=function(){R.yaw=R.pitch=R.roll=R.tx=R.ty=R.tz=0;drawOrient();rotChanged(sc)};
+  $('#orDist').onchange=function(){R.dist=Math.max(2,Math.min(50000,+this.value||30));this.value=R.dist;rotChanged(sc)};
+  $('#orH').onchange=function(){R.h=Math.max(.2,Math.min(200,+this.value||1.6));this.value=R.h;if(sc.autoT){applyAutoT(sc);drawOrient()}rotChanged(sc)};
+  $('#orReset').onclick=function(){R.yaw=R.pitch=R.roll=R.tx=R.ty=R.tz=0;sc.autoT=null;sc.autoMsg='';drawOrient();rotChanged(sc)};
   if($('#orRef')){
-    $('#orRef').onchange=function(){sc.ref=this.value?{id:this.value,on:true,opacity:(sc.ref&&sc.ref.opacity)||50}:null;applyRef(sc)};
+    $('#orRef').onchange=function(){sc.ref=this.value?{id:this.value,on:true,opacity:(sc.ref&&sc.ref.opacity)||50}:null;applyRef(sc);$('#orAuto').disabled=!sc.ref};
     $('#orOp').oninput=function(){if(!sc.ref)return;sc.ref.opacity=+this.value;$('#orOv').textContent=this.value;applyRef(sc)};
   }
+  $('#orAuto').onclick=async function(){
+    var b=this,ref=sc.ref&&byId(sc.ref.id);if(!ref)return;
+    b.disabled=true;
+    try{
+      var r=await autoAlign(sc,ref,rotNote),hh=R.h;
+      R.yaw=Math.round(r.p[0]*100)/100;R.pitch=Math.round(r.p[1]*100)/100;R.roll=Math.round(r.p[2]*100)/100;
+      if(r.ground){sc.autoT={tx:r.p[3],ty:r.p[4],tz:r.p[5]};R.model='suelo';applyAutoT(sc)}else{sc.autoT=null;R.tx=R.ty=R.tz=0}
+      drawOrient();rotChanged(sc);
+      sc.autoMsg='Alineación automática: error mediano '+r.before.toFixed(2)+'° → '+r.after.toFixed(2)+'°'+(r.ground?' ('+r.ng+' puntos en el suelo). Ajusta la altura de la cámara con tu altura real.':' (solo giro).');
+      rotNote(sc.autoMsg)
+    }catch(e){toast(e.message||'No se pudo alinear',true);rotNote('')}
+    var bb=$('#orAuto');if(bb)bb.disabled=!sc.ref;
+  };
   $('#orDl').onclick=async function(){
     var b=this;b.disabled=true;
     try{var r=await renderCorrected(sc,function(p){rotNote('Procesando… '+Math.round(p*100)+'%')});saveBlob(r.blob,r.name);rotNote('Listo: '+r.name+' ('+r.w+'×'+r.h+' px)')}
@@ -1090,6 +1104,158 @@ function drawOrient(){
     }catch(e){toast('No se pudo generar el ZIP: '+e.message,true)}
     b.disabled=false;
   };
+}
+
+/* ---------- alineación automática con otra escena (OpenCV.js, se descarga solo al usarla) ---------- */
+var cvP=null;
+function loadCV(){
+  if(cvP)return cvP;
+  cvP=new Promise(function(ok,no){
+    var sc_=document.createElement('script');sc_.src='opencv.js';sc_.async=true;
+    sc_.onload=async function(){try{var c=window.cv;if(c&&typeof c.then==='function')c=await c;if(!c.Mat)await new Promise(function(r){c.onRuntimeInitialized=r});ok(c)}catch(e){cvP=null;no(e)}};
+    sc_.onerror=function(){cvP=null;no(new Error('No se pudo cargar la librería de visión (opencv.js)'))};
+    document.head.appendChild(sc_);
+  });
+  return cvP;
+}
+function grayEq(url,W){
+  return loadImg(url).then(function(img){
+    var w=Math.min(W,img.naturalWidth),h=Math.round(w/2),c=document.createElement('canvas');c.width=w;c.height=h;
+    var g=c.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0,w,h);
+    var d=g.getImageData(0,0,w,h).data,gr=new Uint8Array(w*h);
+    for(var i=0,j=0;i<gr.length;i++,j+=4)gr[i]=(d[j]*77+d[j+1]*150+d[j+2]*29)>>8;
+    return {g:gr,w:w,h:h};
+  });
+}
+function sampleGray(E,mx,my,out){
+  var w=E.w,h=E.h,g=E.g;
+  for(var i=0;i<out.length;i++){
+    var x=mx[i],y=my[i],x0=Math.floor(x),y0=Math.floor(y),fx=x-x0,fy=y-y0,xa=((x0%w)+w)%w,xb=(xa+1)%w,ya=y0<0?0:y0>h-1?h-1:y0,yb=y0+1<0?0:y0+1>h-1?h-1:y0+1;
+    out[i]=g[ya*w+xa]*(1-fx)*(1-fy)+g[ya*w+xb]*fx*(1-fy)+g[yb*w+xa]*(1-fx)*fy+g[yb*w+xb]*fx*fy;
+  }
+}
+function d2r(x){return x*Math.PI/180}
+function predictG(p,a,ground){
+  var M=rotMatrix({yaw:p[0],pitch:p[1],roll:p[2]}),px=a[0],py=a[1],pz=a[2];
+  if(ground){
+    var tx=p[3],ty=p[4],tz=p[5],ay=a[1];
+    var r=ay<-1e-6?(-1-ty)/ay:1e6;if(!(r>0))r=1e6;
+    px=tx+r*a[0];py=ty+r*a[1];pz=tz+r*a[2];var l=Math.sqrt(px*px+py*py+pz*pz)||1;px/=l;py/=l;pz/=l;
+  }
+  return [M[0][0]*px+M[0][1]*py+M[0][2]*pz,M[1][0]*px+M[1][1]*py+M[1][2]*pz,M[2][0]*px+M[2][1]*py+M[2][2]*pz];
+}
+function angErr(p,A,B,ground){
+  var e=new Float64Array(A.length);
+  for(var i=0;i<A.length;i++){var q=predictG(p,A[i],ground),b=B[i],d=q[0]*b[0]+q[1]*b[1]+q[2]*b[2];e[i]=Math.acos(Math.max(-1,Math.min(1,d)))*180/Math.PI}
+  return e;
+}
+function medianOf(a){var b=Array.prototype.slice.call(a).sort(function(x,y){return x-y});return b.length?b[b.length>>1]:NaN}
+function solveLin(Aa,b){
+  var n=b.length,M=Aa.map(function(r,i){return r.concat([b[i]])});
+  for(var i=0;i<n;i++){
+    var m=i;for(var r=i+1;r<n;r++)if(Math.abs(M[r][i])>Math.abs(M[m][i]))m=r;
+    var t=M[i];M[i]=M[m];M[m]=t;var pv=M[i][i]||1e-12;
+    for(r=i+1;r<n;r++){var f=M[r][i]/pv;for(var c=i;c<=n;c++)M[r][c]-=f*M[i][c]}
+  }
+  var x=new Array(n).fill(0);
+  for(i=n-1;i>=0;i--){var s2=M[i][n];for(var c2=i+1;c2<n;c2++)s2-=M[i][c2]*x[c2];x[i]=s2/(M[i][i]||1e-12)}
+  return x;
+}
+/* Mínimos cuadrados robustos (LM con pesos tipo soft-L1) sobre los vectores de dirección. */
+function fitLM(A,B,p0,ground,fs){
+  var n=p0.length,p=p0.slice(),lam=1e-3,h=1e-5;
+  function resid(pp,w){
+    var r=new Float64Array(A.length*3),S=180/Math.PI;
+    for(var i=0;i<A.length;i++){var q=predictG(pp,A[i],ground);r[3*i]=(q[0]-B[i][0])*S;r[3*i+1]=(q[1]-B[i][1])*S;r[3*i+2]=(q[2]-B[i][2])*S}
+    return r;
+  }
+  function cost(r,w){var c=0;for(var i=0;i<A.length;i++){var e=Math.sqrt(r[3*i]*r[3*i]+r[3*i+1]*r[3*i+1]+r[3*i+2]*r[3*i+2]);c+=2*fs*fs*(Math.sqrt(1+(e/fs)*(e/fs))-1)}return c}
+  var r=resid(p),c0=cost(r);
+  for(var it=0;it<60;it++){
+    var w=new Float64Array(A.length);
+    for(var i=0;i<A.length;i++){var e=Math.sqrt(r[3*i]*r[3*i]+r[3*i+1]*r[3*i+1]+r[3*i+2]*r[3*i+2]);w[i]=1/Math.sqrt(1+(e/fs)*(e/fs))}
+    var J=[];
+    for(var k=0;k<n;k++){var pp=p.slice();pp[k]+=h;var rk=resid(pp),col=new Float64Array(r.length);for(var j=0;j<r.length;j++)col[j]=(rk[j]-r[j])/h;J.push(col)}
+    var H=[],g=[];
+    for(var a=0;a<n;a++){H.push(new Array(n).fill(0));g.push(0)}
+    for(a=0;a<n;a++){
+      for(var b2=a;b2<n;b2++){var sum=0;for(var q=0;q<A.length;q++){var wq=w[q];for(var d=0;d<3;d++)sum+=wq*J[a][3*q+d]*J[b2][3*q+d]}H[a][b2]=H[b2][a]=sum}
+      var gs=0;for(q=0;q<A.length;q++)for(d=0;d<3;d++)gs+=w[q]*J[a][3*q+d]*r[3*q+d];g[a]=-gs;
+    }
+    var ok=false;
+    for(var tr=0;tr<8&&!ok;tr++){
+      var H2=H.map(function(row,i2){var rr=row.slice();rr[i2]*=(1+lam);rr[i2]+=1e-9;return rr}),dx=solveLin(H2,g),pn=p.map(function(v,i2){return v+dx[i2]}),rn=resid(pn),cn=cost(rn);
+      if(cn<c0){p=pn;r=rn;var imp=c0-cn;c0=cn;lam=Math.max(lam/3,1e-9);ok=true;if(imp<1e-9)it=999}else lam*=4;
+    }
+    if(!ok)break;
+  }
+  return p;
+}
+async function autoAlign(sc,ref,onP){
+  var cv=await loadCV(),N=800,FOV=70,fl=(N/2)/Math.tan(d2r(FOV)/2);
+  onP('Preparando imágenes…');
+  var EA=await grayEq(ref.url,4096),EB=await grayEq(sc.base.url,4096);
+  var dcam=new Float32Array(N*N*3);
+  for(var v=0;v<N;v++)for(var u=0;u<N;u++){var x=(u-N/2+.5)/fl,y=-(v-N/2+.5)/fl,l=Math.sqrt(x*x+y*y+1),o=(v*N+u)*3;dcam[o]=x/l;dcam[o+1]=y/l;dcam[o+2]=1/l}
+  var orb=new cv.ORB(3000,1.2,8,31,0,2,cv.ORB_HARRIS_SCORE,31,20),bf=new cv.BFMatcher(cv.NORM_HAMMING,false),clahe=new cv.CLAHE(3,new cv.Size(8,8));
+  var PA=[],PB=[],views=[],mx=new Float32Array(N*N),my=new Float32Array(N*N),ga=new Uint8Array(N*N),gb=new Uint8Array(N*N);
+  [-50,-25,0].forEach(function(pt){for(var yw=0;yw<360;yw+=30)views.push([yw,pt])});
+  try{
+    for(var vi=0;vi<views.length;vi++){
+      onP('Buscando puntos en común… '+(vi+1)+' de '+views.length);await sleep(0);
+      var yaw=d2r(views[vi][0]),pit=d2r(views[vi][1]),cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(-pit),sp=Math.sin(-pit);
+      /* R = Ry(yaw)·Rx(-pitch) */
+      var R=[[cy,sy*sp,sy*cp],[0,cp,-sp],[-sy,cy*sp,cy*cp]],WD=new Float32Array(N*N*3);
+      for(var i=0;i<N*N;i++){
+        var dx=dcam[3*i],dy=dcam[3*i+1],dz=dcam[3*i+2],wx=R[0][0]*dx+R[0][1]*dy+R[0][2]*dz,wy=R[1][0]*dx+R[1][1]*dy+R[1][2]*dz,wz=R[2][0]*dx+R[2][1]*dy+R[2][2]*dz;
+        WD[3*i]=wx;WD[3*i+1]=wy;WD[3*i+2]=wz;
+      }
+      function sampleView(E,out){
+        for(var i=0;i<N*N;i++){var lon=Math.atan2(WD[3*i],WD[3*i+2]),lat=Math.asin(Math.max(-1,Math.min(1,WD[3*i+1])));mx[i]=(lon/(2*Math.PI)+.5)*E.w-.5;my[i]=(.5-lat/Math.PI)*E.h-.5}
+        sampleGray(E,mx,my,out);
+      }
+      sampleView(EA,ga);sampleView(EB,gb);
+      var mA=cv.matFromArray(N,N,cv.CV_8UC1,Array.prototype.slice.call(ga)),mB=cv.matFromArray(N,N,cv.CV_8UC1,Array.prototype.slice.call(gb)),cA=new cv.Mat(),cB=new cv.Mat();
+      clahe.apply(mA,cA);clahe.apply(mB,cB);
+      var kA=new cv.KeyPointVector(),kB=new cv.KeyPointVector(),dA=new cv.Mat(),dB=new cv.Mat(),nm=new cv.Mat();
+      orb.detectAndCompute(cA,nm,kA,dA);orb.detectAndCompute(cB,nm,kB,dB);
+      if(kA.size()>=10&&kB.size()>=10){
+        var mm=new cv.DMatchVectorVector();bf.knnMatch(dA,dB,mm,2);
+        var pa=[],pb=[];
+        for(i=0;i<mm.size();i++){var m2=mm.get(i);if(m2.size()<2)continue;var a=m2.get(0),b=m2.get(1);if(a.distance<.75*b.distance){var ka=kA.get(a.queryIdx).pt,kb=kB.get(a.trainIdx).pt;pa.push(ka.x,ka.y);pb.push(kb.x,kb.y)}}
+        if(pa.length>=16){
+          var sA=cv.matFromArray(pa.length/2,1,cv.CV_32FC2,pa),sB=cv.matFromArray(pb.length/2,1,cv.CV_32FC2,pb),mask=new cv.Mat(),Hm=cv.findHomography(sA,sB,cv.RANSAC,6,mask);
+          if(!Hm.empty()){
+            for(i=0;i<mask.rows;i++)if(mask.data[i]){
+              var qa=[pa[2*i],pa[2*i+1]],qb=[pb[2*i],pb[2*i+1]];
+              function brg(q){var x=(q[0]-N/2+.5)/fl,y=-(q[1]-N/2+.5)/fl,l=Math.sqrt(x*x+y*y+1);x/=l;y/=l;var z=1/l;return [R[0][0]*x+R[0][1]*y+R[0][2]*z,R[1][0]*x+R[1][1]*y+R[1][2]*z,R[2][0]*x+R[2][1]*y+R[2][2]*z]}
+              PA.push(brg(qa));PB.push(brg(qb));
+            }
+          }
+          sA.delete();sB.delete();mask.delete();Hm.delete();
+        }
+        mm.delete();
+      }
+      [mA,mB,cA,cB,dA,dB,nm].forEach(function(m){m.delete()});kA.delete();kB.delete();
+    }
+  }finally{orb.delete();bf.delete();clahe.delete()}
+  if(PA.length<60)throw new Error('Se encontraron muy pocos puntos en común ('+PA.length+'). Las dos escenas deben mostrar el mismo lugar y tener una orientación parecida (diferencia menor a ~15°). Prueba primero una corrección aproximada con los deslizadores.');
+  onP('Calculando la alineación con '+PA.length+' puntos…');await sleep(30);
+  var rotP=fitLM(PA,PB,[0,0,0],false,.3);
+  var gi=[];for(var q=0;q<PA.length;q++)if(Math.asin(PA[q][1])*180/Math.PI<-4)gi.push(q);
+  var GA=gi.map(function(q){return PA[q]}),GB=gi.map(function(q){return PB[q]}),res={n:PA.length,ng:gi.length,rot:rotP};
+  if(GA.length>=40){
+    var p6=fitLM(GA,GB,[rotP[0],rotP[1],rotP[2],0,0,0],true,.2);
+    res.p=p6;res.before=medianOf(angErr([0,0,0,0,0,0],GA,GB,false));res.after=medianOf(angErr(p6,GA,GB,true));res.afterRot=medianOf(angErr(rotP,GA,GB,false));res.ground=true;
+  }else{
+    res.p=[rotP[0],rotP[1],rotP[2],0,0,0];res.before=medianOf(angErr([0,0,0],PA,PB,false));res.after=medianOf(angErr(rotP,PA,PB,false));res.ground=false;
+  }
+  return res;
+}
+function applyAutoT(sc){
+  var T=sc.autoT,R=sc.rot;if(!T)return;
+  var q=function(v){return Math.max(-100,Math.min(100,Math.round(v*R.h*100)/100))};
+  R.tx=q(T.tx);R.ty=q(T.ty);R.tz=q(T.tz);R.dist=Math.max(30,Math.min(50000,Math.round(500*R.h)));
 }
 function syncTitle(){var t=$('#stTitle');t.hidden=!S.cur;if(S.cur&&document.activeElement!==t)t.value=S.cur.name}
 $('#stTitle').oninput=function(e){if(S.cur){S.cur.name=e.target.value||S.cur.name;$('#curName').textContent=S.cur.name;var i=S.scenes.indexOf(S.cur),n=document.querySelectorAll('#list .sc input')[i];if(n)n.value=S.cur.name}};
@@ -1367,7 +1533,7 @@ var GUIDE=[
  {sel:'#btnInit',t:'7. Vista inicial',d:'Mira hacia donde quieras que parta cada escena y pulsa “Fijar vista inicial” en el menú. Así cada vez que alguien entre, verá lo más importante primero.',menu:'secScene'},
  {sel:'#orBox',t:'8. Orientación de la panorama',d:'Corrige el giro, la inclinación y el horizonte de cada panorama con los deslizadores o escribiendo grados con décimas. Se ve en vivo. Hazlo antes de colocar enlaces y puntos: al mover la imagen, lo ya colocado no se mueve con ella.',menu:'secScene'},
  {sel:'#orModel',t:'9. Mover el centro de giro',d:'Si dos fotos del mismo lugar se tomaron con la cámara desplazada, mueve el centro de giro en metros (derecha, adelante, arriba) y elige el modelo: suelo plano para exteriores u obras, o esfera para interiores. Es una aproximación: corrige bien lo que está cerca de la superficie elegida y funciona mejor con desplazamientos pequeños. Ajusta a ojo con la referencia semitransparente.',menu:'secScene'},
- {sel:'#orDl',t:'10. Alinear y descargar corregida',d:'Elige otra escena como referencia semitransparente para ver cuánto se desvió esta imagen (no se exporta). Luego descarga la imagen corregida, o todas en un ZIP, con la misma resolución y formato. El giro horizontal es exacto; inclinar o nivelar remuestrea con interpolación bicúbica.',menu:'secScene'},
+ {sel:'#orDl',t:'10. Alinear y descargar corregida',d:'Elige otra escena como referencia semitransparente para ver cuánto se desvió esta imagen (no se exporta). Con una referencia elegida, el botón “Alinear automáticamente” calcula todo solo (indica antes la altura de la cámara). Luego descarga la imagen corregida, o todas en un ZIP, con la misma resolución y formato. El giro horizontal es exacto; inclinar o nivelar remuestrea con interpolación bicúbica.',menu:'secScene'},
  {sel:'#adjBox',t:'11. Ajustes de imagen',d:'Brillo, contraste y saturación de la escena actual, con vista en vivo. Puedes copiarlos a todas las escenas.',menu:'secScene'},
  {sel:'#layerBox',t:'12. Capa de comparación',d:'Superpone otra panorama (plano, etapa anterior de obra) y el visitante la mezcla con un deslizador. Ideal para control de avance.',menu:'secScene'},
  {sel:'#tbActs',t:'13. Atajos sobre el visor',d:'Estos iconos te llevan rápido a copiar el enlace del tour, compartir (redes, correo, QR y código para insertar), corregir el color de la imagen, el logo y colores, y la información del tour.'},
