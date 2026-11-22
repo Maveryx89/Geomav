@@ -18,6 +18,7 @@ G.ICONS={
   mapa:     {t:'Mapa',       d:'M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z'},
   documento:{t:'Documento',  d:'M7 3h7l5 5v13H7zM14 3v5h5M9 13h6M9 17h6'},
   galeria:  {t:'Galería',    d:'M3 7h14v12H3zM7 7V4h14v12h-4M6 16l3-3 2 2 3-3 3 4'},
+  pregunta: {t:'Pregunta',   d:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.7 9.3a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1.1.9-1.1 1.6M12 16.8h.01'},
   web:      {t:'Web',        d:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z'}
 };
 // Íconos ofrecidos para cada tipo de hotspot.
@@ -25,7 +26,8 @@ G.SETS={
   link:['flecha','puerta','escalera','punto','mas'],
   info:['info','alerta','foto','medida','punto'],
   embed:['video','mapa','documento','web','foto'],
-  galeria:['galeria','foto','mas','punto','info']
+  galeria:['galeria','foto','mas','punto','info'],
+  quiz:['pregunta','alerta','info','punto','mas']
 };
 G.COLORS=[
   {n:'Cobre',    v:'#D49A6A'},
@@ -34,7 +36,7 @@ G.COLORS=[
   {n:'Amarillo', v:'#F2C94C'},
   {n:'Rojo',     v:'#E5604D'}
 ];
-G.DEF={link:{icon:'flecha',color:'#D49A6A'},info:{icon:'info',color:'#6FD0C0'},embed:{icon:'video',color:'#FFFFFF'},galeria:{icon:'galeria',color:'#F2C94C'}};
+G.DEF={link:{icon:'flecha',color:'#D49A6A'},info:{icon:'info',color:'#6FD0C0'},embed:{icon:'video',color:'#FFFFFF'},galeria:{icon:'galeria',color:'#F2C94C'},quiz:{icon:'pregunta',color:'#F2C94C'}};
 
 G.esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
 G.icon=function(type,h){var n=h&&h.icon;return (n&&G.ICONS[n])?n:G.DEF[type].icon};
@@ -47,7 +49,7 @@ G.hotspot=function(type,h,label){
   el.className='hs '+type;
   el.style.setProperty('--c',G.color(type,h));
   var html='<div class="dot">'+G.svg(G.icon(type,h))+'</div>';
-  if(type==='info')html+='<div class="bubble"><b>'+G.esc(h.title||'Información')+'</b>'+G.esc(h.text||'')+'</div>';
+  if(type==='info')html+='<div class="bubble">'+(h.imgSrc?'<img class="fimg" alt="" src="'+G.esc(h.imgSrc)+'">':'')+'<b>'+G.esc(h.title||'Información')+'</b>'+G.esc(h.text||'')+'</div>';
   else html+='<div class="lbl">'+G.esc(label||'')+'</div>';
   el.innerHTML=html;
   var rot=h.rotation!=null?h.rotation:h.rot;
@@ -73,6 +75,7 @@ G.normEmbed=function(raw){
   if(h==='player.vimeo.com')return {src:u.href};
   if(h==='drive.google.com'){var dm=u.pathname.match(/\/file\/d\/([\w-]+)/);if(dm)return {src:'https://drive.google.com/file/d/'+dm[1]+'/preview'}}
   if(h==='google.com'&&u.pathname.indexOf('/maps/embed')===0)return {src:u.href};
+  if(h==='google.com'&&u.pathname==='/maps'&&u.searchParams.get('output')==='embed'&&u.searchParams.get('q'))return {src:u.href};
   if(h==='maps.app.goo.gl'||h==='goo.gl'||(h==='google.com'&&u.pathname.indexOf('/maps')===0))
     return {err:'Ese enlace de Google Maps no se puede incrustar. En Google Maps usa Compartir → Insertar un mapa y pega el código completo.'};
   return {src:u.href};
@@ -87,6 +90,9 @@ G.adjustEffects=function(a){
   var M=[m[0][0]*k,m[0][1]*k,m[0][2]*k,0, m[1][0]*k,m[1][1]*k,m[1][2]*k,0, m[2][0]*k,m[2][1]*k,m[2][2]*k,0, 0,0,0,1];
   return {colorMatrix:M,colorOffset:[o,o,o,0]};
 };
+
+/* Mapa de Google por dirección o coordenadas (sin clave de API). */
+G.mapEmbed=function(q){return 'https://www.google.com/maps?q='+encodeURIComponent(String(q||'').trim().slice(0,200))+'&output=embed'};
 
 /* Imagen anclada al panorama (logo, señal, plano...). h: {yaw,pitch,size (grados de ancho),title}. */
 G.PERSP_R=1000;

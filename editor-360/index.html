@@ -88,6 +88,7 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
 .sc .first{color:var(--acc2);font-size:10px;font-weight:700;letter-spacing:.05em}
 #list{padding:10px 0 4px;display:flex;flex-direction:column;gap:6px}
 #drop{margin:8px 0 0;padding:14px 10px;border:2px dashed var(--line);border-radius:6px;text-align:center;color:var(--mut)}
+#scQ{margin:8px 0 0;width:100%}#tagBar{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}#tagBar button{padding:2px 9px;font-size:11px;border-radius:999px;background:var(--panel2);border:1px solid var(--line)}#tagBar button.on{background:var(--acc);color:#0A1118;border-color:var(--acc)}.tg{display:inline-block;margin:2px 3px 0 0;padding:0 7px;border-radius:999px;background:rgba(212,154,106,.2);color:var(--navy);font-size:10px;line-height:16px}
 #drop.over{border-color:var(--acc);color:var(--navy);background:rgba(212,154,106,.1)}
 #stage{position:relative;min-height:0;background:#0A1118}
 #pano{position:absolute;inset:0}
@@ -246,7 +247,6 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
   <a id="btnFull" class="btn" href="/editor-360/" target="_blank" rel="noopener">Abrir en pantalla completa ↗</a>
   <button id="btnPrev" disabled title="Ver el tour terminado, sin exportar">▶ Previsualizar</button>
   <button id="btnShare" class="primary" disabled title="Publica el tour en Netlify y obtén enlace, QR y código para insertar">☁ Publicar y compartir</button>
-  <button id="btnExport" disabled>Exportar ZIP</button>
   </div>
   <input id="fileImgs" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.avif,.insp,.heic,.heif" multiple hidden>
   <input id="fileZip" type="file" accept=".zip,application/zip" hidden>
@@ -258,6 +258,8 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
       <button class="sh" type="button">Escenas <span class="ct" id="count"></span><i>▾</i></button>
       <div class="sb">
         <div class="row"><button class="primary" id="btnAdd" type="button">+ Añadir panoramas</button><button id="btnImport" type="button">Abrir tour (ZIP)</button></div>
+        <input type="search" id="scQ" placeholder="Buscar escena o etiqueta…" aria-label="Buscar escena" autocomplete="off">
+        <div id="tagBar"></div>
         <div id="list"></div>
         <div id="drop">Arrastra aquí tus panoramas<br>(equirectangulares 2:1 o .insp de Insta360)</div>
       </div>
@@ -270,17 +272,17 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
       <button class="sh" type="button">Plano / mapa<span class="sp2"></span><i>▾</i></button>
       <div class="sb" id="planTools"></div>
     </section>
-    <section class="sec" id="secAudio">
-      <button class="sh" type="button">Audio y recorrido<span class="sp2"></span><i>▾</i></button>
-      <div class="sb" id="audioTools"></div>
-    </section>
     <section class="sec" id="secBrand">
-      <button class="sh" type="button">Marca: logo y colores<span class="sp2"></span><i>▾</i></button>
+      <button class="sh" type="button">Marca, tapa y carga<span class="sp2"></span><i>▾</i></button>
       <div class="sb" id="brandTools"></div>
     </section>
     <section class="sec" id="secInfo">
       <button class="sh" type="button">Info del tour<span class="sp2"></span><i>▾</i></button>
       <div class="sb" id="infoTools"></div>
+    </section>
+    <section class="sec" id="secAudio">
+      <button class="sh" type="button">Audio y recorrido<span class="sp2"></span><i>▾</i></button>
+      <div class="sb" id="audioTools"></div>
     </section>
     <section class="sec" id="secSet">
       <button class="sh" type="button">Ajustes del tour<span class="sp2"></span><i>▾</i></button>
@@ -298,6 +300,7 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
         <button data-mode="info" title="Agregar punto de información" aria-label="Agregar punto de información"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span class="tl">+ Info</span></button>
         <button data-mode="embed" title="Agregar contenido incrustado (video, mapa, PDF, web)" aria-label="Agregar contenido incrustado (video, mapa, PDF, web)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg><span class="tl">+ Contenido</span></button>
         <button data-mode="imagen" title="Agregar imagen sobre el panorama" aria-label="Agregar imagen sobre el panorama"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-9 9"/></svg><span class="tl">+ Imagen</span></button>
+        <button data-mode="quiz" title="Agregar pregunta (capacitación y evaluación)" aria-label="Agregar pregunta"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.7 9.3a2.4 2.4 0 1 1 3.4 2.2c-.7.4-1.1.9-1.1 1.6M12 16.8h.01"/></svg></button>
         <button data-mode="galeria" title="Agregar galería de fotos" aria-label="Agregar galería de fotos"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h14v12H3zM7 7V4h14v12h-4M6 16l3-3 2 2 3-3 3 4"/></svg></button>
       </div>
       <div class="seg" id="tbHist">
@@ -308,8 +311,6 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
         <button id="tbLink" type="button" title="Copiar enlace del tour" aria-label="Copiar enlace del tour" disabled><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></button>
         <button id="tbShare" type="button" title="Compartir: redes, correo, QR y código para insertar" aria-label="Compartir: redes, correo, QR y código para insertar" disabled><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6"/></svg></button>
         <button id="tbColor" type="button" title="Corregir color de la imagen" aria-label="Corregir color de la imagen" disabled><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v18"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></svg></button>
-        <button id="tbBrand" type="button" title="Logo y colores del tour" aria-label="Logo y colores del tour" disabled><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.6-2-.5-1.3.2-2.5 1.6-2.5H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="14.5" cy="7" r="1"/></svg></button>
-        <button id="tbInfo" type="button" title="Información del tour (título, contacto, video)" aria-label="Información del tour (título, contacto, video)" disabled><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v13H8l-4 4z"/><path d="M8 9h8M8 13h5"/></svg></button>
       </div>
     </div>
     <input id="stTitle" type="text" maxlength="80" aria-label="Nombre de la escena" title="Nombre de la escena (clic para editar)" hidden>
@@ -329,7 +330,7 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
     <button id="pvClose" class="primary">← Volver al editor</button></div>
   <div id="pvWrap"><iframe id="pvFrame" title="Vista previa del tour" allow="fullscreen; gyroscope; accelerometer"></iframe></div>
 </div>
-<input type="file" id="fileLogo" accept="image/*" hidden><input type="file" id="fileLayer" accept="image/*" hidden><input type="file" id="filePlan" accept="image/*" hidden><input type="file" id="fileMusic" accept="audio/*" hidden><input type="file" id="fileNarr" accept="audio/*" hidden><input type="file" id="fileGal" accept="image/*" multiple hidden><input type="file" id="fileHsImg" accept="image/*" hidden>
+<input type="file" id="fileCap" accept="image/*" hidden><input type="file" id="fileLogo" accept="image/*" hidden><input type="file" id="fileLayer" accept="image/*" hidden><input type="file" id="filePlan" accept="image/*" hidden><input type="file" id="fileMusic" accept="audio/*" hidden><input type="file" id="fileNarr" accept="audio/*" hidden><input type="file" id="fileGal" accept="image/*" multiple hidden><input type="file" id="fileHsImg" accept="image/*" hidden>
 <div id="shMod"><div id="shBox" role="dialog" aria-label="Publicar y compartir">
   <h3>Publicar y compartir</h3><small>Sube el tour a Netlify y obtén el enlace para compartir, el QR y el código para insertar en tu web.</small>
   <h4>1 · Publicar en Netlify</h4>
@@ -371,8 +372,8 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
 var $=function(s){return document.querySelector(s)};
 var MAX_W=8192;
 try{if(window.self!==window.top)document.documentElement.classList.add('embed')}catch(e){document.documentElement.classList.add('embed')}
-var S={plan:null,music:null,passHash:null,passTxt:'',name:'Mi tour 360°',set:{pilot:true,pilotSecs:8,pilotLoop:true,pilotStart:false,autorotate:true,fullscreen:true,viewControls:true,sceneList:true,gyro:true,transition:'zoom',quality:'standard',mouseMode:'drag'},scenes:[],cur:null,mode:'view',pending:null,reloc:null,nextId:1,
-  brand:{accent:'',bar:'',logo:null,logoLink:''},info:{title:'',sub:'',desc:'',email:'',phone:'',web:'',pdf:'',pdfLabel:'',video:'',btnText:'',btnUrl:''}};
+var S={plan:null,music:null,passHash:null,passTxt:'',name:'Mi tour 360°',set:{pilot:true,pilotSecs:8,pilotLoop:true,pilotStart:false,autorotate:true,fullscreen:true,viewControls:true,sceneList:true,gyro:true,transition:'zoom',quality:'standard',mouseMode:'drag',ctrlMobile:'show',lang:'es',splash:false,splashText:'',gaId:''},scenes:[],cur:null,mode:'view',pending:null,reloc:null,nextId:1,
+  brand:{accent:'',bar:'',logo:null,logoLink:''},cap:null,info:{title:'',sub:'',desc:'',email:'',phone:'',web:'',pdf:'',pdfLabel:'',video:'',btnText:'',btnUrl:''}};
 var viewer=new Marzipano.Viewer($('#pano'),{controls:{mouseViewMode:'drag'}});
 
 /* ---------- utilidades ---------- */
@@ -453,7 +454,7 @@ async function addImage(file,meta){
   var base=meta&&meta.name||file.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');
   var sc={id:uniqueId(meta&&meta.id||slug(base)),name:base,blob:blob,url:url,width:w,height:h,thumb:t.toDataURL('image/jpeg',.7),
     init:meta&&meta.init||{yaw:0,pitch:0,fov:Math.PI/2},hs:meta&&meta.hs||[],ms:null,
-    adjust:meta&&meta.adjust||{b:0,c:0,s:0},layer:meta&&meta.layer||null,plan:meta&&meta.plan||null,audio:meta&&meta.audio||null,secs:meta&&meta.secs||0,skip:!!(meta&&meta.skip),
+    adjust:meta&&meta.adjust||{b:0,c:0,s:0},layer:meta&&meta.layer||null,plan:meta&&meta.plan||null,audio:meta&&meta.audio||null,secs:meta&&meta.secs||0,skip:!!(meta&&meta.skip),tags:(meta&&meta.tags)||[],sub:(meta&&meta.sub)||'',nameEn:(meta&&meta.nameEn)||'',
     rot:{yaw:0,pitch:0,roll:0,tx:0,ty:0,tz:0,dist:30,h:1.6,model:'suelo'},base:{blob:blob,url:url,width:w,height:h},orig:(blob===file&&!/\.insp$/i.test(file.name))?file:blob};
   makeMScene(sc);
   S.scenes.push(sc);
@@ -530,6 +531,7 @@ function renderHotspots(sc){
   var cont=sc.ms.hotspotContainer();
   (sc.els||[]).forEach(function(h){try{cont.destroyHotspot(h)}catch(e){}});
   sc.els=[];
+  if(S.cap&&S.cap.url){var ci=G.imageHotspot({size:S.cap.size,title:''},S.cap.url);stopProp(ci);ci.style.pointerEvents='none';sc.els.push(cont.createHotspot(ci,{yaw:0,pitch:-Math.PI/2+0.001},G.imageOpts))}
   sc.hs.forEach(function(h){
     if(h.type==='imagen'){
       if(!h.url)return;
@@ -537,8 +539,8 @@ function renderHotspots(sc){
       im.addEventListener('click',function(ev){ev.stopPropagation();if(S.mode!=='view')openPanel(h,false)});
       sc.els.push(cont.createHotspot(im,{yaw:h.yaw,pitch:h.pitch},G.imageOpts));return;
     }
-    var label=h.type==='link'?(byId(h.target)?byId(h.target).name:'(sin destino)'):(h.title||(h.type==='embed'?'Ver contenido':h.type==='galeria'?'Galería':''));
-    var el=G.hotspot(h.type,h,label);
+    var label=h.type==='link'?(byId(h.target)?byId(h.target).name:'(sin destino)'):(h.title||(h.type==='embed'?'Ver contenido':h.type==='galeria'?'Galería':h.type==='quiz'?'Pregunta':''));
+    var el=G.hotspot(h.type,h.imgUrl?Object.assign({},h,{imgSrc:h.imgUrl}):h,label);
     stopProp(el);
     el.addEventListener('click',function(ev){ev.stopPropagation();onHotspotClick(h,el)});
     sc.els.push(cont.createHotspot(el,{yaw:h.yaw,pitch:h.pitch}));
@@ -556,6 +558,7 @@ function onHotspotClick(h,el){
     if(h.type==='link'){var t=byId(h.target);if(t)select(t)}
     else if(h.type==='embed')openEmbed(h);
     else if(h.type==='galeria'){if((h.images||[]).length)G.openGallery(h.images.map(function(x){return x.url}),h.title);else toast('Esta galería aún no tiene fotos',true)}
+    else if(h.type==='quiz')toast('Pregunta: '+(h.title||'(sin texto)'));
     else el.classList.toggle('open');
   }else openPanel(h,false);
 }
@@ -574,8 +577,20 @@ paneEl.addEventListener('pointerup',function(e){
   if(S.mode==='view'){document.querySelectorAll('.hs.open').forEach(function(x){x.classList.remove('open')});return}
   if(S.pending||$('#panel').style.display==='block')return;
   var h={id:uid(),type:S.mode,yaw:c.yaw,pitch:c.pitch};
-  if(S.mode==='link')h.target=null;else if(S.mode==='info'){h.title='';h.text=''}else if(S.mode==='embed'){h.title='';h.url=''}else if(S.mode==='galeria'){h.title='';h.images=[]}else{h.title='';h.size=20;h.blob=null;h.url=null}
+  if(S.mode==='link')h.target=null;else if(S.mode==='info'){h.title='';h.text=''}else if(S.mode==='embed'){h.title='';h.url=''}else if(S.mode==='galeria'){h.title='';h.images=[]}else if(S.mode==='quiz'){h.title='';h.opts=['','',''];h.ok=0;h.points=10;h.expl=''}else{h.title='';h.size=20;h.blob=null;h.url=null}
   openPanel(h,true);
+});
+
+/* arrastrar la miniatura de una escena sobre el panorama crea el enlace (y el de regreso) */
+paneEl.addEventListener('dragover',function(e){var t=e.dataTransfer&&e.dataTransfer.types;if(S.cur&&t&&Array.prototype.indexOf.call(t,'Files')<0){e.preventDefault();e.dataTransfer.dropEffect='copy'}});
+paneEl.addEventListener('drop',function(e){
+  var dt=e.dataTransfer;if(!S.cur||!dt||(dt.files&&dt.files.length))return;
+  var from=parseInt(dt.getData('text/plain'),10),dst=S.scenes[from];if(isNaN(from)||!dst||dst===S.cur)return;
+  e.preventDefault();e.stopPropagation();
+  var r=paneEl.getBoundingClientRect(),c=S.cur.ms.view().screenToCoordinates({x:e.clientX-r.left,y:e.clientY-r.top});if(!c||c.yaw==null)return;
+  S.cur.hs.push({id:uid(),type:'link',yaw:c.yaw,pitch:c.pitch,target:dst.id});
+  if(!dst.hs.some(function(x){return x.type==='link'&&x.target===S.cur.id}))dst.hs.push({id:uid(),type:'link',yaw:normYaw(c.yaw+Math.PI),pitch:0,target:S.cur.id});
+  refreshCur();toast('Enlace a "'+dst.name+'" creado, con su regreso. Reubícalos si hace falta.');
 });
 
 /* ---------- panel de edición ---------- */
@@ -596,16 +611,23 @@ function openPanel(h,isNew){
       '<label>Giro del ícono: <span id="pRv">'+(h.rot||0)+'</span>°</label><input type="range" id="pR" min="0" max="345" step="15" value="'+(h.rot||0)+'" style="width:100%;accent-color:var(--acc)">'+
       (isNew?'<div class="chk"><input type="checkbox" id="pB" checked><label for="pB" style="margin:0;color:inherit;font-size:13px">Crear también el enlace de regreso</label></div>':'');
   }else if(h.type==='info'){
-    html='<h4>'+(isNew?'Nuevo punto de información':'Editar información')+'</h4><label>Título</label><input type="text" id="pTi" value="'+esc(h.title||'')+'"><label>Texto</label><textarea id="pTx" rows="3">'+esc(h.text||'')+'</textarea>'+stylePicker(h);
+    html='<h4>'+(isNew?'Nuevo punto de información':'Editar información')+'</h4><label>Título</label><input type="text" id="pTi" value="'+esc(h.title||'')+'"><label>Texto</label><textarea id="pTx" rows="3">'+esc(h.text||'')+'</textarea><label>Foto de la ficha (opcional)</label><div class="row"><button id="pFoto" type="button">'+(h.imgUrl?'Cambiar foto…':'Elegir foto…')+'</button><button id="pFotoX" type="button"'+(h.imgUrl?'':' style="display:none"')+'>Quitar</button></div>'+stylePicker(h);
   }else if(h.type==='imagen'){
     html='<h4>'+(isNew?'Nueva imagen sobre el panorama':'Editar imagen')+'</h4><label>Imagen (PNG con transparencia, JPG o WebP)</label><div class="row"><button id="pPick" type="button">'+(h.url?'Cambiar imagen…':'Elegir imagen…')+'</button></div><small id="pImgInfo">'+(h.url?'Imagen cargada.':'Aún no elegiste una imagen.')+'</small>'+
       '<label>Tamaño: <span id="pSv">'+h.size+'</span>° de ancho</label><input type="range" class="sldr" id="pSz" min="4" max="90" step="1" value="'+h.size+'">'+
       '<label>Texto al pasar el cursor (opcional)</label><input type="text" id="pTi" value="'+esc(h.title||'')+'">';
   }else if(h.type==='galeria'){
     html='<h4>'+(isNew?'Nueva galería de fotos':'Editar galería')+'</h4><label>Título (opcional)</label><input type="text" id="pTi" value="'+esc(h.title||'')+'"><label>Fotos</label><div class="row"><button id="gAdd" type="button">+ Agregar fotos…</button></div><div id="gThumbs" style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0"></div><small>Se muestran como presentación a pantalla completa, con pase automático.</small>'+stylePicker(h);
+  }else if(h.type==='quiz'){
+    html='<h4>'+(isNew?'Nueva pregunta':'Editar pregunta')+'</h4><label>Pregunta</label><input type="text" id="qTi" maxlength="140" value="'+esc(h.title||'')+'" placeholder="¿Qué EPP es obligatorio aquí?">'+
+      '<label>Respuestas (una por línea, de 2 a 4)</label><textarea id="qOp" rows="4">'+esc((h.opts||[]).join('\n'))+'</textarea>'+
+      '<label>Número de la respuesta correcta</label><input type="number" id="qOk" min="1" max="4" value="'+((h.ok||0)+1)+'">'+
+      '<label>Puntos</label><input type="number" id="qPt" min="1" max="100" value="'+(h.points||10)+'">'+
+      '<label>Explicación al responder (opcional)</label><textarea id="qEx" rows="2">'+esc(h.expl||'')+'</textarea>'+stylePicker(h);
   }else{
     html='<h4>'+(isNew?'Nuevo contenido incrustado':'Editar contenido incrustado')+'</h4><label>Enlace</label><input type="text" id="pU" value="'+esc(h.url||'')+'" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off">'+
       '<small>YouTube, Vimeo, PDF de Google Drive, mapa de Google Maps (Compartir → Insertar un mapa) o cualquier web con https. Algunas webs no permiten ser incrustadas.</small>'+
+      '<label>…o crea un mapa con una dirección o coordenadas</label><div class="row"><input type="text" id="pMapQ" placeholder="Talca, Chile  ·  -35.4264,-71.6554" autocomplete="off"><button id="pMapB" type="button">Crear mapa</button></div>'+
       '<label>Título (opcional)</label><input type="text" id="pTi" value="'+esc(h.title||'')+'">'+stylePicker(h);
   }
   html+='<div class="row"><button class="primary" id="pOk">Guardar</button><button id="pNo">Cancelar</button>'+
@@ -613,7 +635,7 @@ function openPanel(h,isNew){
   p.innerHTML=html;p.style.display='block';
   S.pending=isNew?h:null;S.sel=h;
   if(isNew){sc.hs.push(h);renderHotspots(sc)}
-  var snap={images:h.images?h.images.slice():null,rot:h.rot,icon:h.icon,color:h.color,size:h.size,url:h.url,blob:h.blob,aspect:h.aspect};
+  var snap={imgBlob:h.imgBlob,imgUrl:h.imgUrl,images:h.images?h.images.slice():null,rot:h.rot,icon:h.icon,color:h.color,size:h.size,url:h.url,blob:h.blob,aspect:h.aspect};
   if(h.type==='imagen'){
     $('#pPick').onclick=function(){$('#fileHsImg').click()};
     $('#fileHsImg').onchange=async function(e){
@@ -623,6 +645,16 @@ function openPanel(h,isNew){
       h.blob=r.blob;h.url=r.url;$('#pImgInfo').textContent='Imagen cargada: '+f.name;$('#pPick').textContent='Cambiar imagen…';renderHotspots(sc);
     };
     $('#pSz').oninput=function(e){h.size=+e.target.value;$('#pSv').textContent=h.size;renderHotspots(sc)};
+  }
+  if(h.type==='info'){
+    $('#pFoto').onclick=function(){$('#fileHsImg').click()};
+    $('#fileHsImg').onchange=async function(e){
+      var f=e.target.files[0];e.target.value='';if(!f)return;
+      var r=await prepImg(f,1000);if(!r)return;
+      if(h.imgUrl&&h.imgUrl!==snap.imgUrl)URL.revokeObjectURL(h.imgUrl);
+      h.imgBlob=r.blob;h.imgUrl=r.url;$('#pFoto').textContent='Cambiar foto…';$('#pFotoX').style.display='';renderHotspots(sc);
+    };
+    $('#pFotoX').onclick=function(){if(h.imgUrl&&h.imgUrl!==snap.imgUrl)URL.revokeObjectURL(h.imgUrl);h.imgBlob=null;h.imgUrl=null;$('#pFoto').textContent='Elegir foto…';$('#pFotoX').style.display='none';renderHotspots(sc)};
   }
   if(h.type==='galeria'){
     var drawG=function(){
@@ -640,8 +672,10 @@ function openPanel(h,isNew){
   Array.prototype.forEach.call(p.querySelectorAll('#pIc button'),function(b){b.onclick=function(){h.icon=b.dataset.ic;Array.prototype.forEach.call(p.querySelectorAll('#pIc button'),function(x){x.classList.toggle('on',x===b)});renderHotspots(sc)}});
   Array.prototype.forEach.call(p.querySelectorAll('#pCo button'),function(b){b.onclick=function(){h.color=b.dataset.co;Array.prototype.forEach.call(p.querySelectorAll('#pCo button'),function(x){x.classList.toggle('on',x===b)});renderHotspots(sc)}});
   if(h.type==='link')$('#pR').oninput=function(e){h.rot=+e.target.value;$('#pRv').textContent=h.rot;renderHotspots(sc)};
+  if(h.type==='embed'){$('#pMapB').onclick=function(){var q=$('#pMapQ').value.trim();if(!q){toast('Escribe una dirección o coordenadas',true);return}$('#pU').value=G.mapEmbed(q);if(!$('#pTi').value)$('#pTi').value='Ubicación'}}
   var cancel=function(){
     if(h.type==='imagen'&&h.url&&h.url!==snap.url)URL.revokeObjectURL(h.url);
+    if(h.type==='info'){if(h.imgUrl&&h.imgUrl!==snap.imgUrl)URL.revokeObjectURL(h.imgUrl);h.imgBlob=snap.imgBlob;h.imgUrl=snap.imgUrl}
     if(h.type==='galeria'){h.images.forEach(function(x){if(!snap.images||!snap.images.some(function(y){return y.url===x.url}))URL.revokeObjectURL(x.url)});if(snap.images)h.images=snap.images}
     if(isNew){sc.hs=sc.hs.filter(function(x){return x!==h})}else{h.rot=snap.rot;h.icon=snap.icon;h.color=snap.color;h.size=snap.size;h.url=snap.url;h.blob=snap.blob}
     closePanel()};
@@ -655,7 +689,14 @@ function openPanel(h,isNew){
         if(dst&&!dst.hs.some(function(x){return x.type==='link'&&x.target===sc.id}))
           dst.hs.push({id:uid(),type:'link',yaw:normYaw(h.yaw+Math.PI),pitch:0,target:sc.id,icon:h.icon,color:h.color});
       }
-    }else if(h.type==='info'){h.title=$('#pTi').value.trim();h.text=$('#pTx').value.trim()}
+    }else if(h.type==='info'){h.title=$('#pTi').value.trim();h.text=$('#pTx').value.trim();if(snap.imgUrl&&snap.imgUrl!==h.imgUrl)URL.revokeObjectURL(snap.imgUrl)}
+    else if(h.type==='quiz'){
+      var qt=$('#qTi').value.trim(),qo=$('#qOp').value.split('\n').map(function(x){return x.trim()}).filter(Boolean).slice(0,4),qk=parseInt($('#qOk').value,10);
+      if(!qt){toast('Escribe la pregunta',true);return}
+      if(qo.length<2){toast('Escribe al menos 2 respuestas (una por línea)',true);return}
+      if(!(qk>=1&&qk<=qo.length)){toast('La respuesta correcta debe ser un número entre 1 y '+qo.length,true);return}
+      h.title=qt;h.opts=qo;h.ok=qk-1;h.points=Math.max(1,Math.min(100,parseInt($('#qPt').value,10)||10));h.expl=$('#qEx').value.trim();
+    }
     else if(h.type==='galeria'){
       if(!h.images.length){toast('Agrega al menos una foto',true);return}
       h.title=$('#pTi').value.trim();
@@ -680,7 +721,7 @@ function openPanel(h,isNew){
 
 /* ---------- deshacer / rehacer y copiar / pegar hotspots ---------- */
 var HIST={u:[],r:[],last:null,sig:'',t:null};
-function cloneHs(h){var c=Object.assign({},h);if(h.images)c.images=h.images.slice();c.id=h.id;return c}
+function cloneHs(h){var c=Object.assign({},h);if(h.images)c.images=h.images.slice();if(h.opts)c.opts=h.opts.slice();c.id=h.id;return c}
 function snapState(){
   return {name:S.name,order:S.scenes.map(function(s){return s.id}),sc:S.scenes.map(function(s){return {id:s.id,name:s.name,init:Object.assign({},s.init),adjust:Object.assign({},s.adjust),secs:s.secs,skip:!!s.skip,plan:s.plan?Object.assign({},s.plan):null,hs:s.hs.map(cloneHs)}})};
 }
@@ -735,7 +776,6 @@ function hint(msg){
 }
 function syncUI(){
   $('#empty').style.display=S.scenes.length?'none':'flex';
-  $('#btnExport').disabled=!S.scenes.length;
   $('#btnPrev').disabled=!S.scenes.length;$('#btnShare').disabled=!S.scenes.length;syncTb();
   renderMenu();
   $('#count').textContent=S.scenes.length?'('+S.scenes.length+')':'';
@@ -743,12 +783,23 @@ function syncUI(){
   Array.prototype.forEach.call(document.querySelectorAll('#modes button'),function(b){b.classList.toggle('on',b.dataset.mode===S.mode)});
   hint();
 }
+function allTags(){var m={};S.scenes.forEach(function(sc){(sc.tags||[]).forEach(function(t){m[t]=1})});return Object.keys(m).sort(function(a,b){return a.localeCompare(b,'es')})}
+function renderTagBar(){
+  var tb=$('#tagBar'),ts=allTags();
+  if(S.tagFilter&&ts.indexOf(S.tagFilter)<0)S.tagFilter='';
+  tb.innerHTML='';if(!ts.length)return;
+  ['']. concat(ts).forEach(function(t){var b=document.createElement('button');b.type='button';b.textContent=t||'Todas';b.className=(S.tagFilter||'')===t?'on':'';b.onclick=function(){S.tagFilter=t;renderList()};tb.appendChild(b)});
+}
 function renderList(){
-  var L=$('#list');L.innerHTML='';
+  var L=$('#list');L.innerHTML='';renderTagBar();
+  var q=(($('#scQ')||{}).value||'').trim().toLowerCase(),tgF=S.tagFilter||'';
   S.scenes.forEach(function(sc,i){
+    if(q&&sc.name.toLowerCase().indexOf(q)<0&&!(sc.tags||[]).some(function(t){return t.toLowerCase().indexOf(q)>=0}))return;
+    if(tgF&&(sc.tags||[]).indexOf(tgF)<0)return;
     var d=document.createElement('div');d.className='sc'+(sc===S.cur?' on':'');
     var nl=sc.hs.filter(function(h){return h.type==='link'}).length,ne=sc.hs.filter(function(h){return h.type==='embed'}).length,ni=sc.hs.length-nl-ne-sc.hs.filter(function(h){return h.type==='imagen'}).length,nm=sc.hs.length-nl-ne-ni;
-    d.innerHTML='<img src="'+sc.thumb+'" alt=""><div><input type="text" value="'+esc(sc.name)+'" aria-label="Nombre de la escena"><div class="meta">'+(i===0?'<span class="first">INICIO · </span>':'')+nl+' enlaces · '+ni+' info'+(ne?' · '+ne+' contenido':'')+(nm?' · '+nm+' imagen':'')+(sc.layer?' · capa':'')+'</div></div><div class="btns"><button title="Subir">▲</button><button title="Bajar">▼</button><button class="danger" title="Eliminar">✕</button></div>';
+    var tagHtml=(sc.tags&&sc.tags.length)?'<br>'+sc.tags.map(function(t){return '<span class="tg">'+esc(t)+'</span>'}).join(''):'';
+    d.innerHTML='<img src="'+sc.thumb+'" alt=""><div><input type="text" value="'+esc(sc.name)+'" aria-label="Nombre de la escena"><div class="meta">'+(i===0?'<span class="first">INICIO · </span>':'')+nl+' enlaces · '+ni+' info'+(ne?' · '+ne+' contenido':'')+(nm?' · '+nm+' imagen':'')+(sc.layer?' · capa':'')+(S.scenes.length>1&&!nl?' · <b style="color:#c0392b">sin enlaces</b>':'')+tagHtml+'</div></div><div class="btns"><button title="Subir">▲</button><button title="Bajar">▼</button><button class="danger" title="Eliminar">✕</button></div>';
     d.onclick=function(e){if(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON')return;select(sc);if(mq.matches)setMenu(false)};
     d.draggable=true;
     d.ondragstart=function(e){e.dataTransfer.setData('text/plain',String(i));e.dataTransfer.effectAllowed='move';d.classList.add('drag')};
@@ -764,6 +815,7 @@ function renderList(){
     L.appendChild(d);
   });
 }
+$('#scQ').oninput=renderList;
 $('#modes').addEventListener('click',function(e){
   var b=e.target.closest('button');if(!b)return;S.mode=b.dataset.mode;S.reloc=null;$('#stage').classList.remove('moving');
   if(S.mode==='view')closePanel();syncUI();
@@ -908,7 +960,12 @@ function applyBrandEditor(){G.applyBrand(S.brand);if(S.cur)renderHotspots(S.cur)
     '<label for="bgLink">Enlace del logo (opcional)</label><input type="text" id="bgLink" placeholder="https://geomav.me" autocomplete="off">'+
     '<h5>Colores</h5><small>Presets rápidos o elige tus colores.</small><div class="presets" id="bgPre">'+PRESETS.map(function(p,i){return '<button type="button" data-i="'+i+'" title="'+p[0]+'"><i style="background:'+p[1]+'"></i><i style="background:'+p[2]+'"></i></button>'}).join('')+'</div>'+
     '<div class="crow"><input type="color" id="bgAcc" value="#D49A6A"><span>Acento (botones, enlaces)</span></div>'+
-    '<div class="crow"><input type="color" id="bgBar" value="#0A2240"><span>Barras y paneles</span><button id="bgRst" type="button">Restablecer</button></div>';
+    '<div class="crow"><input type="color" id="bgBar" value="#0A2240"><span>Barras y paneles</span><button id="bgRst" type="button">Restablecer</button></div>'+
+    '<h5>Tapa de trípode</h5><small>Cubre el trípode o el suelo bajo la cámara con tu logo. Se aplica a todas las escenas (mira hacia abajo para verla).</small>'+
+    '<div class="row"><button id="capPick" type="button">Elegir imagen…</button><button id="capLogo" type="button">Usar el logo</button><button class="danger" id="capDel" type="button">Quitar</button></div>'+
+    '<img id="capPrev" alt="" style="display:none;max-width:80px;background:#0A1118;border-radius:6px;margin:6px 0">'+
+    '<label>Tamaño: <span id="capSv">30</span>° de ancho</label><input type="range" class="sldr" id="capSz" min="10" max="90" step="1" value="30">'+
+    '<small>La pantalla de carga (en Ajustes del tour) usa el logo y el nombre del tour.</small>';
   $('#bgLogo').onclick=function(){$('#fileLogo').click()};
   $('#bgLogoDel').onclick=function(){if(B.logo)URL.revokeObjectURL(B.logo.url);B.logo=null;syncBrand()};
   $('#bgLink').oninput=function(e){B.logoLink=e.target.value.trim();$('#bgLink').classList.toggle('bad',!!B.logoLink&&!G.https(B.logoLink))};
@@ -916,6 +973,12 @@ function applyBrandEditor(){G.applyBrand(S.brand);if(S.cur)renderHotspots(S.cur)
   $('#bgBar').oninput=function(e){B.bar=e.target.value};
   $('#bgRst').onclick=function(){B.accent='';B.bar='';syncBrand();applyBrandEditor()};
   $('#bgPre').onclick=function(e){var b=e.target.closest('button');if(!b)return;var p=PRESETS[+b.dataset.i];B.accent=p[1];B.bar=p[2];syncBrand();applyBrandEditor()};
+  function capRedraw(){syncBrand();if(S.cur)renderHotspots(S.cur)}
+  $('#capPick').onclick=function(){$('#fileCap').click()};
+  $('#fileCap').onchange=async function(e){var f=e.target.files[0];e.target.value='';if(!f)return;var r=await prepImg(f,800);if(!r)return;if(S.cap)URL.revokeObjectURL(S.cap.url);S.cap={blob:r.blob,url:r.url,size:S.cap?S.cap.size:30};capRedraw()};
+  $('#capLogo').onclick=function(){if(!B.logo){toast('Primero elige un logo en esta sección',true);return}if(S.cap)URL.revokeObjectURL(S.cap.url);S.cap={blob:B.logo.blob,url:URL.createObjectURL(B.logo.blob),size:S.cap?S.cap.size:30};capRedraw()};
+  $('#capDel').onclick=function(){if(S.cap)URL.revokeObjectURL(S.cap.url);S.cap=null;capRedraw()};
+  $('#capSz').oninput=function(e){if(!S.cap)return;S.cap.size=+e.target.value;$('#capSv').textContent=S.cap.size;if(S.cur)renderHotspots(S.cur)};
   $('#fileLogo').onchange=async function(e){
     var f=e.target.files[0];e.target.value='';if(!f)return;
     var r=await prepImg(f,600);if(!r)return;
@@ -944,6 +1007,7 @@ function syncBrand(){
   $('#bgLogoDel').style.display=B.logo?'':'none';$('#bgLogo').textContent=B.logo?'Cambiar logo…':'Elegir logo…';
   $('#bgLink').value=B.logoLink||'';$('#bgAcc').value=B.accent||'#D49A6A';$('#bgBar').value=B.bar||'#0A2240';
   Object.keys(I).forEach(function(k){var e=$('#inf_'+k);if(e&&e.value!==I[k])e.value=I[k]||''});
+  var cp=$('#capPrev');if(cp){cp.style.display=S.cap?'block':'none';if(S.cap)cp.src=S.cap.url;$('#capDel').style.display=S.cap?'':'none';$('#capSz').value=S.cap?S.cap.size:30;$('#capSv').textContent=S.cap?S.cap.size:30}
 }
 
 /* ---------- menú lateral ---------- */
@@ -964,8 +1028,6 @@ function goSec(id){setMenu(true);['secScenes','secScene','secPlan','secAudio','s
 $('#tbShare').onclick=openShare;
 $('#tbLink').onclick=function(){if(S.pub&&S.pub.url)copyText(S.pub.url,'Enlace copiado');else{toast('Aún no está publicado: publícalo para obtener el enlace');openShare()}};
 $('#tbColor').onclick=function(){goSec('secScene');var a=document.querySelector('#sceneTools [data-adj],#sceneTools .adj');if(a&&a.scrollIntoView)a.scrollIntoView({block:'center'})};
-$('#tbBrand').onclick=function(){goSec('secBrand')};
-$('#tbInfo').onclick=function(){goSec('secInfo')};
 function syncTb(){Array.prototype.forEach.call(document.querySelectorAll('#tbActs button'),function(b){b.disabled=!S.scenes.length})}
 
 var menuCur=undefined;
@@ -1356,11 +1418,17 @@ function renderMenu(){
   var A=sc.adjust;
   var sl=function(id,k,txt){return '<label>'+txt+': <span id="'+id+'v">'+A[k]+'</span></label><input type="range" class="sldr" id="'+id+'" min="-100" max="100" step="1" value="'+A[k]+'">'};
   box.innerHTML='<button class="wide" id="btnInit" type="button" title="Usa la dirección actual como vista de entrada a esta escena">Fijar vista inicial</button><small>Mira hacia donde quieras que parta esta escena y pulsa el botón.</small>'+
+    '<h5>Datos de la escena</h5><label for="scSub">Descripción corta (se ve bajo el título)</label><input type="text" id="scSub" maxlength="90" placeholder="Ej: Poste 12 · Colchagua" value="'+esc(sc.sub||'')+'" autocomplete="off">'+
+    '<label for="scEn">Nombre en inglés (si el visor está en inglés)</label><input type="text" id="scEn" maxlength="60" value="'+esc(sc.nameEn||'')+'" autocomplete="off">'+
+    '<label for="scTags">Etiquetas (separadas por coma)</label><input type="text" id="scTags" placeholder="Ej: Curicó, zona norte" value="'+esc((sc.tags||[]).join(', '))+'" autocomplete="off"><small>Sirven para filtrar escenas aquí y en el menú del visor.</small>'+
     '<div id="orBox"><h5>Orientación de la panorama</h5></div>'+
     '<div id="adjBox"><h5>Ajustes de imagen</h5><small>No modifican tu archivo original.</small>'+sl('aB','b','Brillo')+sl('aC','c','Contraste')+sl('aS','s','Saturación')+
     '<div class="row"><button id="aReset" type="button">Restablecer</button><button id="aAll" type="button">Aplicar a todas</button></div></div>'+
     '<div id="layerBox"><h5>Capa de comparación</h5><small>Superpone otra panorama (plano, etapa anterior de obra); el visitante la mezcla con un deslizador. Debe ser equirectangular 2:1.</small><div id="layerUI"></div></div>';
   $('#btnInit').onclick=fixInit;
+  $('#scSub').oninput=function(e){sc.sub=e.target.value.trim()};
+  $('#scEn').oninput=function(e){sc.nameEn=e.target.value.trim()};
+  $('#scTags').onchange=function(e){var seen={};sc.tags=e.target.value.split(',').map(function(t){return t.trim().slice(0,24)}).filter(function(t){if(!t||seen[t.toLowerCase()])return false;seen[t.toLowerCase()]=1;return true}).slice(0,8);renderList()};
   drawOrient();
   [['aB','b'],['aC','c'],['aS','s']].forEach(function(x){$('#'+x[0]).oninput=function(e){A[x[1]]=+e.target.value;$('#'+x[0]+'v').textContent=A[x[1]];applyScene(sc)}});
   $('#aReset').onclick=function(){A.b=A.c=A.s=0;['aB','aC','aS'].forEach(function(i){$('#'+i).value=0;$('#'+i+'v').textContent=0});applyScene(sc)};
@@ -1458,6 +1526,7 @@ var SETUI=[
   ['c','viewControls','Botones de flechas y zoom'],
   ['c','sceneList','Menú de escenas'],
   ['c','gyro','Botón de giroscopio (celulares)'],
+  ['s','ctrlMobile','Flechas y zoom en celular',[['show','Mostrar'],['hide','Ocultar (se navega con el dedo)']]],
   ['h','Recorrido automático'],
   ['c','pilot','Botón de recorrido automático (▶)'],
   ['s','pilotSecs','Tiempo por escena',[['5','5 segundos'],['8','8 segundos'],['12','12 segundos'],['20','20 segundos'],['30','30 segundos']]],
@@ -1466,6 +1535,12 @@ var SETUI=[
   ['h','Navegación'],
   ['s','mouseMode','Movimiento del mouse',[['drag','Arrastrar para mirar'],['qtvr','Seguir el puntero']]],
   ['s','transition','Transición al usar un enlace',[['zoom','Girar y acercar hacia el enlace'],['fade','Fundido simple']]],
+  ['h','Idioma y pantalla de carga'],
+  ['s','lang','Idioma de los botones del visor',[['es','Español'],['en','English'],['auto','Automático (según el navegador)']]],
+  ['c','splash','Pantalla de carga con logo y nombre del tour'],
+  ['t','splashText','Eslogan de la pantalla de carga','Ej: Recorridos 360° · GEOMAV'],
+  ['h','Estadísticas'],
+  ['t','gaId','ID de Google Analytics','G-XXXXXXXXXX','Mide visitas y escenas más vistas. Déjalo vacío para no medir.'],
   ['h','Exportación'],
   ['s','quality','Calidad de imagen',[['standard','Estándar: 1 imagen por escena (rápido)'],['cube','Alta: multiresolución en cubo (más nítida)']],'La calidad alta genera teselas en tu navegador y tarda más al exportar. La vista previa siempre usa la imagen única.']
 ];
@@ -1474,6 +1549,7 @@ var SETUI=[
   SETUI.forEach(function(r,i){
     if(r[0]==='h')h+='<h5>'+r[1]+'</h5>';
     else if(r[0]==='c')h+='<div class="chk"><input type="checkbox" id="set_'+r[1]+'"><label for="set_'+r[1]+'" style="margin:0;color:inherit;font-size:13px">'+r[2]+'</label></div>';
+    else if(r[0]==='t')h+='<label for="set_'+r[1]+'">'+r[2]+'</label><input type="text" id="set_'+r[1]+'" placeholder="'+r[3]+'" autocomplete="off">'+(r[4]?'<small>'+r[4]+'</small>':'');
     else h+='<label for="set_'+r[1]+'">'+r[2]+'</label><select id="set_'+r[1]+'">'+r[3].map(function(o){return '<option value="'+o[0]+'">'+o[1]+'</option>'}).join('')+'</select>'+(r[4]?'<small>'+r[4]+'</small>':'');
   });
   h+='<h5>Contraseña del tour</h5><label for="passIn">Contraseña (opcional)</label><input type="text" id="passIn" autocomplete="off" placeholder="Sin contraseña"><small id="passNote"></small>';
@@ -1483,12 +1559,13 @@ var SETUI=[
   SETUI.forEach(function(r){
     if(r[0]==='h')return;var el=$('#set_'+r[1]);
     el.onchange=function(){S.set[r[1]]=r[0]==='c'?el.checked:(r[1]==='pilotSecs'?+el.value:el.value)};
+    if(r[0]==='t')el.oninput=el.onchange;
   });
 })();
 function passNote(){var n=$('#passNote');if(!n)return;n.textContent=S.passTxt?'El visor pedirá esta contraseña al abrir el tour. Es una protección básica: sirve para evitar visitas casuales, pero alguien con conocimientos técnicos puede saltársela porque no hay servidor. No uses una contraseña que ya uses en otros sitios.':S.passHash?'Este tour ya tiene una contraseña definida. Escribe una nueva para cambiarla o deja el campo vacío y pulsa Quitar.':'Protección básica del lado del visitante (sin servidor).';
   if(S.passHash&&!S.passTxt&&!$('#passClr')){var b=document.createElement('button');b.id='passClr';b.type='button';b.textContent='Quitar contraseña';b.onclick=function(){S.passHash=null;b.remove();passNote()};n.parentNode.insertBefore(b,n.nextSibling)}
   if(!S.passHash&&$('#passClr'))$('#passClr').remove()}
-function syncSettings(){SETUI.forEach(function(r){if(r[0]==='h')return;var el=$('#set_'+r[1]);if(!el)return;if(r[0]==='c')el.checked=!!S.set[r[1]];else el.value=S.set[r[1]]!=null?S.set[r[1]]:r[3][0][0]})}
+function syncSettings(){SETUI.forEach(function(r){if(r[0]==='h')return;var el=$('#set_'+r[1]);if(!el)return;if(r[0]==='c')el.checked=!!S.set[r[1]];else if(r[0]==='t')el.value=S.set[r[1]]||'';else el.value=S.set[r[1]]!=null?S.set[r[1]]:r[3][0][0]})}
 $('#tourName').oninput=function(e){S.name=e.target.value};
 $('#btnAdd').onclick=$('#btnAdd2').onclick=function(){$('#fileImgs').click()};
 $('#fileImgs').onchange=function(e){addFiles(e.target.files);e.target.value=''};
@@ -1514,11 +1591,14 @@ function buildData(pv,cube){
     var o={id:id,name:sc.name,file:pv?sc.url:(cube?'originales/':'img/')+id+'.'+ext(sc.blob),width:sc.width,height:sc.height,
       initialViewParameters:{yaw:+sc.init.yaw.toFixed(5),pitch:+sc.init.pitch.toFixed(5),fov:+sc.init.fov.toFixed(5)},
       linkHotspots:sc.hs.filter(function(h){return h.type==='link'&&h.target&&byId(h.target)}).map(function(h){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),rotation:h.rot||0,icon:h.icon,color:h.color,target:h.target}}),
-      infoHotspots:sc.hs.filter(function(h){return h.type==='info'}).map(function(h){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),title:h.title,text:h.text,icon:h.icon,color:h.color}}),
+      infoHotspots:sc.hs.filter(function(h){return h.type==='info'}).map(function(h,k){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),title:h.title,text:h.text,icon:h.icon,color:h.color,file:h.imgUrl?(pv?h.imgUrl:'img/'+id+'_f'+k+'.'+ext(h.imgBlob)):undefined}}),
       embedHotspots:sc.hs.filter(function(h){return h.type==='embed'&&G.normEmbed(h.url).src}).map(function(h){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),title:h.title,url:h.url,icon:h.icon,color:h.color}}),
       imageHotspots:sc.hs.filter(function(h){return h.type==='imagen'&&h.url}).map(function(h,k){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),size:h.size,title:h.title,file:pv?h.url:'img/'+id+'_i'+k+'.'+ext(h.blob)}})};
     var gl=sc.hs.filter(function(h){return h.type==='galeria'&&h.images&&h.images.length});
     if(gl.length)o.galleryHotspots=gl.map(function(h,k){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),title:h.title,icon:h.icon,color:h.color,files:h.images.map(function(x,j){return pv?x.url:'img/'+id+'_g'+k+'_'+j+'.'+ext(x.blob)})}});
+    var qz=sc.hs.filter(function(h){return h.type==='quiz'&&h.title&&h.opts&&h.opts.length>=2});
+    if(qz.length)o.quizHotspots=qz.map(function(h){return {yaw:+h.yaw.toFixed(5),pitch:+h.pitch.toFixed(5),title:h.title,opts:h.opts.slice(),ok:h.ok||0,points:h.points||10,expl:h.expl||'',icon:h.icon,color:h.color}});
+    if(sc.tags&&sc.tags.length)o.tags=sc.tags.slice();if(sc.sub)o.sub=sc.sub;if(sc.nameEn)o.nameEn=sc.nameEn;
     if(sc.audio)o.audio={file:pv?sc.audio.url:'audio/'+id+'.'+extA(sc.audio.blob),name:sc.audio.name};
     if(sc.secs)o.secs=sc.secs;if(sc.skip)o.skip=true;
     if(nz)o.adjust={b:sc.adjust.b,c:sc.adjust.c,s:sc.adjust.s};
@@ -1533,11 +1613,14 @@ function buildData(pv,cube){
   if(S.music)out.music={file:pv?S.music.url:'audio/musica.'+extA(S.music.blob),volume:S.music.vol,loop:true,name:S.music.name};
   if(S.passTxt){var salt=(S.passHash&&S.passHash.salt)||Math.random().toString(36).slice(2,10);S.passHash={salt:salt,hash:G.sha256(salt+S.passTxt)}}
   if(S.passHash&&S.passHash.hash)out.settings.pass=S.passHash;
+  if(!/^G-[A-Z0-9]{4,14}$/i.test(out.settings.gaId||''))delete out.settings.gaId;else out.settings.gaId=out.settings.gaId.toUpperCase();
+  if(!out.settings.splash)delete out.settings.splashText;
   if(S.pub&&!pv)out.publish={siteId:S.pub.siteId||null,url:S.pub.url};
   var B=S.brand,br={};
   if(G.HEX.test(B.accent))br.accent=B.accent;if(G.HEX.test(B.bar))br.bar=B.bar;
   if(B.logo)br.logo={file:pv?B.logo.url:'img/logo.'+ext(B.logo.blob),link:G.https(B.logoLink)||''};
   if(Object.keys(br).length)out.brand=br;
+  if(S.cap&&S.cap.blob)out.cap={file:pv?S.cap.url:'img/tapa.'+ext(S.cap.blob),size:S.cap.size};
   var I=S.info,inf={};
   ['title','sub','desc','phone','email','pdfLabel','btnText'].forEach(function(k){if(I[k]&&I[k].trim())inf[k]=I[k].trim()});
   ['web','pdf','btnUrl'].forEach(function(k){if(G.https(I[k]))inf[k]=G.https(I[k])});
@@ -1565,6 +1648,7 @@ async function buildTourZip(o){
       if(sc.layer)zip.file(ds.layer.file,sc.layer.blob,{compression:'STORE'});
       sc.hs.filter(function(h){return h.type==='imagen'&&h.url}).forEach(function(h,k){zip.file(ds.imageHotspots[k].file,h.blob,{compression:'STORE'})});
       sc.hs.filter(function(h){return h.type==='galeria'&&h.images&&h.images.length}).forEach(function(h,k){h.images.forEach(function(x,j){zip.file(ds.galleryHotspots[k].files[j],x.blob,{compression:'STORE'})})});
+      sc.hs.filter(function(h){return h.type==='info'}).forEach(function(h,k){if(h.imgBlob)zip.file(ds.infoHotspots[k].file,h.imgBlob,{compression:'STORE'})});
       if(sc.audio)zip.file(ds.audio.file,sc.audio.blob,{compression:'STORE'});
       if(cube){
         var im=await loadImg(sc.url);
@@ -1576,6 +1660,7 @@ async function buildTourZip(o){
     if(data.plan)zip.file(data.plan.file,S.plan.blob,{compression:'STORE'});
     if(data.music)zip.file(data.music.file,S.music.blob,{compression:'STORE'});
     if(S.brand.logo)zip.file(data.brand.logo.file,S.brand.logo.blob,{compression:'STORE'});
+    if(data.cap)zip.file(data.cap.file,S.cap.blob,{compression:'STORE'});
     // data.js y tour.json se escriben al final, con las teselas ya registradas
     zip.file('data.js','var APP_DATA = '+JSON.stringify(data,null,2)+';\n',D);
     zip.file('tour.json',JSON.stringify(data,null,2),D);
@@ -1589,17 +1674,6 @@ async function saveBlob(blob,name){
   if(dl&&dl.save)await dl.save({filename:name,data:blob});
   else{var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove()}
 }
-async function exportZip(){
-  var btn=$('#btnExport'),old=btn.textContent;btn.disabled=true;btn.textContent='Generando…';
-  try{
-    var z=await buildTourZip({onProgress:function(t){btn.textContent=t}});
-    await saveBlob(z.blob,z.name);toast('Tour exportado: '+z.name);
-  }catch(e){
-    if(e&&/cancel|declin|reject|denied/i.test(String(e.message||e.code||e)))toast('Descarga cancelada');
-    else toast('No se pudo exportar: '+(e&&e.message||e),true);
-  }finally{btn.disabled=!S.scenes.length;btn.textContent=old}
-}
-$('#btnExport').onclick=exportZip;
 
 async function importZip(file){
   try{
@@ -1619,6 +1693,14 @@ async function importZip(file){
         .concat((s.infoHotspots||[]).map(function(h){return {id:uid(),type:'info',yaw:h.yaw,pitch:h.pitch,title:h.title||'',text:h.text||'',icon:h.icon,color:h.color}}))
         .concat((s.embedHotspots||[]).map(function(h){return {id:uid(),type:'embed',yaw:h.yaw,pitch:h.pitch,title:h.title||'',url:h.url||'',icon:h.icon,color:h.color}}));
       var hs=hs0;
+      for(var ik=0;ik<(s.infoHotspots||[]).length;ik++){
+        var ifh=s.infoHotspots[ik];
+        if(ifh.file&&zip.file(ifh.file)){
+          var ibl=await zip.file(ifh.file).async('blob'),ity=/\.png$/i.test(ifh.file)?'image/png':/\.webp$/i.test(ifh.file)?'image/webp':'image/jpeg';ibl=new Blob([ibl],{type:ity});
+          var itg=hs0.filter(function(x){return x.type==='info'})[ik];if(itg){itg.imgBlob=ibl;itg.imgUrl=URL.createObjectURL(ibl)}
+        }
+      }
+      (s.quizHotspots||[]).forEach(function(q){hs.push({id:uid(),type:'quiz',yaw:q.yaw,pitch:q.pitch,title:q.title||'',opts:(q.opts||[]).slice(),ok:q.ok||0,points:q.points||10,expl:q.expl||'',icon:q.icon,color:q.color})});
       for(var k=0;k<(s.imageHotspots||[]).length;k++){
         var ih=s.imageHotspots[k],zf=zip.file(ih.file);if(!zf)continue;
         var ib=await zf.async('blob'),it=/\.png$/i.test(ih.file)?'image/png':/\.webp$/i.test(ih.file)?'image/webp':'image/jpeg';ib=new Blob([ib],{type:it});
@@ -1636,7 +1718,7 @@ async function importZip(file){
         var lb=await zip.file(s.layer.file).async('blob'),lt=/\.png$/i.test(s.layer.file)?'image/png':/\.webp$/i.test(s.layer.file)?'image/webp':'image/jpeg';lb=new Blob([lb],{type:lt});
         layer={blob:lb,url:URL.createObjectURL(lb),width:s.layer.width||4096,name:s.layer.name||'Capa',opacity:s.layer.opacity==null?50:s.layer.opacity};
       }
-      await addImage(fl,{id:s.id,name:s.name,init:s.initialViewParameters,hs:hs,adjust:s.adjust&&{b:s.adjust.b||0,c:s.adjust.c||0,s:s.adjust.s||0},layer:layer,plan:null,audio:audio,secs:s.secs||0,skip:!!s.skip});
+      await addImage(fl,{id:s.id,name:s.name,init:s.initialViewParameters,hs:hs,adjust:s.adjust&&{b:s.adjust.b||0,c:s.adjust.c||0,s:s.adjust.s||0},layer:layer,plan:null,audio:audio,secs:s.secs||0,skip:!!s.skip,tags:s.tags||[],sub:s.sub||'',nameEn:s.nameEn||''});
     }
     S.name=data.name||S.name;$('#tourName').value=S.name;
     S.pub=data.publish||null;
@@ -1654,9 +1736,14 @@ async function importZip(file){
       var lgb=await zip.file(data.brand.logo.file).async('blob'),lgt=/\.png$/i.test(data.brand.logo.file)?'image/png':/\.webp$/i.test(data.brand.logo.file)?'image/webp':'image/jpeg';lgb=new Blob([lgb],{type:lgt});
       S.brand.logo={blob:lgb,url:URL.createObjectURL(lgb)};
     }
+    if(S.cap)URL.revokeObjectURL(S.cap.url);S.cap=null;
+    if(data.cap&&data.cap.file&&zip.file(data.cap.file)){
+      var cpb=await zip.file(data.cap.file).async('blob'),cpt=/\.png$/i.test(data.cap.file)?'image/png':/\.webp$/i.test(data.cap.file)?'image/webp':'image/jpeg';cpb=new Blob([cpb],{type:cpt});
+      S.cap={blob:cpb,url:URL.createObjectURL(cpb),size:data.cap.size||30};
+    }
     S.info=Object.assign({title:'',sub:'',desc:'',email:'',phone:'',web:'',pdf:'',pdfLabel:'',video:'',btnText:'',btnUrl:''},data.info||{});
     G.applyBrand(S.brand);menuCur=undefined;passNote();
-    S.set=Object.assign({pilot:true,pilotSecs:8,pilotLoop:true,pilotStart:false,autorotate:true,fullscreen:true,viewControls:true,sceneList:true,gyro:true,transition:'zoom',quality:'standard',mouseMode:'drag'},data.settings||{});delete S.set.pass;
+    S.set=Object.assign({pilot:true,pilotSecs:8,pilotLoop:true,pilotStart:false,autorotate:true,fullscreen:true,viewControls:true,sceneList:true,gyro:true,transition:'zoom',quality:'standard',mouseMode:'drag',ctrlMobile:'show',lang:'es',splash:false,splashText:'',gaId:''},data.settings||{});delete S.set.pass;
     renderList();if(S.scenes[0])select(S.scenes[0],{instant:true});syncUI();histReset();toast('Tour abierto');
   }catch(e){toast('No se pudo abrir: '+(e&&e.message||e),true)}
 }
@@ -1736,7 +1823,7 @@ var GUIDE=[
  {sel:'#setTools',t:'20. Ajustes del tour',d:'Autorrotación, recorrido automático, pantalla completa, controles, menú de escenas, giroscopio, transición, contraseña básica y calidad de imagen al exportar (estándar o multiresolución en cubo).',menu:'secSet'},
  {sel:'#btnPrev',t:'21. Previsualiza el tour',d:'Mira el tour terminado, con todos tus ajustes, sin exportar nada. Puedes ver cómo se verá en escritorio y en celular.'},
  {sel:'#btnShare',t:'22. Publica y comparte',d:'Con tu token de Netlify el editor sube el tour y te entrega el enlace, el código QR, los botones para compartir y el código para insertarlo en tu web. Al volver a publicar se actualiza la misma dirección.'},
- {sel:'#btnExport',t:'23. O exporta el ZIP',d:'Descarga un ZIP con todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
+ {sel:'#btnShare',t:'23. O descarga el ZIP',d:'Dentro de Publicar y compartir, el botón Descargar ZIP entrega todo listo. Súbelo a un hosting web (GitHub Pages, Netlify, tu servidor) y comparte el enlace. Dentro viene un LEEME con las instrucciones.'}
 ];
 var gi=-1,gKey='geomav-editor-guia';
 function gEls(){return {b:$('#gBlock'),s:$('#gSpot'),c:$('#gCard')}}
