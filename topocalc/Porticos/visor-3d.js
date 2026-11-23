@@ -216,7 +216,7 @@ var NOTAS = [
   ["i", "Brazo de 6 m = brazo de 7 m con 1 m menos de voladizo. Postes tipo T y L son iguales; cambia el número de brazos."],
   ["i", "Soldaduras: filete 6 mm salvo indicación; aceros A36 galvanizado; placas A270ES o superior (según plano)."],
   ["i", "La fundación puede ser prefabricada o in situ; la sobreexcavación puede rellenarse con hormigón pobre o áridos compactados."],
-  ["w", "Altura de la fundación Z55: se asume 1,40 m (el dato recibido decía «900»). Confirmar con el plano de fundación."],
+  ["i", "Fundación Z55: 0,55 × 1,40 m en planta y 1,40 m de alto (confirmado por GEOMAV)."],
   ["w", "Armaduras referenciales: estribos Ø8 y 8 barras Ø12 dibujadas; la cantidad exacta por zona está en el plano."],
   ["w", "Soporte del gabinete (2 barras, 605 mm libres, transversal al brazo): sin cara ni altura definidas, no está modelado."],
   ["w", "Placa plantilla PL 420×420×5 (se retira antes del montaje), contraflecha del brazo (5 cm en 7 m / 4 cm en 6 m) y AT 6 mm internas del cabezal: no modelados."],
