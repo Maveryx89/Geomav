@@ -19,6 +19,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="clima.js?v=20261020a"></script>
 <script src="estado-porticos.js?v=20261118a"></script>
+<script src="visor-3d.js?v=20261123a"></script>
 <script>
 /* Reintenta cargar ExcelJS bajo demanda (si falló al abrir la app sin conexión) */
 window.LP_cargarExcel = function(){
@@ -4160,7 +4161,7 @@ window.PORTICOS_LISTA = (function(){
     var histHtml = hacerHist();
     modal.innerHTML = '<div class="pm-card" role="dialog" aria-modal="true" aria-label="Avance del p\u00f3rtico">'
       + '<div class="pm-head"><div><strong>'+esc(p.nombre)+'</strong><span>'+esc(p.comuna)+'</span></div>'
-      + '<button type="button" class="pm-comp" aria-label="Compartir el historial de este p\u00f3rtico" title="Compartir historial"><span aria-hidden="true">\ud83d\udd17</span></button><button type="button" class="pm-x" aria-label="Cerrar">\u2715</button></div>'
+      + '<button type="button" class="pm-comp" aria-label="Compartir el historial de este p\u00f3rtico" title="Compartir historial"><span aria-hidden="true">\ud83d\udd17</span></button><button type="button" class="pm-3d" aria-label="Ver el p\u00f3rtico en 3D" title="Ver en 3D" style="margin-right:6px;height:34px;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:0 9px;font-size:.78rem;cursor:pointer;color:var(--ink)">\ud83e\uddca 3D</button><button type="button" class="pm-x" aria-label="Cerrar">\u2715</button></div>'
       + '<div class="pm-body">'
       + '<div class="pm-label">Estado actual</div><div id="pmEstado">'+estadoTxt()+'</div><div id="pmCond">'+condChips(num)+'</div><div id="pmClima" data-num="'+num+'">'+(window.PORTICOS_CLIMA ? PORTICOS_CLIMA.bloque(p) : '')+'</div>'
       + '<div class="pm-label">Registrar partida ejecutada o comentario</div>'
@@ -4182,6 +4183,12 @@ window.PORTICOS_LISTA = (function(){
     modal.hidden = false;
     setTimeout(function(){ var pp = modal.querySelector("#pmPartida"); if(pp) pp.focus(); }, 30);
     modal.querySelector(".pm-x").onclick = cerrarModal;
+    modal.querySelector(".pm-3d").onclick = function(){
+      var ejk = window.PORTICOS_ESTADO.ejecutadas(d.orden, window.PROGRAMACION, REMOTO.avance), ejs = {};
+      d.orden.forEach(function(q){ if(ejk[num + "|" + q]) ejs[q] = true; });
+      var tp = tipoPortico(p.nombre);
+      if(window.PORTICOS_3D) window.PORTICOS_3D.abrir({ nombre:p.nombre, comuna:p.comuna, tipo: tp ? tp.t : null, ejec: ejs });
+    };
     modal.querySelector(".pm-comp").onclick = function(){ compartir(location.origin + location.pathname + "#porticos?p=" + encodeURIComponent(p.nombre) + "&h=1", "Historial " + p.nombre + " \u00b7 GeoMav"); };
     modal.querySelector("#pmGuardar").onclick = function(){
       var pSel0 = modal.querySelector("#pmPartida").value;
