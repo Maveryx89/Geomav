@@ -168,11 +168,13 @@ function construir(T, o){
   });
   raiz.add(gP);
 
-  /* ---- soporte del gabinete: 2 barras horizontales sobre la cara contraria a los brazos (T: +z · L: −x); la barra superior a 5,40 m de la placa base, 605 mm libres entre barras ---- */
-  var mSop = mat(hP, 0x1de9b6), Rm = .10, eS = .04, yS = [5.40 - eS / 2, 5.40 - eS - .605 - eS / 2];
-  tg("sop", "Soporte del gabinete", [["Barras", "2, horizontales, transversales al eje de la cara (sección referencial 40 × 40 mm)"], ["Separación libre", "605 mm"], ["Altura", "barra superior a 5,40 m sobre la placa base"], ["Cara", tipo === "T" ? "Contraria a los brazos (cualquiera de las 2 caras laterales; se dibuja +z)" : "Contraria al brazo (−x)"], ["Nota", "Sección y fijaciones no definidas en el plano: referenciales"]]);
-  yS.forEach(function(y){
-    if(tipo === "T") caja(.50, eS, eS, 0, y, Rm + eS / 2, mSop, gP); else caja(eS, eS, .50, -(Rm + eS / 2), y, 0, mSop, gP);
+  /* ---- soporte del gabinete: 2 ángulos doblados 50×50×3 mm sobre la cara contraria a los brazos (T: +z · L: −x); la barra superior termina a 5,40 m de la placa base, 605 mm libres entre barras ---- */
+  var mSop = mat(hP, 0x1de9b6), Rm = .10, aS = .05, tS = .003, lS = .50, yTop = [5.40, 5.40 - aS - .605];
+  tg("sop", "Soporte del gabinete (ángulo doblado)", [["Perfil", "Ángulo doblado 50 × 50 × 3 mm (2 barras)"], ["Largo", "500 mm (referencial)"], ["Separación libre", "605 mm entre barras"], ["Altura", "barra superior a 5,40 m sobre la placa base"], ["Cara", tipo === "T" ? "Contraria a los brazos (cualquiera de las 2 caras laterales; se dibuja +z)" : "Contraria al brazo (−x)"], ["Nota", "Sentido del ángulo (ala vertical contra el poste, ala horizontal hacia afuera) y fijaciones: referenciales"]]);
+  yTop.forEach(function(yt){
+    var yv = yt - aS / 2, yh = yt - aS + tS / 2;                                   /* ala vertical contra el poste + ala horizontal hacia afuera, abajo */
+    if(tipo === "T"){ caja(lS, aS, tS, 0, yv, Rm + tS / 2, mSop, gP); caja(lS, tS, aS, 0, yh, Rm + aS / 2, mSop, gP); }
+    else { caja(tS, aS, lS, -(Rm + tS / 2), yv, 0, mSop, gP); caja(aS, tS, lS, -(Rm + aS / 2), yh, 0, mSop, gP); }
   });
   /* ---- brazo(s) enrejado(s) en lo alto del poste ---- */
   var gB = new T.Group(), hB = !!ej["Inst. Brazo H"], mB = mat(hB, 0xff9800); gB.name = "brazo";
@@ -224,7 +226,7 @@ var NOTAS = [
   ["i", "La fundación puede ser prefabricada o in situ; la sobreexcavación puede rellenarse con hormigón pobre o áridos compactados."],
   ["i", "Fundación Z55: 0,55 × 1,40 m en planta y 1,40 m de alto (confirmado por GEOMAV)."],
   ["w", "Armaduras referenciales: estribos Ø8 y 8 barras Ø12 dibujadas; la cantidad exacta por zona está en el plano."],
-  ["w", "Soporte del gabinete: 2 barras con 605 mm libres, barra superior a 5,40 m de la placa base, en la cara contraria a los brazos (T: cualquiera de las 2, se dibuja +z). Sección de barra (40 × 40 mm) y fijaciones referenciales."],
+  ["w", "Soporte del gabinete: 2 ángulos doblados 50 × 50 × 3 mm con 605 mm libres, el superior termina a 5,40 m de la placa base, en la cara contraria a los brazos (T: cualquiera de las 2, se dibuja +z). Largo (500 mm), sentido del ángulo y fijaciones referenciales."],
   ["w", "Placa plantilla PL 420×420×5 (se retira antes del montaje), contraflecha del brazo (5 cm en 7 m / 4 cm en 6 m) y AT 6 mm internas del cabezal: no modelados."],
   ["w", "Arriostres transversales del brazo: referenciales (no están acotados en el plano)."]
 ];
