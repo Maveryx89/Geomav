@@ -47,12 +47,13 @@ function construir(T, o){
     g.add(me); return me;
   }
   var F = FUND[o.fund] || FUND.Z55, ox = F.ox;          /* bloque centrado en x = ox (hacia el brazo); el poste queda en x = 0, z = 0 */
-  var hF = !!ej["Inst. de Fundación"], mAc = mat(hF, 0x4a5058);
+  var hF = !!ej["Inst. de Fundación"], mAc = mat(hF, 0xf08a4b);
   var gF = new T.Group(); gF.name = "fundacion";
   caja(F.bx, H_EMP, F.bz, ox, -1.54, 0, mat(!!ej["Emplantillado"], 0x8a7b6a), gF);
-  var mHor = o.armaduras && hF ? new T.MeshStandardMaterial({ color: acero(0xa9afb6), transparent: true, opacity: .28, depthWrite: false }) : mat(hF, 0xa9afb6);
+  var mHor = o.armaduras && hF ? new T.MeshStandardMaterial({ color: acero(0x7d8590), transparent: true, opacity: .28, depthWrite: false }) : mat(hF, 0x7d8590);
   caja(F.bx, H_BLOQ, F.bz, ox, Y_HTOP - H_BLOQ / 2, 0, mHor, gF);
-  caja(.50, Y_NT - Y_HTOP, .50, 0, (Y_NT + Y_HTOP) / 2, 0, mat(!!ej["Grouting"], 0xd2d5d9), gF);
+  var mGr = ej["Grouting"] ? new T.MeshStandardMaterial({ color: acero(0xe8dcae), transparent: true, opacity: .55, depthWrite: false }) : mat(false);
+  caja(.50, Y_NT - Y_HTOP, .50, 0, (Y_NT + Y_HTOP) / 2, 0, mGr, gF);
   if(o.armaduras){
     var V3 = function(x, y, z){ return new T.Vector3(x, y, z); }, r8 = .004, r12 = .006, c = .05;
     var x0 = ox - F.bx / 2 + c, x1 = ox + F.bx / 2 - c, z0 = -F.bz / 2 + c, z1 = F.bz / 2 - c;
@@ -80,7 +81,7 @@ function construir(T, o){
   raiz.add(gF);
 
   /* ---- poste: placa base 420×420×20 con 4 ranuras Ø30×55, cartelas PL 8, jaula de anclaje 4 × 7/8" ---- */
-  var gP = new T.Group(), hP = !!ej["Inst. Poste V"], mP = mat(hP, 0xc4ccd4); gP.name = "poste";
+  var gP = new T.Group(), hP = !!ej["Inst. Poste V"], mP = mat(hP, 0x8fb0d0), mPl = mat(hP, 0x5d6975), mH = mat(hP, 0xe6ebef); gP.name = "poste";
   (function(){
     var h = PLACA / 2, rc = .03, sh = new T.Shape();
     sh.moveTo(-h + rc, -h); sh.lineTo(h - rc, -h); sh.quadraticCurveTo(h, -h, h, -h + rc); sh.lineTo(h, h - rc); sh.quadraticCurveTo(h, h, h - rc, h);
@@ -90,9 +91,9 @@ function construir(T, o){
       hl.absarc(cx + dx, cy + dy, r, a - Math.PI / 2, a + Math.PI / 2, false); hl.absarc(cx - dx, cy - dy, r, a + Math.PI / 2, a + Math.PI * 1.5, false); sh.holes.push(hl);
     });
     var g = new T.ExtrudeGeometry(sh, { depth: .02, bevelEnabled: false }); g.rotateX(-Math.PI / 2); g.translate(0, -.02, 0);
-    gP.add(new T.Mesh(g, mP));
+    gP.add(new T.Mesh(g, mPl));
   })();
-  var mBu = mat(hP, 0x8d96a0), hexG = function(r, h){ return new T.CylinderGeometry(r, r, h, 6); };
+  var mBu = mat(hP, 0xf2f4f6), hexG = function(r, h){ return new T.CylinderGeometry(r, r, h, 6); };
   [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function(s){
     var bx = s[0] * .15, bz = s[1] * .15, V = function(y, dx, dz){ return new T.Vector3(bx + (dx || 0), y, bz + (dz || 0)); };
     cil(V(-.69), V(.06), .0111, mBu, gP);                                     /* perno 7/8"-9UNC, L=750 */
@@ -118,36 +119,36 @@ function construir(T, o){
   var shp = new T.Shape(); shp.moveTo(.125, 0); shp.lineTo(.205, 0); shp.lineTo(.205, .03); shp.lineTo(.125, .22);
   for(var k = 0; k < 4; k++){
     var gg = new T.ExtrudeGeometry(shp, { depth: .008, bevelEnabled: false }); gg.translate(0, 0, -.004); gg.rotateY(k * Math.PI / 2);
-    gP.add(new T.Mesh(gg, mP));
+    gP.add(new T.Mesh(gg, mPl));
   }
   /* punta (Detalle B): cartelas PL 4 mm base 160, tubo Ø42 × 400, 2 pernos 1/2" a 150 y 250 mm de la punta */
   var shq = new T.Shape(); shq.moveTo(.021, 0); shq.lineTo(.080, 0); shq.lineTo(.021, .15);
   for(var k2 = 0; k2 < 4; k2++){
     var g2 = new T.ExtrudeGeometry(shq, { depth: .004, bevelEnabled: false }); g2.translate(0, 0, -.002); g2.rotateY(k2 * Math.PI / 2); g2.translate(0, Y_TS, 0);
-    gP.add(new T.Mesh(g2, mP));
+    gP.add(new T.Mesh(g2, mH));
   }
-  cil(new T.Vector3(0, Y_TS, 0), new T.Vector3(0, H_MAST, 0), .021, mP, gP);
+  cil(new T.Vector3(0, Y_TS, 0), new T.Vector3(0, H_MAST, 0), .021, mH, gP);
   cil(new T.Vector3(.021, H_MAST - .15, 0), new T.Vector3(.04, H_MAST - .15, 0), .008, mBu, gP);
   cil(new T.Vector3(0, H_MAST - .25, .021), new T.Vector3(0, H_MAST - .25, .04), .008, mBu, gP);
   /* ventana de registro (vista frontal: desde 0,44 m) */
   if(hP) caja(.05, .30, .008, 0, .59, .1235, new T.MeshStandardMaterial({ color: 0x20262e }), gP);
   /* cabezal de conexión (Sección C-C): caja 200 x 280 mm, PL 8 mm en las caras del brazo, perfiles 16 mm laterales, 4+4 pernos Ø5/8", coplas 1½" */
-  var HT = 7.00, HH = .63, HY = HT - HH / 2, mBol = mat(hP, 0x8d96a0);
+  var HT = 7.00, HH = .63, HY = HT - HH / 2, mBol = mat(hP, 0xf2f4f6);
   [-1, 1].forEach(function(sg){
-    caja(.008, HH, .28, sg * .096, HY, 0, mP, gP);
-    caja(.192, HH, .016, 0, HY, sg * .132, mP, gP);
+    caja(.008, HH, .28, sg * .096, HY, 0, mH, gP);
+    caja(.192, HH, .016, 0, HY, sg * .132, mH, gP);
     [.07, .22, .39, .56].forEach(function(d){
       [-.1, .1].forEach(function(zz){ cil(new T.Vector3(sg * .102, HT - d, zz), new T.Vector3(sg * .116, HT - d, zz), .014, mBol, gP); });
     });
   });
-  var mCop = mat(hP, 0xd49a6a);
+  var mCop = mat(hP, 0xc0502f);
   [[HT - .07, 0], [HT - .475, -.08], [HT - .475, 0], [HT - .475, .08]].forEach(function(c){
     cil(new T.Vector3(-.112, c[0], c[1]), new T.Vector3(.112, c[0], c[1]), .026, mCop, gP);
   });
   raiz.add(gP);
 
   /* ---- brazo(s) enrejado(s) en lo alto del poste ---- */
-  var gB = new T.Group(), hB = !!ej["Inst. Brazo H"], mB = mat(hB, 0xb9c2cc); gB.name = "brazo";
+  var gB = new T.Group(), hB = !!ej["Inst. Brazo H"], mB = mat(hB, 0xd9a672); gB.name = "brazo";
   var lados = tipo === "T" ? [1, -1] : [1], B = BRAZO, yInf = function(x){ return B.yInf0 + (B.yInf1 - B.yInf0) * Math.min(1, x / 6.1); };
   lados.forEach(function(s){
     var V = function(x, y, z){ return new T.Vector3(s * x, y, z || 0); }, tip = brazo + .116, sp = B.sepInf, xT = B.xBajada + .12;   /* xT: fin del enrejado, luego un solo tubo */
@@ -214,8 +215,8 @@ function abrir(o){
       suelo.material.opacity = (o.ejec && o.ejec["Relleno"]) ? .35 : .08; 
       win.querySelector(".v3-sub").textContent = (o.comuna ? o.comuna + " · " : "") + "Tipo " + tipo + " · brazo " + brazo + " m · fundación " + FUND[fund].nom + (sinTipo ? " (tipo no definido en la ficha)" : "") + " · modelo referencial · girar: arrastrar · mover: clic derecho / Shift / dos dedos · zoom: rueda";
       var e = o.ejec || {}, li = function(ok, c, t){ return '<div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;background:' + (ok ? c : "transparent") + ';border:1px solid ' + (ok ? c : bp) + '"></span>' + t + (ok ? "" : " (pendiente)") + '</div>'; };
-      win.querySelector(".v3-leg").innerHTML = li(!!e["Emplantillado"], "#8a7b6a", "Emplantillado") + li(!!e["Inst. de Fundación"], "#a9afb6", "Fundación") + li(!!e["Grouting"], "#d2d5d9", "Grouting")
-        + li(!!e["Inst. Poste V"], "#c4ccd4", "Poste") + li(!!e["Inst. Brazo H"], "#b9c2cc", "Brazo");
+      win.querySelector(".v3-leg").innerHTML = li(!!e["Emplantillado"], "#8a7b6a", "Emplantillado") + li(!!e["Inst. de Fundación"], "#7d8590", "Fundación") + li(!!e["Grouting"], "#e8dcae", "Grouting")
+        + li(!!e["Inst. Poste V"], "#8fb0d0", "Poste (mástil)") + li(!!e["Inst. Poste V"], "#5d6975", "Placa base y cartelas") + li(!!e["Inst. Poste V"], "#e6ebef", "Cabezal y punta") + li(!!e["Inst. Brazo H"], "#d9a672", "Brazo");
       var b = win.querySelectorAll(".v3-bar button"); b.forEach(function(x){ x.style.borderColor = (x.dataset.k === "t" + tipo || x.dataset.k === "b" + brazo || x.dataset.k === "f" + fund || (x.dataset.k === "ar" && armaduras)) ? cssv("--accent", "#D9A272") : ""; });
     }
     var bar = win.querySelector(".v3-bar");
