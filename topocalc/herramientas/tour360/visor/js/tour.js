@@ -388,6 +388,7 @@
       var c = v.screenToCoordinates({ x: x - r.left, y: y - r.top });
       return { yaw: +(c.yaw * 180 / Math.PI).toFixed(2), pitch: +(c.pitch * 180 / Math.PI).toFixed(2) };
     },
+    viewRaw: function () { var v = curView(); if (!v) return null; var st = viewer.stage(); return { yaw: v.yaw(), pitch: v.pitch(), fov: v.fov(), w: st.width(), h: st.height() }; },   /* radianes, fov vertical */
     view: function () { var v = curView(); return v ? { yaw: +(v.yaw() * 180 / Math.PI).toFixed(2), pitch: +(v.pitch() * 180 / Math.PI).toFixed(2) } : null; },
     addHotspot: function (h, kind) { var b = built[current]; if (b) addHotspot(b.scene, h, kind, b.sprites); },
     removeHotspot: function (h) {
