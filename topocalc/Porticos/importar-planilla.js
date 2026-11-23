@@ -32,7 +32,7 @@ function fechaCelda(v){
 function equipoInfo(eq){
   var t = String(eq || ""), par = (/\(([^)]*)\)/.exec(t) || [])[1] || "", nom = sinTilde(t.replace(/\([^)]*\)/g, "")), pk = sinTilde(par), r = { resp:"", obs:"", exc:"" };
   if(nom === "oscar gonzalez") r.resp = "O.G"; else if(nom === "jose ramirez") r.resp = "JR \u00b7 Jefe de Obra"; else if(nom) r.obs = t.replace(/\([^)]*\)/g, "").trim();
-  if(/^manual/.test(pk)){ r.exc = "A mano"; r.obsx = "FORMA MANUAL"; } else if(/^maquin/.test(pk)){ r.exc = "Con maquinaria"; r.obsx = "MAQUINA"; }
+  if(/^manual|mano/.test(pk)){ r.exc = "A mano"; r.obsx = "FORMA MANUAL"; } else if(/^maquin/.test(pk)){ r.exc = "Con maquinaria"; r.obsx = "MAQUINA"; }
   return r;
 }
 function leerLista(ws, buscar){
@@ -46,9 +46,10 @@ function leerLista(ws, buscar){
   for(var r2 = hdr + 1; r2 <= nR; r2++){
     var f = fechaCelda(cel(r2, col.fecha)), port = cel(r2, col.portico), tar = cel(r2, col.tarea);
     if(!f || port == null || port === "" || tar == null || tar === "") continue;
-    var part = PM[sinTilde(tar)]; if(!part){ ign++; continue; }
+    var tk = sinTilde(tar), part = PM[tk] || PM[tk.replace(/\s*\([^)]*\)/g, "")], parTar = (/\(([^)]*)\)/.exec(String(tar)) || [])[1] || ""; if(!part){ ign++; continue; }
     var nom = String(port).replace(/\([^)]*\)/g, "").trim(), p = buscar(nom); if(!p){ nh[nom] = 1; continue; }
-    var eq = col.equipo ? cel(r2, col.equipo) : null, hc = col.hecho ? sinTilde(cel(r2, col.hecho)) : "", ob = col.observacion ? cel(r2, col.observacion) : null;
+    var eq = col.equipo ? cel(r2, col.equipo) : null; if(part === "Excavación" && /mano|manual|maquin/i.test(parTar) && !/\(/.test(String(eq || ""))) eq = String(eq || "").trim() + " (" + (/maquin/i.test(parTar) ? "Maquina" : "Manual") + ")";
+    var hc = col.hecho ? sinTilde(cel(r2, col.hecho)) : "", ob = col.observacion ? cel(r2, col.observacion) : null;
     /* columna «Hecho»: Listo -> ejecutada; No / A medias -> no ejecutada (el motivo va en Observación); vacío o «En proceso» -> sigue programada */
     var est = hc === "listo" ? "Ejecutado" : (hc === "no" || hc === "a medias" ? "No ejecutado" : "Programado");
     ev.push({ p:p, partida:part, f:f, e:est, eq:eq == null ? "" : String(eq).trim(), obs:ob == null ? "" : String(ob).replace(/\s+/g, " ").trim() });
