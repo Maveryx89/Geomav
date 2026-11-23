@@ -3097,7 +3097,7 @@ window.PORTICOS_LISTA = (function(){
       else if(action === "importar-planilla"){
         var go = function(){ if(window.PORTICOS_IMPORTAR) window.PORTICOS_IMPORTAR.abrir(); };
         if(window.PORTICOS_IMPORTAR){ go(); }
-        else { var sc = document.createElement("script"); sc.src = "importar-planilla.js?v=20261118a"; sc.onload = go; sc.onerror = function(){ alert("No se pudo cargar el importador. Revisa tu conexi\u00f3n."); }; document.head.appendChild(sc); }
+        else { var sc = document.createElement("script"); sc.src = "importar-planilla.js?v=20261123a"; sc.onload = go; sc.onerror = function(){ alert("No se pudo cargar el importador. Revisa tu conexi\u00f3n."); }; document.head.appendChild(sc); }
       }
       else if(action === "ruta"){ abrirRuta(); }
       else if(action === "guardar-todo"){ guardarTodo(el); }
@@ -3746,6 +3746,12 @@ window.PORTICOS_LISTA = (function(){
       (hist[n] = hist[n] || []).push(a);
       var idx = o.indexOf(String(a.partida).trim()); if(idx < 0 || (window.PARTIDAS_COMPLEMENTARIAS || []).indexOf(o[idx]) >= 0) return;
       if(!est[n] || idx > est[n].idx || (idx === est[n].idx && (a.fecha + a.registrado) > (est[n].fecha + est[n].reg))) est[n] = { idx: idx, fecha: a.fecha, reg: a.registrado || "", avance: a.avance };
+    });
+    /* una tarea de Programación en estado "Ejecutado" también cuenta para el estado actual del pórtico (igual que en Indicadores y en el informe) */
+    (window.PROGRAMACION || []).forEach(function(r){
+      if(!/^ejecutado/i.test(r.estado || "")) return;
+      var n = String(r.portico), idx = o.indexOf(String(r.partida).trim()); if(idx < 0 || (window.PARTIDAS_COMPLEMENTARIAS || []).indexOf(o[idx]) >= 0) return;
+      if(!est[n] || idx > est[n].idx || (idx === est[n].idx && r.fecha > est[n].fecha)) est[n] = { idx: idx, fecha: r.fecha, reg: "", avance: "100" };
     });
     return { orden: o, est: est, hist: hist };
   }
