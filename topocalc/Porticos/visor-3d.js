@@ -124,7 +124,7 @@ function abrir(o){
     }
     var ov = document.createElement("div"); ov.className = "v3-ov";
     ov.innerHTML = '<div class="v3-win"><canvas style="position:absolute;inset:0;width:100%;height:100%;display:block"></canvas>'
-      + '<div style="position:absolute;top:0;left:0;right:0;padding:10px 14px;pointer-events:none;text-shadow:0 1px 3px var(--paper-sunken,#0B1015)"><b style="font-size:15px">' + String(o.nombre || "").replace(/</g, "&lt;") + ' · 3D</b><div class="v3-sub" style="font-size:12px;color:var(--ink-soft,rgba(232,237,243,.68))"></div></div>'
+      + '<div style="position:absolute;top:0;left:0;right:0;padding:10px 14px;pointer-events:none"><b style="font-size:15px">' + String(o.nombre || "").replace(/</g, "&lt;") + ' · 3D</b><div class="v3-sub" style="font-size:12px;color:var(--ink-soft,rgba(232,237,243,.68))"></div></div>'
       + '<button class="v3-x" aria-label="Cerrar" style="position:absolute;top:8px;right:10px;background:var(--paper-raised,#1A222C);color:var(--ink,#E8EDF3);border:1px solid var(--line-strong,#3a465b);border-radius:10px;font-size:18px;padding:4px 12px;cursor:pointer">✕</button>'
       + '<div class="v3-leg" style="position:absolute;left:10px;bottom:70px;background:var(--paper-raised,#1A222C);border:1px solid var(--line-strong,#3a465b);border-radius:10px;padding:8px 10px;font-size:12px"></div>'
       + '<div class="v3-bar" style="position:absolute;left:0;right:0;bottom:0;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:var(--paper-raised,#1A222C);border-top:1px solid var(--line-strong,#3a465b);display:flex;gap:6px;flex-wrap:wrap;justify-content:center"></div></div>';
