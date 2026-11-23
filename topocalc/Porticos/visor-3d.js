@@ -168,6 +168,12 @@ function construir(T, o){
   });
   raiz.add(gP);
 
+  /* ---- soporte del gabinete: 2 barras horizontales sobre la cara contraria a los brazos (T: +z · L: −x); la barra superior a 5,40 m de la placa base, 605 mm libres entre barras ---- */
+  var mSop = mat(hP, 0x1de9b6), Rm = .10, eS = .04, yS = [5.40 - eS / 2, 5.40 - eS - .605 - eS / 2];
+  tg("sop", "Soporte del gabinete", [["Barras", "2, horizontales, transversales al eje de la cara (sección referencial 40 × 40 mm)"], ["Separación libre", "605 mm"], ["Altura", "barra superior a 5,40 m sobre la placa base"], ["Cara", tipo === "T" ? "Contraria a los brazos (cualquiera de las 2 caras laterales; se dibuja +z)" : "Contraria al brazo (−x)"], ["Nota", "Sección y fijaciones no definidas en el plano: referenciales"]]);
+  yS.forEach(function(y){
+    if(tipo === "T") caja(.50, eS, eS, 0, y, Rm + eS / 2, mSop, gP); else caja(eS, eS, .50, -(Rm + eS / 2), y, 0, mSop, gP);
+  });
   /* ---- brazo(s) enrejado(s) en lo alto del poste ---- */
   var gB = new T.Group(), hB = !!ej["Inst. Brazo H"], mB = mat(hB, 0xff9800); gB.name = "brazo";
   var lados = tipo === "T" ? [1, -1] : [1], B = BRAZO, yInf = function(x){ return B.yInf0 + (B.yInf1 - B.yInf0) * Math.min(1, x / 6.1); };
@@ -205,7 +211,7 @@ function construir(T, o){
 var CAPAS = [
   ["emp", "Emplantillado", "#7a5230", ["emp"]], ["hor", "Hormigón", "#b9b4a6", ["hor"]], ["gro", "Grouting", "#ffd23f", ["gro"]],
   ["arm", "Armaduras", "#76ff03", ["arm", "ore"]], ["anc", "Anclajes", "#00e5ff", ["anc", "tue", "fle"]], ["pla", "Placa base", "#e53935", ["pla", "car"]],
-  ["mas", "Mástil", "#2f80ed", ["mti", "mts", "ven", "pun"]], ["cab", "Cabezal", "#ffffff", ["cab", "pcb", "pbr"]], ["cop", "Coplas", "#ab47bc", ["cop"]], ["bra", "Brazo", "#ff9800", ["bra"]]
+  ["mas", "Mástil", "#2f80ed", ["mti", "mts", "ven", "pun"]], ["cab", "Cabezal", "#ffffff", ["cab", "pcb", "pbr"]], ["cop", "Coplas", "#ab47bc", ["cop"]], ["sop", "Soporte gabinete", "#1de9b6", ["sop"]], ["bra", "Brazo", "#ff9800", ["bra"]]
 ];
 function capaDe(g){ for(var i = 0; i < CAPAS.length; i++) if(CAPAS[i][3].indexOf(g) >= 0) return i; return -1; }
 /* niveles (m respecto de N.T. = ±0,00) → cota en el modelo */
@@ -218,7 +224,7 @@ var NOTAS = [
   ["i", "La fundación puede ser prefabricada o in situ; la sobreexcavación puede rellenarse con hormigón pobre o áridos compactados."],
   ["i", "Fundación Z55: 0,55 × 1,40 m en planta y 1,40 m de alto (confirmado por GEOMAV)."],
   ["w", "Armaduras referenciales: estribos Ø8 y 8 barras Ø12 dibujadas; la cantidad exacta por zona está en el plano."],
-  ["w", "Soporte del gabinete (2 barras, 605 mm libres, transversal al brazo): sin cara ni altura definidas, no está modelado."],
+  ["w", "Soporte del gabinete: 2 barras con 605 mm libres, barra superior a 5,40 m de la placa base, en la cara contraria a los brazos (T: cualquiera de las 2, se dibuja +z). Sección de barra (40 × 40 mm) y fijaciones referenciales."],
   ["w", "Placa plantilla PL 420×420×5 (se retira antes del montaje), contraflecha del brazo (5 cm en 7 m / 4 cm en 6 m) y AT 6 mm internas del cabezal: no modelados."],
   ["w", "Arriostres transversales del brazo: referenciales (no están acotados en el plano)."]
 ];
@@ -320,7 +326,7 @@ function abrir(o){
       win.querySelector(".v3-sub").textContent = (o.comuna ? o.comuna + " · " : "") + "Tipo " + tipo + " · brazo " + brazo + " m · fundación " + FUND[fund].nom + (sinTipo ? " (tipo no definido en la ficha)" : "") + " · modelo referencial";
       var e = o.ejec || {}, li = function(ok, c, t){ return '<div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;background:' + (ok ? c : "transparent") + ';border:1px solid ' + (ok ? c : bp) + '"></span>' + t + (ok ? "" : " (pendiente)") + '</div>'; };
       win.querySelector(".v3-leg").innerHTML = li(!!e["Emplantillado"], "#7a5230", "Emplantillado") + li(!!e["Inst. de Fundación"], "#b9b4a6", "Fundación") + li(!!e["Grouting"], "#ffd23f", "Grouting")
-        + li(!!e["Inst. Poste V"], "#2f80ed", "Poste (mástil)") + li(!!e["Inst. Poste V"], "#e53935", "Placa base y cartelas") + li(!!e["Inst. Poste V"], "#ffffff", "Cabezal y punta") + li(!!e["Inst. Poste V"], "#00e5ff", "Pernos y anclajes") + li(!!e["Inst. Poste V"], "#ab47bc", "Coplas 1½\"") + li(!!e["Inst. Brazo H"], "#ff9800", "Brazo");
+        + li(!!e["Inst. Poste V"], "#2f80ed", "Poste (mástil)") + li(!!e["Inst. Poste V"], "#e53935", "Placa base y cartelas") + li(!!e["Inst. Poste V"], "#ffffff", "Cabezal y punta") + li(!!e["Inst. Poste V"], "#00e5ff", "Pernos y anclajes") + li(!!e["Inst. Poste V"], "#ab47bc", "Coplas 1½\"") + li(!!e["Inst. Poste V"], "#1de9b6", "Soporte gabinete") + li(!!e["Inst. Brazo H"], "#ff9800", "Brazo");
       aplicaMateriales(); render();
     }
     /* ---- paneles ---- */
