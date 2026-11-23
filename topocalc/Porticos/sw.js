@@ -1,12 +1,12 @@
 // Service Worker — Pórticos (GeoMav). Alcance: /topocalc/Porticos/
 // Páginas: red primero (así las actualizaciones llegan al tiro) y, sin señal, la última copia guardada.
 // Los datos (Apps Script) y el cálculo de rutas (OSRM) NO se guardan: siempre van a la red.
-const VERSION = 'porticos-v1';
+const VERSION = 'porticos-v2';
 const TILES = 'porticos-tiles-v1';
 const MAX_TILES = 400;
 const BASE = '/topocalc/Porticos/';
 const SHELL = [BASE, BASE + 'index.html', BASE + 'manifest.json', BASE + 'icons/icon-192.png', BASE + 'icons/icon-512.png',
-  BASE + 'informe.js', BASE + 'informe-viaje.js', BASE + 'importar-planilla.js', BASE + 'clima.js', BASE + 'estado-porticos.js'];
+  BASE + 'informe.js', BASE + 'informe-viaje.js', BASE + 'importar-planilla.js', BASE + 'clima.js', BASE + 'estado-porticos.js', BASE + 'visor-3d.js', BASE + 'vendor/three.min.js'];
 const HOSTS_CDN = ['cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 const esTile = (u) => /^([abc]\.)?tile\.openstreetmap\.org$/.test(u.hostname);
 
