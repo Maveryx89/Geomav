@@ -70,7 +70,7 @@
       n.castShadow = true; n.receiveShadow = true;
       if (g === 'arm' || g === 'ore') { quitar.push(n); return; }
       if (HORM[g]) n.material = new T.MeshStandardMaterial({ color: g === 'gro' ? 0x8f8c84 : 0x9a978f, roughness: .96, metalness: 0, envMap: envTex, envMapIntensity: .45 });
-      else if (ACERO[g]) n.material = new T.MeshStandardMaterial({ color: 0xb4babe, roughness: .42, metalness: .72, envMap: envTex, envMapIntensity: 1 });
+      else if (ACERO[g]) { var j = 1 + (((n.id * 37) % 11) - 5) * .008; n.material = new T.MeshStandardMaterial({ color: new T.Color(0xcfd2d3).multiplyScalar(j), roughness: .5 + (((n.id * 17) % 9) - 4) * .015, metalness: .55, envMap: envTex, envMapIntensity: .55 }); }   /* zinc galvanizado: gris plata claro, satinado, con leve variación entre piezas */
     });
     quitar.forEach(function (n) { if (n.parent) n.parent.remove(n); });
     grupo.add(modelo);
