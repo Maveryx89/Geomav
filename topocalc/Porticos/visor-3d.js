@@ -4,11 +4,16 @@
 (function(){
 "use strict";
 var THREE_SRC = "vendor/three.min.js?v=r128";
+/* Medidas leídas del DXF (metros, N.T. = 0): fundación = emplantillado 5 cm (−1,52…−1,47) + hormigón 1,40 m (−1,47…−0,07) + grouting 5 cm + placa 20 mm.
+   Elevación de ambos tipos: fundación de 0,90 m a lo largo del brazo. En planta: Tipo T según detalle Z55x140x140 (1,40 m transversal al brazo); Tipo L = Z90x90x140 excéntrica 0,20 m. */
 var DIM = {
-  T: { bx: 1.40, bz: 0.55, off: 0 },          /* Z55x140x140 · zapata 1,40 x 0,55 x 1,40 m de alto */
-  L: { bx: 0.90, bz: 0.90, off: 0.20 }          /* Z90x90x140 excéntrica: poste desplazado 0,20 m del centro */
+  T: { bx: 0.90, bz: 1.40, offz: 0 },
+  L: { bx: 0.90, bz: 0.90, offz: 0.20 }
 };
-var H_BLOQ = 1.40, H_GROUT = 0.15, H_EMP = 0.10, H_MAST = 7.0, PLACA = 0.42;
+var H_BLOQ = 1.40, H_GROUT = 0.05, H_EMP = 0.05, H_MAST = 7.565, PLACA = 0.42;
+/* brazo (m desde el eje del poste): tubo inferior Ø76,1 casi horizontal y cordón superior Ø60,3 con diagonales en zigzag */
+var BRAZO = { yInf0: 6.464, yInf1: 6.512, ySup: 6.89, xIni: 0.12, xSupFin: 4.15, xBajada: 4.70,
+  bajos: [0.83, 2.01, 3.31, 4.66], altos: [0.30, 1.36, 2.66, 3.95] };
 
 function cargarThree(cb){
   if(window.THREE) return cb();
@@ -37,46 +42,44 @@ function construir(T, o){
     me.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), v.clone().normalize());
     g.add(me); return me;
   }
-  var xc = -sgn * D.off;                     /* centro del bloque: el poste queda en x = 0 */
-
-  /* ---- fundación: emplantillado + bloque + grouting ---- */
+  var zc = -sgn * D.offz;                    /* centro del bloque: el poste queda en x = 0, z = 0 */
   var gF = new T.Group(); gF.name = "fundacion";
-  caja(D.bx + .1, H_EMP, D.bz + .1, xc, -H_BLOQ - H_GROUT - H_EMP / 2, 0, mat(!!ej["Emplantillado"], 0x8a7b6a), gF);
-  caja(D.bx, H_BLOQ, D.bz, xc, -H_GROUT - H_BLOQ / 2, 0, mat(!!ej["Inst. de Fundación"], 0xa9afb6), gF);
-  caja(PLACA + .12, H_GROUT, PLACA + .12, 0, -H_GROUT / 2, 0, mat(!!ej["Inst. de Fundación"], 0xcfd3d8), gF);
+  caja(D.bx + .1, H_EMP, D.bz + .1, 0, -H_BLOQ - .07 - H_EMP / 2, zc, mat(!!ej["Emplantillado"], 0x8a7b6a), gF);
+  caja(D.bx, H_BLOQ, D.bz, 0, -.07 - H_BLOQ / 2, zc, mat(!!ej["Inst. de Fundación"], 0xa9afb6), gF);
+  caja(PLACA + .06, H_GROUT, PLACA + .06, 0, -.02 - H_GROUT / 2, 0, mat(!!ej["Inst. de Fundación"], 0xcfd3d8), gF);
   raiz.add(gF);
 
   /* ---- poste: placa base, pernos de anclaje y mástil octogonal ---- */
   var gP = new T.Group(), hP = !!ej["Inst. Poste V"], mP = mat(hP, 0xc4ccd4); gP.name = "poste";
-  caja(PLACA, .02, PLACA, 0, .01, 0, mP, gP);
+  caja(PLACA, .02, PLACA, 0, -.01, 0, mP, gP);
   [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function(s){
-    cil(new T.Vector3(s[0] * .15, -.65, s[1] * .15), new T.Vector3(s[0] * .15, .14, s[1] * .15), .011, mat(hP, 0x8d96a0), gP);
+    cil(new T.Vector3(s[0] * .15, -.75, s[1] * .15), new T.Vector3(s[0] * .15, .10, s[1] * .15), .011, mat(hP, 0x8d96a0), gP);
   });
   function tramo(y0, y1, r0, r1){            /* octágono: r = radio circunscrito ≈ ancho entre caras / 2 / cos(22,5°) */
     var k = 1 / Math.cos(Math.PI / 8) / 2, g = new T.CylinderGeometry(r1 * k, r0 * k, y1 - y0, 8, 1);
-    g.rotateY(Math.PI / 8); var me = new T.Mesh(g, mP); me.position.set(0, (y0 + y1) / 2 + .02, 0); gP.add(me);
+    g.rotateY(Math.PI / 8); var me = new T.Mesh(g, mP); me.position.set(0, (y0 + y1) / 2, 0); gP.add(me);
     if(!hP){ var ed = new T.LineSegments(new T.EdgesGeometry(g), new T.LineBasicMaterial({ color: 0x7f9bbd })); ed.position.copy(me.position); gP.add(ed); }
   }
-  tramo(0, 3.6, .250, .175);                 /* T.I.: OCT 250-175 x 4 mm */
-  tramo(3.6, H_MAST, .189, .160);            /* T.S.: OCT 189-160 x 4 mm */
+  tramo(0, 5.4, .250, .181);                 /* T.I.: OCT 250-175 x 4 mm, 5,40 m */
+  tramo(4.95, 6.40, .189, .176);             /* T.S.: OCT 189-160 x 4 mm (traslapa con T.I.) */
+  tramo(6.40, 7.10, .235, .235);             /* cabezal de conexión (8 pernos) */
+  tramo(7.10, H_MAST, .170, .160);
   raiz.add(gP);
 
   /* ---- brazo(s) enrejado(s) en lo alto del poste ---- */
   var gB = new T.Group(), hB = !!ej["Inst. Brazo H"], mB = mat(hB, 0xb9c2cc); gB.name = "brazo";
-  var yT = H_MAST - .05, lados = tipo === "T" ? [1, -1] : [1];
+  var lados = tipo === "T" ? [1, -1] : [1], B = BRAZO, yInf = function(x){ return B.yInf0 + (B.yInf1 - B.yInf0) * Math.min(1, x / 6.1); };
   lados.forEach(function(s){
-    var n = 8, hRaiz = .62, prev = null;
-    for(var i = 0; i <= n; i++){
-      var x = s * (.16 + (brazo - .16) * i / n), h = hRaiz * (1 - i / n) * .85 + .10;
-      var top = new T.Vector3(x, yT, 0), bot = new T.Vector3(x, yT - h, 0);
-      if(prev){
-        cil(prev.top, top, .028, mB, gB); cil(prev.bot, bot, .028, mB, gB);
-        cil(i % 2 ? prev.bot : prev.top, i % 2 ? top : bot, .016, mB, gB);
-      }
-      cil(top, bot, .016, mB, gB); prev = { top: top, bot: bot };
+    var V = function(x, y){ return new T.Vector3(s * x, y, 0); }, tip = brazo + .116;
+    cil(V(B.xIni, yInf(B.xIni)), V(tip, yInf(tip)), .038, mB, gB);                         /* tubo inferior Ø76,1 */
+    cil(V(B.xIni, B.ySup), V(B.xSupFin, B.ySup), .030, mB, gB);                           /* cordón superior Ø60,3 */
+    cil(V(B.xSupFin, B.ySup), V(B.xBajada, yInf(B.xBajada)), .030, mB, gB);               /* bajada del cordón al tubo */
+    var nodos = []; B.bajos.forEach(function(x){ nodos.push([x, 0]); }); B.altos.forEach(function(x){ nodos.push([x, 1]); });
+    nodos.sort(function(a, b){ return a[0] - b[0]; });
+    for(var i = 1; i < nodos.length; i++){
+      var a1 = nodos[i - 1], b1 = nodos[i];
+      cil(V(a1[0], a1[1] ? B.ySup : yInf(a1[0])), V(b1[0], b1[1] ? B.ySup : yInf(b1[0])), .022, mB, gB);
     }
-    /* aisladores/cabezal de la punta */
-    cil(new T.Vector3(s * brazo, yT, 0), new T.Vector3(s * brazo, yT + .25, 0), .03, mB, gB);
   });
   raiz.add(gB);
   return raiz;
@@ -105,7 +108,7 @@ function abrir(o){
     function dibujar(){
       if(modelo) sc.remove(modelo);
       modelo = construir(T, { tipo: tipo, brazo: brazo, ejec: o.ejec }); sc.add(modelo);
-      suelo.material.opacity = (o.ejec && o.ejec["Relleno"]) ? .35 : .08; suelo.visible = !corte || true;
+      suelo.material.opacity = (o.ejec && o.ejec["Relleno"]) ? .35 : .08; 
       ov.querySelector(".v3-sub").textContent = (o.comuna ? o.comuna + " · " : "") + "Tipo " + tipo + " · brazo " + brazo + " m" + (sinTipo ? " (tipo no definido en la ficha)" : "") + " · modelo referencial";
       var e = o.ejec || {}, li = function(ok, c, t){ return '<div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;background:' + (ok ? c : "transparent") + ';border:1px solid ' + (ok ? c : "#7f9bbd") + '"></span>' + t + (ok ? "" : " (pendiente)") + '</div>'; };
       ov.querySelector(".v3-leg").innerHTML = li(!!e["Emplantillado"], "#8a7b6a", "Emplantillado") + li(!!e["Inst. de Fundación"], "#a9afb6", "Fundación")
@@ -113,13 +116,14 @@ function abrir(o){
       var b = ov.querySelectorAll(".v3-bar button"); b.forEach(function(x){ x.style.borderColor = (x.dataset.k === "t" + tipo || x.dataset.k === "b" + brazo) ? "#4fb3ff" : "#3a465b"; });
     }
     var bar = ov.querySelector(".v3-bar");
-    [["tT", "Tipo T"], ["tL", "Tipo L"], ["b6", "Brazo 6 m"], ["b7", "Brazo 7 m"], ["v", "Vista general"], ["f", "Fundación"], ["c", "Terreno"]].forEach(function(x){
+    [["tT", "Tipo T"], ["tL", "Tipo L"], ["b6", "Brazo 6 m"], ["b7", "Brazo 7 m"], ["v", "Vista general"], ["e", "Elevación"], ["f", "Fundación"], ["c", "Terreno"]].forEach(function(x){
       var bt = document.createElement("button"); bt.textContent = x[1]; bt.dataset.k = x[0].replace(/^t(.)$/, "t$1");
       bt.style.cssText = "background:#2f3a4d;color:#e8edf5;border:1px solid #3a465b;border-radius:18px;padding:7px 12px;font-size:12.5px";
       bt.onclick = function(){
         if(x[0] === "tT"){ tipo = "T"; sinTipo = false; } else if(x[0] === "tL"){ tipo = "L"; sinTipo = false; }
         else if(x[0] === "b6") brazo = 6; else if(x[0] === "b7") brazo = 7;
         else if(x[0] === "v"){ st.dist = 16; st.ty = 3.2; st.pitch = .35; }
+        else if(x[0] === "e"){ st.yaw = 0; st.pitch = 0; st.dist = 22; st.ty = 3.2; }
         else if(x[0] === "f"){ st.dist = 5; st.ty = -.8; st.pitch = .25; }
         else if(x[0] === "c"){ suelo.visible = !suelo.visible; }
         dibujar();
