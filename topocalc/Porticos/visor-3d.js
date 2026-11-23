@@ -206,31 +206,32 @@ function abrir(o){
     var cam = new T.PerspectiveCamera(40, 1, .1, 200);
     var suelo = new T.Mesh(new T.BoxGeometry(6, 1.8, 3.4), new T.MeshStandardMaterial({ color: 0x7a6a55, transparent: true, opacity: .1, depthWrite: false })); suelo.position.set(0, Y_NT - .9, 0); sc.add(suelo);
     var rejilla = new T.GridHelper(14, 14, pal.claro ? 0xb9b6ab : 0x3a465b, pal.claro ? 0xd3d0c6 : 0x2f3a4d); rejilla.position.y = Y_NT; sc.add(rejilla);
-    var st = { yaw: .7, pitch: .35, dist: 16, ty: 3.2 }, modelo = null, corte = false;
+    var st = { yaw: .7, pitch: .35, dist: 16, tx: 0, ty: 3.2, tz: 0 }, modelo = null, corte = false;
 
     function dibujar(){
       if(modelo) sc.remove(modelo);
       modelo = construir(T, { tipo: tipo, brazo: brazo, ejec: o.ejec, pal: pal, fund: fund, armaduras: armaduras }); sc.add(modelo);
       suelo.material.opacity = (o.ejec && o.ejec["Relleno"]) ? .35 : .08; 
-      win.querySelector(".v3-sub").textContent = (o.comuna ? o.comuna + " · " : "") + "Tipo " + tipo + " · brazo " + brazo + " m · fundación " + FUND[fund].nom + (sinTipo ? " (tipo no definido en la ficha)" : "") + " · modelo referencial";
+      win.querySelector(".v3-sub").textContent = (o.comuna ? o.comuna + " · " : "") + "Tipo " + tipo + " · brazo " + brazo + " m · fundación " + FUND[fund].nom + (sinTipo ? " (tipo no definido en la ficha)" : "") + " · modelo referencial · girar: arrastrar · mover: clic derecho / Shift / dos dedos · zoom: rueda";
       var e = o.ejec || {}, li = function(ok, c, t){ return '<div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;background:' + (ok ? c : "transparent") + ';border:1px solid ' + (ok ? c : bp) + '"></span>' + t + (ok ? "" : " (pendiente)") + '</div>'; };
       win.querySelector(".v3-leg").innerHTML = li(!!e["Emplantillado"], "#8a7b6a", "Emplantillado") + li(!!e["Inst. de Fundación"], "#a9afb6", "Fundación") + li(!!e["Grouting"], "#d2d5d9", "Grouting")
         + li(!!e["Inst. Poste V"], "#c4ccd4", "Poste") + li(!!e["Inst. Brazo H"], "#b9c2cc", "Brazo");
       var b = win.querySelectorAll(".v3-bar button"); b.forEach(function(x){ x.style.borderColor = (x.dataset.k === "t" + tipo || x.dataset.k === "b" + brazo || x.dataset.k === "f" + fund || (x.dataset.k === "ar" && armaduras)) ? cssv("--accent", "#D9A272") : ""; });
     }
     var bar = win.querySelector(".v3-bar");
-    [["tT", "Tipo T"], ["tL", "Tipo L"], ["b6", "Brazo 6 m"], ["b7", "Brazo 7 m"], ["v", "Vista general"], ["e", "Elevación"], ["h", "Cabezal"], ["f", "Ver fundación"], ["a", "Ver anclaje"], ["fZ55", "Z55×140"], ["fZ90C", "Z90 centrada"], ["fZ90E", "Z90 excéntrica"], ["ar", "Armaduras"], ["c", "Terreno"]].forEach(function(x){
+    [["tT", "Tipo T"], ["tL", "Tipo L"], ["b6", "Brazo 6 m"], ["b7", "Brazo 7 m"], ["v", "Vista general"], ["e", "Elevación"], ["h", "Cabezal"], ["f", "Ver fundación"], ["a", "Ver anclaje"], ["fZ55", "Z55×140"], ["fZ90C", "Z90 centrada"], ["fZ90E", "Z90 excéntrica"], ["ar", "Armaduras"], ["c", "Terreno"], ["z", "Centrar"]].forEach(function(x){
       var bt = document.createElement("button"); bt.textContent = x[1]; bt.dataset.k = x[0].replace(/^t(.)$/, "t$1");
       bt.onclick = function(){
         if(x[0] === "tT"){ tipo = "T"; sinTipo = false; fund = "Z55"; } else if(x[0] === "tL"){ tipo = "L"; sinTipo = false; fund = "Z90E"; }
         else if(/^fZ/.test(x[0])) fund = x[0].slice(1);
         else if(x[0] === "ar"){ armaduras = !armaduras; }
-        else if(x[0] === "a"){ st.yaw = .8; st.pitch = .3; st.dist = 1.6; st.ty = -.15; }
+        else if(x[0] === "z"){ st.tx = 0; st.tz = 0; st.ty = 3.2; }
+        else if(x[0] === "a"){ st.yaw = .8; st.pitch = .3; st.dist = 1.6; st.tx = 0; st.tz = 0; st.ty = -.15; }
         else if(x[0] === "b6") brazo = 6; else if(x[0] === "b7") brazo = 7;
-        else if(x[0] === "v"){ st.dist = 16; st.ty = 3.2; st.pitch = .35; }
-        else if(x[0] === "e"){ st.yaw = 0; st.pitch = 0; st.dist = 22; st.ty = 3.2; }
-        else if(x[0] === "h"){ st.yaw = .9; st.pitch = .2; st.dist = 3.4; st.ty = 6.7; }
-        else if(x[0] === "f"){ st.dist = 5.5; st.ty = -.8; st.pitch = .25; }
+        else if(x[0] === "v"){ st.dist = 16; st.tx = 0; st.tz = 0; st.ty = 3.2; st.pitch = .35; }
+        else if(x[0] === "e"){ st.yaw = 0; st.pitch = 0; st.dist = 22; st.tx = 0; st.tz = 0; st.ty = 3.2; }
+        else if(x[0] === "h"){ st.yaw = .9; st.pitch = .2; st.dist = 3.4; st.tx = 0; st.tz = 0; st.ty = 6.7; }
+        else if(x[0] === "f"){ st.dist = 5.5; st.tx = 0; st.tz = 0; st.ty = -.8; st.pitch = .25; }
         else if(x[0] === "c"){ suelo.visible = !suelo.visible; }
         dibujar();
       };
@@ -238,18 +239,25 @@ function abrir(o){
     });
     function tam(){ var w = win.clientWidth, h = win.clientHeight; r.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
     function pinta(){
-      cam.position.set(Math.sin(st.yaw) * Math.cos(st.pitch) * st.dist, st.ty + Math.sin(st.pitch) * st.dist, Math.cos(st.yaw) * Math.cos(st.pitch) * st.dist);
-      cam.lookAt(0, st.ty, 0); r.render(sc, cam);
+      cam.position.set(st.tx + Math.sin(st.yaw) * Math.cos(st.pitch) * st.dist, st.ty + Math.sin(st.pitch) * st.dist, st.tz + Math.cos(st.yaw) * Math.cos(st.pitch) * st.dist);
+      cam.lookAt(st.tx, st.ty, st.tz); r.render(sc, cam);
     }
     var vivo = true; (function loop(){ if(!vivo) return; pinta(); requestAnimationFrame(loop); })();
     var pts = {}, ult = null;
     cv.addEventListener("pointerdown", function(e){ cv.setPointerCapture(e.pointerId); pts[e.pointerId] = e; ult = null; });
+    function pan(dx, dy){                       /* desplaza el centro de visión en el plano de la pantalla */
+      var k = .728 * st.dist / Math.max(300, win.clientHeight);
+      st.tx -= Math.cos(st.yaw) * dx * k; st.tz += Math.sin(st.yaw) * dx * k; st.ty = Math.max(-3, Math.min(12, st.ty + dy * k));
+    }
+    cv.addEventListener("contextmenu", function(e){ e.preventDefault(); });
     cv.addEventListener("pointermove", function(e){
       var ids = Object.keys(pts); if(!pts[e.pointerId]) return;
-      if(ids.length === 1){ st.yaw -= (e.clientX - pts[e.pointerId].clientX) * .008; st.pitch = Math.max(-.2, Math.min(1.45, st.pitch + (e.clientY - pts[e.pointerId].clientY) * .008)); }
+      if(ids.length === 1 && (e.shiftKey || (e.buttons & 6))){ pan(e.clientX - pts[e.pointerId].clientX, e.clientY - pts[e.pointerId].clientY); }
+      else if(ids.length === 1){ st.yaw -= (e.clientX - pts[e.pointerId].clientX) * .008; st.pitch = Math.max(-.2, Math.min(1.45, st.pitch + (e.clientY - pts[e.pointerId].clientY) * .008)); }
       else if(ids.length === 2){
         var o2 = ids.filter(function(k){ return +k !== e.pointerId; })[0], a = pts[o2], d0 = Math.hypot(a.clientX - pts[e.pointerId].clientX, a.clientY - pts[e.pointerId].clientY), d1 = Math.hypot(a.clientX - e.clientX, a.clientY - e.clientY);
         st.dist = Math.max(2, Math.min(40, st.dist * d0 / Math.max(1, d1)));
+        pan((e.clientX - pts[e.pointerId].clientX) / 2, (e.clientY - pts[e.pointerId].clientY) / 2);
       }
       pts[e.pointerId] = e;
     });
