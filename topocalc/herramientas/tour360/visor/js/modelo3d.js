@@ -13,7 +13,7 @@
   var Y_NT = .06;                                         /* cota N.T. del modelo (m): el suelo de la foto queda a esta altura */
   var toast = function (m, ms) { if (window.TourToast) window.TourToast(m, ms); };
 
-  var DEF = { yaw: 0, pitch: 20, giro: 0, tipo: 'T', brazo: 6, fund: 'Z55', escala: 1, H: 7.2, az: 330, el: 55, brillo: 1, calidez: 0, sombra: .55, suave: .4, visible: true };
+  var DEF = { yaw: 0, pitch: 20, giro: 0, tipo: 'T', brazo: 6, fund: 'Z55', escala: 1, H: 7.2, az: 330, el: 55, brillo: 1, calidez: 0, sombra: .45, suave: .4, visible: true };
   var T = null, listo = false, cargando = false;
   var r, sc, cam, grupo, suelo, sol, hemi, cv, modelo, hash = '';
 
@@ -26,6 +26,7 @@
     cv = document.createElement('canvas'); cv.id = 'm3dc'; cv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;display:none';
     document.body.appendChild(cv);
     r = new T.WebGLRenderer({ canvas: cv, alpha: true, antialias: true, premultipliedAlpha: true });
+    r.outputEncoding = T.sRGBEncoding; r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1;
     r.setClearColor(0x000000, 0); r.shadowMap.enabled = true; r.shadowMap.type = T.PCFSoftShadowMap;
     sc = new T.Scene(); cam = new T.PerspectiveCamera(60, 1, .1, 500); cam.rotation.order = 'YXZ';
     hemi = new T.HemisphereLight(0xffffff, 0x8a8a80, .9); sc.add(hemi);
@@ -36,6 +37,25 @@
     grupo = new T.Group(); sc.add(grupo);
   }
 
+  /* reflejos: la propia foto 360 (borrosa y girada al sistema de three.js) como mapa de entorno; sin foto equirectangular, un degradado cielo-suelo */
+  var envTex = null, envDe = null;
+  function entorno(id, s) {
+    if (envDe === id) return; envDe = id; hash = '';
+    function fija(cvs) { if (envTex) envTex.dispose(); envTex = new T.CanvasTexture(cvs); envTex.mapping = T.EquirectangularReflectionMapping; envTex.encoding = T.sRGBEncoding; hash = ''; }
+    var c = document.createElement('canvas'); c.width = 1024; c.height = 512; var x = c.getContext('2d');
+    var g = x.createLinearGradient(0, 0, 0, 512); g.addColorStop(0, '#9cc4ee'); g.addColorStop(.5, '#e4ecf4'); g.addColorStop(.5, '#8d8a82'); g.addColorStop(1, '#5d5b56'); x.fillStyle = g; x.fillRect(0, 0, 1024, 512); fija(c);
+    if (s && s.equirect && s.equirect.url) {
+      var im = new Image(); im.crossOrigin = 'anonymous';
+      im.onload = function () {
+        if (envDe !== id) return;
+        var c2 = document.createElement('canvas'); c2.width = 1024; c2.height = 512; var y = c2.getContext('2d');
+        try { y.filter = 'blur(3px)'; } catch (e) { /* sin filtro */ }
+        y.drawImage(im, -256, 0, 1024, 512); y.drawImage(im, 768, 0, 1024, 512);   /* u3 = u_foto − 1/4 (el centro de la foto, yaw 0, cae en −z) */
+        fija(c2);
+      };
+      im.src = s.equirect.url;
+    }
+  }
   /* acabado real: galvanizado y hormigón; sin armaduras ni contornos */
   var ACERO = { mti: 1, mts: 1, ven: 1, pun: 1, cab: 1, pcb: 1, pbr: 1, cop: 1, bra: 1, sop: 1, pla: 1, car: 1, anc: 1, tue: 1, fle: 1 }, HORM = { hor: 1, gro: 1, emp: 1 };
   function construye(p) {
@@ -49,8 +69,8 @@
       var g = n.userData.tag && n.userData.tag.g;
       n.castShadow = true; n.receiveShadow = true;
       if (g === 'arm' || g === 'ore') { quitar.push(n); return; }
-      if (HORM[g]) n.material = new T.MeshStandardMaterial({ color: g === 'gro' ? 0x9d9a92 : 0xa9a69e, roughness: .95, metalness: 0 });
-      else if (ACERO[g]) n.material = new T.MeshStandardMaterial({ color: 0xc4c9cc, roughness: .5, metalness: .25 });
+      if (HORM[g]) n.material = new T.MeshStandardMaterial({ color: g === 'gro' ? 0x8f8c84 : 0x9a978f, roughness: .96, metalness: 0, envMap: envTex, envMapIntensity: .45 });
+      else if (ACERO[g]) n.material = new T.MeshStandardMaterial({ color: 0xb4babe, roughness: .42, metalness: .72, envMap: envTex, envMapIntensity: 1 });
     });
     quitar.forEach(function (n) { if (n.parent) n.parent.remove(n); });
     grupo.add(modelo);
@@ -64,6 +84,7 @@
     cv.style.display = 'block';
     var w = cv.clientWidth, h = cv.clientHeight;
     if (cv.width !== Math.round(w * r.getPixelRatio()) || cv.height !== Math.round(h * r.getPixelRatio())) { r.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); r.setSize(w, h, false); }
+    entorno(id, s);
     var k = p.tipo + p.brazo + p.fund; if (k !== hash) { hash = k; construye(p); }
     var H = p.H, d = H / Math.tan(Math.max(.5, p.pitch) * Math.PI / 180), yw = p.yaw * Math.PI / 180;
     grupo.scale.setScalar(p.escala);
@@ -73,7 +94,7 @@
     sol.position.set(grupo.position.x + L * Math.sin(az) * Math.cos(el), -H + L * Math.sin(el), grupo.position.z - L * Math.cos(az) * Math.cos(el));
     sol.target.position.set(grupo.position.x, -H + 3.5, grupo.position.z); sol.target.updateMatrixWorld();
     var c = new T.Color(1, 1, 1).lerp(new T.Color(p.calidez > 0 ? 1 : .8, p.calidez > 0 ? .86 : .92, p.calidez > 0 ? .68 : 1), Math.abs(p.calidez));
-    sol.color.copy(c); sol.intensity = .95 * p.brillo; hemi.intensity = .9 * p.brillo; hemi.color.copy(c);
+    sol.color.copy(c); sol.intensity = 1.1 * p.brillo; hemi.intensity = .45 * p.brillo; hemi.color.copy(c);
     suelo.material.opacity = p.sombra; cv.style.filter = p.suave > .01 ? 'blur(' + (p.suave * .8).toFixed(2) + 'px)' : '';
     r.clippingPlanes = [new T.Plane(new T.Vector3(0, 1, 0), H)];                       /* corta lo enterrado (por debajo del suelo de la foto) */
     cam.aspect = w / h; cam.fov = v.fov * 180 / Math.PI; cam.rotation.set(-v.pitch, -v.yaw, 0); cam.updateProjectionMatrix();
