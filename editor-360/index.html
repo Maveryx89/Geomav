@@ -56,6 +56,16 @@ aside{background:var(--panel);border-right:1px solid var(--line);display:flex;fl
 .sb h5{margin:14px 0 6px;font-size:11px;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.1em}
 .sb label{display:block;margin:8px 0 3px;color:var(--mut);font-size:12px}
 .sb small{display:block;color:var(--mut);font-size:12px;margin:3px 0}
+/* Ayuda plegable: los textos explicativos (<small>) se muestran al pulsar el título o el botón «?» */
+.hq{cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
+.hq:hover{color:var(--navy)}
+.qh{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1px solid currentColor;font-size:10px;font-weight:800;line-height:1;text-transform:none;letter-spacing:0;flex:none;opacity:.8}
+.hq[aria-expanded=true] .qh{background:var(--acc2);border-color:var(--acc2);color:#fff;opacity:1}
+.hbtn{display:inline-flex;align-items:center;gap:6px;background:transparent;border:0;padding:2px 0;margin:2px 0;font-size:12px;font-weight:600;color:var(--acc2);cursor:pointer}
+.hbtn .qh{opacity:1}
+small.hlp{display:none!important}
+small.hlp.open{display:block!important;background:rgba(10,34,64,.04);border-left:3px solid var(--acc2);border-radius:4px;padding:6px 8px;margin:4px 0 8px}
+
 .sb .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .sb .row>button{flex:1;min-width:0;padding:7px 8px;font-size:13px}
 .sb .wide{width:100%}
@@ -2029,6 +2039,54 @@ if(!seen&&window.self===window.top&&window.innerHeight>=520)setTimeout(guideStar
 
 setMenu(!mq.matches);
 syncUI();
+})();
+</script>
+<script>
+/* ---------- ayuda plegable ---------- */
+(function(){
+  var ROOTS='.sb,#shBox,#panel',openSet={},pend=false;
+  function key(sm){return (sm.textContent||'').trim().slice(0,80)}
+  function skip(sm){
+    if(sm.id||sm.closest('.nt'))return true;
+    var t=(sm.textContent||'').trim();
+    if(t.length<70)return true;
+    if(/^(Haz clic en el plano|Sube una panorama|Agrega otra escena)/.test(t))return true;
+    var n=sm.nextElementSibling;if(n&&n.tagName==='AUDIO')return true;
+    return false;
+  }
+  function titleFor(sm){
+    var e=sm.previousElementSibling,i=0;
+    while(e&&i<3){if(/^(H4|H5|LABEL)$/.test(e.tagName)&&!e.classList.contains('hq'))return e;if(e.classList.contains('hq'))return e;e=e.previousElementSibling;i++}
+    return null;
+  }
+  function toggle(sm,els){
+    var o=!sm.classList.contains('open');
+    sm.classList.toggle('open',o);
+    els.forEach(function(x){x.setAttribute('aria-expanded',o)});
+    if(o)openSet[key(sm)]=1;else delete openSet[key(sm)];
+  }
+  function mk(sm){
+    var op=!!openSet[key(sm)],t=titleFor(sm),qh='<span class="qh" aria-hidden="true">?</span>';
+    sm.classList.add('hlp');sm.dataset.hp='1';if(op)sm.classList.add('open');
+    if(t&&!t.dataset.hq){
+      t.dataset.hq='1';t.classList.add('hq');t.setAttribute('role','button');t.tabIndex=0;t.setAttribute('aria-expanded',op);
+      t.title='Pulsa para ver u ocultar la ayuda';t.insertAdjacentHTML('beforeend',qh);
+      t.addEventListener('click',function(e){if(e.target.closest('input,select,a'))return;toggle(sm,[t])});
+      t.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle(sm,[t])}});
+    }else{
+      var b=document.createElement('button');b.type='button';b.className='hbtn';b.setAttribute('aria-expanded',op);
+      b.innerHTML=qh+'<span>Ayuda</span>';b.addEventListener('click',function(){toggle(sm,[b])});
+      sm.parentNode.insertBefore(b,sm);
+    }
+  }
+  function run(){
+    pend=false;
+    document.querySelectorAll(ROOTS.split(',').map(function(r){return r+' small:not([data-hp])'}).join(',')).forEach(function(sm){if(!skip(sm))mk(sm);else sm.dataset.hp='0'});
+  }
+  function sched(){if(!pend){pend=true;requestAnimationFrame(run)}}
+  var mo=new MutationObserver(sched);
+  ['menuScroll','shBox','panel'].forEach(function(id){var el=document.getElementById(id);if(el)mo.observe(el,{childList:true,subtree:true})});
+  run();
 })();
 </script>
 </body>
