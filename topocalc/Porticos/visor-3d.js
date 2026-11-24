@@ -31,15 +31,13 @@ function construir(T, o){
   function acero(c){ return pal.claro ? new T.Color(c).multiplyScalar(.6) : new T.Color(c); }
   function mat(hecho, color){
     return hecho ? new T.MeshStandardMaterial({ color: acero(color), metalness: .15, roughness: .75 })
-                 : new T.MeshStandardMaterial({ color: pal.bp, transparent: true, opacity: pal.claro ? .22 : .16, depthWrite: false });
+                 : (function(m){ m.userData.pend = true; return m; })(new T.MeshStandardMaterial({ color: pal.bp, transparent: true, opacity: pal.claro ? .40 : .32, depthWrite: false }));
   }
   var cur = null;
   function tg(g, n, info){ cur = { g: g, n: n, i: info || [] }; }          /* etiqueta (capa + datos) de las piezas que se crean a continuación */
   function add(g, me){ if(cur) me.userData.tag = cur; g.add(me); return me; }
   function caja(w, h, d, x, y, z, m, g){
     var me = new T.Mesh(new T.BoxGeometry(w, h, d), m); me.position.set(x, y, z); if(cur) me.userData.tag = cur; g.add(me);
-    if(!m.transparent || m.opacity > .5) return me;
-    var ed = new T.LineSegments(new T.EdgesGeometry(me.geometry), new T.LineBasicMaterial({ color: pal.bp })); ed.position.copy(me.position); g.add(ed);
     return me;
   }
   function cil(a, b, r, m, g){
@@ -124,7 +122,6 @@ function construir(T, o){
   function tramo(y0, y1, r0, r1){            /* octágono: r = radio circunscrito ≈ ancho entre caras / 2 / cos(22,5°) */
     var k = 1 / Math.cos(Math.PI / 8) / 2, g = new T.CylinderGeometry(r1 * k, r0 * k, y1 - y0, 8, 1);
     g.rotateY(Math.PI / 8); var me = new T.Mesh(g, mP); me.position.set(0, (y0 + y1) / 2, 0); add(gP, me);
-    if(!hP){ var ed = new T.LineSegments(new T.EdgesGeometry(g), new T.LineBasicMaterial({ color: pal.bp })); ed.position.copy(me.position); gP.add(ed); }
   }
   tg("mti", "Mástil tramo inferior (T.I.)", [["Perfil", "OCT 250–175 × 4 mm"], ["Acero", "A36 galvanizado"], ["Largo", "5400 mm"], ["Nota", "Postes tipo T y L son iguales"]]);
   tramo(0, 5.4, .250, .181);                 /* T.I.: OCT 250-175 x 4 mm, 5,40 m */
@@ -205,7 +202,9 @@ function construir(T, o){
   raiz.add(gB);
   var ms = []; raiz.traverse(function(n){ if(n.isMesh && n.material && !n.material.transparent) ms.push(n); });
   var lm = new T.LineBasicMaterial({ color: pal.claro ? 0x1b1b1b : 0x000000, transparent: true, opacity: .75 });
-  ms.forEach(function(n){ var l = new T.LineSegments(new T.EdgesGeometry(n.geometry, 28), lm); n.add(l); });   /* contorno oscuro para separar piezas */
+  var lp = new T.LineBasicMaterial({ color: pal.bp, transparent: true, opacity: .9 });
+  raiz.traverse(function(n){ if(n.isMesh && n.material && n.material.userData.pend) ms.push(n); });   /* pendientes: fantasma azul con arista clara */
+  ms.forEach(function(n){ var l = new T.LineSegments(new T.EdgesGeometry(n.geometry, 28), n.material.userData.pend ? lp : lm); n.add(l); });   /* contorno oscuro para separar piezas */
   return raiz;
 }
 
@@ -232,6 +231,7 @@ var NOTAS = [
 ];
 function fm(v){ return (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(v).toFixed(2).replace(".", ","); }
 
+var TODO = { "Emplantillado": true, "Inst. de Fundación": true, "Grouting": true, "Inst. Poste V": true, "Inst. Brazo H": true, "Relleno": true };
 function abrir(o){
   cargarThree(function(){
     var T = window.THREE, tipo = o.tipo === "L" ? "L" : "T", brazo = 6, sinTipo = !o.tipo, fund = tipo === "L" ? "Z90E" : "Z55", armaduras = false;
@@ -280,7 +280,7 @@ function abrir(o){
     var rejilla = new T.GridHelper(14, 14, pal.claro ? 0xb9b6ab : 0x3a465b, pal.claro ? 0xd3d0c6 : 0x2f3a4d); rejilla.position.y = Y_NT; sc.add(rejilla);
     var shOff = 0;
     var st = { yaw: .7, pitch: .35, dist: 16, tx: 0, ty: 3.2, tz: 0 }, modelo = null;
-    var S = { sheet: null, modo: "sol", ortho: false, capas: CAPAS.map(function(){ return true; }), corte: false, cut: 0, cotas: false, sel: null }, selOrig = null;
+    var S = { completo: false, sheet: null, modo: "sol", ortho: false, capas: CAPAS.map(function(){ return true; }), corte: false, cut: 0, cotas: false, sel: null }, selOrig = null;
     var plano = new T.Plane(new T.Vector3(0, -1, 0), 0);                       /* conserva y ≤ cut */
     /* cotas: líneas de nivel en la escena + rótulos HTML */
     var gCot = new T.Group(); gCot.visible = false; sc.add(gCot);
@@ -320,13 +320,14 @@ function abrir(o){
         info.style.display = "block"; info.querySelector(".v3-ix").onclick = function(){ selecciona(null); };
       } else info.style.display = "none";
     }
+    function ejE(){ return S.completo ? TODO : o.ejec; }
     function dibujar(){
       selecciona(null);
       if(modelo) sc.remove(modelo);
-      modelo = construir(T, { tipo: tipo, brazo: brazo, ejec: o.ejec, pal: pal, fund: fund, armaduras: armaduras }); sc.add(modelo);
-      suelo.material.opacity = (o.ejec && o.ejec["Relleno"]) ? .35 : .08;
+      modelo = construir(T, { tipo: tipo, brazo: brazo, ejec: S.completo ? TODO : o.ejec, pal: pal, fund: fund, armaduras: armaduras }); sc.add(modelo);
+      suelo.material.opacity = (ejE() && ejE()["Relleno"]) ? .35 : .08;
       win.querySelector(".v3-sub").textContent = (o.comuna ? o.comuna + " · " : "") + "Tipo " + tipo + " · brazo " + brazo + " m · fundación " + FUND[fund].nom + (sinTipo ? " (tipo no definido en la ficha)" : "") + " · modelo referencial";
-      var e = o.ejec || {}, li = function(ok, c, t){ return '<div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;background:' + (ok ? c : "transparent") + ';border:1px solid ' + (ok ? c : bp) + '"></span>' + t + (ok ? "" : " (pendiente)") + '</div>'; };
+      var e = ejE() || {}, li = function(ok, c, t){ return '<div><span style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;background:' + (ok ? c : "transparent") + ';border:1px solid ' + (ok ? c : bp) + '"></span>' + t + (ok ? "" : " (pendiente)") + '</div>'; };
       win.querySelector(".v3-leg").innerHTML = li(!!e["Emplantillado"], "#7a5230", "Emplantillado") + li(!!e["Inst. de Fundación"], "#b9b4a6", "Fundación") + li(!!e["Grouting"], "#ffd23f", "Grouting")
         + li(!!e["Inst. Poste V"], "#2f80ed", "Poste (mástil)") + li(!!e["Inst. Poste V"], "#e53935", "Placa base y cartelas") + li(!!e["Inst. Poste V"], "#ffffff", "Cabezal y punta") + li(!!e["Inst. Poste V"], "#00e5ff", "Pernos y anclajes") + li(!!e["Inst. Poste V"], "#ab47bc", "Coplas 1½\"") + li(!!e["Inst. Poste V"], "#1de9b6", "Soporte gabinete") + li(!!e["Inst. Brazo H"], "#ff9800", "Brazo");
       aplicaMateriales(); render();
@@ -344,6 +345,7 @@ function abrir(o){
       fila(sh, "Elementos", [chip("Armaduras", armaduras ? "on" : "", function(){ armaduras = !armaduras; dibujar(); }), chip("Terreno", suelo.visible ? "on" : "", function(){ suelo.visible = !suelo.visible; render(); })]);
       sh = win.querySelector('[data-s="vista"]'); sh.innerHTML = "";
       fila(sh, "Vistas", [["Perspectiva", function(){ vista(.7, .35, 16, 3.2); }], ["Elevación", function(){ vista(0, 0, 22, 3.2); }], ["Planta", function(){ vista(0, 1.45, 18, 0); }], ["Cabezal", function(){ vista(.9, .2, 3.4, 6.7); }], ["Fundación", function(){ vista(.7, .25, 5.5, -.8); }], ["Anclaje", function(){ vista(.8, .3, 1.6, -.15); }]].map(function(x){ return chip(x[0], "", x[1]); }));
+      fila(sh, "Estado de obra", [chip("Avance real", !S.completo ? "on" : "", function(){ S.completo = false; dibujar(); }), chip("Pieza completa", S.completo ? "on" : "", function(){ S.completo = true; dibujar(); })]);
       fila(sh, "Modo de dibujo", [["sol", "Sólido"], ["rx", "Rayos X"], ["ari", "Aristas"]].map(function(x){ return chip(x[1], S.modo === x[0] ? "on" : "", function(){ S.modo = x[0]; aplicaMateriales(); render(); }); }));
       fila(sh, "Proyección", [chip("Perspectiva", !S.ortho ? "on" : "", function(){ S.ortho = false; render(); }), chip("Ortogonal", S.ortho ? "on" : "", function(){ S.ortho = true; render(); })]);
       sh = win.querySelector('[data-s="capas"]'); sh.innerHTML = "";
