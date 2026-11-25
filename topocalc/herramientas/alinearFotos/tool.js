@@ -89,9 +89,7 @@ void main(){
   vec3 a = mix(bg, cA.rgb, inA), b2 = mix(bg, cB.rgb, inB), c;
   float s = vP.x*0.5 + 0.5;
   if(uCmp == 0) c = mix(a, b2, uVal);
-  else if(uCmp == 1){ c = s < uVal ? a : b2; float dx = (s-uVal)*uRes.x, ax = abs(dx); if(ax < 3.0) c = vec3(1.0); else if(ax < 4.5) c = vec3(0.08);
-    float R = max(22.0, 0.05*min(uRes.x,uRes.y)); vec2 hp = vec2(dx, vP.y*0.5*uRes.y); float hd = length(hp);
-    if(hd < R){ c = vec3(1.0); if(ax > R*0.22 && ax < R*0.65 && abs(hp.y) < (R*0.65-ax)*0.9) c = vec3(0.08); } else if(hd < R+2.5) c = vec3(0.08); }
+  else if(uCmp == 1){ c = s < uVal ? a : b2; float ax = abs((s-uVal)*uRes.x); if(ax < 3.0) c = vec3(1.0); else if(ax < 4.5) c = vec3(0.08); }
   else if(uCmp == 2) c = (inA*inB > 0.5) ? clamp(abs(cA.rgb-cB.rgb)*uGain, 0.0, 1.0) : bg;
   else if(uCmp == 3) c = a;
   else c = b2;
@@ -164,7 +162,8 @@ class AFVisor{
     if(o.M) this.M = o.M; if(o.H) this.H = o.H; if(o.aAsp) this.aAsp = o.aAsp; this.dirty = true;
   }
   ajustes(cmp, val){ this.cmp = cmp; this.val = val; this.dirty = true; }
-  reiniciarVista(){ this.cam = {yaw:0, pitch:0, fov:90}; this.view = {cx:.5, cy:.5, z:1}; this.dirty = true; }
+  reiniciarVista(){ const v = this.vini; this.cam = v ? Object.assign({}, v.cam) : {yaw:0, pitch:0, fov:90}; this.view = v ? Object.assign({}, v.view) : {cx:.5, cy:.5, z:1}; this.dirty = true; }
+  guardarVista(){ this.vini = {cam:Object.assign({}, this.cam), view:Object.assign({}, this.view)}; }
   region(){   // región visible de la referencia en uv (modo normal)
     const c = this.cv.width/this.cv.height, a = this.aAsp, z = this.view.z;
     let rw, rh; if(a > c){ rw = 1/z; rh = rw*a/c; } else { rh = 1/z; rw = rh*c/a; }
@@ -277,7 +276,7 @@ function afCtrl(){
   const box = document.getElementById('afCtrl'); if(!box) return;
   const {g, it, ref} = afCur();
   const cmps = [['opac','Mezcla'],['cortina','Cortina'],['dif','Diferencia'],['parp','Parpadeo'],['A','Solo referencia'],['B','Solo foto']];
-  let h = `<div class="af-seg" role="group" aria-label="Modo de comparación">${cmps.map(c=>`<button type="button" data-cmp="${c[0]}" class="${AF.cmp===c[0]?'on':''}">${c[1]}</button>`).join('')}</div>
+  let h = `<div class="af-seg" role="group" aria-label="Modo de comparación">${cmps.map(c=>`<button type="button" data-cmp="${c[0]}" class="${AF.cmp===c[0]?'on':''}">${c[1]}</button>`).join('')}<button type="button" data-act="guardarVista" class="af-sv" title="Guarda el zoom y la posición actuales como vista inicial (el botón ⟲ Vista y el doble toque vuelven a ella)">📌 Guardar vista</button></div>
     <label for="afVal">${AF.cmp==='cortina'?'Posición de la cortina (izquierda: referencia · derecha: foto)':'Mezcla (0 = referencia · 100 = foto)'}: <b id="afValT">${AF.val}</b>%</label>
     <input type="range" id="afVal" min="0" max="100" value="${AF.val}">`;
   if(g && it && ref){
@@ -432,6 +431,7 @@ function afQuitar(g, id){
 async function afClick(e){
   const el = e.target.closest('[data-act],[data-cmp]'); if(!el) return;
   if(el.dataset.cmp){ AF.cmp = el.dataset.cmp; afCtrl(); afAplicaCmp(); return; }
+  if(el.dataset.act === 'guardarVista'){ if(AF.vis){ AF.vis.guardarVista(); afMsg('Vista guardada: «⟲ Vista» y el doble toque vuelven a ella.'); } return; }
   const act = el.dataset.act, g = afGrupo(el.dataset.g), id = el.dataset.i;
   if(act === 'nuevoG'){ const n = afNuevoGrupo(); AF.sel = AF.sel || null; afDrawList(); return; }
   if(act === 'alinearTodo'){ const l = []; AF.grupos.forEach(x=>{ if(x.ref) x.items.forEach(it=>{ if(it.estado !== 'ok') l.push({g:x, it}); }); }); if(!l.length){ afMsgG('No hay fotos pendientes de alinear.'); return; } await afAlinearLote(l, 'Alinear todo'); return; }
@@ -518,8 +518,10 @@ const AF_CSS = `
 .af-ctrl label{display:block;font-size:12px;color:var(--ink-soft);margin:8px 0 3px}
 .af-ctrl h5{margin:12px 0 2px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-text)}
 .af-ctrl input[type=range]{width:100%}
-.af-seg{display:flex;flex-wrap:wrap;gap:4px}
-.af-seg button{flex:1;min-width:84px;padding:6px 8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:var(--radius-sm);font-size:12.5px;cursor:pointer}
+.af-seg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+@media(max-width:760px){.af-seg{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.af-seg button.af-sv{border-style:dashed}
+.af-seg button{min-width:0;padding:6px 4px;line-height:1.2;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:var(--radius-sm);font-size:12.5px;cursor:pointer}
 .af-seg button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .af-orr{display:flex;align-items:center;gap:6px}.af-orr input[type=range]{flex:1}.af-orr input[type=number]{width:92px;padding:4px 6px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--paper);color:var(--ink)}
 .af-chk{display:flex;align-items:center;gap:8px;margin-top:8px}.af-chk label{margin:0}
