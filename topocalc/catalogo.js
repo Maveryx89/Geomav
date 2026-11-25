@@ -162,6 +162,7 @@ const GRUPOS = [
   "tools": [
    "visor360",
    "tour360",
+   "alinearFotos",
    "gsd",
    "traslapeVuelo",
    "astronomica",
@@ -854,6 +855,14 @@ const CATALOGO = {
   "name": "Tour 360° GEOMAV",
   "desc": "Recorrido virtual 360° con menú de escenas, giroscopio y pantalla completa",
   "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><rect x=\"5\" y=\"9\" width=\"30\" height=\"22\" rx=\"3\"/><circle cx=\"20\" cy=\"20\" r=\"6\"/><path d=\"M5 20h9M26 20h9\" stroke-width=\"1.2\"/><circle cx=\"20\" cy=\"20\" r=\"1.6\" fill=\"currentColor\" stroke=\"none\"/></svg>",
+  "grupo": "foto",
+  "oculta": false,
+  "migrada": true
+ },
+ "alinearFotos": {
+  "name": "Alinear fotos",
+  "desc": "Alinea fotos 360° y normales tomadas en fechas distintas, por grupos, con visor de comparación",
+  "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><rect x=\"5\" y=\"8\" width=\"21\" height=\"16\" rx=\"2\"/><rect x=\"14\" y=\"16\" width=\"21\" height=\"16\" rx=\"2\" stroke-dasharray=\"3 2\"/><circle cx=\"20\" cy=\"20\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M20 14v4M20 22v4M14 20h4M22 20h4\" stroke-width=\"1.2\"/></svg>",
   "grupo": "foto",
   "oculta": false,
   "migrada": true
