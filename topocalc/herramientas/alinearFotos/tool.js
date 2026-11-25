@@ -49,7 +49,7 @@ async function afAgregar(g, files, comoRef){
       const it = await afCargarImagen(f);
       if(comoRef || !g.ref){ if(g.ref) afLiberar(g.ref); g.ref = it; g.items.forEach(x=>afMarcarTipo(g,x)); comoRef = false; }
       else { afMarcarTipo(g, it); g.items.push(it); }
-      if(!AF.sel) AF.sel = {g:g.id, i:it.id};
+      if(!AF.sel) AF.sel = {g:g.id, i:(g.ref === it ? null : it.id)};
     }catch(e){ errores.push(e.message); }
     await new Promise(r=>setTimeout(r,0));
   }
@@ -244,7 +244,7 @@ function afGrupoHtml(g){
   const k = afKindG(g), n = g.items.length;
   return `<section class="af-g" data-gid="${g.id}">
     <div class="af-gh"><input class="af-gn" data-act="nombre" data-g="${g.id}" value="${afEsc(g.nombre)}" aria-label="Nombre del grupo">
-      <select data-act="tipo" data-g="${g.id}" aria-label="Tipo de fotos del grupo"><option value="auto"${g.tipo==='auto'?' selected':''}>Tipo: auto (${k==='360'?'360°':'normal'})</option><option value="360"${g.tipo==='360'?' selected':''}>360°</option><option value="plano"${g.tipo==='plano'?' selected':''}>Normal</option></select>
+      <select data-act="tipo" data-g="${g.id}" aria-label="Tipo de fotos del grupo"><option value="auto"${g.tipo==='auto'?' selected':''}>Auto (${k==='360'?'360°':'normal'})</option><option value="360"${g.tipo==='360'?' selected':''}>360°</option><option value="plano"${g.tipo==='plano'?' selected':''}>Normal</option></select>
       <button type="button" data-act="delG" data-g="${g.id}" title="Eliminar grupo" aria-label="Eliminar grupo">🗑</button></div>
     ${g.ref ? afRowHtml(g, g.ref, true) : '<div class="af-empty">Sin foto de referencia. Agrega la foto base (o suelta aquí varias fotos: la primera será la referencia).</div>'}
     ${g.items.map(it=>afRowHtml(g, it, false)).join('')}
@@ -378,7 +378,9 @@ async function afAlinearLote(lista, titulo){
     afDrawList();
   }
   afMsgG(titulo + ': ' + ok + ' de ' + t0 + ' alineadas' + (mal ? ' · ' + mal + ' con problemas (míralas en la lista)' : '') + '.', !!mal && !ok);
-  afCtrl(); await afRefresh();
+  const gs = lista.length ? lista[0].g : null;
+  if(gs && AF.sel && AF.sel.g === gs.id && !AF.sel.i){ const p = gs.items.find(x=>x.estado === 'ok'); if(p) AF.sel = {g:gs.id, i:p.id}; }
+  afDrawList(); afCtrl(); await afRefresh();
 }
 
 /* ---- descargas ---- */
@@ -490,7 +492,7 @@ const AF_CSS = `
 .af-g.drop{outline:2px dashed var(--accent);outline-offset:2px}
 .af-gh{display:flex;gap:6px;align-items:center}
 .af-gn{flex:1;min-width:0;font-weight:700;font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--paper);color:var(--ink)}
-.af-gh select{font-size:12px;padding:6px 4px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--paper);color:var(--ink);max-width:128px}
+.af-gh select{font-size:12px;padding:6px 4px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--paper);color:var(--ink);flex:none}
 .af-gh button,.af-ib button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:var(--radius-sm);cursor:pointer;padding:5px 8px;font-size:13px}
 .af-it{display:flex;align-items:center;gap:8px;padding:5px;border:1px solid transparent;border-radius:10px;cursor:pointer}
 .af-it:hover{background:var(--paper-sunken)} .af-it.on{border-color:var(--accent);background:var(--paper-sunken)} .af-it.ref{border-left:3px solid var(--blueprint)}
@@ -536,6 +538,7 @@ function renderAlinearFotos(){
   </div>`;
   toolShell('alinearFotos', 'Alinea fotos tomadas desde el mismo punto en fechas distintas. Arma <strong>grupos</strong>: una foto de referencia y una o varias fotos a alinear con ella. Funciona con fotos <strong>360°</strong> (corrige giro, inclinación y horizonte) y con fotos <strong>normales</strong> (corrige desplazamiento, giro y escala). Compara el resultado con mezcla, cortina, diferencia o parpadeo y descarga las imágenes corregidas. Todo se procesa en tu equipo; la primera alineación automática descarga una librería de visión (~13 MB).', body);
   const ab = document.querySelector('.tool-view .action-bar'); if(ab) ab.style.display = 'none';
+  const tv = document.querySelector('.tool-view'); if(tv) tv.classList.add('tool-2col');
   afInit();
 }
 const RENDERERS = { alinearFotos: renderAlinearFotos };
