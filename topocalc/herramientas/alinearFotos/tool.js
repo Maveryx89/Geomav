@@ -89,7 +89,9 @@ void main(){
   vec3 a = mix(bg, cA.rgb, inA), b2 = mix(bg, cB.rgb, inB), c;
   float s = vP.x*0.5 + 0.5;
   if(uCmp == 0) c = mix(a, b2, uVal);
-  else if(uCmp == 1){ c = s < uVal ? a : b2; if(abs(s-uVal)*uRes.x < 1.5) c = vec3(1.0); }
+  else if(uCmp == 1){ c = s < uVal ? a : b2; float dx = (s-uVal)*uRes.x, ax = abs(dx); if(ax < 3.0) c = vec3(1.0); else if(ax < 4.5) c = vec3(0.08);
+    float R = max(22.0, 0.05*min(uRes.x,uRes.y)); vec2 hp = vec2(dx, vP.y*0.5*uRes.y); float hd = length(hp);
+    if(hd < R){ c = vec3(1.0); if(ax > R*0.22 && ax < R*0.65 && abs(hp.y) < (R*0.65-ax)*0.9) c = vec3(0.08); } else if(hd < R+2.5) c = vec3(0.08); }
   else if(uCmp == 2) c = (inA*inB > 0.5) ? clamp(abs(cA.rgb-cB.rgb)*uGain, 0.0, 1.0) : bg;
   else if(uCmp == 3) c = a;
   else c = b2;
@@ -185,14 +187,20 @@ class AFVisor{
   }
   bind(){
     const cv = this.cv, pts = new Map(); let pd = 0;
-    cv.addEventListener('pointerdown', e=>{ cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); cv.style.cursor = 'grabbing';
+    const cutX = e=>{ const r = cv.getBoundingClientRect(); return r.left + this.val*r.width; };
+    const cutSet = e=>{ const r = cv.getBoundingClientRect(), v = Math.max(0, Math.min(1, (e.clientX-r.left)/r.width)); this.val = v; this.dirty = true; AF.val = Math.round(v*100); const sl = document.getElementById('afVal'), tx = document.getElementById('afValT'); if(sl) sl.value = AF.val; if(tx) tx.textContent = AF.val; };
+    let cutDrag = null;
+    cv.addEventListener('pointerdown', e=>{ if(this.cmp === 1 && !this.blink && Math.abs(e.clientX - cutX(e)) < 30){ cv.setPointerCapture(e.pointerId); cutDrag = e.pointerId; cv.style.cursor = 'ew-resize'; cutSet(e); e.preventDefault(); return; }
+      cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); cv.style.cursor = 'grabbing';
       if(pts.size === 2){ const a = Array.from(pts.values()); pd = Math.hypot(a[0][0]-a[1][0], a[0][1]-a[1][1]); } });
     cv.addEventListener('pointermove', e=>{
+      if(cutDrag === e.pointerId){ cutSet(e); return; }
+      if(!pts.size) cv.style.cursor = (this.cmp === 1 && Math.abs(e.clientX - cutX(e)) < 30) ? 'ew-resize' : 'grab';
       if(!pts.has(e.pointerId)) return; const p = pts.get(e.pointerId), dx = e.clientX-p[0], dy = e.clientY-p[1]; pts.set(e.pointerId, [e.clientX, e.clientY]);
       if(pts.size === 1) this.mover(dx, dy);
       else if(pts.size === 2){ const a = Array.from(pts.values()), d = Math.hypot(a[0][0]-a[1][0], a[0][1]-a[1][1]); if(pd > 0 && d > 0) this.zoom(pd/d, (a[0][0]+a[1][0])/2, (a[0][1]+a[1][1])/2); pd = d; }
     });
-    const fin = e=>{ pts.delete(e.pointerId); cv.style.cursor = 'grab'; pd = 0; };
+    const fin = e=>{ if(cutDrag === e.pointerId) cutDrag = null; pts.delete(e.pointerId); cv.style.cursor = 'grab'; pd = 0; };
     cv.addEventListener('pointerup', fin); cv.addEventListener('pointercancel', fin);
     cv.addEventListener('wheel', e=>{ e.preventDefault(); this.zoom(Math.exp(e.deltaY*0.0015), e.clientX, e.clientY); }, {passive:false});
     cv.addEventListener('dblclick', ()=>this.reiniciarVista());
