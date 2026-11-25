@@ -1,0 +1,3 @@
+"use strict";
+/* Metadatos de la herramienta «Alinear fotos» (grupo: Fotogrametría y Astronomía). */
+const TOOLS = { "alinearFotos": {"name": "Alinear fotos", "desc": "Alinea fotos 360° y normales tomadas en fechas distintas, por grupos, con visor de comparación", "icon": "<svg viewBox=\"0 0 40 40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><rect x=\"5\" y=\"8\" width=\"21\" height=\"16\" rx=\"2\"/><rect x=\"14\" y=\"16\" width=\"21\" height=\"16\" rx=\"2\" stroke-dasharray=\"3 2\"/><circle cx=\"20\" cy=\"20\" r=\"2\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M20 14v4M20 22v4M14 20h4M22 20h4\" stroke-width=\"1.2\"/></svg>"} };
