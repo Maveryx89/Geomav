@@ -20,6 +20,7 @@
 <script src="clima.js?v=20261020a"></script>
 <script src="estado-porticos.js?v=20261118a"></script>
 <script src="visor-3d.js?v=20261124a"></script>
+<script src="fotos-editor.js?v=20261126a"></script>
 <script>
 /* Reintenta cargar ExcelJS bajo demanda (si falló al abrir la app sin conexión) */
 window.LP_cargarExcel = function(){
@@ -4171,8 +4172,7 @@ window.PORTICOS_LISTA = (function(){
         + ['100','75','50','25','0'].map(function(v){ return '<option value="'+v+'">'+v+'%'+(v==='100'?' (terminada)':'')+'</option>'; }).join('') + '</select></label>'
       + condBloque(num, d.orden[sig] || "")
       + '<label class="pm-full">Observaci\u00f3n (opcional)<input type="text" id="pmObs" maxlength="300" placeholder="ej. hormigonado OK, falta curado"></label>'
-      + '<label class="pm-full pm-fotos-btn">\ud83d\udcf7 Adjuntar fotos (opcional, m\u00e1x. 10)<input type="file" id="pmFotos" accept="image/*" multiple></label>'
-      + '<div class="pm-thumbs" id="pmThumbs"></div>'
+      + '<div class="pm-full"><div class="pm-label" style="margin-top:6px">\ud83d\udcf7 Fotos (opcional, m\u00e1x. 10) \u00b7 con \u270e puedes agregar cotas y texto</div><div id="pmFotosBox"></div></div>'
       + (getPin() ? '' : '<div class="pm-grid"><label>Tu nombre<input type="text" id="pmAutor" maxlength="60" autocomplete="name" value="'+esc(getAutor())+'" placeholder="Para la bit\u00e1cora"></label><label>PIN de edici\u00f3n<input type="password" id="pmPin" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022"></label></div>')
       + '<div class="pm-msg" id="pmMsg"></div>'
       + '<button type="button" class="pm-guardar" id="pmGuardar">Guardar avance</button>'
@@ -4213,22 +4213,12 @@ window.PORTICOS_LISTA = (function(){
     })();
     var fotosSel = [];
     modal.querySelector("#pmPartida").onchange = function(){ modal.querySelector("#pmAvance").closest("label").style.display = esNota(this.value) ? "none" : ""; };
-    modal.querySelector("#pmFotos").onchange = function(){
-      var th = modal.querySelector("#pmThumbs"), total = this.files.length, bG = modal.querySelector("#pmGuardar");
-      th.innerHTML = '<span class="pm-f">Leyendo fotos\u2026</span>'; bG.disabled = true;
-      leerArchivos(this.files).then(function(blobs){
-        fotosSel = blobs; bG.disabled = false;
-        th.innerHTML = blobs.map(function(b){ return '<img alt="" src="'+URL.createObjectURL(b)+'">'; }).join("")
-          + (total > 10 ? '<span class="pm-f">Solo se subir\u00e1n 10</span>' : '')
-          + (blobs.length < Math.min(total, 10) ? '<span class="pm-f">Algunas fotos no se pudieron leer</span>' : '');
-      });
-    };
+    PORTICOS_FOTOS.selector(modal.querySelector("#pmFotosBox"), { leer: leerArchivos, max: 10,
+      ocupado: function(v){ modal.querySelector("#pmGuardar").disabled = v; }, onCambio: function(b){ fotosSel = b; } });
     var enlazar = function(){
     Array.prototype.forEach.call(modal.querySelectorAll("[data-addfotos]"), function(b){
       b.onclick = function(){
-        var inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.multiple = true;
-        inp.onchange = function(){ if(inp.files.length) leerArchivos(inp.files).then(function(blobs){ guardar({ accion:"agregarFotos", id:b.dataset.addfotos }, num, b, blobs); }); };
-        inp.click();
+        PORTICOS_FOTOS.hoja({ titulo: "Agregar fotos al registro", leer: leerArchivos, onSubir: function(blobs){ guardar({ accion:"agregarFotos", id:b.dataset.addfotos }, num, b, blobs); } });
       };
     });
     Array.prototype.forEach.call(modal.querySelectorAll("[data-anular]"), function(b){
