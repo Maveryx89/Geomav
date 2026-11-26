@@ -15,8 +15,8 @@
     var s = document.createElement("style"); s.id = "pf-css";
     s.textContent = ".pf-btns{display:flex;gap:8px;flex-wrap:wrap}.pf-b{font:inherit;font-weight:700;font-size:.82rem;border:1px solid var(--line-strong,#c5ccd6);background:var(--paper-raised,#fff);color:var(--ink,#1b2430);border-radius:10px;padding:9px 12px;cursor:pointer}"
       + ".pf-b.p{background:var(--blueprint,#2F8FA8);border-color:var(--blueprint,#2F8FA8);color:#fff}.pf-b:disabled{opacity:.5}"
-      + ".pf-th{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.pf-t{position:relative;width:76px;height:76px}.pf-t img{width:100%;height:100%;object-fit:cover;border-radius:8px;border:1px solid var(--line,#ccd);display:block}"
-      + ".pf-t button{position:absolute;border:0;border-radius:12px;background:rgba(0,0,0,.72);color:#fff;font-size:.8rem;line-height:1;padding:5px 7px;cursor:pointer}.pf-t .e{left:3px;bottom:3px}.pf-t .x{right:3px;top:3px}"
+      + ".pf-th{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.pf-t{position:relative;width:104px;height:104px}.pf-t img{width:100%;height:100%;object-fit:cover;border-radius:8px;border:1px solid var(--line,#ccd);display:block}"
+      + ".pf-t button{position:absolute;border:0;border-radius:12px;background:rgba(0,0,0,.72);color:#fff;font-size:.8rem;line-height:1;padding:5px 7px;cursor:pointer}.pf-t .e{left:0;right:0;bottom:0;width:100%;border-radius:0 0 8px 8px;background:var(--blueprint,#2F8FA8);font-weight:700;font-size:.78rem;padding:7px 4px}.pf-t .x{right:3px;top:3px}"
       + ".pf-t .ok{position:absolute;left:3px;top:3px;background:#16a34a;color:#fff;font-size:.62rem;border-radius:8px;padding:2px 5px;font-weight:700}"
       + ".pf-ov{position:fixed;inset:0;z-index:100000;background:#0d1117;display:flex;flex-direction:column;color:#fff;font-family:inherit;touch-action:none}"
       + ".pf-top,.pf-bar{display:flex;align-items:center;gap:6px;padding:8px 10px;background:#161b22;flex-wrap:wrap}.pf-top{justify-content:space-between}"
@@ -190,29 +190,31 @@
     css(); o = o || {}; var max = o.max || 10, blobs = [], urls = [];
     cont.innerHTML = "";
     var fila = el("div", "pf-btns"), th = el("div", "pf-th"), msg = el("div", "pm-f"); msg.style.cssText = "font-size:.74rem;margin-top:6px";
-    function inp(captura){ var i = el("input"); i.type = "file"; i.accept = "image/*"; if(captura) i.setAttribute("capture", "environment"); else i.multiple = true; i.style.display = "none"; i.onchange = function(){ var fs = i.files; if(fs && fs.length) agrega(fs); i.value = ""; }; return i; }
+    function inp(captura){ var i = el("input"); i.type = "file"; i.accept = "image/*"; if(captura) i.setAttribute("capture", "environment"); else i.multiple = true; i.style.display = "none"; i.onchange = function(){ var fs = i.files; if(fs && fs.length) agrega(fs, !!captura); i.value = ""; }; return i; }
     var iCam = inp(true), iGal = inp(false);
     var bC = el("button", "pf-b p", "📷 Tomar foto"), bG = el("button", "pf-b", "🖼 Galería");
     bC.type = bG.type = "button"; bC.onclick = function(){ iCam.click(); }; bG.onclick = function(){ iGal.click(); };
     fila.appendChild(bC); fila.appendChild(bG); fila.appendChild(iCam); fila.appendChild(iGal);
     cont.appendChild(fila); cont.appendChild(th); cont.appendChild(msg);
     function cambio(){ if(o.onCambio) o.onCambio(blobs.slice()); }
-    function agrega(fs){
+    function agrega(fs, camara){
       var libres = max - blobs.length; if(libres <= 0){ msg.textContent = "Máximo " + max + " fotos."; return; }
       msg.textContent = "Leyendo fotos…"; if(o.ocupado) o.ocupado(true);
       o.leer(Array.prototype.slice.call(fs, 0, libres)).then(function(bs){
         blobs = blobs.concat(bs); msg.textContent = fs.length > libres ? "Solo caben " + max + " fotos." : (bs.length < Math.min(fs.length, libres) ? "Algunas fotos no se pudieron leer." : "");
-        pinta2(); cambio();
+        var primera = blobs.length - bs.length; pinta2(); cambio(); if(camara && bs.length) aviso(primera);
       }).then(function(){ if(o.ocupado) o.ocupado(false); }, function(){ if(o.ocupado) o.ocupado(false); });
     }
+    function editar(i){ var b = blobs[i]; if(!b) return; anotar(b.orig || b, b.anot).then(function(nb){ if(nb){ blobs[i] = nb; pinta2(); cambio(); } }); }
+    function aviso(i){ msg.innerHTML = ""; var b = el("button", "pf-b p", "✎ Agregar cotas o texto a la foto"); b.type = "button"; b.style.marginTop = "4px"; b.onclick = function(){ msg.innerHTML = ""; editar(i); }; msg.appendChild(b); }
     function pinta2(){
       urls.forEach(function(u){ URL.revokeObjectURL(u); }); urls = []; th.innerHTML = "";
       blobs.forEach(function(b, i){
         var u = URL.createObjectURL(b); urls.push(u);
         var t = el("div", "pf-t"), im = el("img"); im.alt = "Foto " + (i + 1); im.src = u; t.appendChild(im);
         if(b.anotada) t.appendChild(el("span", "ok", "✎"));
-        var e = el("button", "e", "✎ Anotar"), x = el("button", "x", "✕"); e.type = x.type = "button"; e.setAttribute("aria-label", "Anotar foto " + (i + 1)); x.setAttribute("aria-label", "Quitar foto " + (i + 1));
-        e.onclick = function(){ anotar(b.orig || b, b.anot).then(function(nb){ if(nb){ blobs[i] = nb; pinta2(); cambio(); } }); };
+        var e = el("button", "e", b.anotada ? "✎ Editar notas" : "✎ Editar / cotas"), x = el("button", "x", "✕"); e.type = x.type = "button"; e.setAttribute("aria-label", "Anotar foto " + (i + 1)); x.setAttribute("aria-label", "Quitar foto " + (i + 1));
+        e.onclick = function(){ editar(i); };
         x.onclick = function(){ blobs.splice(i, 1); pinta2(); cambio(); };
         t.appendChild(e); t.appendChild(x); th.appendChild(t);
       });
