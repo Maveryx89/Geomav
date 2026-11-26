@@ -36,87 +36,149 @@
   }
 
   /* ---------- dibujo de las anotaciones (se usa en pantalla y al grabar) ---------- */
-  function caja(ctx, txt, x, y, W, col){
-    var fs = Math.max(16, Math.round(W / 30)); ctx.font = "700 " + fs + "px system-ui,Segoe UI,Roboto,sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  var TAMS = [["S", .6], ["M", 1], ["L", 1.6], ["XL", 2.4]];
+  function caja(ctx, txt, x, y, W, k){
+    var fs = Math.max(14, Math.round(W / 30 * Math.max(.7, k))); ctx.font = "700 " + fs + "px system-ui,Segoe UI,Roboto,sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     var tw = ctx.measureText(txt).width, pw = fs * .55, ph = fs * .42, w = tw + pw * 2, h = fs + ph * 2, r = h / 3;
     ctx.fillStyle = "rgba(255,255,255,.96)"; ctx.beginPath();
     if(ctx.roundRect) ctx.roundRect(x - w / 2, y - h / 2, w, h, r); else ctx.rect(x - w / 2, y - h / 2, w, h);
     ctx.fill(); ctx.lineWidth = Math.max(1, W / 900); ctx.strokeStyle = "rgba(0,0,0,.35)"; ctx.stroke();
     ctx.fillStyle = "#111"; ctx.fillText(txt, x, y + fs * .04);
+    return { x: x - w / 2, y: y - h / 2, w: w, h: h };
   }
-  function pinta(ctx, im, objs, W, H){
+  function etiquetaPos(o, W, H){        /* posición por defecto de la etiqueta de una cota: al lado de la línea, hacia arriba */
+    var dx = o.b[0] - o.a[0], dy = o.b[1] - o.a[1], L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, off = Math.max(18, W / 26) * Math.max(.8, o.k || 1);
+    if(ny > 0){ nx = -nx; ny = -ny; }
+    return [Math.max(10, Math.min(W - 10, (o.a[0] + o.b[0]) / 2 + nx * off)), Math.max(10, Math.min(H - 10, (o.a[1] + o.b[1]) / 2 + ny * off))];
+  }
+  function pinta(ctx, im, objs, W, H, sel){
     ctx.drawImage(im.src, 0, 0, W, H);
-    var lw = Math.max(3, W / 190);
     objs.forEach(function(o){
-      ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = o.c; ctx.fillStyle = o.c; ctx.lineWidth = lw;
+      var lw = Math.max(2, W / 190 * (o.k || 1));
+      ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.setLineDash([]); ctx.strokeStyle = o.c; ctx.fillStyle = o.c; ctx.lineWidth = lw; o._r = null;
       if(o.t === "trazo"){ ctx.beginPath(); o.p.forEach(function(q, i){ if(i) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); }); ctx.stroke(); }
       else if(o.t === "cota"){
         var dx = o.b[0] - o.a[0], dy = o.b[1] - o.a[1], L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, tk = lw * 3.4;
         ctx.beginPath(); ctx.moveTo(o.a[0], o.a[1]); ctx.lineTo(o.b[0], o.b[1]);
         ctx.moveTo(o.a[0] - nx * tk, o.a[1] - ny * tk); ctx.lineTo(o.a[0] + nx * tk, o.a[1] + ny * tk);
         ctx.moveTo(o.b[0] - nx * tk, o.b[1] - ny * tk); ctx.lineTo(o.b[0] + nx * tk, o.b[1] + ny * tk); ctx.stroke();
-        if(o.s){ var mx = (o.a[0] + o.b[0]) / 2, my = (o.a[1] + o.b[1]) / 2, off = Math.max(18, W / 26); if(ny > 0) { nx = -nx; ny = -ny; }   /* etiqueta hacia arriba */
-          caja(ctx, o.s, Math.max(10, Math.min(W - 10, mx + nx * off)), Math.max(10, Math.min(H - 10, my + ny * off)), W); }
+        if(o.s){ var lp = o.l || etiquetaPos(o, W, H); o._r = caja(ctx, o.s, lp[0], lp[1], W, o.k || 1); }
       }
-      else if(o.t === "texto"){ caja(ctx, o.s, o.a[0], o.a[1], W); }
+      else if(o.t === "texto"){ o._r = caja(ctx, o.s, o.a[0], o.a[1], W, o.k || 1); }
     });
+    if(sel){        /* marcas de selección (solo en pantalla, no se graban) */
+      var f = Math.max(2, W / 260); ctx.setLineDash([f * 3, f * 2]); ctx.lineWidth = f; ctx.strokeStyle = "#0a84ff"; ctx.fillStyle = "#0a84ff";
+      if(sel._r){ ctx.strokeRect(sel._r.x - f * 2, sel._r.y - f * 2, sel._r.w + f * 4, sel._r.h + f * 4); }
+      ctx.setLineDash([]);
+      if(sel.t === "cota"){ [sel.a, sel.b].forEach(function(q){ ctx.beginPath(); ctx.arc(q[0], q[1], Math.max(9, W / 70), 0, 6.2832); ctx.fillStyle = "#fff"; ctx.fill(); ctx.stroke(); }); }
+      else if(sel.t === "trazo"){ var xs = sel.p.map(function(q){ return q[0]; }), ys = sel.p.map(function(q){ return q[1]; }), x0 = Math.min.apply(0, xs), y0 = Math.min.apply(0, ys); ctx.setLineDash([f * 3, f * 2]); ctx.strokeRect(x0 - 8, y0 - 8, Math.max.apply(0, xs) - x0 + 16, Math.max.apply(0, ys) - y0 + 16); ctx.setLineDash([]); }
+    }
   }
   function aTexto(v){ v = String(v || "").trim(); return /^[0-9]+([.,][0-9]+)?$/.test(v) ? v.replace(".", ",") + " m" : v; }   /* «4,10» → «4,10 m» */
+  function dSeg(p, a, b){ var dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy, t = L2 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L2)) : 0; return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy); }
+  function enCaja(p, r, m){ return r && p[0] >= r.x - m && p[0] <= r.x + r.w + m && p[1] >= r.y - m && p[1] <= r.y + r.h + m; }
+  function copia(objs){ return JSON.parse(JSON.stringify(objs, function(k, v){ return k === "_r" ? undefined : v; })); }
 
   /* ---------- editor ---------- */
-  function anotar(blob){
+  function anotar(blob, previas){
     css();
     return cargarImg(blob).then(function(im){
       return new Promise(function(fin){
-        var k = Math.min(1, MAX_PX / Math.max(im.w, im.h)), W = Math.round(im.w * k), H = Math.round(im.h * k);
-        var objs = [], herr = "cota", col = COLORES[0][0], act = null, pend = null;
+        var k0 = Math.min(1, MAX_PX / Math.max(im.w, im.h)), W = Math.round(im.w * k0), H = Math.round(im.h * k0);
+        var objs = previas && previas.length ? copia(previas) : [], hist = [], herr = "cota", col = COLORES[0][0], tam = 1, act = null, pend = null, selo = null, arr = null;
         var ov = el("div", "pf-ov"), top = el("div", "pf-top"), cvw = el("div", "pf-cv"), cv = el("canvas"), bar = el("div", "pf-bar"), hint = el("div", "pf-hint"), ent = el("div", "pf-in");
         cv.width = W; cv.height = H; cvw.appendChild(cv);
         var bCan = el("button", "pf-tb", "✕ Cancelar"), bOk = el("button", "pf-tb on", "✓ Listo"); bOk.style.borderColor = "#16e08a";
         var tit = el("b", "", "Anotar foto"); top.appendChild(bCan); top.appendChild(tit); top.appendChild(bOk);
-        var herrs = [["cota", "📏 Cota"], ["texto", "🔤 Texto"], ["trazo", "✏️ Trazo"]], bh = {};
-        herrs.forEach(function(h){ var b = el("button", "pf-tb", h[1]); b.onclick = function(){ herr = h[0]; marca(); }; bh[h[0]] = b; bar.appendChild(b); });
+        var herrs = [["cota", "📏 Cota"], ["texto", "🔤 Texto"], ["trazo", "✏️ Trazo"], ["mover", "👆 Editar"]], bh = {};
+        herrs.forEach(function(h){ var b = el("button", "pf-tb", h[1]); b.onclick = function(){ herr = h[0]; if(herr !== "mover") selo = null; marca(); redib(); }; bh[h[0]] = b; bar.appendChild(b); });
         var bDes = el("button", "pf-tb", "↶ Deshacer"), bLim = el("button", "pf-tb", "🗑 Borrar todo"); bar.appendChild(bDes); bar.appendChild(bLim);
-        var cs = []; COLORES.forEach(function(c){ var b = el("button", "pf-co"); b.style.background = c[0]; b.title = c[1]; b.setAttribute("aria-label", c[1]); b.onclick = function(){ col = c[0]; marca(); }; cs.push([c[0], b]); bar.appendChild(b); });
+        var fE = el("div", "pf-sel"); fE.style.cssText = "display:flex;visibility:hidden;width:100%;gap:6px;flex-wrap:wrap"; var bTxt = el("button", "pf-tb", "✎ Cambiar texto"), bQuit = el("button", "pf-tb", "🗑 Quitar esta"); fE.appendChild(bTxt); fE.appendChild(bQuit); bar.appendChild(fE);
+        var fT = el("div"); fT.style.cssText = "display:flex;gap:6px;align-items:center;width:100%;flex-wrap:wrap"; fT.appendChild(el("span", "", "<small style='color:#9aa4b2'>Grosor</small>")); var bt = [];
+        TAMS.forEach(function(t){ var b = el("button", "pf-tb", t[0]); b.style.minWidth = "44px"; b.onclick = function(){ tam = t[1]; if(selo){ empuja(); selo.k = t[1]; } marca(); redib(); }; bt.push([t[1], b]); fT.appendChild(b); });
+        var cs = []; COLORES.forEach(function(c){ var b = el("button", "pf-co"); b.style.background = c[0]; b.title = c[1]; b.setAttribute("aria-label", c[1]); b.onclick = function(){ col = c[0]; if(selo){ empuja(); selo.c = c[0]; } marca(); redib(); }; cs.push([c[0], b]); fT.appendChild(b); });
+        bar.appendChild(fT);
         var ei = el("input"); ei.type = "text"; ei.maxLength = 60; ei.autocomplete = "off"; var eOk = el("button", "pf-tb on", "Poner"), eNo = el("button", "pf-tb", "Quitar");
         ent.appendChild(ei); ent.appendChild(eOk); ent.appendChild(eNo);
         ov.appendChild(top); ov.appendChild(cvw); ov.appendChild(hint); ov.appendChild(bar); ov.appendChild(ent); document.body.appendChild(ov);
+        function empuja(){ hist.push(copia(objs)); if(hist.length > 40) hist.shift(); }
+        function recup(v){ var a = JSON.parse(JSON.stringify(v)); return a; }
         function marca(){
-          Object.keys(bh).forEach(function(k2){ bh[k2].classList.toggle("on", k2 === herr); }); cs.forEach(function(c){ c[1].classList.toggle("on", c[0] === col); });
-          hint.textContent = herr === "cota" ? "Arrastra de un punto a otro para medir; luego escribe la medida (ej. 4,10 → «4,10 m»)." : herr === "texto" ? "Toca donde quieres el texto y escríbelo." : "Dibuja con el dedo.";
+          Object.keys(bh).forEach(function(k2){ bh[k2].classList.toggle("on", k2 === herr); });
+          var cc = selo ? selo.c : col, kk = selo ? (selo.k || 1) : tam;
+          cs.forEach(function(c){ c[1].classList.toggle("on", c[0] === cc); }); bt.forEach(function(t){ t[1].classList.toggle("on", t[0] === kk); });
+          fE.style.visibility = selo ? "visible" : "hidden"; bTxt.style.display = selo && selo.t !== "trazo" ? "" : "none";
+          hint.textContent = herr === "cota" ? "Arrastra de un punto a otro para medir; luego escribe la medida (ej. 4,10 → «4,10 m»)." : herr === "texto" ? "Toca donde quieres el texto y escríbelo." : herr === "trazo" ? "Dibuja con el dedo."
+            : selo ? "Arrastra la pieza para moverla" + (selo.t === "cota" ? ", los círculos para cambiar los extremos o la etiqueta para acomodarla" : "") + ". Grosor y color cambian esta anotación." : "Toca una anotación para moverla o cambiarla.";
         }
-        function redib(){ var ctx = cv.getContext("2d"); pinta(ctx, im, act ? objs.concat([act]) : objs, W, H); }
+        function redib(){ var ctx = cv.getContext("2d"); pinta(ctx, im, act ? objs.concat([act]) : objs, W, H, herr === "mover" ? selo : null); }
         function pt(e){ var r = cv.getBoundingClientRect(); return [Math.max(0, Math.min(W, (e.clientX - r.left) / r.width * W)), Math.max(0, Math.min(H, (e.clientY - r.top) / r.height * H))]; }
-        function pedir(titulo, ini, ok){ pend = ok; ei.value = ini || ""; ei.placeholder = titulo; ent.style.display = "flex"; setTimeout(function(){ ei.focus(); }, 30); }
+        function pedir(titulo, ini, ok){ pend = ok; ei.value = ini || ""; ei.placeholder = titulo; ent.style.display = "flex"; setTimeout(function(){ ei.focus(); ei.select(); }, 30); }
         function cierraEnt(){ ent.style.display = "none"; pend = null; ei.blur(); }
         eOk.onclick = function(){ var f = pend, v = ei.value; cierraEnt(); if(f) f(v); };
-        eNo.onclick = function(){ var f = pend; cierraEnt(); act = null; redib(); };
+        eNo.onclick = function(){ cierraEnt(); act = null; redib(); };
         ei.onkeydown = function(e){ if(e.key === "Enter"){ e.preventDefault(); eOk.onclick(); } };
+        function golpe(p){        /* qué anotación hay bajo el punto (la de más arriba primero) */
+          var tol = W / 38;
+          for(var i = objs.length - 1; i >= 0; i--){
+            var o = objs[i];
+            if(o._r && enCaja(p, o._r, tol / 3)) return { o: o, parte: o.t === "cota" ? "etiqueta" : "cuerpo" };
+            if(o.t === "cota" && dSeg(p, o.a, o.b) < tol) return { o: o, parte: "cuerpo" };
+            if(o.t === "trazo"){ for(var j = 1; j < o.p.length; j++) if(dSeg(p, o.p[j - 1], o.p[j]) < tol) return { o: o, parte: "cuerpo" }; }
+          }
+          return null;
+        }
         cv.addEventListener("pointerdown", function(e){
           if(pend) return; e.preventDefault(); cv.setPointerCapture(e.pointerId); var p = pt(e);
-          act = herr === "trazo" ? { t: "trazo", c: col, p: [p] } : herr === "cota" ? { t: "cota", c: col, a: p, b: p, s: "" } : { t: "texto", c: col, a: p, s: "" };
-          if(herr === "texto"){ var o = act; act = null; pedir("Texto", "", function(v){ v = String(v).trim(); if(v){ o.s = v; objs.push(o); } redib(); }); return; }
+          if(herr === "mover"){
+            var r2 = Math.max(16, W / 28);
+            if(selo && selo.t === "cota"){
+              if(Math.hypot(p[0] - selo.a[0], p[1] - selo.a[1]) < r2){ empuja(); arr = { m: "a", o: selo, p0: p, ini: null }; return; }
+              if(Math.hypot(p[0] - selo.b[0], p[1] - selo.b[1]) < r2){ empuja(); arr = { m: "b", o: selo, p0: p, ini: null }; return; }
+            }
+            var g = golpe(p); selo = g ? g.o : null;
+            if(g){ empuja(); arr = { m: g.parte, o: g.o, p0: p, ini: copia([g.o])[0] }; }
+            marca(); redib(); return;
+          }
+          act = herr === "trazo" ? { t: "trazo", c: col, k: tam, p: [p] } : herr === "cota" ? { t: "cota", c: col, k: tam, a: p, b: p, s: "" } : { t: "texto", c: col, k: tam, a: p, s: "" };
+          if(herr === "texto"){ var o = act; act = null; pedir("Texto", "", function(v){ v = String(v).trim(); if(v){ empuja(); o.s = v; objs.push(o); } redib(); }); return; }
           redib();
         });
-        cv.addEventListener("pointermove", function(e){ if(!act) return; var p = pt(e); if(act.t === "trazo") act.p.push(p); else act.b = p; redib(); });
-        function suelta(e){
+        cv.addEventListener("pointermove", function(e){
+          var p = pt(e);
+          if(arr){
+            var o = arr.o, dx = p[0] - arr.p0[0], dy = p[1] - arr.p0[1];
+            if(arr.m === "a") o.a = p; else if(arr.m === "b") o.b = p;
+            else if(arr.m === "etiqueta"){ var base = arr.ini.l || etiquetaPos(arr.ini, W, H); o.l = [Math.max(0, Math.min(W, base[0] + dx)), Math.max(0, Math.min(H, base[1] + dy))]; }
+            else { var q = arr.ini; if(o.t === "texto") o.a = [q.a[0] + dx, q.a[1] + dy]; else if(o.t === "cota"){ o.a = [q.a[0] + dx, q.a[1] + dy]; o.b = [q.b[0] + dx, q.b[1] + dy]; if(q.l) o.l = [q.l[0] + dx, q.l[1] + dy]; } else o.p = q.p.map(function(z){ return [z[0] + dx, z[1] + dy]; }); }
+            redib(); return;
+          }
+          if(!act) return; if(act.t === "trazo") act.p.push(p); else act.b = p; redib();
+        });
+        function suelta(){
+          if(arr){ arr = null; redib(); return; }
           if(!act) return; var o = act; act = null;
-          if(o.t === "trazo"){ if(o.p.length > 1) objs.push(o); redib(); return; }
+          if(o.t === "trazo"){ if(o.p.length > 1){ empuja(); objs.push(o); } redib(); return; }
           if(o.t === "cota"){
             if(Math.hypot(o.b[0] - o.a[0], o.b[1] - o.a[1]) < W / 60){ redib(); return; }
-            objs.push(o); redib(); pedir("Medida (ej. 4,10)", "", function(v){ o.s = aTexto(v); redib(); });
+            empuja(); objs.push(o); redib(); pedir("Medida (ej. 4,10)", "", function(v){ o.s = aTexto(v); redib(); });
           }
         }
         cv.addEventListener("pointerup", suelta); cv.addEventListener("pointercancel", suelta);
-        bDes.onclick = function(){ objs.pop(); redib(); }; bLim.onclick = function(){ if(objs.length && window.confirm("¿Borrar todas las anotaciones?")){ objs = []; redib(); } };
+        cv.addEventListener("dblclick", function(e){ if(herr !== "mover") return; var g = golpe(pt(e)); if(g && g.o.t !== "trazo") cambiaTexto(g.o); });
+        function cambiaTexto(o){ pedir(o.t === "cota" ? "Medida (ej. 4,10)" : "Texto", o.s, function(v){ var s = o.t === "cota" ? aTexto(v) : String(v).trim(); if(s){ empuja(); o.s = s; } redib(); }); }
+        bTxt.onclick = function(){ if(selo) cambiaTexto(selo); };
+        bQuit.onclick = function(){ if(!selo) return; empuja(); objs.splice(objs.indexOf(selo), 1); selo = null; marca(); redib(); };
+        bDes.onclick = function(){ if(hist.length){ objs = recup(hist.pop()); selo = null; marca(); redib(); } };
+        bLim.onclick = function(){ if(objs.length && window.confirm("¿Borrar todas las anotaciones?")){ empuja(); objs = []; selo = null; marca(); redib(); } };
         function salir(r){ document.removeEventListener("keydown", tecla); ov.remove(); if(im.src && im.src.close) im.src.close(); fin(r); }
         function tecla(e){ if(e.key === "Escape" && !pend) bCan.onclick(); }
         document.addEventListener("keydown", tecla);
         bCan.onclick = function(){ if(objs.length && !window.confirm("¿Descartar las anotaciones?")) return; salir(null); };
         bOk.onclick = function(){
-          if(!objs.length) return salir(null);
-          var c2 = document.createElement("canvas"); c2.width = W; c2.height = H; pinta(c2.getContext("2d"), im, objs, W, H);
-          c2.toBlob(function(b){ if(b){ b.nombre = blob.nombre || "foto.jpg"; b.anotada = true; } salir(b || null); }, "image/jpeg", .88);
+          if(!objs.length) return salir(previas && previas.length ? blob : null);
+          var c2 = document.createElement("canvas"); c2.width = W; c2.height = H; pinta(c2.getContext("2d"), im, objs, W, H, null);
+          c2.toBlob(function(b){ if(b){ b.nombre = blob.nombre || "foto.jpg"; b.anotada = true; b.orig = blob; b.anot = copia(objs); } salir(b || null); }, "image/jpeg", .88);
         };
         marca(); redib();
       });
@@ -150,7 +212,7 @@
         var t = el("div", "pf-t"), im = el("img"); im.alt = "Foto " + (i + 1); im.src = u; t.appendChild(im);
         if(b.anotada) t.appendChild(el("span", "ok", "✎"));
         var e = el("button", "e", "✎ Anotar"), x = el("button", "x", "✕"); e.type = x.type = "button"; e.setAttribute("aria-label", "Anotar foto " + (i + 1)); x.setAttribute("aria-label", "Quitar foto " + (i + 1));
-        e.onclick = function(){ anotar(b).then(function(nb){ if(nb){ blobs[i] = nb; pinta2(); cambio(); } }); };
+        e.onclick = function(){ anotar(b.orig || b, b.anot).then(function(nb){ if(nb){ blobs[i] = nb; pinta2(); cambio(); } }); };
         x.onclick = function(){ blobs.splice(i, 1); pinta2(); cambio(); };
         t.appendChild(e); t.appendChild(x); th.appendChild(t);
       });
