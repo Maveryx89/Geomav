@@ -1362,6 +1362,20 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
   body.ficha-lista .fila-acc{ display:none !important; }
   body.ficha-lista .porticos-inner > .ficha-portico{ position:static; transform:none; visibility:visible; width:auto; flex:1 1 auto; min-height:0; box-shadow:0 -6px 14px -8px rgba(10,34,64,.3); border-left:0; border-top:2px solid var(--blueprint); }
 }
+
+.f-plano-g{ display:none; }
+@media (max-width:860px){
+  .ficha-portico .f-sec:has(> .f-planos){ display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; }
+  .ficha-portico .f-sec:has(> .f-planos) h4{ margin:0; flex:none; }
+  .ficha-portico .f-planos{ gap:5px; flex:1 1 auto; }
+  .ficha-portico .fp-t{ display:none; }
+  .ficha-portico .f-plano{ min-height:26px; padding:2px 10px; font-size:.74rem; gap:0; }
+  .ficha-portico .f-plano small{ font-size:inherit; color:inherit; font-weight:700; }
+  .ficha-portico .f-plano-g{ display:inline-flex; }
+  .ficha-portico .f-plano-gen{ display:none; }
+  .ficha-portico .f-grid:not(.f-grid-1){ display:flex; flex-wrap:wrap; gap:4px 16px; }
+  .ficha-portico .f-grid:not(.f-grid-1) > .f-par{ flex:0 1 auto; max-width:100%; }
+}
 </style>
 <style id="partida-trazado">
 /* partida "Trazado": 8º color fijo (celeste) */
@@ -4097,13 +4111,14 @@ window.PORTICOS_LISTA = (function(){
   function enlacesPlano(arr, tipo, titulo){
     return (arr || []).slice().sort(function(a, b){ return String(a[0]).localeCompare(String(b[0])); }).map(function(x){
       var url = tipo === "pdf" ? "https://drive.google.com/file/d/" + x[1] + "/view" : "https://drive.google.com/uc?export=download&id=" + x[1];
-      return '<a class="f-plano" href="' + url + '"' + (tipo === "pdf" ? ' data-pdf="' + x[1] + '" data-tit="' + esc(titulo + (x[0] ? ' \u00b7 ' + x[0] : '')) + '"' : '') + ' target="_blank" rel="noopener">' + (tipo === "pdf" ? '\ud83d\udcc4 Plano PDF' : '\ud83d\udcd0 Plano CAD (.dwg)') + (x[0] ? ' <small>' + esc(x[0]) + '</small>' : '') + '</a>';
+      return '<a class="f-plano" href="' + url + '"' + (tipo === "pdf" ? ' data-pdf="' + x[1] + '" data-tit="' + esc(titulo + (x[0] ? ' \u00b7 ' + x[0] : '')) + '"' : '') + ' target="_blank" rel="noopener">' + '<span class="fp-t">' + (tipo === "pdf" ? '\ud83d\udcc4 Plano PDF' : '\ud83d\udcd0 Plano CAD (.dwg)') + '</span>' + (x[0] ? ' <small>' + esc(x[0]) + '</small>' : '') + '</a>';
     }).join("");
   }
   function secPlanos(p){
     var d = PLANOS[clavePlano(p.nombre)]; if(!d) return "";
     var g = PLANOS.region;
-    return '<div class="f-sec"><h4>Planos</h4><div class="f-planos">' + enlacesPlano(d.p, "pdf", "Plano " + p.nombre) + (MOSTRAR_CAD ? enlacesPlano(d.c, "cad", "") : "") + '</div>'
+    return '<div class="f-sec"><h4>Planos</h4><div class="f-planos">' + enlacesPlano(d.p, "pdf", "Plano " + p.nombre) + (MOSTRAR_CAD ? enlacesPlano(d.c, "cad", "") : "")
+      + (g ? '<a class="f-plano f-plano-g" href="https://drive.google.com/file/d/' + g.p[0][1] + '/view" data-pdf="' + g.p[0][1] + '" data-tit="Plano general de la regi\u00f3n" target="_blank" rel="noopener" title="Plano general de la regi\u00f3n">General</a>' : '') + '</div>'
       + (g ? '<p class="f-plano-gen">Plano general de la regi\u00f3n: <a href="https://drive.google.com/file/d/' + g.p[0][1] + '/view" data-pdf="' + g.p[0][1] + '" data-tit="Plano general de la regi\u00f3n" target="_blank" rel="noopener">PDF</a>' + (MOSTRAR_CAD ? ' \u00b7 <a href="https://drive.google.com/uc?export=download&id=' + g.c[0][1] + '" target="_blank" rel="noopener">CAD</a>' : '') + '</p>' : '') + '</div>';
   }
   /* visor de PDF dentro de la página (vista previa de Drive) */
