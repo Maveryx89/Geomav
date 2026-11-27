@@ -1271,6 +1271,64 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .base-pin{ background:var(--ink); color:#fff; border:2px solid #fff; border-radius:6px; font:700 11px/18px var(--font-body); text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.4); }
 .ruta-l li em{ font-style:normal; font-size:.68rem; color:var(--blueprint); font-weight:700; white-space:nowrap; }
 .ruta-l li em.r-alm{ display:block; color:var(--ink-soft); font-weight:600; }
+
+/* ===== celular: versión compacta (botones y espacios más chicos) ===== */
+@media (max-width:860px){
+  .proyecto-head{ padding:6px 12px 0; } .proyecto-tit{ font-size:16px; } .proyecto-sub{ font-size:11px; }
+  .pizarra-block .section-head{ padding:6px 12px 2px; gap:8px; } .section-head h2{ font-size:13px; } .section-head .idx{ width:22px; height:22px; font-size:12px; }
+  .pizarra-block .dategen{ padding:4px 12px 0; }
+  .btn-sm, .dategen .btn-sm, .restr-toggle{ min-height:32px; padding:3px 10px; font-size:.76rem; }
+  .pizarra-block .nav-semanas{ gap:5px; } .pizarra-block .nav-semanas .btn-sm{ min-height:32px; padding:3px 4px; font-size:.76rem; }
+  .toolbar{ padding:6px 12px 0; gap:6px; align-items:center; }
+  .ayuda > summary{ width:30px; height:30px; font-size:13px; }
+  .msel > summary{ min-height:32px; font-size:14px; padding:3px 24px 3px 9px; }
+  .m-view{ padding:4px 12px 12px; }
+  .m-chips{ gap:5px; padding:2px 0 6px; }
+  .m-chip{ min-height:36px; min-width:50px; padding:2px 8px; border-radius:8px; }
+  .m-chip span{ font-size:.78rem; } .m-chip small{ font-size:.6rem; }
+  .m-group{ padding:5px 8px 7px 11px; margin-bottom:7px; border-left-width:5px; }
+  .m-group-head{ margin-bottom:4px; font-size:.84rem; }
+  .m-add{ min-height:32px; font-size:.78rem; }
+  /* indicadores */
+  .ind-block{ padding:8px 12px 20px; }
+  .ind-head{ gap:6px; } .ind-head h2{ flex:1 0 100%; }
+  .ind-acc{ width:auto; flex:1; margin:0; gap:6px; } .ind-acc .btn-sm{ flex:1; }
+  .rs-box{ padding:8px 12px; margin:0 0 8px; } .rs-box.cerrado{ padding:6px 10px; }
+  .rs-caret{ width:22px; height:22px; } .rs-head h3{ font-size:.92rem; }
+  .ind-cards{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px; margin-bottom:8px; }
+  .ind-card{ padding:7px 10px; gap:1px; } .ind-card .ind-k{ font-size:.6rem; } .ind-card b{ font-size:1.4rem; } .ind-card b em{ font-size:.85rem; } .ind-card small{ font-size:.66rem; line-height:1.25; }
+  .ind-box{ padding:10px 12px; } .ind-box h3{ font-size:.88rem; margin:0 0 6px; } .ind-grid2{ gap:8px; margin-bottom:8px; }
+  /* listado de pórticos */
+  .porticos-head{ padding:6px 10px; } .porticos-filtros{ padding:6px 8px; gap:5px; }
+  .porticos-filtros input, .porticos-filtros select{ min-height:34px; }
+}
+
+/* ===== celular: controles en una sola fila; el que se usa se ensancha ===== */
+@media (max-width:860px){
+  .toolbar{ flex-wrap:nowrap; }
+  .toolbar > .lp-filtros{ display:contents; }
+  .toolbar > .ru-abrir, .toolbar > .menu-mas > summary{ font-size:0; min-width:34px; padding:3px 8px; text-align:center; }
+  .toolbar > .ru-abrir > span, .toolbar > .menu-mas > summary > span{ font-size:1.05rem; }
+  .toolbar > .ru-abrir{ flex:none; } .toolbar > .menu-mas{ flex:none; } .toolbar > .ayuda{ flex:none; }
+  .toolbar .lpf{ flex:1 1 0; min-width:0; transition:flex-grow .2s ease; }
+  .toolbar .lpf > summary{ max-width:none; height:34px; min-height:34px; box-sizing:border-box; white-space:nowrap; font-size:.78rem; padding:3px 22px 3px 9px; overflow:hidden; text-overflow:ellipsis; }
+  .toolbar .lpf[open]{ flex-grow:2.6; }
+  .toolbar:has(.lpf[open]) .lpf:not([open]){ flex-grow:.6; }
+  .toolbar .lpf-all{ flex:none; font-size:0; } .toolbar .lpf-all::before{ content:"\2715"; font-size:.95rem; } .toolbar .lpf-cnt{ display:none; }
+  .toolbar{ align-items:center; }
+  .toolbar > .ru-abrir, .toolbar > .menu-mas > summary, .toolbar > .ayuda > summary{ height:34px; min-height:34px; box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; }
+  .toolbar > .ayuda > summary{ width:34px; }
+  .toolbar .lpf-all{ height:34px; display:inline-flex; align-items:center; }
+  .porticos-filtros{ display:flex; flex-wrap:nowrap; gap:5px; align-items:stretch; }
+  .porticos-filtros > input, .porticos-filtros > .msel > summary{ height:34px; min-height:34px !important; box-sizing:border-box; padding-top:0; padding-bottom:0; }
+  .porticos-filtros > .msel > summary{ display:flex; align-items:center; }
+  .porticos-filtros > .msel{ height:34px; }
+  .porticos-filtros > input{ flex:1.3 1 0; min-width:0; transition:flex-grow .2s ease; }
+  .porticos-filtros > .msel{ flex:1 1 0; min-width:0; transition:flex-grow .2s ease; }
+  .porticos-filtros > .msel > summary{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .porticos-filtros > input:focus{ flex-grow:3.2; } .porticos-filtros > .msel[open]{ flex-grow:2.4; }
+  .porticos-filtros:has(input:focus, .msel[open]) > :not(input:focus):not([open]){ flex-grow:.55; }
+}
 </style>
 <style id="partida-trazado">
 /* partida "Trazado": 8º color fijo (celeste) */
@@ -1437,8 +1495,8 @@ footer.app-foot .foot-copy{ grid-column:1 / -1; justify-self:center; text-align:
           <div class="porticos-head"><div><strong>Listado de pórticos</strong><span class="porticos-sub">Región de O&#39;Higgins · <span class="porticos-sync" id="porticosSync">Conectando…</span></span></div><span class="ph-der"><button type="button" class="comp-btn" id="compVista" title="Compartir esta vista (filtros y pórtico seleccionado)" aria-label="Compartir esta vista"><span aria-hidden="true">&#x1F517;</span></button><details class="ayuda ayuda-der"><summary aria-label="Ayuda: Pórticos" title="Ayuda">?</summary><div class="ayuda-pop hint" role="note"><b class="ay-t">Pórticos</b><ol class="ay-l"><li>Busca o filtra por <b>comuna</b> y <b>estado</b>; el mapa hace zoom a lo filtrado.</li><li>Toca una fila para marcar el pórtico en el mapa (anillo rojo).</li><li>Toca <b>Ubicación</b> para abrir Google Maps y <b>📷</b> para ver fotos.</li><li>Toca el <b>estado</b> para ver el historial o registrar avance (con PIN).</li></ol><a class="ay-m" href="manual.html#porticos">Ver manual completo &rarr;</a></div></details><span class="porticos-count" id="porticosCount"></span></span></div>
           <div class="porticos-filtros">
             <input type="search" id="fBuscar" placeholder="Buscar pórtico o comuna" aria-label="Buscar pórtico o comuna" autocomplete="off">
-            <details class="msel" id="fComuna"><summary aria-label="Filtrar por comuna"><span class="msel-t">Todas las comunas</span></summary><div class="msel-pop" role="group" aria-label="Comunas"></div></details>
-            <details class="msel" id="fEstado"><summary aria-label="Filtrar por estado"><span class="msel-t">Todos los estados</span></summary><div class="msel-pop" role="group" aria-label="Estados"></div></details>
+            <details class="msel" id="fComuna"><summary aria-label="Filtrar por comuna"><span class="msel-t">Comuna</span></summary><div class="msel-pop" role="group" aria-label="Comunas"></div></details>
+            <details class="msel" id="fEstado"><summary aria-label="Filtrar por estado"><span class="msel-t">Estado</span></summary><div class="msel-pop" role="group" aria-label="Estados"></div></details>
           </div>
           <div class="porticos-scroll">
             <table class="porticos-table">
@@ -2111,6 +2169,8 @@ window.PORTICOS_LISTA = (function(){
         var ref = root.querySelector(".m-view") || root.querySelector(".board-scroll"); if(!ref) return;
         barraP = document.createElement("div"); barraP.className = "lp-filtros";
         ref.parentNode.insertBefore(barraP, ref);
+        /* celular: los filtros van en la misma fila que los botones de la barra (cada uno se ensancha al usarlo) */
+        try{ var tbM = root.querySelector(".toolbar"); if(tbM && window.matchMedia("(max-width:860px)").matches) tbM.appendChild(barraP); }catch(e){}
         barraP.addEventListener("change", function(e){ var cb = e.target; if(!cb || cb.type !== "checkbox") return; var g = filtroP[cb.dataset.g]; if(cb.checked) g[cb.value] = 1; else delete g[cb.value]; render(); });
         barraP.addEventListener("click", function(e){ var b = e.target.closest("[data-limpiar]"); if(!b) return; if(b.dataset.limpiar === "todo"){ filtroP = { resp:{}, part:{} }; } else filtroP[b.dataset.limpiar] = {}; llaveP = ""; render(); });
         document.addEventListener("click", function(e){ Array.prototype.forEach.call(barraP.querySelectorAll("details[open]"), function(d){ if(!d.contains(e.target)) d.removeAttribute("open"); }); });
@@ -2124,7 +2184,7 @@ window.PORTICOS_LISTA = (function(){
       if(llave === llaveP) return; llaveP = llave;
       barraP.innerHTML = grupos.map(function(g){
         var sel = filtroP[g[0]], n = Object.keys(sel).length;
-        var txt = !n ? g[1] + ": todos" : (n === 1 ? (g[2].filter(function(o){ return sel[o[0]]; }).map(function(o){ return o[1]; })[0] || "1") : g[1] + " (" + n + ")");
+        var txt = !n ? g[1] : (n === 1 ? (g[2].filter(function(o){ return sel[o[0]]; }).map(function(o){ return o[1]; })[0] || "1") : g[1] + " (" + n + ")");
         return '<details class="lpf'+(n?' on':'')+'" data-g="'+g[0]+'"'+(abiertos[g[0]]?' open':'')+'><summary>'+escapeHtml(txt)+'</summary><div class="lpf-pop">'
           + g[2].map(function(o){ return '<label class="lpf-op"><input type="checkbox" data-g="'+g[0]+'" value="'+escapeHtml(o[0])+'"'+(sel[o[0]]?' checked':'')+'>'+(o[2]?'<i class="lpf-dot '+o[2]+'"></i>':'')+'<span>'+escapeHtml(o[1])+'</span></label>'; }).join("")
           + '<button type="button" class="lpf-clear" data-limpiar="'+g[0]+'">Limpiar</button></div></details>';
@@ -3843,7 +3903,7 @@ window.PORTICOS_LISTA = (function(){
       lista().forEach(function(p){ if(p.comuna && comunas.indexOf(p.comuna) < 0) comunas.push(p.comuna); });
       comunas.sort(function(a,b){ return a.localeCompare(b, "es"); });
       llaveCom = armarPop(fComuna, comunas.map(function(c){ return [c, c]; }), selCom, llaveCom);
-      fComuna.querySelector(".msel-t").textContent = textoSel(selCom, "Todas las comunas", "comunas");
+      fComuna.querySelector(".msel-t").textContent = textoSel(selCom, "Comuna", "comunas");
       fComuna.classList.toggle("on", nSel(selCom) > 0);
     }
     if(fEstado){
@@ -3851,7 +3911,7 @@ window.PORTICOS_LISTA = (function(){
       llaveEst = armarPop(fEstado, ops, selEst, llaveEst);
       var pe = fEstado.querySelector(".msel-pop");
       if(pe && !pe.querySelector(".msel-info")) pe.insertAdjacentHTML("afterbegin", '<div class="msel-info">Cada partida incluye los p\u00f3rticos que ya la pasaron.</div>');
-      fEstado.querySelector(".msel-t").textContent = textoSel(selEst, "Todos los estados", "estados", function(k){ return k === "__sin" ? "Sin iniciar" : k; });
+      fEstado.querySelector(".msel-t").textContent = textoSel(selEst, "Estado", "estados", function(k){ return k === "__sin" ? "Sin iniciar" : k; });
       fEstado.classList.toggle("on", nSel(selEst) > 0);
     }
   }
@@ -5899,5 +5959,6 @@ window.PORTICOS_LISTA = (function(){
 })();
 </script>
 <script src="../_comun/acerca-de.js" data-app="Programación de Pórticos de Vigilancia" data-desc="Programación y seguimiento de la instalación de pórticos de vigilancia, Región de O’Higgins." data-host=".topbar" data-clase="theme-toggle" defer></script>
+<script>try{ if(window.matchMedia("(max-width:860px)").matches){ var fb=document.getElementById("fBuscar"); if(fb) fb.placeholder="Buscar"; } }catch(e){}</script>
 </body>
 </html>
