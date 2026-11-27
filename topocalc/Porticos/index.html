@@ -1344,6 +1344,24 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
   .ep-ctrl .ep-buscar:focus{ flex-grow:3.2; } .ep-ctrl:has(.ep-buscar:focus) .ep-ord{ flex-grow:.6; }
 }
 
+
+/* ===== celular: opciones en la fila del pórtico y ficha desde el listado ===== */
+.fila-acc{ display:none; }
+@keyframes faIn{ from{ clip-path:inset(0 100% 0 0); opacity:.25; } to{ clip-path:inset(0 0 0 0); opacity:1; } }
+@media (max-width:860px){
+  .porticos-table tr.fila-acc{ display:table-row; }
+  .fila-acc td{ padding:2px 8px 8px !important; background:#FBEAF0; border-bottom:1px solid var(--line); }
+  :root[data-theme="dark"] .fila-acc td{ background:rgba(214,90,140,.14); }
+  .fa-in{ display:flex; gap:8px; animation:faIn .28s ease-out; }
+  .fa-in button{ all:unset; cursor:pointer; box-sizing:border-box; width:44px; height:34px; display:flex; align-items:center; justify-content:center; border:1px solid var(--line-strong); border-radius:999px; background:var(--paper-raised); font-size:1.05rem; }
+  .fa-in button:active{ background:var(--blueprint-soft); }
+  /* ficha dentro del panel del listado: deja visible el pórtico elegido y el siguiente */
+  body.ficha-lista[data-mtab="porticos"] .semanal-layout > .porticos-panel{ height:calc(100vh - var(--topbar-h,60px) - 66px - 18px) !important; min-height:0 !important; margin-bottom:10px; }
+  body.ficha-lista .porticos-head, body.ficha-lista .porticos-filtros{ display:none; }
+  body.ficha-lista .porticos-scroll{ flex:0 0 190px; }
+  body.ficha-lista .fila-acc{ display:none !important; }
+  body.ficha-lista .porticos-inner > .ficha-portico{ position:static; transform:none; visibility:visible; width:auto; flex:1 1 auto; min-height:0; box-shadow:0 -6px 14px -8px rgba(10,34,64,.3); border-left:0; border-top:2px solid var(--blueprint); }
+}
 </style>
 <style id="partida-trazado">
 /* partida "Trazado": 8º color fijo (celeste) */
@@ -3992,7 +4010,7 @@ window.PORTICOS_LISTA = (function(){
         + '<td class="estado">'+estadoHtml(num, data)+'</td></tr>';
     }).join("") || '<tr><td colspan="6" class="pm-vacio" style="padding:14px">Ning\u00fan p\u00f3rtico coincide con el filtro.</td></tr>';
     var cnt = document.getElementById("porticosCount"); if(cnt) cnt.textContent = hayFiltro() ? (visibles + " de " + lista().length + " p\u00f3rticos") : (lista().length + " p\u00f3rticos");
-    pintarMapa(); pintarAvance(); pintarEditBar();
+    filaAcc(); pintarMapa(); pintarAvance(); pintarEditBar();
     if(document.body.getAttribute("data-mtab") === "indicadores") pintarIndicadores();
   };
   var selPortico = null, marcadores = {};
@@ -4010,9 +4028,10 @@ window.PORTICOS_LISTA = (function(){
       var mk = selPortico && marcadores[selPortico];
       if(mk && !desdeMapa){ mapa.setView(mk.getLatLng(), Math.max(mapa.getZoom(), 12), { animate:true }); }
     }
-    if(!selPortico) fichaAbierta = false; else if(!desdeMapa) fichaAbierta = true;
+    if(!selPortico) fichaAbierta = false; else if(!desdeMapa) fichaAbierta = !esMovil() || fichaModoLista;
     mapaMovil(!desdeMapa);
     pintarFicha();
+    filaAcc(); if(fichaModoLista && selPortico) setTimeout(listaAlTope, 60);
     actualizarURL();
   }
 
@@ -4109,12 +4128,60 @@ window.PORTICOS_LISTA = (function(){
     });
   })();
   /* ---------- panel lateral de la ficha: ocupa la mitad derecha del mapa y se contrae hacia la derecha ---------- */
-  var fichaAbierta = false;
+  var fichaAbierta = false, fichaModoLista = false;
+  function esMovil(){ return !!(window.matchMedia && window.matchMedia("(max-width:860px)").matches); }
+  /* celular: la ficha puede abrirse desde el listado (ocupa el panel del listado y deja 2 filas a la vista) */
+  function salirModoLista(){
+    if(!fichaModoLista) return; fichaModoLista = false;
+    document.body.classList.remove("ficha-lista");
+    var box = document.getElementById("fichaPortico"), st = document.getElementById("mapaStage");
+    if(box && st) st.appendChild(box);
+  }
+  function entrarModoLista(){
+    var box = document.getElementById("fichaPortico"), inner = document.querySelector(".porticos-panel .porticos-inner"); if(!box || !inner) return;
+    fichaModoLista = true; document.body.classList.add("ficha-lista"); inner.appendChild(box);
+  }
+  function listaAlTope(){
+    var sc = document.querySelector(".porticos-scroll"), tr = selPortico && tb.querySelector('tr[data-num="' + selPortico + '"]'), pn = document.querySelector(".porticos-panel");
+    if(pn){ var tbH = (document.querySelector(".topbar") || {}).offsetHeight || 56; window.scrollTo({ top: pn.getBoundingClientRect().top + window.pageYOffset - tbH - 6, behavior:"smooth" }); }
+    if(sc && tr){ var th = sc.querySelector("thead"); sc.scrollTop = Math.max(0, tr.offsetTop - (th ? th.offsetHeight : 36)); }
+  }
+  window.abrirFichaLista = function(num){
+    if(String(selPortico) !== String(num)) seleccionarPortico(num, true);
+    entrarModoLista(); fichaAbierta = true; pintarFicha(); filaAcc();
+    setTimeout(listaAlTope, 60);
+  };
+  window.verEnMapaLista = function(num){
+    salirModoLista(); fichaAbierta = false; pintarFicha();
+    if(String(selPortico) !== String(num)) seleccionarPortico(num, true);
+    var st = document.getElementById("mapaStage");
+    function ir(){ if(mapa){ mapa.invalidateSize(); var mk = marcadores[String(num)]; if(mk) mapa.setView(mk.getLatLng(), Math.max(mapa.getZoom(), 13), { animate:true }); } if(st) st.scrollIntoView({ behavior:"smooth", block:"center" }); }
+    if(wrapMapa && wrapMapa.hidden && btnMapa){ btnMapa.click(); setTimeout(ir, 600); } else setTimeout(ir, 80);
+  };
+  /* fila de opciones (iconos) bajo el pórtico elegido en el listado, solo celular */
+  function filaAcc(){
+    Array.prototype.forEach.call(tb.querySelectorAll("tr.fila-acc"), function(r){ r.remove(); });
+    if(!esMovil() || !selPortico || fichaModoLista) return;
+    var tr = tb.querySelector('tr[data-num="' + selPortico + '"]'); if(!tr) return;
+    var n = esc(String(selPortico));
+    tr.insertAdjacentHTML("afterend", '<tr class="fila-acc"><td colspan="6"><div class="fa-in">'
+      + '<button type="button" data-fa="mapa" data-n="' + n + '" aria-label="Ver en el mapa" title="Ver en el mapa">\ud83d\uddfa\ufe0f</button>'
+      + '<button type="button" data-fa="ficha" data-n="' + n + '" aria-label="Ficha t\u00e9cnica" title="Ficha t\u00e9cnica">\ud83d\udccb</button>'
+      + '<button type="button" data-3d="' + n + '" aria-label="Ver en 3D" title="Ver en 3D">\ud83e\uddca</button>'
+      + '</div></td></tr>');
+  }
+  tb.addEventListener("click", function(e){
+    var b = e.target.closest("[data-fa]"); if(!b) return;
+    if(b.dataset.fa === "mapa") window.verEnMapaLista(b.dataset.n); else if(b.dataset.fa === "ficha") window.abrirFichaLista(b.dataset.n);
+  });
   function fichaVer(ver, sinMover){
     var box = document.getElementById("fichaPortico"), st = document.getElementById("mapaStage"); if(!box || !st) return;
-    ver = !!ver && !!selPortico; fichaAbierta = ver;
+    ver = !!ver && !!selPortico;
+    if(!ver && fichaModoLista){ salirModoLista(); filaAcc(); var sc0 = document.querySelector(".porticos-scroll"), tr0 = selPortico && tb.querySelector('tr[data-num="' + selPortico + '"]'); if(sc0 && tr0) setTimeout(function(){ tr0.scrollIntoView({ block:"nearest" }); }, 50); }
+    fichaAbierta = ver;
     box.classList.toggle("abierta", ver); box.setAttribute("aria-hidden", ver ? "false" : "true");
-    st.classList.toggle("con-ficha", ver);
+    st.classList.toggle("con-ficha", ver && !fichaModoLista);
+    if(fichaModoLista) return;
     if(!mapa) return;
     setTimeout(function(){
       mapa.invalidateSize();
@@ -4135,6 +4202,7 @@ window.PORTICOS_LISTA = (function(){
     }, 60);
   }
   window.abrirFicha = function(num){
+    salirModoLista();
     if(String(selPortico) !== String(num)) seleccionarPortico(num, true);
     fichaAbierta = true; pintarFicha(); fichaVer(true);
   };
