@@ -883,12 +883,16 @@ body[data-mtab="indicadores"] .ind-block{ display:block; }
 .ficha-portico .ficha-head{ position:sticky; top:0; z-index:2; }
 .pm-b.pm-ficha{ grid-column:1 / -1; background:var(--ink); color:#fff; border-color:var(--ink); }
 @media (max-width:860px){
-  .ficha-portico{ width:80%; }
+  .mapa-tools .mt-b .mt-t{ display:none; }
+  .mapa-tools .mt-b{ min-width:44px; min-height:44px; padding:6px 10px; justify-content:center; font-size:1.05rem; }
+  .ficha-portico{ top:50%; left:0; width:auto; border-left:0; border-top:1px solid var(--line); box-shadow:0 -6px 18px rgba(10,34,64,.22); transform:translateY(104%); }
+  .ficha-portico.abierta{ transform:none; }
+  .ficha-portico .ficha-x{ transform:rotate(90deg); }
   .ficha-portico .ficha-head{ flex-wrap:wrap; gap:8px; padding:10px 12px; }
   .ficha-portico .ficha-tit{ flex:1 0 100%; order:-1; }
   .ficha-portico .ficha-head > .prio{ margin-right:auto; }
   .ficha-portico .ficha-x{ margin-left:auto; }
-  .mapa-stage.con-ficha{ height:72vh; min-height:420px; }
+  .mapa-stage.con-ficha{ height:84vh; min-height:480px; }
   .mapa-stage.con-ficha .mapa-canvas{ height:100% !important; }
 }
 @media (prefers-reduced-motion:reduce){ .ficha-portico, .ficha-portico.abierta{ transition:none; } }
@@ -1431,14 +1435,14 @@ footer.app-foot .foot-copy{ grid-column:1 / -1; justify-self:center; text-align:
         <div class="mapa-wrap" id="mapaWrap" hidden>
           <div class="mapa-info" id="mapaInfo">Región de O&#39;Higgins</div>
           <div class="mapa-tools" id="mapaTools">
-            <button type="button" class="mt-b" id="btnGps" aria-pressed="false">&#128205; Mi ubicaci&oacute;n</button>
-            <button type="button" class="mt-b" id="btnCentrar" hidden>&#127919; Centrar</button>
-            <button type="button" class="mt-b" id="btnMedir" aria-pressed="false">&#128207; Medir</button>
-            <button type="button" class="mt-b" data-capa="comunas" aria-pressed="true" title="L&iacute;mites comunales y provinciales">&#128506;&#65039; Comunas</button>
-            <button type="button" class="mt-b" data-capa="vial" aria-pressed="true" title="Red vial con el rol de cada ruta">&#128739;&#65039; Rutas</button>
-            <button type="button" class="mt-b" data-capa="ipt" aria-pressed="false" title="Planes reguladores: l&iacute;mite urbano y zonificaci&oacute;n (PRC / PRI)">&#128208; Plan regulador</button>
-            <button type="button" class="mt-b" id="btnMedirUndo" hidden>&#8617; Deshacer</button>
-            <button type="button" class="mt-b" id="btnMedirClr" hidden>Limpiar medida</button>
+            <button type="button" class="mt-b" id="btnGps" aria-pressed="false" aria-label="Mi ubicaci&oacute;n" title="Mi ubicaci&oacute;n">&#128205;<span class="mt-t"> Mi ubicaci&oacute;n</span></button>
+            <button type="button" class="mt-b" id="btnCentrar" hidden aria-label="Centrar" title="Centrar">&#127919;<span class="mt-t"> Centrar</span></button>
+            <button type="button" class="mt-b" id="btnMedir" aria-pressed="false" aria-label="Medir" title="Medir">&#128207;<span class="mt-t"> Medir</span></button>
+            <button type="button" class="mt-b" data-capa="comunas" aria-pressed="true" title="Comunas: l&iacute;mites comunales y provinciales" aria-label="Comunas">&#128506;&#65039;<span class="mt-t"> Comunas</span></button>
+            <button type="button" class="mt-b" data-capa="vial" aria-pressed="true" title="Rutas: red vial con el rol de cada ruta" aria-label="Rutas">&#128739;&#65039;<span class="mt-t"> Rutas</span></button>
+            <button type="button" class="mt-b" data-capa="ipt" aria-pressed="false" title="Plan regulador: l&iacute;mite urbano y zonificaci&oacute;n (PRC / PRI)" aria-label="Plan regulador">&#128208;<span class="mt-t"> Plan regulador</span></button>
+            <button type="button" class="mt-b" id="btnMedirUndo" hidden aria-label="Deshacer" title="Deshacer">&#8617;<span class="mt-t"> Deshacer</span></button>
+            <button type="button" class="mt-b" id="btnMedirClr" hidden aria-label="Limpiar medida" title="Limpiar medida">&#10005;<span class="mt-t"> Limpiar medida</span></button>
             <div class="mt-s" id="mapaEstado" role="status" aria-live="polite"></div>
           </div>
           <div class="mapa-stage" id="mapaStage"><div class="mapa-canvas" id="mapaPorticos"></div>
@@ -4021,6 +4025,13 @@ window.PORTICOS_LISTA = (function(){
       mapa.invalidateSize();
       var mk = selPortico && marcadores[selPortico];
       var movil = window.matchMedia("(max-width:860px)").matches;
+      if(ver && mk && !sinMover && movil){
+        mk.closePopup();
+        setTimeout(function(){ st.scrollIntoView({ behavior:"smooth", block:"center" }); }, 120);
+        var z = Math.max(mapa.getZoom(), 13), s2 = mapa.getSize();
+        var c2 = mapa.project(mk.getLatLng(), z).add([0, s2.y * .25]);
+        mapa.setView(mapa.unproject(c2, z), z, { animate:true });
+      }
       if(ver && mk && !sinMover && !movil){
         var sz = mapa.getSize();
         var c = mapa.project(mk.getLatLng(), mapa.getZoom()).add([sz.x * .25, 0]);
