@@ -1271,6 +1271,37 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .base-pin{ background:var(--ink); color:#fff; border:2px solid #fff; border-radius:6px; font:700 11px/18px var(--font-body); text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.4); }
 .ruta-l li em{ font-style:normal; font-size:.68rem; color:var(--blueprint); font-weight:700; white-space:nowrap; }
 .ruta-l li em.r-alm{ display:block; color:var(--ink-soft); font-weight:600; }
+
+/* ===== celular: versión compacta (botones y espacios más chicos) ===== */
+@media (max-width:860px){
+  .proyecto-head{ padding:6px 12px 0; } .proyecto-tit{ font-size:16px; } .proyecto-sub{ font-size:11px; }
+  .pizarra-block .section-head{ padding:6px 12px 2px; gap:8px; } .section-head h2{ font-size:13px; } .section-head .idx{ width:22px; height:22px; font-size:12px; }
+  .pizarra-block .dategen{ padding:4px 12px 0; }
+  .btn-sm, .dategen .btn-sm, .restr-toggle{ min-height:32px; padding:3px 10px; font-size:.76rem; }
+  .pizarra-block .nav-semanas{ gap:5px; } .pizarra-block .nav-semanas .btn-sm{ min-height:32px; padding:3px 4px; font-size:.76rem; }
+  .toolbar{ padding:6px 12px 0; gap:6px; align-items:center; }
+  .ayuda > summary{ width:30px; height:30px; font-size:13px; }
+  .msel > summary{ min-height:32px; font-size:14px; padding:3px 24px 3px 9px; }
+  .m-view{ padding:4px 12px 12px; }
+  .m-chips{ gap:5px; padding:2px 0 6px; }
+  .m-chip{ min-height:36px; min-width:50px; padding:2px 8px; border-radius:8px; }
+  .m-chip span{ font-size:.78rem; } .m-chip small{ font-size:.6rem; }
+  .m-group{ padding:5px 8px 7px 11px; margin-bottom:7px; border-left-width:5px; }
+  .m-group-head{ margin-bottom:4px; font-size:.84rem; }
+  .m-add{ min-height:32px; font-size:.78rem; }
+  /* indicadores */
+  .ind-block{ padding:8px 12px 20px; }
+  .ind-head{ gap:6px; } .ind-head h2{ flex:1 0 100%; }
+  .ind-acc{ width:auto; flex:1; margin:0; gap:6px; } .ind-acc .btn-sm{ flex:1; }
+  .rs-box{ padding:8px 12px; margin:0 0 8px; } .rs-box.cerrado{ padding:6px 10px; }
+  .rs-caret{ width:22px; height:22px; } .rs-head h3{ font-size:.92rem; }
+  .ind-cards{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px; margin-bottom:8px; }
+  .ind-card{ padding:7px 10px; gap:1px; } .ind-card .ind-k{ font-size:.6rem; } .ind-card b{ font-size:1.4rem; } .ind-card b em{ font-size:.85rem; } .ind-card small{ font-size:.66rem; line-height:1.25; }
+  .ind-box{ padding:10px 12px; } .ind-box h3{ font-size:.88rem; margin:0 0 6px; } .ind-grid2{ gap:8px; margin-bottom:8px; }
+  /* listado de pórticos */
+  .porticos-head{ padding:6px 10px; } .porticos-filtros{ padding:6px 8px; gap:5px; }
+  .porticos-filtros input, .porticos-filtros select{ min-height:34px; }
+}
 </style>
 <style id="partida-trazado">
 /* partida "Trazado": 8º color fijo (celeste) */
