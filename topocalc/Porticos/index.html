@@ -889,13 +889,14 @@ body[data-mtab="indicadores"] .ind-block{ display:block; }
   .ficha-portico.abierta{ transform:none; }
   .ficha-portico .ficha-x{ transform:rotate(90deg); }
   /* ficha compacta (celular) */
-  .ficha-portico .ficha-head{ flex-wrap:wrap; gap:6px 6px; padding:8px 12px 8px; }
-  .ficha-portico .ficha-tit{ flex:1 1 calc(100% - 46px); min-width:0; order:-2; }
-  .ficha-portico .ficha-tit strong{ font-size:.95rem; line-height:1.2; }
-  .ficha-portico .ficha-tit span{ font-size:.72rem; }
-  .ficha-portico .ficha-x{ order:-1; width:32px; height:32px; margin-left:auto; }
-  .ficha-portico .ficha-head > .prio{ margin-right:auto; font-size:.66rem; padding:2px 8px; }
-  .ficha-portico .ficha-comp{ margin-right:0; }
+  .ficha-portico .ft-pre{ display:none; }
+  .ficha-portico .ficha-head{ flex-wrap:nowrap; gap:5px; padding:6px 10px; min-height:0; }
+  .ficha-portico .ficha-tit{ flex:1 1 auto; min-width:0; }
+  .ficha-portico .ficha-tit strong{ font-size:.95rem; line-height:1.15; }
+  .ficha-portico .ficha-tit span{ font-size:.68rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
+  .ficha-portico .ficha-head > .prio{ flex:none; font-size:.64rem; padding:2px 8px; }
+  .ficha-portico .ficha-head button{ flex:none; width:30px; height:30px; margin:0; }
+  .ficha-portico .ficha-head [data-3d]{ width:auto !important; padding:0 8px !important; }
   .ficha-portico .f-sec{ padding:7px 12px 9px; }
   .ficha-portico .f-sec h4{ margin:0 0 5px; font-size:.62rem; }
   .ficha-portico .f-sec:has(> .f-estado){ display:flex; align-items:center; gap:10px; padding:7px 12px; }
@@ -4069,8 +4070,8 @@ window.PORTICOS_LISTA = (function(){
     if(!p){ box.hidden = true; fichaVer(false, true); return; }
     var f = FICHAS[p.nombre], st = ultimoData ? estadoDe(String(selPortico), ultimoData) : null;
     var estado = st ? chip(st.name) + ' <span class="f-sub">' + subEstado(st) + '</span>' : '<span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar</span>';
-    var head = '<div class="ficha-head"><div class="ficha-tit"><strong>Ficha t\u00e9cnica \u00b7 ' + esc(p.nombre) + '</strong><span>' + esc(p.comuna) + (f && f.provincia ? ' \u00b7 ' + esc(f.provincia) : '') + '</span></div>'
-      + (f && f.prioridad ? '<span class="prio prio-' + sinTildes(f.prioridad) + '">Prioridad ' + esc(f.prioridad) + '</span>' : '')
+    var head = '<div class="ficha-head"><div class="ficha-tit"><strong><b class="ft-pre">Ficha t\u00e9cnica \u00b7 </b>' + esc(p.nombre) + '</strong><span>' + esc(p.comuna) + (f && f.provincia ? ' \u00b7 ' + esc(f.provincia) : '') + '</span></div>'
+      + (f && f.prioridad ? '<span class="prio prio-' + sinTildes(f.prioridad) + '"><b class="ft-pre">Prioridad </b>' + esc(f.prioridad) + '</span>' : '')
       + '<button type="button" class="ficha-comp" aria-label="Compartir este p\u00f3rtico" title="Compartir este p\u00f3rtico"><span aria-hidden="true">\ud83d\udd17</span></button><button type="button" class="ficha-comp" data-3d="' + esc(String(selPortico)) + '" aria-label="Ver en 3D" title="Ver en 3D" style="width:auto;border-radius:16px;padding:0 10px;font-size:.78rem"><span aria-hidden="true">\ud83e\uddca 3D</span></button><button type="button" class="ficha-x" aria-label="Ocultar ficha" title="Ocultar ficha (se contrae a la derecha)">\u203a\u203a</button></div>';
     var cuerpo;
     if(!f){
