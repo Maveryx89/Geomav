@@ -1381,15 +1381,14 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 @media (max-width:860px){
   .ficha-portico .f-desk{ display:none !important; }
   .ficha-portico .f-mov{ display:block; }
-  .idm-r1{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
-  .idm-prov{ text-align:right; }
-  .idm-r2{ display:flex; flex-wrap:wrap; gap:4px 16px; margin-top:4px; }
-  .idm-c1{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:4px 12px; margin-top:6px; }
-  .idm-c1 .cd:only-child{ grid-column:1 / -1; }
-  .idm-c2{ margin-top:4px; }
-  .cd{ min-width:0; } .cd dt{ font-size:.6rem; line-height:1.15; color:var(--ink-soft); font-weight:600; }
-  .cd dd{ margin:0; font-size:.78rem; line-height:1.25; color:var(--ink); font-weight:600; display:flex; align-items:center; justify-content:flex-start; gap:6px; overflow-wrap:anywhere; }
-  .cd-ic{ flex:none; text-decoration:none; font-size:.95rem; line-height:1; padding:2px 3px; }
+  .ficha-portico .f-sec{ position:relative; }
+  .f-prov{ position:absolute; top:7px; right:12px; font-size:.78rem; font-weight:600; color:var(--ink); }
+  .idm-g{ display:flex; align-items:center; gap:12px; }
+  .idm-l{ flex:none; display:flex; flex-direction:column; gap:4px; }
+  .idm-r{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .cd{ font-size:.72rem; line-height:1.3; color:var(--ink); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cd b{ font-size:.6rem; color:var(--ink-soft); font-weight:700; letter-spacing:.03em; margin-right:2px; }
+  .cd-ic{ flex:none; margin-left:auto; text-decoration:none; font-size:1.3rem; line-height:1; padding:4px; }
 }
 </style>
 <style id="partida-trazado">
@@ -4090,19 +4089,19 @@ window.PORTICOS_LISTA = (function(){
     return { huso: huso, hem: lat < 0 ? "S" : "N", e: Math.round(x), n: Math.round(y) };
   }
   function nUtm(v){ return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
-  /* bloque de identificación para celular: Kmz + provincia, comuna debajo y coordenadas (LIC, PROP y UTM) en 2 filas */
+  /* bloque de identificación para celular: Kmz y comuna a la izquierda, coordenadas (LIC, PROP y UTM) a la derecha con un solo pin; la provincia va en la fila del título */
   function idMovil(p, f){
-    var pin = function(d){ return d ? '<a class="cd-ic" href="https://www.google.com/maps/search/?api=1&query=' + d[0].toFixed(6) + ',' + d[1].toFixed(6) + '" target="_blank" rel="noopener" aria-label="Abrir en Google Maps" title="Abrir en Google Maps">\ud83d\udccd</a>' : ''; };
     var dLic = dmsDec(f.coordLic), dProp = dmsDec(f.coordProp), dP = tieneCoords(p) ? [p.lat, p.lng] : null, dU = dProp || dLic || dP;
-    var cd = function(et, txt, d){ return '<div class="cd"><dt>' + et + '</dt><dd><span>' + txt + '</span>' + pin(d) + '</dd></div>'; };
-    var fila1 = [], fila2 = "";
-    if(f.coordLic) fila1.push(cd('Original (LIC)', esc(f.coordLic), dLic));
-    if(f.coordProp) fila1.push(cd('Propuesta (PROP)', esc(f.coordProp), dProp));
-    if(!f.coordLic && !f.coordProp && dP) fila1.push(cd('Coordenadas', dP[0].toFixed(6) + ', ' + dP[1].toFixed(6), dP));
-    if(dU){ var u = aUtm(dU[0], dU[1]); fila2 = cd('UTM ' + u.huso + u.hem + (dU === dProp ? ' (propuesta)' : ''), 'E ' + nUtm(u.e) + ' \u00b7 N ' + nUtm(u.n), dU); }
-    return '<div class="f-mov"><div class="idm-r1">' + par('N\u00b0 Kmz', p.nombre) + (f.provincia ? '<div class="f-par idm-prov"><dt>Provincia</dt><dd>' + esc(f.provincia) + '</dd></div>' : '') + '</div>'
-      + '<div class="idm-r2">' + par('Comuna', p.comuna) + (f.zona ? par('Zona', f.zona) : '') + (f.dmProp ? par('DM propuesto', f.dmProp, 'm') : '') + (f.distCoord ? par('Dist. entre coord.', f.distCoord, 'm') : '') + '</div>'
-      + '<div class="idm-c1">' + fila1.join("") + '</div>' + (fila2 ? '<div class="idm-c2">' + fila2 + '</div>' : '') + '</div>';
+    var fila = function(et, txt){ return '<div class="cd"><b>' + et + '</b> <span>' + txt + '</span></div>'; };
+    var cs = "";
+    if(f.coordLic) cs += fila('LIC', esc(f.coordLic));
+    if(f.coordProp) cs += fila('PROP', esc(f.coordProp));
+    if(!f.coordLic && !f.coordProp && dP) cs += fila('GEO', dP[0].toFixed(6) + ', ' + dP[1].toFixed(6));
+    if(dU){ var u = aUtm(dU[0], dU[1]); cs += fila('UTM ' + u.huso + u.hem, 'E ' + nUtm(u.e) + ' N ' + nUtm(u.n)); }
+    var pin = dU ? '<a class="cd-ic" href="https://www.google.com/maps/search/?api=1&query=' + dU[0].toFixed(6) + ',' + dU[1].toFixed(6) + '" target="_blank" rel="noopener" aria-label="Abrir ubicaci\u00f3n en Google Maps" title="Abrir en Google Maps">\ud83d\udccd</a>' : '';
+    return '<div class="f-mov">' + (f.provincia ? '<span class="f-prov">' + esc(f.provincia) + '</span>' : '')
+      + '<div class="idm-g"><div class="idm-l">' + par('N\u00b0 Kmz', p.nombre) + par('Comuna', p.comuna) + (f.zona ? par('Zona', f.zona) : '') + (f.dmProp ? par('DM propuesto', f.dmProp, 'm') : '') + (f.distCoord ? par('Dist. entre coord.', f.distCoord, 'm') : '') + '</div>'
+      + '<div class="idm-r">' + cs + '</div>' + pin + '</div></div>';
   }
   function vineta(t){
     t = String(t || "").trim(); if(!t) return '<span class="f-nd">\u2014</span>';
