@@ -1376,6 +1376,21 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
   .ficha-portico .f-grid:not(.f-grid-1){ display:flex; flex-wrap:wrap; gap:4px 16px; }
   .ficha-portico .f-grid:not(.f-grid-1) > .f-par{ flex:0 1 auto; max-width:100%; }
 }
+
+.f-mov{ display:none; }
+@media (max-width:860px){
+  .ficha-portico .f-desk{ display:none !important; }
+  .ficha-portico .f-mov{ display:block; }
+  .idm-r1{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .idm-prov{ text-align:right; }
+  .idm-r2{ display:flex; flex-wrap:wrap; gap:4px 16px; margin-top:4px; }
+  .idm-c1{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:4px 12px; margin-top:6px; }
+  .idm-c1 .cd:only-child{ grid-column:1 / -1; }
+  .idm-c2{ margin-top:4px; }
+  .cd{ min-width:0; } .cd dt{ font-size:.6rem; line-height:1.15; color:var(--ink-soft); font-weight:600; }
+  .cd dd{ margin:0; font-size:.78rem; line-height:1.25; color:var(--ink); font-weight:600; display:flex; align-items:center; justify-content:flex-start; gap:6px; overflow-wrap:anywhere; }
+  .cd-ic{ flex:none; text-decoration:none; font-size:.95rem; line-height:1; padding:2px 3px; }
+}
 </style>
 <style id="partida-trazado">
 /* partida "Trazado": 8º color fijo (celeste) */
@@ -4063,6 +4078,32 @@ window.PORTICOS_LISTA = (function(){
     var f = function(g, mi, se, h){ var v = +g + (+mi) / 60 + parseFloat(String(se).replace(",", ".")) / 3600; return /[SW]/i.test(h) ? -v : v; };
     return [f(m[1], m[2], m[3], m[4]), f(m[5], m[6], m[7], m[8])];
   }
+  /* WGS84 -> UTM (huso según la longitud, hemisferio sur) */
+  function aUtm(lat, lng){
+    var a = 6378137, f = 1 / 298.257223563, k0 = 0.9996, e2 = f * (2 - f), ep2 = e2 / (1 - e2), r = Math.PI / 180;
+    var huso = Math.floor((lng + 180) / 6) + 1, l0 = ((huso - 1) * 6 - 180 + 3) * r, ph = lat * r, dl = lng * r - l0;
+    var N = a / Math.sqrt(1 - e2 * Math.sin(ph) * Math.sin(ph)), T = Math.tan(ph) * Math.tan(ph), C = ep2 * Math.cos(ph) * Math.cos(ph), A = Math.cos(ph) * dl;
+    var M = a * ((1 - e2 / 4 - 3 * e2 * e2 / 64 - 5 * e2 * e2 * e2 / 256) * ph - (3 * e2 / 8 + 3 * e2 * e2 / 32 + 45 * e2 * e2 * e2 / 1024) * Math.sin(2 * ph) + (15 * e2 * e2 / 256 + 45 * e2 * e2 * e2 / 1024) * Math.sin(4 * ph) - (35 * e2 * e2 * e2 / 3072) * Math.sin(6 * ph));
+    var x = k0 * N * (A + (1 - T + C) * Math.pow(A, 3) / 6 + (5 - 18 * T + T * T + 72 * C - 58 * ep2) * Math.pow(A, 5) / 120) + 500000;
+    var y = k0 * (M + N * Math.tan(ph) * (A * A / 2 + (5 - T + 9 * C + 4 * C * C) * Math.pow(A, 4) / 24 + (61 - 58 * T + T * T + 600 * C - 330 * ep2) * Math.pow(A, 6) / 720));
+    if(lat < 0) y += 10000000;
+    return { huso: huso, hem: lat < 0 ? "S" : "N", e: Math.round(x), n: Math.round(y) };
+  }
+  function nUtm(v){ return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+  /* bloque de identificación para celular: Kmz + provincia, comuna debajo y coordenadas (LIC, PROP y UTM) en 2 filas */
+  function idMovil(p, f){
+    var pin = function(d){ return d ? '<a class="cd-ic" href="https://www.google.com/maps/search/?api=1&query=' + d[0].toFixed(6) + ',' + d[1].toFixed(6) + '" target="_blank" rel="noopener" aria-label="Abrir en Google Maps" title="Abrir en Google Maps">\ud83d\udccd</a>' : ''; };
+    var dLic = dmsDec(f.coordLic), dProp = dmsDec(f.coordProp), dP = tieneCoords(p) ? [p.lat, p.lng] : null, dU = dProp || dLic || dP;
+    var cd = function(et, txt, d){ return '<div class="cd"><dt>' + et + '</dt><dd><span>' + txt + '</span>' + pin(d) + '</dd></div>'; };
+    var fila1 = [], fila2 = "";
+    if(f.coordLic) fila1.push(cd('Original (LIC)', esc(f.coordLic), dLic));
+    if(f.coordProp) fila1.push(cd('Propuesta (PROP)', esc(f.coordProp), dProp));
+    if(!f.coordLic && !f.coordProp && dP) fila1.push(cd('Coordenadas', dP[0].toFixed(6) + ', ' + dP[1].toFixed(6), dP));
+    if(dU){ var u = aUtm(dU[0], dU[1]); fila2 = cd('UTM ' + u.huso + u.hem + (dU === dProp ? ' (propuesta)' : ''), 'E ' + nUtm(u.e) + ' \u00b7 N ' + nUtm(u.n), dU); }
+    return '<div class="f-mov"><div class="idm-r1">' + par('N\u00b0 Kmz', p.nombre) + (f.provincia ? '<div class="f-par idm-prov"><dt>Provincia</dt><dd>' + esc(f.provincia) + '</dd></div>' : '') + '</div>'
+      + '<div class="idm-r2">' + par('Comuna', p.comuna) + (f.zona ? par('Zona', f.zona) : '') + (f.dmProp ? par('DM propuesto', f.dmProp, 'm') : '') + (f.distCoord ? par('Dist. entre coord.', f.distCoord, 'm') : '') + '</div>'
+      + '<div class="idm-c1">' + fila1.join("") + '</div>' + (fila2 ? '<div class="idm-c2">' + fila2 + '</div>' : '') + '</div>';
+  }
   function vineta(t){
     t = String(t || "").trim(); if(!t) return '<span class="f-nd">\u2014</span>';
     var partes = t.split("*").map(function(s){ return s.trim().replace(/^[,.;]\s*/, ""); }).filter(Boolean);
@@ -4241,11 +4282,11 @@ window.PORTICOS_LISTA = (function(){
     } else {
       cuerpo = '<div class="f-sec"><h4>Estado de avance</h4><div class="f-estado">' + estado + '</div></div>'
         + secPlanos(p)
-        + '<div class="f-sec"><h4>Identificaci\u00f3n y ubicaci\u00f3n</h4><div class="f-grid">'
+        + '<div class="f-sec"><h4>Identificaci\u00f3n y ubicaci\u00f3n</h4>' + idMovil(p, f) + '<div class="f-grid f-desk">'
           + par('N\u00b0 Kmz', p.nombre) + par('Comuna', p.comuna) + (f.provincia ? par('Provincia', f.provincia) : '') + (f.zona ? par('Zona', f.zona) : '')
           + (f.dmProp ? par('DM propuesto', f.dmProp, 'm') : '') + (f.distCoord ? par('Dist. entre coordenadas', f.distCoord, 'm') : '')
           + (!f.coordLic && tieneCoords(p) ? par('Coordenadas', p.lat.toFixed(6) + ', ' + p.lng.toFixed(6)).replace('</dd>', ' <a class="f-map" href="https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng + '" target="_blank" rel="noopener">Ver mapa</a></dd>') : '') + '</div>'
-          + (f.coordLic || f.coordProp ? '<table class="f-comp"><thead><tr><th>Coordenadas</th><th>Original (LIC)</th><th>Propuesta (PROP)</th></tr></thead><tbody>'
+          + (f.coordLic || f.coordProp ? '<table class="f-comp f-desk"><thead><tr><th>Coordenadas</th><th>Original (LIC)</th><th>Propuesta (PROP)</th></tr></thead><tbody>'
           + '<tr><td></td><td>' + vf(f.coordLic) + linkMapa(f.coordLic) + '</td><td>' + vf(f.coordProp) + linkMapa(f.coordProp) + '</td></tr></tbody></table>' : '') + '</div>'
         + secGeneral(f) + secEmplaz(f)
         + '<div class="f-sec"><h4>Prioridad y diagn\u00f3stico</h4><div class="f-grid f-grid-1">'
