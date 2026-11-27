@@ -888,10 +888,30 @@ body[data-mtab="indicadores"] .ind-block{ display:block; }
   .ficha-portico{ top:50%; left:0; width:auto; border-left:0; border-top:1px solid var(--line); box-shadow:0 -6px 18px rgba(10,34,64,.22); transform:translateY(104%); }
   .ficha-portico.abierta{ transform:none; }
   .ficha-portico .ficha-x{ transform:rotate(90deg); }
-  .ficha-portico .ficha-head{ flex-wrap:wrap; gap:8px; padding:10px 12px; }
-  .ficha-portico .ficha-tit{ flex:1 0 100%; order:-1; }
-  .ficha-portico .ficha-head > .prio{ margin-right:auto; }
-  .ficha-portico .ficha-x{ margin-left:auto; }
+  /* ficha compacta (celular) */
+  .ficha-portico .ft-pre{ display:none; }
+  .ficha-portico .ficha-head{ flex-wrap:nowrap; gap:5px; padding:6px 10px; min-height:0; }
+  .ficha-portico .ficha-tit{ flex:1 1 auto; min-width:0; }
+  .ficha-portico .ficha-tit strong{ font-size:.95rem; line-height:1.15; }
+  .ficha-portico .ficha-tit span{ font-size:.68rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
+  .ficha-portico .ficha-head > .prio{ flex:none; font-size:.64rem; padding:2px 8px; }
+  .ficha-portico .ficha-head button{ flex:none; width:30px; height:30px; margin:0; }
+  .ficha-portico .ficha-head [data-3d]{ width:auto !important; padding:0 8px !important; }
+  .ficha-portico .f-sec{ padding:7px 12px 9px; }
+  .ficha-portico .f-sec h4{ margin:0 0 5px; font-size:.62rem; }
+  .ficha-portico .f-sec:has(> .f-estado){ display:flex; align-items:center; gap:10px; padding:7px 12px; }
+  .ficha-portico .f-sec:has(> .f-estado) h4{ margin:0; flex:none; }
+  .ficha-portico .f-grid{ grid-template-columns:repeat(3, minmax(0,1fr)); gap:5px 10px; }
+  .ficha-portico .f-grid-1{ grid-template-columns:minmax(0,1fr); gap:4px; }
+  .ficha-portico .f-grid .f-par:has(.f-map){ grid-column:span 2; }
+  .ficha-portico .f-par dt{ font-size:.6rem; line-height:1.15; }
+  .ficha-portico .f-par dd{ font-size:.78rem; line-height:1.25; }
+  .ficha-portico .f-planos{ gap:6px; }
+  .ficha-portico .f-plano{ min-height:32px; padding:3px 10px; font-size:.76rem; }
+  .ficha-portico .f-plano-gen{ margin:5px 0 0; font-size:.68rem; }
+  .ficha-portico .f-comp{ margin-top:4px; font-size:.74rem; }
+  .ficha-portico .f-comp td{ padding:4px 5px; } .ficha-portico .f-comp th{ padding:3px 5px; font-size:.6rem; }
+  .ficha-portico .f-ley{ margin:6px 0 0; font-size:.64rem; }
   .mapa-stage.con-ficha{ height:84vh; min-height:480px; }
   .mapa-stage.con-ficha .mapa-canvas{ height:100% !important; }
 }
@@ -4050,8 +4070,8 @@ window.PORTICOS_LISTA = (function(){
     if(!p){ box.hidden = true; fichaVer(false, true); return; }
     var f = FICHAS[p.nombre], st = ultimoData ? estadoDe(String(selPortico), ultimoData) : null;
     var estado = st ? chip(st.name) + ' <span class="f-sub">' + subEstado(st) + '</span>' : '<span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar</span>';
-    var head = '<div class="ficha-head"><div class="ficha-tit"><strong>Ficha t\u00e9cnica \u00b7 ' + esc(p.nombre) + '</strong><span>' + esc(p.comuna) + (f && f.provincia ? ' \u00b7 ' + esc(f.provincia) : '') + '</span></div>'
-      + (f && f.prioridad ? '<span class="prio prio-' + sinTildes(f.prioridad) + '">Prioridad ' + esc(f.prioridad) + '</span>' : '')
+    var head = '<div class="ficha-head"><div class="ficha-tit"><strong><b class="ft-pre">Ficha t\u00e9cnica \u00b7 </b>' + esc(p.nombre) + '</strong><span>' + esc(p.comuna) + (f && f.provincia ? ' \u00b7 ' + esc(f.provincia) : '') + '</span></div>'
+      + (f && f.prioridad ? '<span class="prio prio-' + sinTildes(f.prioridad) + '"><b class="ft-pre">Prioridad </b>' + esc(f.prioridad) + '</span>' : '')
       + '<button type="button" class="ficha-comp" aria-label="Compartir este p\u00f3rtico" title="Compartir este p\u00f3rtico"><span aria-hidden="true">\ud83d\udd17</span></button><button type="button" class="ficha-comp" data-3d="' + esc(String(selPortico)) + '" aria-label="Ver en 3D" title="Ver en 3D" style="width:auto;border-radius:16px;padding:0 10px;font-size:.78rem"><span aria-hidden="true">\ud83e\uddca 3D</span></button><button type="button" class="ficha-x" aria-label="Ocultar ficha" title="Ocultar ficha (se contrae a la derecha)">\u203a\u203a</button></div>';
     var cuerpo;
     if(!f){
