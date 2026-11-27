@@ -1362,6 +1362,34 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
   body.ficha-lista .fila-acc{ display:none !important; }
   body.ficha-lista .porticos-inner > .ficha-portico{ position:static; transform:none; visibility:visible; width:auto; flex:1 1 auto; min-height:0; box-shadow:0 -6px 14px -8px rgba(10,34,64,.3); border-left:0; border-top:2px solid var(--blueprint); }
 }
+
+.f-plano-g{ display:none; }
+@media (max-width:860px){
+  .ficha-portico .f-sec:has(> .f-planos){ display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; }
+  .ficha-portico .f-sec:has(> .f-planos) h4{ margin:0; flex:none; }
+  .ficha-portico .f-planos{ gap:5px; flex:1 1 auto; }
+  .ficha-portico .fp-t{ display:none; }
+  .ficha-portico .f-plano{ min-height:26px; padding:2px 10px; font-size:.74rem; gap:0; }
+  .ficha-portico .f-plano small{ font-size:inherit; color:inherit; font-weight:700; }
+  .ficha-portico .f-plano-g{ display:inline-flex; }
+  .ficha-portico .f-plano-gen{ display:none; }
+  .ficha-portico .f-grid:not(.f-grid-1){ display:flex; flex-wrap:wrap; gap:4px 16px; }
+  .ficha-portico .f-grid:not(.f-grid-1) > .f-par{ flex:0 1 auto; max-width:100%; }
+}
+
+.f-mov{ display:none; }
+@media (max-width:860px){
+  .ficha-portico .f-desk{ display:none !important; }
+  .ficha-portico .f-mov{ display:block; }
+  .ficha-portico .f-sec{ position:relative; }
+  .f-prov{ position:absolute; top:7px; right:12px; font-size:.78rem; font-weight:600; color:var(--ink); }
+  .idm-g{ display:flex; align-items:center; gap:12px; }
+  .idm-l{ flex:none; display:flex; flex-direction:column; gap:4px; }
+  .idm-r{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .cd{ font-size:.72rem; line-height:1.3; color:var(--ink); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cd b{ font-size:.6rem; color:var(--ink-soft); font-weight:700; letter-spacing:.03em; margin-right:2px; }
+  .cd-ic{ flex:none; margin-left:auto; text-decoration:none; font-size:1.3rem; line-height:1; padding:4px; }
+}
 </style>
 <style id="partida-trazado">
 /* partida "Trazado": 8º color fijo (celeste) */
@@ -4049,6 +4077,32 @@ window.PORTICOS_LISTA = (function(){
     var f = function(g, mi, se, h){ var v = +g + (+mi) / 60 + parseFloat(String(se).replace(",", ".")) / 3600; return /[SW]/i.test(h) ? -v : v; };
     return [f(m[1], m[2], m[3], m[4]), f(m[5], m[6], m[7], m[8])];
   }
+  /* WGS84 -> UTM (huso según la longitud, hemisferio sur) */
+  function aUtm(lat, lng){
+    var a = 6378137, f = 1 / 298.257223563, k0 = 0.9996, e2 = f * (2 - f), ep2 = e2 / (1 - e2), r = Math.PI / 180;
+    var huso = Math.floor((lng + 180) / 6) + 1, l0 = ((huso - 1) * 6 - 180 + 3) * r, ph = lat * r, dl = lng * r - l0;
+    var N = a / Math.sqrt(1 - e2 * Math.sin(ph) * Math.sin(ph)), T = Math.tan(ph) * Math.tan(ph), C = ep2 * Math.cos(ph) * Math.cos(ph), A = Math.cos(ph) * dl;
+    var M = a * ((1 - e2 / 4 - 3 * e2 * e2 / 64 - 5 * e2 * e2 * e2 / 256) * ph - (3 * e2 / 8 + 3 * e2 * e2 / 32 + 45 * e2 * e2 * e2 / 1024) * Math.sin(2 * ph) + (15 * e2 * e2 / 256 + 45 * e2 * e2 * e2 / 1024) * Math.sin(4 * ph) - (35 * e2 * e2 * e2 / 3072) * Math.sin(6 * ph));
+    var x = k0 * N * (A + (1 - T + C) * Math.pow(A, 3) / 6 + (5 - 18 * T + T * T + 72 * C - 58 * ep2) * Math.pow(A, 5) / 120) + 500000;
+    var y = k0 * (M + N * Math.tan(ph) * (A * A / 2 + (5 - T + 9 * C + 4 * C * C) * Math.pow(A, 4) / 24 + (61 - 58 * T + T * T + 600 * C - 330 * ep2) * Math.pow(A, 6) / 720));
+    if(lat < 0) y += 10000000;
+    return { huso: huso, hem: lat < 0 ? "S" : "N", e: Math.round(x), n: Math.round(y) };
+  }
+  function nUtm(v){ return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+  /* bloque de identificación para celular: Kmz y comuna a la izquierda, coordenadas (LIC, PROP y UTM) a la derecha con un solo pin; la provincia va en la fila del título */
+  function idMovil(p, f){
+    var dLic = dmsDec(f.coordLic), dProp = dmsDec(f.coordProp), dP = tieneCoords(p) ? [p.lat, p.lng] : null, dU = dProp || dLic || dP;
+    var fila = function(et, txt){ return '<div class="cd"><b>' + et + '</b> <span>' + txt + '</span></div>'; };
+    var cs = "";
+    if(f.coordLic) cs += fila('LIC', esc(f.coordLic));
+    if(f.coordProp) cs += fila('PROP', esc(f.coordProp));
+    if(!f.coordLic && !f.coordProp && dP) cs += fila('GEO', dP[0].toFixed(6) + ', ' + dP[1].toFixed(6));
+    if(dU){ var u = aUtm(dU[0], dU[1]); cs += fila('UTM ' + u.huso + u.hem, 'E ' + nUtm(u.e) + ' N ' + nUtm(u.n)); }
+    var pin = dU ? '<a class="cd-ic" href="https://www.google.com/maps/search/?api=1&query=' + dU[0].toFixed(6) + ',' + dU[1].toFixed(6) + '" target="_blank" rel="noopener" aria-label="Abrir ubicaci\u00f3n en Google Maps" title="Abrir en Google Maps">\ud83d\udccd</a>' : '';
+    return '<div class="f-mov">' + (f.provincia ? '<span class="f-prov">' + esc(f.provincia) + '</span>' : '')
+      + '<div class="idm-g"><div class="idm-l">' + par('N\u00b0 Kmz', p.nombre) + par('Comuna', p.comuna) + (f.zona ? par('Zona', f.zona) : '') + (f.dmProp ? par('DM propuesto', f.dmProp, 'm') : '') + (f.distCoord ? par('Dist. entre coord.', f.distCoord, 'm') : '') + '</div>'
+      + '<div class="idm-r">' + cs + '</div>' + pin + '</div></div>';
+  }
   function vineta(t){
     t = String(t || "").trim(); if(!t) return '<span class="f-nd">\u2014</span>';
     var partes = t.split("*").map(function(s){ return s.trim().replace(/^[,.;]\s*/, ""); }).filter(Boolean);
@@ -4097,13 +4151,14 @@ window.PORTICOS_LISTA = (function(){
   function enlacesPlano(arr, tipo, titulo){
     return (arr || []).slice().sort(function(a, b){ return String(a[0]).localeCompare(String(b[0])); }).map(function(x){
       var url = tipo === "pdf" ? "https://drive.google.com/file/d/" + x[1] + "/view" : "https://drive.google.com/uc?export=download&id=" + x[1];
-      return '<a class="f-plano" href="' + url + '"' + (tipo === "pdf" ? ' data-pdf="' + x[1] + '" data-tit="' + esc(titulo + (x[0] ? ' \u00b7 ' + x[0] : '')) + '"' : '') + ' target="_blank" rel="noopener">' + (tipo === "pdf" ? '\ud83d\udcc4 Plano PDF' : '\ud83d\udcd0 Plano CAD (.dwg)') + (x[0] ? ' <small>' + esc(x[0]) + '</small>' : '') + '</a>';
+      return '<a class="f-plano" href="' + url + '"' + (tipo === "pdf" ? ' data-pdf="' + x[1] + '" data-tit="' + esc(titulo + (x[0] ? ' \u00b7 ' + x[0] : '')) + '"' : '') + ' target="_blank" rel="noopener">' + '<span class="fp-t">' + (tipo === "pdf" ? '\ud83d\udcc4 Plano PDF' : '\ud83d\udcd0 Plano CAD (.dwg)') + '</span>' + (x[0] ? ' <small>' + esc(x[0]) + '</small>' : '') + '</a>';
     }).join("");
   }
   function secPlanos(p){
     var d = PLANOS[clavePlano(p.nombre)]; if(!d) return "";
     var g = PLANOS.region;
-    return '<div class="f-sec"><h4>Planos</h4><div class="f-planos">' + enlacesPlano(d.p, "pdf", "Plano " + p.nombre) + (MOSTRAR_CAD ? enlacesPlano(d.c, "cad", "") : "") + '</div>'
+    return '<div class="f-sec"><h4>Planos</h4><div class="f-planos">' + enlacesPlano(d.p, "pdf", "Plano " + p.nombre) + (MOSTRAR_CAD ? enlacesPlano(d.c, "cad", "") : "")
+      + (g ? '<a class="f-plano f-plano-g" href="https://drive.google.com/file/d/' + g.p[0][1] + '/view" data-pdf="' + g.p[0][1] + '" data-tit="Plano general de la regi\u00f3n" target="_blank" rel="noopener" title="Plano general de la regi\u00f3n">General</a>' : '') + '</div>'
       + (g ? '<p class="f-plano-gen">Plano general de la regi\u00f3n: <a href="https://drive.google.com/file/d/' + g.p[0][1] + '/view" data-pdf="' + g.p[0][1] + '" data-tit="Plano general de la regi\u00f3n" target="_blank" rel="noopener">PDF</a>' + (MOSTRAR_CAD ? ' \u00b7 <a href="https://drive.google.com/uc?export=download&id=' + g.c[0][1] + '" target="_blank" rel="noopener">CAD</a>' : '') + '</p>' : '') + '</div>';
   }
   /* visor de PDF dentro de la página (vista previa de Drive) */
@@ -4226,11 +4281,11 @@ window.PORTICOS_LISTA = (function(){
     } else {
       cuerpo = '<div class="f-sec"><h4>Estado de avance</h4><div class="f-estado">' + estado + '</div></div>'
         + secPlanos(p)
-        + '<div class="f-sec"><h4>Identificaci\u00f3n y ubicaci\u00f3n</h4><div class="f-grid">'
+        + '<div class="f-sec"><h4>Identificaci\u00f3n y ubicaci\u00f3n</h4>' + idMovil(p, f) + '<div class="f-grid f-desk">'
           + par('N\u00b0 Kmz', p.nombre) + par('Comuna', p.comuna) + (f.provincia ? par('Provincia', f.provincia) : '') + (f.zona ? par('Zona', f.zona) : '')
           + (f.dmProp ? par('DM propuesto', f.dmProp, 'm') : '') + (f.distCoord ? par('Dist. entre coordenadas', f.distCoord, 'm') : '')
           + (!f.coordLic && tieneCoords(p) ? par('Coordenadas', p.lat.toFixed(6) + ', ' + p.lng.toFixed(6)).replace('</dd>', ' <a class="f-map" href="https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng + '" target="_blank" rel="noopener">Ver mapa</a></dd>') : '') + '</div>'
-          + (f.coordLic || f.coordProp ? '<table class="f-comp"><thead><tr><th>Coordenadas</th><th>Original (LIC)</th><th>Propuesta (PROP)</th></tr></thead><tbody>'
+          + (f.coordLic || f.coordProp ? '<table class="f-comp f-desk"><thead><tr><th>Coordenadas</th><th>Original (LIC)</th><th>Propuesta (PROP)</th></tr></thead><tbody>'
           + '<tr><td></td><td>' + vf(f.coordLic) + linkMapa(f.coordLic) + '</td><td>' + vf(f.coordProp) + linkMapa(f.coordProp) + '</td></tr></tbody></table>' : '') + '</div>'
         + secGeneral(f) + secEmplaz(f)
         + '<div class="f-sec"><h4>Prioridad y diagn\u00f3stico</h4><div class="f-grid f-grid-1">'
