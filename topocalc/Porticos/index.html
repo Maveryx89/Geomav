@@ -877,9 +877,28 @@ body[data-mtab="indicadores"] .ind-block{ display:block; }
 @media (max-width:860px){ .msel > summary{ font-size:16px; min-height:40px; display:flex; align-items:center; } .msel-op{ min-height:40px; font-size:.9rem; } .msel-op input{ width:20px; height:20px; } }
 
 /* ---------- ficha técnica del pórtico ---------- */
-.ficha-portico{ margin-top:12px; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius-md); box-shadow:var(--shadow); overflow:hidden; }
+.mapa-stage{ position:relative; overflow:hidden; }
+.ficha-portico{ position:absolute; top:0; right:0; bottom:0; width:50%; z-index:1000; background:var(--paper-raised); border-left:1px solid var(--line); box-shadow:-6px 0 18px rgba(10,34,64,.22); overflow-y:auto; overscroll-behavior:contain; transform:translateX(104%); visibility:hidden; transition:transform .32s cubic-bezier(.4,0,.2,1), visibility 0s linear .32s; }
+.ficha-portico.abierta{ transform:none; visibility:visible; transition:transform .32s cubic-bezier(.4,0,.2,1), visibility 0s; }
+.ficha-portico .ficha-head{ position:sticky; top:0; z-index:2; }
+.pm-b.pm-ficha{ grid-column:1 / -1; background:var(--ink); color:#fff; border-color:var(--ink); }
+@media (max-width:860px){
+  .mapa-tools .mt-b .mt-t{ display:none; }
+  .mapa-tools .mt-b{ min-width:44px; min-height:44px; padding:6px 10px; justify-content:center; font-size:1.05rem; }
+  .ficha-portico{ top:50%; left:0; width:auto; border-left:0; border-top:1px solid var(--line); box-shadow:0 -6px 18px rgba(10,34,64,.22); transform:translateY(104%); }
+  .ficha-portico.abierta{ transform:none; }
+  .ficha-portico .ficha-x{ transform:rotate(90deg); }
+  .ficha-portico .ficha-head{ flex-wrap:wrap; gap:8px; padding:10px 12px; }
+  .ficha-portico .ficha-tit{ flex:1 0 100%; order:-1; }
+  .ficha-portico .ficha-head > .prio{ margin-right:auto; }
+  .ficha-portico .ficha-x{ margin-left:auto; }
+  .mapa-stage.con-ficha{ height:84vh; min-height:480px; }
+  .mapa-stage.con-ficha .mapa-canvas{ height:100% !important; }
+}
+@media (prefers-reduced-motion:reduce){ .ficha-portico, .ficha-portico.abierta{ transition:none; } }
 .ficha-portico[hidden]{ display:none !important; }
 body:not([data-mtab="porticos"]) #fichaPortico{ display:none !important; }
+.ficha-portico[hidden]{ display:block !important; visibility:hidden; }
 .ficha-head{ display:flex; align-items:center; gap:10px; padding:12px 14px; background:var(--ink); color:#fff; }
 :root[data-theme="dark"] .ficha-head{ background:#12304f; }
 .ficha-tit{ flex:1; min-width:0; } .ficha-tit strong{ display:block; font-family:var(--font-display); font-size:1rem; }
@@ -1190,7 +1209,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .pdf-ov .gal-top{ gap:12px; } .pdf-ov .gal-info{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 .pm-pop{ min-width:190px; } .pm-pop strong{ font-size:.95rem; color:var(--ink); } .pm-pop .pm-s{ color:var(--ink-soft); margin:2px 0 8px; line-height:1.35; }
-.pm-pop .pm-acc{ display:flex; flex-direction:row; gap:6px; } .pm-pop .pm-acc .pm-b{ flex:1; padding:5px 6px; font-size:.72rem; white-space:nowrap; }
+.pm-pop .pm-acc{ display:flex; flex-direction:row; flex-wrap:wrap; gap:6px; } .pm-pop .pm-acc .pm-ficha{ flex:1 0 100%; } .pm-pop .pm-acc .pm-b{ flex:1; padding:5px 6px; font-size:.72rem; white-space:nowrap; }
 .wx-fr{ display:flex; gap:3px; margin:6px 0 7px; } .wx-m{ flex:1; display:flex; flex-direction:column; align-items:center; gap:0; padding:2px 0; border-radius:6px; background:color-mix(in srgb,var(--ink) 5%,transparent); font-size:.6rem; line-height:1.2; } .wx-m b{ font-weight:700; } .wx-m i{ font-style:normal; } .wx-m.wx-ll{ background:color-mix(in srgb,#2F7FD1 18%,transparent); } .wx-m.wx-ll i{ color:#2F7FD1; font-weight:700; }
 .pm-pop .pm-b{ all:unset; box-sizing:border-box; cursor:pointer; text-align:center; padding:8px 10px; min-height:20px; border-radius:8px; font-size:.8rem; font-weight:700; border:1px solid var(--line-strong); background:var(--paper); color:var(--ink) !important; text-decoration:none; }
 .pm-pop .pm-b.pm-go{ background:var(--ink); border-color:var(--ink); color:#fff !important; }
@@ -1416,23 +1435,23 @@ footer.app-foot .foot-copy{ grid-column:1 / -1; justify-self:center; text-align:
         <div class="mapa-wrap" id="mapaWrap" hidden>
           <div class="mapa-info" id="mapaInfo">Región de O&#39;Higgins</div>
           <div class="mapa-tools" id="mapaTools">
-            <button type="button" class="mt-b" id="btnGps" aria-pressed="false">&#128205; Mi ubicaci&oacute;n</button>
-            <button type="button" class="mt-b" id="btnCentrar" hidden>&#127919; Centrar</button>
-            <button type="button" class="mt-b" id="btnMedir" aria-pressed="false">&#128207; Medir</button>
-            <button type="button" class="mt-b" data-capa="comunas" aria-pressed="true" title="L&iacute;mites comunales y provinciales">&#128506;&#65039; Comunas</button>
-            <button type="button" class="mt-b" data-capa="vial" aria-pressed="true" title="Red vial con el rol de cada ruta">&#128739;&#65039; Rutas</button>
-            <button type="button" class="mt-b" data-capa="ipt" aria-pressed="false" title="Planes reguladores: l&iacute;mite urbano y zonificaci&oacute;n (PRC / PRI)">&#128208; Plan regulador</button>
-            <button type="button" class="mt-b" id="btnMedirUndo" hidden>&#8617; Deshacer</button>
-            <button type="button" class="mt-b" id="btnMedirClr" hidden>Limpiar medida</button>
+            <button type="button" class="mt-b" id="btnGps" aria-pressed="false" aria-label="Mi ubicaci&oacute;n" title="Mi ubicaci&oacute;n">&#128205;<span class="mt-t"> Mi ubicaci&oacute;n</span></button>
+            <button type="button" class="mt-b" id="btnCentrar" hidden aria-label="Centrar" title="Centrar">&#127919;<span class="mt-t"> Centrar</span></button>
+            <button type="button" class="mt-b" id="btnMedir" aria-pressed="false" aria-label="Medir" title="Medir">&#128207;<span class="mt-t"> Medir</span></button>
+            <button type="button" class="mt-b" data-capa="comunas" aria-pressed="true" title="Comunas: l&iacute;mites comunales y provinciales" aria-label="Comunas">&#128506;&#65039;<span class="mt-t"> Comunas</span></button>
+            <button type="button" class="mt-b" data-capa="vial" aria-pressed="true" title="Rutas: red vial con el rol de cada ruta" aria-label="Rutas">&#128739;&#65039;<span class="mt-t"> Rutas</span></button>
+            <button type="button" class="mt-b" data-capa="ipt" aria-pressed="false" title="Plan regulador: l&iacute;mite urbano y zonificaci&oacute;n (PRC / PRI)" aria-label="Plan regulador">&#128208;<span class="mt-t"> Plan regulador</span></button>
+            <button type="button" class="mt-b" id="btnMedirUndo" hidden aria-label="Deshacer" title="Deshacer">&#8617;<span class="mt-t"> Deshacer</span></button>
+            <button type="button" class="mt-b" id="btnMedirClr" hidden aria-label="Limpiar medida" title="Limpiar medida">&#10005;<span class="mt-t"> Limpiar medida</span></button>
             <div class="mt-s" id="mapaEstado" role="status" aria-live="polite"></div>
           </div>
-          <div class="mapa-canvas" id="mapaPorticos"></div>
+          <div class="mapa-stage" id="mapaStage"><div class="mapa-canvas" id="mapaPorticos"></div>
+          <div class="ficha-portico" id="fichaPortico" hidden aria-live="polite"></div></div>
           <div class="mapa-leyenda" id="mapaLeyenda"></div>
           <div class="mapa-leyenda capas-ley" id="capasLeyenda"><span><i class="ly ly-prov"></i>L&iacute;mite provincial</span><span><i class="ly ly-com"></i>L&iacute;mite comunal</span><span><i class="ly ly-vec"></i>Comuna vecina (otra regi&oacute;n)</span><span><i class="ly ly-vial"></i>Ruta (rol MOP)</span></div>
           <div class="mapa-leyenda capas-ley ipt-ley" id="iptLeyenda" hidden><span><i class="ly ly-lu"></i>L&iacute;mite urbano</span><span><i class="sq" style="background:#E8A33D"></i>Urbana / mixta</span><span><i class="sq" style="background:#F3D36B"></i>Extensi&oacute;n urbana</span><span><i class="sq" style="background:#8E6CC0"></i>Industrial / productiva</span><span><i class="sq" style="background:#4CAF50"></i>&Aacute;rea verde</span><span><i class="sq" style="background:#E04B4B"></i>Riesgo</span><span><i class="sq" style="background:#6E7B8B"></i>Protecci&oacute;n / no edificable</span><span><i class="sq" style="background:#A5C88A"></i>Rural (PRI)</span></div>
           <div class="ruta-panel" id="rutaPanel" hidden></div>
         </div>
-        <div class="ficha-portico" id="fichaPortico" hidden aria-live="polite"></div>
       </div>
     </div>
     <div class="print-semanal-chunks"></div>
@@ -3896,6 +3915,7 @@ window.PORTICOS_LISTA = (function(){
       var mk = selPortico && marcadores[selPortico];
       if(mk && !desdeMapa){ mapa.setView(mk.getLatLng(), Math.max(mapa.getZoom(), 12), { animate:true }); }
     }
+    if(!selPortico) fichaAbierta = false; else if(!desdeMapa) fichaAbierta = true;
     mapaMovil(!desdeMapa);
     pintarFicha();
     actualizarURL();
@@ -3993,16 +4013,46 @@ window.PORTICOS_LISTA = (function(){
       document.addEventListener("keydown", tecla);
     });
   })();
+  /* ---------- panel lateral de la ficha: ocupa la mitad derecha del mapa y se contrae hacia la derecha ---------- */
+  var fichaAbierta = false;
+  function fichaVer(ver, sinMover){
+    var box = document.getElementById("fichaPortico"), st = document.getElementById("mapaStage"); if(!box || !st) return;
+    ver = !!ver && !!selPortico; fichaAbierta = ver;
+    box.classList.toggle("abierta", ver); box.setAttribute("aria-hidden", ver ? "false" : "true");
+    st.classList.toggle("con-ficha", ver);
+    if(!mapa) return;
+    setTimeout(function(){
+      mapa.invalidateSize();
+      var mk = selPortico && marcadores[selPortico];
+      var movil = window.matchMedia("(max-width:860px)").matches;
+      if(ver && mk && !sinMover && movil){
+        mk.closePopup();
+        setTimeout(function(){ st.scrollIntoView({ behavior:"smooth", block:"center" }); }, 120);
+        var z = Math.max(mapa.getZoom(), 13), s2 = mapa.getSize();
+        var c2 = mapa.project(mk.getLatLng(), z).add([0, s2.y * .25]);
+        mapa.setView(mapa.unproject(c2, z), z, { animate:true });
+      }
+      if(ver && mk && !sinMover && !movil){
+        var sz = mapa.getSize();
+        var c = mapa.project(mk.getLatLng(), mapa.getZoom()).add([sz.x * .25, 0]);
+        mapa.panTo(mapa.unproject(c, mapa.getZoom()), { animate:true });
+      }
+    }, 60);
+  }
+  window.abrirFicha = function(num){
+    if(String(selPortico) !== String(num)) seleccionarPortico(num, true);
+    fichaAbierta = true; pintarFicha(); fichaVer(true);
+  };
   function pintarFicha(){
     var box = document.getElementById("fichaPortico"); if(!box) return;
-    if(!selPortico){ box.hidden = true; box.innerHTML = ""; return; }
+    if(!selPortico){ fichaAbierta = false; box.hidden = true; box.innerHTML = ""; fichaVer(false, true); return; }
     var p = null; lista().forEach(function(x, k){ if(numDe(x, k) === String(selPortico)) p = x; });
-    if(!p){ box.hidden = true; return; }
+    if(!p){ box.hidden = true; fichaVer(false, true); return; }
     var f = FICHAS[p.nombre], st = ultimoData ? estadoDe(String(selPortico), ultimoData) : null;
     var estado = st ? chip(st.name) + ' <span class="f-sub">' + subEstado(st) + '</span>' : '<span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar</span>';
     var head = '<div class="ficha-head"><div class="ficha-tit"><strong>Ficha t\u00e9cnica \u00b7 ' + esc(p.nombre) + '</strong><span>' + esc(p.comuna) + (f && f.provincia ? ' \u00b7 ' + esc(f.provincia) : '') + '</span></div>'
       + (f && f.prioridad ? '<span class="prio prio-' + sinTildes(f.prioridad) + '">Prioridad ' + esc(f.prioridad) + '</span>' : '')
-      + '<button type="button" class="ficha-comp" aria-label="Compartir este p\u00f3rtico" title="Compartir este p\u00f3rtico"><span aria-hidden="true">\ud83d\udd17</span></button><button type="button" class="ficha-comp" data-3d="' + esc(String(selPortico)) + '" aria-label="Ver en 3D" title="Ver en 3D" style="width:auto;border-radius:16px;padding:0 10px;font-size:.78rem"><span aria-hidden="true">\ud83e\uddca 3D</span></button><button type="button" class="ficha-x" aria-label="Cerrar ficha">\u2715</button></div>';
+      + '<button type="button" class="ficha-comp" aria-label="Compartir este p\u00f3rtico" title="Compartir este p\u00f3rtico"><span aria-hidden="true">\ud83d\udd17</span></button><button type="button" class="ficha-comp" data-3d="' + esc(String(selPortico)) + '" aria-label="Ver en 3D" title="Ver en 3D" style="width:auto;border-radius:16px;padding:0 10px;font-size:.78rem"><span aria-hidden="true">\ud83e\uddca 3D</span></button><button type="button" class="ficha-x" aria-label="Ocultar ficha" title="Ocultar ficha (se contrae a la derecha)">\u203a\u203a</button></div>';
     var cuerpo;
     if(!f){
       var mp = tieneCoords(p) ? ' <a class="f-map" href="https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng + '" target="_blank" rel="noopener">Ver mapa</a>' : '';
@@ -4038,8 +4088,8 @@ window.PORTICOS_LISTA = (function(){
           + par('Lado', f.lado) + par('Altura de brazo', f.alturaBrazo, 'm') + par('Largo de brazo', f.largoBrazo, 'm') + par('Dimensi\u00f3n fundaci\u00f3n', f.fundacion, 'm')
           + par('Dist. al cerco', f.distCerco, 'm') + par('Dist. eje camino', f.distEje, 'm') + par('Dist. borde pavimento', f.distBorde, 'm') + '</div></div>';
     }
-    box.innerHTML = head + cuerpo; box.hidden = false;
-    box.querySelector(".ficha-x").onclick = function(){ seleccionarPortico(selPortico, false); };
+    box.innerHTML = head + cuerpo; box.hidden = false; box.scrollTop = 0; fichaVer(fichaAbierta, true);
+    box.querySelector(".ficha-x").onclick = function(){ fichaVer(false); };
     box.querySelector(".ficha-comp").onclick = function(){ compartir(urlVista({ soloPortico:true }), "P\u00f3rtico " + p.nombre + " \u00b7 GeoMav"); };
   }
 
@@ -4647,7 +4697,7 @@ window.PORTICOS_LISTA = (function(){
     return '<div class="pm-pop"><strong>' + esc(p.nombre) + '</strong>'
       + '<div class="pm-s">' + esc(p.comuna || "") + '<br>' + (st ? esc(st.name) + ' \u00b7 ejecutado ' + fmt(st.fecha) : 'Sin iniciar') + (gpsPos ? '<br><span class="gps-tip">A ' + fmtDist(distKm(gpsPos, [p.lat, p.lng]) * 1000) + ' de ti (en l\u00ednea recta)</span>' : '') + '</div>' + (window.PORTICOS_CLIMA ? PORTICOS_CLIMA.franja(p) : '') + (window.iptEnPunto ? window.iptEnPunto(p.lat, p.lng) : '')
       + '<div class="pm-acc"><a class="pm-b pm-go" href="https://www.google.com/maps/dir/?api=1&destination=' + p.lat + ',' + p.lng + '&travelmode=driving" target="_blank" rel="noopener">\ud83e\udded Ir al lugar</a>'
-      + '<button type="button" class="pm-b' + (en ? ' pm-on' : '') + '" onclick="window.rutaToggle(\'' + num + '\')">' + (en ? '\u2795 A la ruta (' + en + ')' : '\u2795 A la ruta') + '</button></div>'
+      + '<button type="button" class="pm-b pm-ficha" onclick="window.abrirFicha(\'' + num + '\')">\ud83d\udccb Ficha t\u00e9cnica</button><button type="button" class="pm-b' + (en ? ' pm-on' : '') + '" onclick="window.rutaToggle(\'' + num + '\')">' + (en ? '\u2795 A la ruta (' + en + ')' : '\u2795 A la ruta') + '</button></div>'
       + '<a class="pm-l" href="#" onclick="window.abrirPortico(' + num + ');return false;">Registrar avance</a> \u00b7 <a class="pm-l" href="#" data-3d="' + num + '">\ud83e\uddca Ver en 3D</a></div>';
   }
   function distKm(a, b){ var R = 6371, t = Math.PI / 180, dLa = (b[0] - a[0]) * t, dLo = (b[1] - a[1]) * t, h = Math.sin(dLa / 2) * Math.sin(dLa / 2) + Math.cos(a[0] * t) * Math.cos(b[0] * t) * Math.sin(dLo / 2) * Math.sin(dLo / 2); return 2 * R * Math.asin(Math.sqrt(h)); }
