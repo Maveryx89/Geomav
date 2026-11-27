@@ -1272,6 +1272,7 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 .ruta-l li em{ font-style:normal; font-size:.68rem; color:var(--blueprint); font-weight:700; white-space:nowrap; }
 .ruta-l li em.r-alm{ display:block; color:var(--ink-soft); font-weight:600; }
 
+.sec-kebab{ display:none; }
 /* ===== celular: versión compacta (botones y espacios más chicos) ===== */
 @media (max-width:860px){
   .proyecto-head{ padding:6px 12px 0; } .proyecto-tit{ font-size:16px; } .proyecto-sub{ font-size:11px; }
@@ -1305,20 +1306,6 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
 
 /* ===== celular: controles en una sola fila; el que se usa se ensancha ===== */
 @media (max-width:860px){
-  .toolbar{ flex-wrap:nowrap; }
-  .toolbar > .lp-filtros{ display:contents; }
-  .toolbar > .ru-abrir, .toolbar > .menu-mas > summary{ font-size:0; min-width:34px; padding:3px 8px; text-align:center; }
-  .toolbar > .ru-abrir > span, .toolbar > .menu-mas > summary > span{ font-size:1.05rem; }
-  .toolbar > .ru-abrir{ flex:none; } .toolbar > .menu-mas{ flex:none; } .toolbar > .ayuda{ flex:none; }
-  .toolbar .lpf{ flex:1 1 0; min-width:0; transition:flex-grow .2s ease; }
-  .toolbar .lpf > summary{ max-width:none; height:34px; min-height:34px; box-sizing:border-box; white-space:nowrap; font-size:.78rem; padding:3px 22px 3px 9px; overflow:hidden; text-overflow:ellipsis; }
-  .toolbar .lpf[open]{ flex-grow:2.6; }
-  .toolbar:has(.lpf[open]) .lpf:not([open]){ flex-grow:.6; }
-  .toolbar .lpf-all{ flex:none; font-size:0; } .toolbar .lpf-all::before{ content:"\2715"; font-size:.95rem; } .toolbar .lpf-cnt{ display:none; }
-  .toolbar{ align-items:center; }
-  .toolbar > .ru-abrir, .toolbar > .menu-mas > summary, .toolbar > .ayuda > summary{ height:34px; min-height:34px; box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; }
-  .toolbar > .ayuda > summary{ width:34px; }
-  .toolbar .lpf-all{ height:34px; display:inline-flex; align-items:center; }
   .porticos-filtros{ display:flex; flex-wrap:nowrap; gap:5px; align-items:stretch; }
   .porticos-filtros > input, .porticos-filtros > .msel > summary{ height:34px; min-height:34px !important; box-sizing:border-box; padding-top:0; padding-bottom:0; }
   .porticos-filtros > .msel > summary{ display:flex; align-items:center; }
@@ -1328,7 +1315,35 @@ body[data-mtab="avance"] .ayuda-avance{ display:flex; }
   .porticos-filtros > .msel > summary{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .porticos-filtros > input:focus{ flex-grow:3.2; } .porticos-filtros > .msel[open]{ flex-grow:2.4; }
   .porticos-filtros:has(input:focus, .msel[open]) > :not(input:focus):not([open]){ flex-grow:.55; }
+  /* ===== menú ⋮ (Semanal / Intermedio) ===== */
+  .pizarra-block{ position:relative; }
+  .pizarra-block .section-head{ align-items:center; }
+  .sec-kebab{ all:unset; cursor:pointer; margin-left:auto; width:34px; height:34px; box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--line-strong); border-radius:8px; background:var(--paper-raised); color:var(--ink); font-size:1.25rem; font-weight:800; line-height:1; }
+  .sec-kebab[aria-expanded="true"]{ background:var(--ink); color:#fff; border-color:var(--ink); }
+  .pizarra-block .toolbar{ display:none; position:absolute; top:40px; right:12px; z-index:55; width:min(310px, calc(100% - 24px)); box-sizing:border-box; flex-direction:column; align-items:stretch; flex-wrap:nowrap; gap:6px; padding:10px; background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; box-shadow:0 14px 30px -10px rgba(10,34,64,.45); }
+  .pizarra-block.tb-open .toolbar{ display:flex; }
+  .toolbar > .ru-abrir, .toolbar > .menu-mas > summary, .toolbar > .ayuda > summary{ width:100%; height:36px; min-height:36px; box-sizing:border-box; display:flex; align-items:center; justify-content:flex-start; gap:8px; padding:0 12px; font-size:.84rem; border-radius:8px; text-align:left; }
+  .toolbar > .ayuda > summary{ border-radius:8px; }
+  .toolbar > .ayuda > summary::after{ content:"Ayuda"; font-weight:600; }
+  .toolbar > .menu-mas{ position:static; } .toolbar .menu-pop{ position:static; box-shadow:none; border:0; padding:4px 0 0; margin:0; max-height:42vh; overflow:auto; width:auto; }
+  .toolbar > .lp-filtros{ display:flex; flex-direction:column; gap:6px; padding:0; }
+  .toolbar .lpf{ width:100%; } .toolbar .lpf > summary{ max-width:none; height:36px; min-height:36px; box-sizing:border-box; border-radius:8px; display:flex; align-items:center; font-size:.84rem; padding:0 24px 0 12px; }
+  .toolbar .lpf-all{ text-align:center; padding:6px; } .toolbar .lpf-cnt{ text-align:center; }
+  /* ===== Pórticos: leyendas, ruta y estado actual más compactos ===== */
+  .mapa-leyenda{ gap:3px 9px; padding:5px 10px; font-size:.64rem; } .mapa-leyenda i{ width:8px; height:8px; }
+  .capas-ley{ padding:4px 10px; }
+  .ruta-panel{ padding:6px 10px; } .ruta-h{ font-size:.78rem; } .ruta-h span{ font-size:.66rem; }
+  .ruta-acc{ gap:5px; } .ruta-acc .r-b{ min-height:32px; padding:3px 10px; font-size:.72rem; }
+  .ruta-desde, .ruta-sal{ font-size:.74rem; }
+  .ep-box{ margin-top:8px; } .ep-toggle{ font-size:.88rem; margin-bottom:4px; }
+  .av-dist{ gap:2px 10px; font-size:.7rem; } .ep-acum{ display:none; }
+  .ep-ctrl{ display:flex; flex-wrap:nowrap; gap:5px; align-items:stretch; margin:2px 0 6px; }
+  .ep-ctrl .ep-buscar{ flex:1.2 1 0; min-width:0; margin:0; height:34px; min-height:34px; padding:0 9px; box-sizing:border-box; transition:flex-grow .2s ease; }
+  .ep-ctrl .ep-ord{ flex:1 1 0; min-width:0; width:auto; transition:flex-grow .2s ease; } .ep-ctrl .ep-ord > span{ display:none; }
+  .ep-ctrl .ep-orden{ flex:1; min-width:0; height:34px; min-height:34px; padding:0 6px; box-sizing:border-box; font-size:14px; }
+  .ep-ctrl .ep-buscar:focus{ flex-grow:3.2; } .ep-ctrl:has(.ep-buscar:focus) .ep-ord{ flex-grow:.6; }
 }
+
 </style>
 <style id="partida-trazado">
 /* partida "Trazado": 8º color fijo (celeste) */
@@ -5410,7 +5425,7 @@ window.PORTICOS_LISTA = (function(){
       + '<div class="av-dist"><span class="estado-none"><i class="dot dot-blanco"></i>Sin iniciar <b>'+sin+'</b></span>'
       + d.orden.map(function(n,i){ var t = window.PARTIDA_TONE[n]; return '<span class="av-it"><i class="dot dot-'+t+'"></i>'+esc(n)+' <b>'+dist[i]+'</b></span>'; }).join("") + '</div>'
       + '<p class="ind-nota ep-acum">Conteo acumulado: cada partida cuenta los p\u00f3rticos que ya la ejecutaron, aunque hayan avanzado a la siguiente.</p>'
-      + '<div class="ep-ctrl"><input type="search" class="ep-buscar" placeholder="Buscar p\u00f3rtico o comuna" aria-label="Buscar p\u00f3rtico" value="'+esc(epBusca)+'">'
+      + '<div class="ep-ctrl"><input type="search" class="ep-buscar" placeholder="'+(window.matchMedia("(max-width:860px)").matches ? "Buscar" : "Buscar p\u00f3rtico o comuna")+'" aria-label="Buscar p\u00f3rtico" value="'+esc(epBusca)+'">'
       + '<label class="ep-ord"><span>Ordenar</span><select class="ep-orden" aria-label="Ordenar el listado">' + EP_ORDENES.map(function(o){ return '<option value="'+o[0]+'"'+(o[0]===epOrden?' selected':'')+'>'+o[1]+'</option>'; }).join("") + '</select></label></div>'
       + '<div class="ep-lista" style="--np:'+d.orden.length+'"><div class="ep-th"><span>P\u00f3rtico</span><span></span><span>Comuna</span>' + d.orden.map(function(n, i){ var on = function(dr){ return epCol && epCol.i === i && epCol.dir === dr ? ' on' : ''; }; return '<span class="ep-hc" title="'+esc(n)+'"><i class="dot dot-'+window.PARTIDA_TONE[n]+'"></i><span class="ep-hn">'+esc(n.replace(/^Inst\. (de )?/, ""))+'</span><span class="ep-ar"><button type="button" class="ep-up'+on(1)+'" data-epcol="'+i+'" data-dir="1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s antigua primero" aria-label="Ordenar por fecha de '+esc(n)+' ascendente">\u25b2</button><button type="button" class="ep-dn'+on(-1)+'" data-epcol="'+i+'" data-dir="-1" title="Ordenar por fecha de '+esc(n)+': m\u00e1s reciente primero" aria-label="Ordenar por fecha de '+esc(n)+' descendente">\u25bc</button></span></span>'; }).join("") + CONDS.map(function(c, i){ return '<span class="ep-hc ep-hcd'+(i === 0 ? ' ep-hg' : '')+'">'+(c.multi ? '<i class="ep-ins" aria-hidden="true">\u26a1\ud83d\udca7</i>' : '<i class="dot dot-'+window.PARTIDA_TONE[c.partida]+'"></i>')+'<span class="ep-hn"><b>'+esc(c.titulo)+'</b><small>'+esc(c.sub)+'</small></span></span>'; }).join("") + '<span>Clima hoy</span><span>Notas</span><span></span></div>' + (filas || '<p class="pm-vacio">Ning\u00fan p\u00f3rtico coincide.</p>') + '</div>'
       + '<p class="ind-nota">Toca un p\u00f3rtico para ver las tareas realizadas (m\u00e1s reciente primero).</p></div></div>';
@@ -5960,5 +5975,26 @@ window.PORTICOS_LISTA = (function(){
 </script>
 <script src="../_comun/acerca-de.js" data-app="Programación de Pórticos de Vigilancia" data-desc="Programación y seguimiento de la instalación de pórticos de vigilancia, Región de O’Higgins." data-host=".topbar" data-clase="theme-toggle" defer></script>
 <script>try{ if(window.matchMedia("(max-width:860px)").matches){ var fb=document.getElementById("fBuscar"); if(fb) fb.placeholder="Buscar"; } }catch(e){}</script>
+<script>
+/* menú ⋮ en celular: reúne los botones de la barra (Semanal / Intermedio) */
+(function(){
+  try{
+    var mq = window.matchMedia("(max-width:860px)");
+    function armar(){
+      Array.prototype.forEach.call(document.querySelectorAll(".pizarra-block"), function(bl){
+        var h = bl.querySelector(":scope > .section-head"); if(!h || h.querySelector(".sec-kebab") || !bl.querySelector(".toolbar")) return;
+        var b = document.createElement("button"); b.type = "button"; b.className = "sec-kebab"; b.setAttribute("aria-label", "M\u00e1s opciones y filtros"); b.setAttribute("aria-expanded", "false"); b.textContent = "\u22ee";
+        b.addEventListener("click", function(e){ e.stopPropagation(); var on = !bl.classList.contains("tb-open"); bl.classList.toggle("tb-open", on); b.setAttribute("aria-expanded", on ? "true" : "false"); });
+        h.appendChild(b);
+      });
+    }
+    armar(); setTimeout(armar, 800);
+    document.addEventListener("click", function(e){
+      if(e.target.closest(".toolbar, .sec-kebab, .lpf-pop")) return;
+      Array.prototype.forEach.call(document.querySelectorAll(".pizarra-block.tb-open"), function(bl){ bl.classList.remove("tb-open"); var k = bl.querySelector(".sec-kebab"); if(k) k.setAttribute("aria-expanded", "false"); });
+    });
+  }catch(e){}
+})();
+</script>
 </body>
 </html>
