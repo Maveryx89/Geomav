@@ -1,7 +1,7 @@
 // Service Worker — Pórticos (GeoMav). Alcance: /topocalc/Porticos/
 // Páginas: red primero (así las actualizaciones llegan al tiro) y, sin señal, la última copia guardada.
 // Los datos (Apps Script) y el cálculo de rutas (OSRM) NO se guardan: siempre van a la red.
-const VERSION = 'porticos-v16';
+const VERSION = 'porticos-v17';
 const TILES = 'porticos-tiles-v1';
 const MAX_TILES = 400;
 const BASE = '/topocalc/Porticos/';
